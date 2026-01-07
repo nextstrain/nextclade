@@ -1,6 +1,6 @@
 use crate::coord::coord_map::local_to_codon_range_exclusive;
 use crate::coord::position::PositionLike;
-use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange, NucRefLocalRange};
+use crate::coord::range::{AaRefRange, NucRefGlobalRange, NucRefLocalRange, intersect};
 use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;
 use eyre::Report;

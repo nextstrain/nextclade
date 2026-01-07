@@ -8,7 +8,7 @@ use crate::gene::protein::{Protein, ProteinSegment};
 use crate::utils::string::truncate_right;
 use console::style;
 use eyre::Report;
-use itertools::{max as iter_max, Itertools};
+use itertools::{Itertools, max as iter_max};
 use num_traits::clamp;
 use std::cmp::{max, min};
 use std::io::Write;

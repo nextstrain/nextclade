@@ -1,5 +1,5 @@
 use crate::analyze::find_private_aa_mutations::{
-  find_private_aa_mutations, FindPrivateAaMutationsParams, PrivateAaMutations,
+  FindPrivateAaMutationsParams, PrivateAaMutations, find_private_aa_mutations,
 };
 use crate::tree::tree::AuspiceRefNodeSearchCriteria;
 use crate::tree::tree_find_ancestors_of_interest::{

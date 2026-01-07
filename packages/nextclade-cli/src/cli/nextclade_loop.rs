@@ -7,7 +7,7 @@ use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::graph::graph::Graph;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
-use nextclade::io::json::{json_write, JsonPretty};
+use nextclade::io::json::{JsonPretty, json_write};
 use nextclade::io::nextclade_csv_column_config::CsvColumnConfig;
 use nextclade::io::nwk_writer::nwk_write_to_file;
 use nextclade::run::nextclade_wasm::{AnalysisInitialData, AnalysisOutput, Nextclade};
@@ -161,10 +161,8 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
         }
 
         for record in result_receiver {
-          if should_write_tree {
-            if let Ok(AnalysisOutput { analysis_result, .. }) = &record.outputs_or_err {
-              outputs.push(analysis_result.clone());
-            }
+          if should_write_tree && let Ok(AnalysisOutput { analysis_result, .. }) = &record.outputs_or_err {
+            outputs.push(analysis_result.clone());
           }
           output_writer
             .write_record(record)

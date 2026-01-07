@@ -3,7 +3,7 @@ use crate::io::fs::ensure_dir;
 use eyre::{Report, WrapErr};
 use log::info;
 use std::fs::File;
-use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Write};
+use std::io::{BufRead, BufReader, BufWriter, Write, stdin, stdout};
 use std::path::Path;
 
 pub const DEFAULT_FILE_BUF_SIZE: usize = 256 * 1024;
@@ -42,7 +42,7 @@ pub fn create_file_or_stdout(filepath: impl AsRef<Path>) -> Result<Box<dyn Write
   let filepath = filepath.as_ref();
 
   let file: Box<dyn Write + Sync + Send> = if is_path_stdout(filepath) {
-    info!("File path is {filepath:?}. Writing to standard output.");
+    info!("File path is '{}'. Writing to standard output.", filepath.display());
     Box::new(BufWriter::with_capacity(DEFAULT_FILE_BUF_SIZE, stdout()))
   } else {
     ensure_dir(filepath)?;

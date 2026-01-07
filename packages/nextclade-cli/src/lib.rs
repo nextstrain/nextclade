@@ -5,7 +5,7 @@ pub mod io;
 #[cfg(test)]
 mod tests {
   use ctor::ctor;
-  use nextclade::utils::global_init::{global_init, GlobalInitConfig};
+  use nextclade::utils::global_init::{GlobalInitConfig, global_init};
 
   #[ctor]
   fn init() {

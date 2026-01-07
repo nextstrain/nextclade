@@ -9,7 +9,7 @@ use crate::tree::tree_builder::{
   convert_private_mutations_to_node_branch_attrs, convert_private_mutations_to_node_branch_attrs_aa_labels,
 };
 use crate::types::outputs::NextcladeOutputs;
-use itertools::{chain, Itertools};
+use itertools::{Itertools, chain};
 use serde_json::json;
 
 pub fn create_new_auspice_node(

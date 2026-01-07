@@ -4,7 +4,7 @@ use nextclade::features::feature_tree::FeatureTree;
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::io::file::open_file_or_stdin;
-use nextclade::io::json::{json_or_yaml_write, json_stringify, JsonPretty};
+use nextclade::io::json::{JsonPretty, json_or_yaml_write, json_stringify};
 use std::io::Read;
 
 pub fn nextclade_read_annotation(args: &NextcladeReadAnnotationArgs) -> Result<(), Report> {

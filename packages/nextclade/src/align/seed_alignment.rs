@@ -239,10 +239,7 @@ mod debug {
     for (i, seed) in matches.iter().enumerate() {
       trace!(
         "Match {}: ref_pos: {}, qry_offset: {}, length: {}",
-        i,
-        seed.ref_pos,
-        -seed.offset,
-        seed.length,
+        i, seed.ref_pos, -seed.offset, seed.length,
       );
     }
   }

@@ -1,6 +1,6 @@
 #![allow(non_snake_case, clippy::missing_const_for_fn)]
 use crate::make_error;
-use eyre::{eyre, Report};
+use eyre::{Report, eyre};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

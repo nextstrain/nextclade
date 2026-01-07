@@ -1,4 +1,4 @@
-use crate::alphabet::nuc::{to_nuc, Nuc};
+use crate::alphabet::nuc::{Nuc, to_nuc};
 use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::NucRefGlobalPosition;

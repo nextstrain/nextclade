@@ -18,7 +18,11 @@ If you have Nextclade CLI installed, you can type `nextclade --help` to read the
   "#,
   )?;
 
-  let help = replace(&help, "Nextclade is a part of Nextstrain: https://nextstrain.org\n\nDocumentation: https://docs.nextstrain.org/projects/nextclade\nNextclade Web: https://clades.nextstrain.org\nPublication:   https://doi.org/10.21105/joss.03773", "Nextclade is a part of Nextstrain: [https://nextstrain.org](https://nextstrain.org)\n\nDocumentation: [https://docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade)\n\nNextclade Web: [https://clades.nextstrain.org](https://clades.nextstrain.org)\n\nPublication: [https://doi.org/10.21105/joss.03773](https://doi.org/10.21105/joss.03773)")?;
+  let help = replace(
+    &help,
+    "Nextclade is a part of Nextstrain: https://nextstrain.org\n\nDocumentation: https://docs.nextstrain.org/projects/nextclade\nNextclade Web: https://clades.nextstrain.org\nPublication:   https://doi.org/10.21105/joss.03773",
+    "Nextclade is a part of Nextstrain: [https://nextstrain.org](https://nextstrain.org)\n\nDocumentation: [https://docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade)\n\nNextclade Web: [https://clades.nextstrain.org](https://clades.nextstrain.org)\n\nPublication: [https://doi.org/10.21105/joss.03773](https://doi.org/10.21105/joss.03773)",
+  )?;
 
   let help = replace(&help, "(.*)— REMOVED(.*)", "")?;
   let help = replace(&help, "(.*)— RENAMED(.*)", "")?;

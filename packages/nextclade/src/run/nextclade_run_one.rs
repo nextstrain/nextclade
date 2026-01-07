@@ -1,5 +1,5 @@
 use crate::align::align::align_nuc;
-use crate::align::insertions_strip::{get_aa_insertions, insertions_strip, AaIns, NucIns};
+use crate::align::insertions_strip::{AaIns, NucIns, get_aa_insertions, insertions_strip};
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
@@ -12,29 +12,29 @@ use crate::analyze::divergence::calculate_branch_length;
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::find_aa_motifs_changes;
 use crate::analyze::find_clade_founder::{
-  find_clade_founder, find_clade_node_attrs_founders, CladeNodeAttrFounderInfo,
+  CladeNodeAttrFounderInfo, find_clade_founder, find_clade_node_attrs_founders,
 };
 use crate::analyze::find_private_aa_mutations::{
-  find_private_aa_mutations, FindPrivateAaMutationsParams, PrivateAaMutations,
+  FindPrivateAaMutationsParams, PrivateAaMutations, find_private_aa_mutations,
 };
 use crate::analyze::find_private_nuc_mutations::{
-  find_private_nuc_mutations, FindPrivateNucMutationsParams, PrivateNucMutations,
+  FindPrivateNucMutationsParams, PrivateNucMutations, find_private_nuc_mutations,
 };
-use crate::analyze::find_relative_aa_mutations::{find_relative_aa_mutations, RelativeAaMutations};
-use crate::analyze::find_relative_nuc_mutations::{find_relative_nuc_mutations, RelativeNucMutations};
+use crate::analyze::find_relative_aa_mutations::{RelativeAaMutations, find_relative_aa_mutations};
+use crate::analyze::find_relative_nuc_mutations::{RelativeNucMutations, find_relative_nuc_mutations};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{
-  find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, CdsAaRange, NucRange,
+  CdsAaRange, NucRange, find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by,
 };
 use crate::analyze::nuc_alignment::NucAlignment;
-use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
+use crate::analyze::nuc_changes::{FindNucChangesOutput, find_nuc_changes};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::position::PositionLike;
-use crate::coord::range::{intersect, AaRefRange, NucRefGlobalRange, Range};
+use crate::coord::range::{AaRefRange, NucRefGlobalRange, Range, intersect};
 use crate::gene::cds_segment::{CdsSegment, Truncation};
 use crate::gene::gene::GeneStrand;
 use crate::gene::gene_map::GeneMap;
@@ -44,17 +44,17 @@ use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
 use crate::o;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextclade_wasm::{AnalysisOutput, Nextclade};
-use crate::translate::aa_alignment_ranges::{gather_aa_alignment_ranges, GatherAaAlignmentRangesResult};
+use crate::translate::aa_alignment_ranges::{GatherAaAlignmentRangesResult, gather_aa_alignment_ranges};
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::{translate_genes, Translation};
-use crate::tree::tree_find_ancestors_of_interest::{graph_find_ancestors_of_interest, AncestralSearchResult};
+use crate::translate::translate_genes::{Translation, translate_genes};
+use crate::tree::tree_find_ancestors_of_interest::{AncestralSearchResult, graph_find_ancestors_of_interest};
 use crate::tree::tree_find_nearest_node::graph_find_nearest_nodes;
 use crate::types::outputs::{NextcladeOutputs, PeptideWarning, PhenotypeValue};
 use crate::utils::num::float_collapse_zero;
 use eyre::Report;
 use indexmap::indexmap;
-use itertools::{izip, Itertools};
+use itertools::{Itertools, izip};
 use std::collections::{BTreeMap, HashSet};
 
 #[derive(Default)]

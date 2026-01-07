@@ -1,5 +1,5 @@
-use crate::io::file::{open_file_or_stdin, DEFAULT_FILE_BUF_SIZE};
-use eyre::{eyre, Report, WrapErr};
+use crate::io::file::{DEFAULT_FILE_BUF_SIZE, open_file_or_stdin};
+use eyre::{Report, WrapErr, eyre};
 use std::ffi::{OsStr, OsString};
 use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};

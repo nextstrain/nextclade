@@ -18,7 +18,7 @@ pub mod utils;
 
 #[cfg(test)]
 mod tests {
-  use crate::utils::global_init::{global_init, GlobalInitConfig};
+  use crate::utils::global_init::{GlobalInitConfig, global_init};
   use ctor::ctor;
 
   #[ctor]

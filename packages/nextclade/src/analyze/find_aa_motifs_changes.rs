@@ -1,7 +1,7 @@
 use crate::alphabet::aa::from_aa_seq;
 use crate::analyze::find_aa_motifs::{AaMotif, AaMotifWithoutSeq};
 use crate::coord::position::AaRefPosition;
-use crate::coord::range::{intersect, Range};
+use crate::coord::range::{Range, intersect};
 use crate::translate::translate_genes::Translation;
 use crate::utils::collections::cloned_into;
 use crate::utils::zip_map::zip_by_key;

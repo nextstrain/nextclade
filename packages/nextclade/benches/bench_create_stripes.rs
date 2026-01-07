@@ -1,4 +1,6 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
+use std::hint::black_box;
+
+use criterion::{Criterion, Throughput, criterion_group, criterion_main};
 use nextclade::align::seed_alignment::create_alignment_band;
 use nextclade::align::seed_match::SeedMatch2;
 

@@ -1,13 +1,13 @@
 use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
-use crate::io::nextclade_csv_column_config::{CsvColumnConfig, CSV_POSSIBLE_COLUMNS};
+use crate::io::nextclade_csv_column_config::{CSV_POSSIBLE_COLUMNS, CsvColumnConfig};
 use crate::io::nextclade_csv_row::NextcladeResultsCsvRow;
 use crate::o;
 use crate::tree::tree::{AuspiceRefNodeSearchDesc, AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
 use crate::types::outputs::{
-  combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
+  NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, combine_outputs_and_errors_sorted,
 };
 use eyre::Report;
-use itertools::{chain, Itertools};
+use itertools::{Itertools, chain};
 use std::path::Path;
 
 pub fn prepare_headers(

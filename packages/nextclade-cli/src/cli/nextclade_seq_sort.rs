@@ -4,24 +4,24 @@ use crate::io::http_client::HttpClient;
 use console::style;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::{trace, LevelFilter};
+use log::{LevelFilter, trace};
 use maplit::btreemap;
 use nextclade::io::csv::CsvStructFileWriter;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::fs::path_to_string;
 use nextclade::make_error;
-use nextclade::sort::minimizer_index::{MinimizerIndexJson, MINIMIZER_INDEX_ALGO_VERSION};
+use nextclade::sort::minimizer_index::{MINIMIZER_INDEX_ALGO_VERSION, MinimizerIndexJson};
 use nextclade::sort::minimizer_search::{
-  find_best_datasets, find_best_suggestion_for_seq, run_minimizer_search, MinimizerSearchDatasetResult,
-  MinimizerSearchRecord,
+  MinimizerSearchDatasetResult, MinimizerSearchRecord, find_best_datasets, find_best_suggestion_for_seq,
+  run_minimizer_search,
 };
 use nextclade::utils::option::{OptionMapMutFallible, OptionMapRefFallible};
 use nextclade::utils::string::truncate;
 use ordered_float::OrderedFloat;
 use schemars::JsonSchema;
 use serde::Serialize;
-use std::collections::btree_map::Entry::{Occupied, Vacant};
 use std::collections::BTreeMap;
+use std::collections::btree_map::Entry::{Occupied, Vacant};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
@@ -74,7 +74,11 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
         format!(": {server_versions}")
       };
 
-      make_error!("No compatible reference minimizer index data is found for this dataset sever. Cannot proceed. \n\nThis version of Nextclade supports index versions up to '{}', but the server has {}.\n\nTry to to upgrade Nextclade to the latest version and/or contact dataset server maintainers.", MINIMIZER_INDEX_ALGO_VERSION, server_versions)
+      make_error!(
+        "No compatible reference minimizer index data is found for this dataset sever. Cannot proceed. \n\nThis version of Nextclade supports index versions up to '{}', but the server has {}.\n\nTry to to upgrade Nextclade to the latest version and/or contact dataset server maintainers.",
+        MINIMIZER_INDEX_ALGO_VERSION,
+        server_versions
+      )
     }
   }?;
 
@@ -483,10 +487,11 @@ fn check_args(args: &NextcladeSortArgs) -> Result<(), Report> {
     );
   }
 
-  if let Some(output) = output {
-    if !output.contains("{name}") {
-      return make_error!(
-        r#"
+  if let Some(output) = output
+    && !output.contains("{name}")
+  {
+    return make_error!(
+      r#"
 Expected `--output` argument to contain a template string containing template variable {{name}} (with curly braces), but received:
 
   {output}
@@ -497,8 +502,7 @@ Example for bash shell:
   --output='outputs/{{name}}/sorted.fasta.gz'
 
       "#
-      );
-    }
+    );
   }
 
   Ok(())

@@ -248,7 +248,7 @@ impl FastaPeptideWriter {
           .render("output_translations", &template_context)
           .wrap_err_with(|| format!("When rendering output translations path template: '{output_translations}', using context: {template_context:?}"))?;
         let out_gene_fasta_path = PathBuf::from_str(&rendered_path).wrap_err_with(|| format!("Invalid output translations path: '{rendered_path}'"))?;
-        trace!("Creating fasta writer to file {out_gene_fasta_path:#?}");
+        trace!("Creating fasta writer to file '{}'", out_gene_fasta_path.display());
         let writer = FastaWriter::from_path(&out_gene_fasta_path)?;
         Ok((cds.name.clone(), writer))
       })

@@ -1,9 +1,9 @@
 use crate::graph::edge::GraphEdgeKey;
 use crate::io::json::is_json_value_null;
 use core::fmt::Debug;
+use schemars::JsonSchema;
 use schemars::r#gen::SchemaGenerator;
 use schemars::schema::Schema;
-use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{Display, Formatter};
 

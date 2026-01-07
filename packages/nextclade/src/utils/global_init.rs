@@ -1,4 +1,4 @@
-use crate::io::console::{use_color, use_color_for_backtrace, CliColorMode};
+use crate::io::console::{CliColorMode, use_color, use_color_for_backtrace};
 use crate::io::fs::filename_maybe;
 use crate::utils::datetime::{date_format_precise, date_now};
 use crate::utils::eyre::eyre_init;

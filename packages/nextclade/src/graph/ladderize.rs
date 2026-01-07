@@ -3,7 +3,7 @@ use crate::graph::graph::Graph;
 use crate::graph::node::{GraphNode, GraphNodeKey};
 use crate::make_internal_report;
 use eyre::{Report, WrapErr};
-use itertools::{izip, Itertools};
+use itertools::{Itertools, izip};
 use std::collections::HashMap;
 
 pub fn graph_ladderize<N, E, D>(graph: &mut Graph<N, E, D>) -> Result<(), Report>

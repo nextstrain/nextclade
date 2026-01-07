@@ -2,9 +2,9 @@ use crate::io::fs::extension;
 use crate::utils::error::report_to_string;
 use color_eyre::{Help, SectionExt};
 use eyre::{Report, WrapErr};
+use flate2::Compression as GzCompressionLevel;
 use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
-use flate2::Compression as GzCompressionLevel;
 use log::trace;
 use std::env;
 use std::io::{Read, Write};
@@ -17,11 +17,11 @@ use std::str::FromStr;
 // TODO: keep an eye on efforts of bringing (pieces of) libc to `wasm32-unknown-unknown`, and enable `bzip2`, `xz2`
 // and `zstd` crates for wasm builds when it's compatible enough: https://github.com/rustwasm/team/issues/291
 #[cfg(not(target_arch = "wasm32"))]
+use bzip2::Compression as BzCompressionLevel;
+#[cfg(not(target_arch = "wasm32"))]
 use bzip2::read::MultiBzDecoder;
 #[cfg(not(target_arch = "wasm32"))]
 use bzip2::write::BzEncoder;
-#[cfg(not(target_arch = "wasm32"))]
-use bzip2::Compression as BzCompressionLevel;
 
 #[cfg(not(target_arch = "wasm32"))]
 use xz2::read::XzDecoder;
@@ -66,8 +66,9 @@ pub fn guess_compression_from_filepath(filepath: impl AsRef<Path>) -> (Compressi
       };
 
       trace!(
-        "When processing {filepath:#?}: detected file extension '{ext}'. \
-        It will be using algorithm: '{compression_type}'"
+        "When processing '{}': detected file extension '{ext}'. \
+        It will be using algorithm: '{compression_type}'",
+        filepath.display()
       );
 
       (compression_type, ext)

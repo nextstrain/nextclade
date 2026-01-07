@@ -1,9 +1,9 @@
 use crate::analyze::virus_properties::PhenotypeAttrDesc;
-use crate::io::json::{json_stringify, json_write, JsonPretty};
+use crate::io::json::{JsonPretty, json_stringify, json_write};
 use crate::io::ndjson::NdjsonWriter;
 use crate::tree::tree::{AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
 use crate::types::outputs::{
-  combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
+  NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, combine_outputs_and_errors_sorted,
 };
 use crate::utils::datetime::date_iso_now;
 use crate::utils::info::this_package_version_str;

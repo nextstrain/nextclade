@@ -7,8 +7,8 @@ use crate::io::file::open_file_or_stdin;
 use crate::make_error;
 use crate::utils::error::to_eyre_error;
 use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
-use eyre::{eyre, Report, WrapErr};
-use itertools::{chain, Itertools};
+use eyre::{Report, WrapErr, eyre};
+use itertools::{Itertools, chain};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::io::Read;
@@ -182,7 +182,9 @@ fn process_gff_records<R: Read>(reader: &mut GffReader<R>) -> Result<Vec<Feature
   validate(&features)?;
 
   if features.is_empty() {
-    return make_error!("Genome annotation file contains no features. This is not allowed. Either add features to the file, or remove the file. Please report this to dataset authors.");
+    return make_error!(
+      "Genome annotation file contains no features. This is not allowed. Either add features to the file, or remove the file. Please report this to dataset authors."
+    );
   }
 
   process_circular_features(&mut features)?;

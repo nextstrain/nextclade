@@ -8,16 +8,16 @@ use crate::cli::verbosity::Verbosity;
 use crate::io::http_client::ProxyConfig;
 use clap::builder::styling;
 use clap::{ArgGroup, CommandFactory, Parser, Subcommand, ValueEnum, ValueHint};
-use clap_complete::{generate, Shell};
+use clap_complete::{Shell, generate};
 use clap_complete_fig::Fig;
-use eyre::{eyre, ContextCompat, Report, WrapErr};
+use eyre::{ContextCompat, Report, WrapErr, eyre};
 use itertools::Itertools;
 use nextclade::io::console::CliColorMode;
 use nextclade::io::fs::add_extension;
 use nextclade::run::params::NextcladeInputParamsOptional;
-use nextclade::schema::schema::{cli_handle_schema, NextcladeSchemaArgs};
+use nextclade::schema::schema::{NextcladeSchemaArgs, cli_handle_schema};
 use nextclade::sort::params::NextcladeSeqSortParams;
-use nextclade::utils::global_init::{global_init, GlobalInitConfig};
+use nextclade::utils::global_init::{GlobalInitConfig, global_init};
 use nextclade::{getenv, make_error};
 use std::fmt::Debug;
 use std::io;
@@ -926,10 +926,11 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
     }
   }
 
-  if let Some(output_translations) = output_translations {
-    if !output_translations.contains("{cds}") {
-      return make_error!(
-        r#"
+  if let Some(output_translations) = output_translations
+    && !output_translations.contains("{cds}")
+  {
+    return make_error!(
+      r#"
 Expected `--output-translations` argument to contain a template string containing template variable {{cds}} (with curly braces), but received:
 
   {output_translations}
@@ -940,8 +941,7 @@ Example for bash shell:
   --output-translations='output_dir/nextclade.cds_translation.{{cds}}.fasta'
 
       "#
-      );
-    }
+    );
   }
 
   let all_outputs_are_missing = [
@@ -1155,7 +1155,9 @@ pub fn nextclade_check_column_config_args(run_args: &NextcladeRunArgs) -> Result
   } = &run_args.outputs;
 
   if !output_columns_selection.is_empty() && [output_all, output_csv, output_tsv].iter().all(|arg| arg.is_none()) {
-    return make_error!("The `--output-columns-selection` argument configures column-based output formats and can only be used when one or more of the column-based file outputs is requested, i.e. together with one or multiple of `--output-all`, `--output-csv`, `--output-tsv`.");
+    return make_error!(
+      "The `--output-columns-selection` argument configures column-based output formats and can only be used when one or more of the column-based file outputs is requested, i.e. together with one or multiple of `--output-all`, `--output-csv`, `--output-tsv`."
+    );
   }
 
   Ok(())

@@ -45,8 +45,11 @@ eyre = { workspace = true }
 [dev-dependencies]
 assert2 = { workspace = true }
 
+# Enable `js` feature for transitive getrandom 0.2.x (pulled by rand 0.8 → rand_core 0.6 → getrandom 0.2).
+# This is separate from workspace's getrandom 0.3.4 which uses `wasm_js` feature.
+# Required for wasm32-unknown-unknown target where getrandom needs JS bindings.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.2", features = ["js"] }
+getrandom_0_2 = { package = "getrandom", version = "0.2", features = ["js"] }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-O", "--enable-bulk-memory", "--enable-simd", "--enable-nontrapping-float-to-int"]

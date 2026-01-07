@@ -124,7 +124,9 @@ impl MinimizerIndexJson {
 
     let VersionCheck { version, .. } = json_parse(s)?;
     if version.as_str() > MINIMIZER_INDEX_ALGO_VERSION {
-      warn!("Version of the minimizer index data ({version}) is greater than maximum supported by this version of Nextclade ({MINIMIZER_INDEX_ALGO_VERSION}). This may lead to errors or incorrect results. Please try to update your version of Nextclade and/or contact dataset maintainers for more details.");
+      warn!(
+        "Version of the minimizer index data ({version}) is greater than maximum supported by this version of Nextclade ({MINIMIZER_INDEX_ALGO_VERSION}). This may lead to errors or incorrect results. Please try to update your version of Nextclade and/or contact dataset maintainers for more details."
+      );
     }
 
     json_parse(s).wrap_err("When parsing minimizer index")

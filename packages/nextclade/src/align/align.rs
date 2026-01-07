@@ -1,10 +1,10 @@
-use crate::align::backtrace::{backtrace, AlignmentOutput};
+use crate::align::backtrace::{AlignmentOutput, backtrace};
 use crate::align::band_2d::Stripe;
 use crate::align::band_2d::{full_matrix, simple_stripes};
 use crate::align::params::AlignPairwiseParams;
-use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
+use crate::align::score_matrix::{ScoreMatrixResult, score_matrix};
 use crate::align::seed_alignment::create_alignment_band;
-use crate::align::seed_match::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
+use crate::align::seed_match::{CodonSpacedIndex, SeedMatchesResult, get_seed_matches_maybe_reverse_complement};
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
@@ -49,7 +49,9 @@ pub fn align_nuc(
   if ref_len + qry_len < (20 * params.kmer_length) {
     // for very short sequences, use full square
     let stripes = full_matrix(ref_len, qry_len);
-    trace!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band construction: short sequences, using full matrix");
+    trace!(
+      "When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band construction: short sequences, using full matrix"
+    );
     return Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes));
   }
 
@@ -76,13 +78,19 @@ pub fn align_nuc(
     minimal_bandwidth,
   );
   if band_area > max_band_area {
-    return make_error!("Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's pathogen.json");
+    return make_error!(
+      "Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's pathogen.json"
+    );
   }
 
   let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
 
   while alignment.hit_boundary && attempt < params.max_alignment_attempts {
-    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band boundary is hit on attempt {}. Retrying with relaxed parameters. Alignment score was: {}", attempt+1, alignment.alignment_score);
+    info!(
+      "When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band boundary is hit on attempt {}. Retrying with relaxed parameters. Alignment score was: {}",
+      attempt + 1,
+      alignment.alignment_score
+    );
     // double bandwidth parameters or increase to one if 0
     terminal_bandwidth = max(2 * terminal_bandwidth, 1);
     excess_bandwidth = max(2 * excess_bandwidth, 1);
@@ -106,14 +114,21 @@ pub fn align_nuc(
   }
   // report success/failure of broadening of band width
   if alignment.hit_boundary {
-    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Returning last attempt with score: {}", alignment.alignment_score);
+    info!(
+      "When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Returning last attempt with score: {}",
+      alignment.alignment_score
+    );
     if band_area > max_band_area {
       info!(
         "When processing sequence #{index} '{seq_name}': final band area {band_area} exceeded the cutoff {max_band_area}"
       );
     }
   } else if attempt > 0 {
-    info!("When processing sequence #{index} '{seq_name}': In nucleotide alignment: Succeeded without hitting band boundary on attempt {}. Alignment score was: {}", attempt+1, alignment.alignment_score);
+    info!(
+      "When processing sequence #{index} '{seq_name}': In nucleotide alignment: Succeeded without hitting band boundary on attempt {}. Alignment score was: {}",
+      attempt + 1,
+      alignment.alignment_score
+    );
   }
   alignment.is_reverse_complement = is_reverse_complement;
   Ok(alignment)
@@ -141,7 +156,7 @@ mod tests {
 
   // rstest fixtures are passed by value
   use super::*;
-  use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
+  use crate::align::gap_open::{GapScoreMap, get_gap_open_close_scores_codon_aware};
   use crate::align::params::GapAlignmentSide;
   use crate::alphabet::nuc::{from_nuc_seq, to_nuc_seq};
   use crate::gene::gene_map::GeneMap;

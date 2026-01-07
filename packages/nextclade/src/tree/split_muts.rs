@@ -5,7 +5,7 @@ use crate::analyze::find_private_nuc_mutations::BranchMutations;
 use crate::coord::position::PositionLike;
 use crate::make_internal_error;
 use eyre::{Report, WrapErr};
-use itertools::{chain, Itertools};
+use itertools::{Itertools, chain};
 use std::collections::BTreeMap;
 use std::fmt::Display;
 

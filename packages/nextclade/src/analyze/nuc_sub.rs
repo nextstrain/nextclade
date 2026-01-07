@@ -1,5 +1,5 @@
 use crate::alphabet::letter::Letter;
-use crate::alphabet::nuc::{from_nuc, Nuc};
+use crate::alphabet::nuc::{Nuc, from_nuc};
 use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::analyze::nuc_del::NucDel;
 use crate::coord::position::NucRefGlobalPosition;

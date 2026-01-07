@@ -1,5 +1,5 @@
 use crate::utils::map::Map;
-use itertools::{chain, Itertools};
+use itertools::{Itertools, chain};
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::marker::PhantomData;

@@ -9,7 +9,7 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::map::map_to_multimap;
 use bio::io::gff::{GffType as BioGffType, Record as BioGffRecord, Writer as BioGffWriter};
 use eyre::{Report, WrapErr};
-use indexmap::{indexmap, IndexMap};
+use indexmap::{IndexMap, indexmap};
 use itertools::Itertools;
 use multimap::MultiMap;
 use std::io::Write;

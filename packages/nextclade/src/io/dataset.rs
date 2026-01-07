@@ -3,7 +3,7 @@ use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
 use crate::utils::any::AnyType;
 use crate::{make_internal_error, o};
 use eyre::Report;
-use itertools::{chain, Itertools};
+use itertools::{Itertools, chain};
 use schemars::JsonSchema;
 use semver::Version;
 use serde::{Deserialize, Serialize};

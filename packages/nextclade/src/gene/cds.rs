@@ -9,8 +9,8 @@ use crate::gene::phase::Phase;
 use crate::gene::protein::{Protein, ProteinSegment};
 use crate::utils::iter::single_unique_value;
 use crate::{make_error, make_internal_error};
-use eyre::{eyre, Report, WrapErr};
-use indexmap::{indexmap, IndexMap};
+use eyre::{Report, WrapErr, eyre};
+use indexmap::{IndexMap, indexmap};
 use itertools::Itertools;
 use num_traits::clamp_max;
 use schemars::JsonSchema;
@@ -264,14 +264,14 @@ pub fn split_circular_cds_segments(segments: &[CdsSegment]) -> Result<Vec<CdsSeg
             let mut segment = segment.clone();
             segment.range.begin = landmark_start; // Chop the underflowing part (before landmark).
             segment.range.end = clamp_max(segment_end, landmark_end); // Chop the overflowing part (beyond landmark),
-                                                                      // in case the segment wraps multiple times.
+            // in case the segment wraps multiple times.
             segment.range_local =
               NucRefLocalRange::from_usize(segment_local_begin, segment_local_begin + segment.len());
             segment_local_begin += segment.len();
 
             segment.wrapping_part = WrappingPart::WrappingCentral(part_counter); // Mark this part as one of the
-                                                                                 // follow up parts in the wrapping
-                                                                                 // group, beyond the first wraparound.
+            // follow up parts in the wrapping
+            // group, beyond the first wraparound.
             validate_segment_bounds(&segment, false)?;
             segment
           });
@@ -314,22 +314,22 @@ fn validate_segment_bounds(segment: &CdsSegment, allow_overflow: bool) -> Result
 
     if segment.range.begin < landmark_start {
       return make_error!(
-      "Genome annotation is invalid: In genomic feature '{}': Feature start at position {} is outside of landmark feature bounds: {}..{}. Please report this to dataset authors.",
-      segment.name,
-      segment.range.begin + 1,
-      landmark_start + 1,
-      landmark_end + 1,
-    );
+        "Genome annotation is invalid: In genomic feature '{}': Feature start at position {} is outside of landmark feature bounds: {}..{}. Please report this to dataset authors.",
+        segment.name,
+        segment.range.begin + 1,
+        landmark_start + 1,
+        landmark_end + 1,
+      );
     }
 
     if !allow_overflow && segment.range.end > landmark_end {
       return make_error!(
-      "Genome annotation is invalid: In genomic feature '{}': Feature end at position {} is outside of landmark feature bounds: {}..{}. Please report this to dataset authors.",
-      segment.name,
-      segment.range.end + 1,
-      landmark_start + 1,
-      landmark_end + 1,
-    );
+        "Genome annotation is invalid: In genomic feature '{}': Feature end at position {} is outside of landmark feature bounds: {}..{}. Please report this to dataset authors.",
+        segment.name,
+        segment.range.end + 1,
+        landmark_start + 1,
+        landmark_end + 1,
+      );
     }
   }
 

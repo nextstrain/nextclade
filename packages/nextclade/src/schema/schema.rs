@@ -1,7 +1,7 @@
 use crate::analyze::virus_properties::VirusProperties;
 use crate::io::dataset::{Dataset, DatasetCollection, DatasetListJson, DatasetsIndexJson};
 use crate::io::fs::add_extension;
-use crate::io::json_schema::{jsonschema_write_file, JsonSchemaOutputFormat};
+use crate::io::json_schema::{JsonSchemaOutputFormat, jsonschema_write_file};
 use crate::io::results_json::ResultsJson;
 use crate::make_error;
 use crate::sort::minimizer_index::MinimizerIndexJson;

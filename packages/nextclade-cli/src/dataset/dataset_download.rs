@@ -2,20 +2,20 @@ use crate::cli::nextclade_cli::{NextcladeRunArgs, NextcladeRunInputArgs};
 use crate::cli::nextclade_dataset_get::{dataset_file_http_get, dataset_http_get};
 use crate::io::http_client::{HttpClient, ProxyConfig};
 use color_eyre::{Section, SectionExt};
-use eyre::{eyre, ContextCompat, Report, WrapErr};
+use eyre::{ContextCompat, Report, WrapErr, eyre};
 use itertools::Itertools;
-use log::{warn, LevelFilter};
+use log::{LevelFilter, warn};
 use nextclade::analyze::virus_properties::VirusProperties;
-use nextclade::gene::gene_map::{filter_gene_map, GeneMap};
+use nextclade::gene::gene_map::{GeneMap, filter_gene_map};
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::io::fasta::{read_one_fasta_from_file, read_one_fasta_from_str};
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
 use nextclade::run::nextclade_wasm::{NextcladeParams, NextcladeParamsOptional};
-use nextclade::tree::tree::{check_ref_seq_mismatch, AuspiceTree};
+use nextclade::tree::tree::{AuspiceTree, check_ref_seq_mismatch};
 use nextclade::utils::fs::list_files_recursive;
 use nextclade::utils::option::OptionMapRefFallible;
-use nextclade::utils::string::{format_list, surround_with_quotes, Indent};
+use nextclade::utils::string::{Indent, format_list, surround_with_quotes};
 use nextclade::{make_error, make_internal_error, o};
 use std::collections::BTreeSet;
 use std::fs::File;
@@ -159,10 +159,10 @@ pub fn dataset_zip_load(
 
   verify_dataset_files(&virus_properties, zip.file_names());
 
-  if let Some(tree) = &tree {
-    if let Some(tree_ref) = tree.root_sequence() {
-      check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
-    }
+  if let Some(tree) = &tree
+    && let Some(tree_ref) = tree.root_sequence()
+  {
+    check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
   }
 
   Ok(NextcladeParams {
@@ -217,7 +217,10 @@ fn verify_dataset_files<'a, T: AsRef<str> + 'a + ?Sized>(
       format_list(Indent(2), declared.iter()),
       format_list(Indent(2), present.iter()),
     ));
-    warn!("When reading dataset: {}\nThis is not an error. Nextclade ignores unknown file declarations and undeclared files. But this could be a mistake by the dataset author. For example, there could be a typo in pathogen.json file declaration, or a file could have been added to the dataset, but not declared in the pathogen.json. In this case, Nextclade analysis could be missing some of the features intended by the author. Contact the author to resolve this. It could also be that the dataset contains files for a newer version of Nextclade, and that the currently used version does not recognize these files. In which case try to upgrade Nextclade.", warnings.join("\n"));
+    warn!(
+      "When reading dataset: {}\nThis is not an error. Nextclade ignores unknown file declarations and undeclared files. But this could be a mistake by the dataset author. For example, there could be a typo in pathogen.json file declaration, or a file could have been added to the dataset, but not declared in the pathogen.json. In this case, Nextclade analysis could be missing some of the features intended by the author. Contact the author to resolve this. It could also be that the dataset contains files for a newer version of Nextclade, and that the currently used version does not recognize these files. In which case try to upgrade Nextclade.",
+      warnings.join("\n")
+    );
   }
 }
 
@@ -305,10 +308,10 @@ pub fn dataset_dir_load(
     .collect_vec();
   verify_dataset_files(&virus_properties, dataset_dir_files.iter());
 
-  if let Some(tree) = &tree {
-    if let Some(tree_ref) = tree.root_sequence() {
-      check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
-    }
+  if let Some(tree) = &tree
+    && let Some(tree_ref) = tree.root_sequence()
+  {
+    check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
   }
 
   Ok(NextcladeParams {
@@ -354,10 +357,10 @@ pub fn dataset_json_load(
       .map_ref_fallible(GeneMap::from_path)
       .wrap_err("When parsing genome annotation")?;
 
-    if let (Some(tree), Some(ref_record)) = (&tree, &ref_record) {
-      if let Some(tree_ref) = tree.root_sequence() {
-        check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
-      }
+    if let (Some(tree), Some(ref_record)) = (&tree, &ref_record)
+      && let Some(tree_ref) = tree.root_sequence()
+    {
+      check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
     }
 
     NextcladeParamsOptional {
@@ -408,10 +411,10 @@ pub fn dataset_individual_files_load(
         .map_ref_fallible(AuspiceTree::from_path)
         .wrap_err("When reading reference tree JSON")?;
 
-      if let Some(tree) = &tree {
-        if let Some(tree_ref) = tree.root_sequence() {
-          check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
-        }
+      if let Some(tree) = &tree
+        && let Some(tree_ref) = tree.root_sequence()
+      {
+        check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
       }
 
       Ok(NextcladeParams {
@@ -489,10 +492,10 @@ pub fn dataset_str_download_and_load(
     .map_ref_fallible(AuspiceTree::from_str)
     .wrap_err("When reading reference tree from dataset")?;
 
-  if let Some(tree) = &tree {
-    if let Some(tree_ref) = tree.root_sequence() {
-      check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
-    }
+  if let Some(tree) = &tree
+    && let Some(tree_ref) = tree.root_sequence()
+  {
+    check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
   }
 
   Ok(NextcladeParams {

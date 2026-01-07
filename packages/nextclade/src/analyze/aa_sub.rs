@@ -1,4 +1,4 @@
-use crate::alphabet::aa::{from_aa, Aa};
+use crate::alphabet::aa::{Aa, from_aa};
 use crate::alphabet::letter::Letter;
 use crate::analyze::aa_change_with_context::AaChangeWithContext;
 use crate::analyze::aa_del::AaDel;

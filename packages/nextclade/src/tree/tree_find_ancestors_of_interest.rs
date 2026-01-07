@@ -1,11 +1,11 @@
 use crate::graph::node::{GraphNodeKey, Node};
 use crate::graph::search::{graph_find_backwards_first, graph_find_backwards_last};
-use crate::io::json::{json_stringify, JsonPretty};
+use crate::io::json::{JsonPretty, json_stringify};
 use crate::tree::tree::{
   AuspiceGraph, AuspiceGraphNodePayload, AuspiceNodeCriterion, AuspiceNodeSearchAlgo, AuspiceRefNodeCriterion,
   AuspiceRefNodeSearchCriteria, AuspiceRefNodeSearchDesc, AuspiceRefNodesDesc,
 };
-use crate::utils::string::{format_list, Indent};
+use crate::utils::string::{Indent, format_list};
 use eyre::Report;
 use itertools::Itertools;
 use log::warn;
@@ -170,15 +170,12 @@ fn find_node(
 
 fn is_qry_match(node: &Node<AuspiceGraphNodePayload>, criteria: &AuspiceNodeCriterion) -> bool {
   let node = node.payload();
-
-  let res = [
+  [
     find_matching_clade(node.clade().as_ref(), &criteria.clade).is_some(),
     find_matching_clade_like_attrs(node, &criteria.clade_node_attrs).is_some(),
   ]
   .iter()
-  .any(|c| *c);
-
-  res
+  .any(|c| *c)
 }
 
 fn node_matches(node: &Node<AuspiceGraphNodePayload>, criteria: &AuspiceNodeCriterion) -> Option<AncestralSearchMatch> {

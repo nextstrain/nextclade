@@ -2,7 +2,7 @@ use crate::coord::range::NucRefGlobalRange;
 use crate::features::feature_type::shorten_feature_type;
 use crate::gene::gene::GeneStrand;
 use crate::io::gff3_encoding::gff_decode_non_attribute;
-use crate::io::gff3_reader::{get_one_of_attributes_optional, GffCommonInfo};
+use crate::io::gff3_reader::{GffCommonInfo, get_one_of_attributes_optional};
 use crate::utils::collections::first;
 use bio::io::gff::Record as GffRecord;
 use eyre::Report;

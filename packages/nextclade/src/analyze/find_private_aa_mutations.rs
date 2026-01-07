@@ -1,7 +1,7 @@
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::analyze::aa_alignment::{AaAlignment, AaAlignmentAbstract, AaAlignmentView};
-use crate::analyze::aa_changes_find_for_cds::{aa_changes_group, AaChangesParams};
+use crate::analyze::aa_changes_find_for_cds::{AaChangesParams, aa_changes_group};
 use crate::analyze::aa_changes_group::AaChangesGroup;
 use crate::analyze::aa_del::{AaDel, AaDelRange};
 use crate::analyze::aa_sub::{AaGenotype, AaSub, AaSubLabeled};
@@ -19,7 +19,7 @@ use crate::translate::translate_genes::Translation;
 use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload};
 use crate::utils::collections::concat_to_vec;
 use eyre::Report;
-use itertools::{chain, Itertools};
+use itertools::{Itertools, chain};
 use maplit::btreemap;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};

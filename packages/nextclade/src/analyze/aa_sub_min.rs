@@ -1,4 +1,4 @@
-use crate::alphabet::aa::{from_aa, Aa};
+use crate::alphabet::aa::{Aa, from_aa};
 use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams, Pos, QryLetter, RefLetter};
 use crate::coord::position::AaRefPosition;
 use schemars::JsonSchema;

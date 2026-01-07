@@ -2,8 +2,8 @@ use ctor::ctor;
 use eyre::Report;
 use nextclade::{
   io::json_schema::JsonSchemaOutputFormat,
-  schema::schema::{generate_schema, NextcladeFileFormat},
-  utils::global_init::{global_init, GlobalInitConfig},
+  schema::schema::{NextcladeFileFormat, generate_schema},
+  utils::global_init::{GlobalInitConfig, global_init},
 };
 use std::path::PathBuf;
 

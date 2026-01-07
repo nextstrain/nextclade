@@ -5,7 +5,7 @@ use crate::utils::string::surround_with_quotes;
 use crate::{coord::range::NucRefGlobalRange, io::gff3_encoding::gff_decode_attribute};
 use bio::io::gff::Record as GffRecord;
 use color_eyre::{Section, SectionExt};
-use eyre::{eyre, Context, Report};
+use eyre::{Context, Report, eyre};
 use indexmap::IndexMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};

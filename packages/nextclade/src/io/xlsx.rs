@@ -3,7 +3,7 @@ use crate::io::nextclade_csv_column_config::CsvColumnConfig;
 use crate::io::nextclade_csv_row::NextcladeResultsCsvRow;
 use crate::run::nextclade_wasm::AnalysisInitialData;
 use crate::types::outputs::{
-  combine_outputs_and_errors_sorted, NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs,
+  NextcladeErrorOutputs, NextcladeOutputOrError, NextcladeOutputs, combine_outputs_and_errors_sorted,
 };
 use crate::utils::string::truncate_left;
 use eyre::Report;

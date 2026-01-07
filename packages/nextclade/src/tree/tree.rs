@@ -11,7 +11,7 @@ use crate::graph::node::{GraphNode, Node};
 use crate::graph::traits::{HasDivergence, HasName};
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
-use eyre::{eyre, Report, WrapErr};
+use eyre::{Report, WrapErr, eyre};
 use log::warn;
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};

@@ -1,11 +1,12 @@
 use std::fs;
+use std::hint::black_box;
 use std::path::PathBuf;
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::align::seed_alignment::create_alignment_band;
-use nextclade::align::seed_match::{get_seed_matches_maybe_reverse_complement, CodonSpacedIndex, SeedMatchesResult};
-use nextclade::alphabet::nuc::{to_nuc_seq, Nuc};
+use nextclade::align::seed_match::{CodonSpacedIndex, SeedMatchesResult, get_seed_matches_maybe_reverse_complement};
+use nextclade::alphabet::nuc::{Nuc, to_nuc_seq};
 
 pub fn bench_seed_alignment(c: &mut Criterion) {
   let params = AlignPairwiseParams::default();

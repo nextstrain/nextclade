@@ -1,10 +1,10 @@
 use crate::align::params::AlignPairwiseParams;
 use crate::alphabet::letter::Letter;
-use crate::alphabet::nuc::{from_nuc_seq, Nuc};
+use crate::alphabet::nuc::{Nuc, from_nuc_seq};
 use crate::make_error;
 use crate::translate::complement::reverse_complement_in_place;
 use bio::alphabets;
-use bio::data_structures::bwt::{bwt, less, Less, Occ, BWT};
+use bio::data_structures::bwt::{BWT, Less, Occ, bwt, less};
 use bio::data_structures::fmindex::{BackwardSearchResult, FMIndex, FMIndexable};
 use bio::data_structures::suffix_array::suffix_array;
 use eyre::Report;

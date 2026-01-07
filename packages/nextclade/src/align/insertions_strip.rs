@@ -1,5 +1,5 @@
 use crate::alphabet::aa::Aa;
-use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
+use crate::alphabet::letter::{Letter, serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
 

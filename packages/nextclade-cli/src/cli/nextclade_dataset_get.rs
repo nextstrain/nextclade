@@ -3,7 +3,7 @@ use crate::dataset::dataset_download::{dataset_dir_download, dataset_zip_downloa
 use crate::io::http_client::HttpClient;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::{warn, LevelFilter};
+use log::{LevelFilter, warn};
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::make_error;
 use nextclade::utils::info::{this_package_version, this_package_version_str};
@@ -78,8 +78,8 @@ pub fn dataset_http_get(http: &HttpClient, name: impl AsRef<str>, tag: Option<&S
           // ...and if no tags matching, display error
           let suggestions_msg = format_suggestions(dataset.tags(), tag);
           make_error!(
-              "Dataset '{name}' is found, but requested version tag for it not found: '{tag}'.{suggestions_msg}\n\nType `nextclade dataset list --name='{name}'` to show available version tags for this dataset or use --tag='latest' or omit the --tag argument to use the latest version tag.",
-            )
+            "Dataset '{name}' is found, but requested version tag for it not found: '{tag}'.{suggestions_msg}\n\nType `nextclade dataset list --name='{name}'` to show available version tags for this dataset or use --tag='latest' or omit the --tag argument to use the latest version tag.",
+          )
         }
       }
     },

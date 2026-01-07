@@ -2,7 +2,7 @@ use crate::io::file::create_file_or_stdout;
 use crate::io::yaml::yaml_write;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
-use serde_json::{de::Read, Deserializer};
+use serde_json::{Deserializer, de::Read};
 use std::io::Write;
 use std::path::Path;
 

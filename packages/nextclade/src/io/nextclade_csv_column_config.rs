@@ -1,7 +1,7 @@
 use crate::{make_error, o};
 use edit_distance::edit_distance;
 use eyre::Report;
-use indexmap::{indexmap, IndexMap};
+use indexmap::{IndexMap, indexmap};
 use itertools::{Either, Itertools};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;

@@ -1,7 +1,7 @@
 use crate::align::score_matrix_nuc::lookup_nuc_scoring_matrix;
 use crate::alphabet::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
-use eyre::{eyre, Report, WrapErr};
+use eyre::{Report, WrapErr, eyre};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 

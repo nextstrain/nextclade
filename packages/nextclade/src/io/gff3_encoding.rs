@@ -15,7 +15,7 @@
 //! , comma (%2C)"
 //!
 use eyre::Report;
-use percent_encoding::{percent_decode_str, percent_encode, AsciiSet, CONTROLS};
+use percent_encoding::{AsciiSet, CONTROLS, percent_decode_str, percent_encode};
 
 /// The set of characters to be percent-encoded in GFF3 non-attribute fields (columns 1-8).
 const GFF_NON_ATTRIBUTE_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'%');

@@ -3,10 +3,10 @@ use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::dataset::dataset_table::format_dataset_table;
 use crate::io::http_client::HttpClient;
 use eyre::Report;
-use itertools::{chain, Itertools};
-use log::{warn, LevelFilter};
+use itertools::{Itertools, chain};
+use log::{LevelFilter, warn};
 use nextclade::io::dataset::{Dataset, DatasetListJson, DatasetsIndexJson};
-use nextclade::io::json::{json_stringify, JsonPretty};
+use nextclade::io::json::{JsonPretty, json_stringify};
 use nextclade::utils::info::this_package_version;
 
 pub fn nextclade_dataset_list(

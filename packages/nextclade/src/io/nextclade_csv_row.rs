@@ -1,6 +1,6 @@
 use crate::align::insertions_strip::{AaIns, Insertion};
 use crate::alphabet::aa::from_aa_seq;
-use crate::alphabet::nuc::{from_nuc, from_nuc_seq, Nuc};
+use crate::alphabet::nuc::{Nuc, from_nuc, from_nuc_seq};
 use crate::analyze::aa_del::AaDel;
 use crate::analyze::aa_sub::{AaSub, AaSubLabeled};
 use crate::analyze::find_aa_motifs::AaMotif;

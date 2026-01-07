@@ -1,5 +1,5 @@
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, NucRefLocalPosition, PositionLike};
-use crate::coord::range::{intersect_or_none, NucRefGlobalRange, NucRefLocalRange};
+use crate::coord::range::{NucRefGlobalRange, NucRefLocalRange, intersect_or_none};
 use crate::gene::cds::Cds;
 
 use crate::gene::gene::GeneStrand;

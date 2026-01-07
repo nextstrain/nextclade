@@ -67,7 +67,7 @@ pub fn convert_graph_to_auspice_tree(graph: &AuspiceGraph) -> Result<AuspiceTree
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::io::json::{json_stringify, JsonPretty};
+  use crate::io::json::{JsonPretty, json_stringify};
   use crate::o;
   use crate::tree::tree::{
     AuspiceGraphEdgePayload, AuspiceGraphMeta, AuspiceGraphNodePayload, AuspiceTreeMeta, TreeBranchAttrs, TreeNodeAttrs,

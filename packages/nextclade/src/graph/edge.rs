@@ -3,9 +3,9 @@ use crate::io::json::is_json_value_null;
 use core::fmt::Debug;
 use core::fmt::{Display, Formatter};
 use derive_more::Display;
+use schemars::JsonSchema;
 use schemars::r#gen::SchemaGenerator;
 use schemars::schema::Schema;
-use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub trait GraphEdge: Clone + Debug {}

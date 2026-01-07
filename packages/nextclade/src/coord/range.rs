@@ -4,7 +4,7 @@ use crate::coord::position::{
 };
 use assert2::assert;
 use auto_ops::impl_op_ex;
-use num_traits::{clamp, clamp_max, clamp_min, AsPrimitive};
+use num_traits::{AsPrimitive, clamp, clamp_max, clamp_min};
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 use std::fmt::{Display, Formatter};
@@ -100,7 +100,7 @@ impl<P: PositionLike> Range<P> {
   }
 
   #[inline]
-  pub fn iter(&self) -> impl Iterator<Item = P> {
+  pub fn iter(&self) -> impl Iterator<Item = P> + use<P> {
     ((self.begin.into())..(self.end.into())).map(Into::into)
   }
 

@@ -1,4 +1,4 @@
-use crate::alphabet::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
+use crate::alphabet::nuc::{Nuc, from_nuc_seq, to_nuc_seq};
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::NucRefGlobalRange;
 use crate::gene::genotype::Genotype;
@@ -123,9 +123,7 @@ pub fn find_primer_in_ref_seq(primer_oligonuc: &[Nuc], ref_seq_str: &str) -> Opt
 
   match Regex::new(&primer_oligonuc_sanitized) {
     Err(report) => {
-      warn!(
-        "When compiling regular expression for PCR primer search: '{primer_oligonuc_sanitized}': {report}"
-      );
+      warn!("When compiling regular expression for PCR primer search: '{primer_oligonuc_sanitized}': {report}");
       None
     }
     Ok(primer_regex) => {

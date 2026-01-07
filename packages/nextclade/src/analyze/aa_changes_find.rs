@@ -1,5 +1,5 @@
 use crate::analyze::aa_alignment::AaAlignment;
-use crate::analyze::aa_changes_find_for_cds::{aa_changes_find_for_cds, AaChangesParams, FindAaChangesOutput};
+use crate::analyze::aa_changes_find_for_cds::{AaChangesParams, FindAaChangesOutput, aa_changes_find_for_cds};
 use crate::analyze::nuc_alignment::NucAlignment;
 use crate::gene::gene_map::GeneMap;
 use crate::translate::translate_genes::Translation;

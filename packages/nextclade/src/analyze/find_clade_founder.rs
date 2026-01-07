@@ -1,8 +1,8 @@
 use crate::analyze::find_private_aa_mutations::{
-  find_private_aa_mutations, FindPrivateAaMutationsParams, PrivateAaMutations,
+  FindPrivateAaMutationsParams, PrivateAaMutations, find_private_aa_mutations,
 };
 use crate::analyze::find_private_nuc_mutations::{
-  find_private_nuc_mutations, FindPrivateNucMutationsParams, PrivateNucMutations,
+  FindPrivateNucMutationsParams, PrivateNucMutations, find_private_nuc_mutations,
 };
 use crate::graph::node::GraphNodeKey;
 use crate::o;

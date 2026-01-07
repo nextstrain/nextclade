@@ -1,15 +1,15 @@
 use crate::coord::range::{NucRefGlobalRange, Range};
 use crate::features::feature::Landmark;
-use crate::gene::cds::{split_circular_cds_segments, Cds};
+use crate::gene::cds::{Cds, split_circular_cds_segments};
 use crate::gene::cds_segment::{CdsSegment, Truncation, WrappingPart};
 use crate::gene::frame::Frame;
 use crate::gene::gene::Gene;
 use crate::gene::phase::Phase;
-use crate::io::json::{json_stringify, JsonPretty};
+use crate::io::json::{JsonPretty, json_stringify};
 use crate::tree::tree::{AuspiceGenomeAnnotationCds, AuspiceGenomeAnnotations, Segments, StartEnd};
 use crate::utils::iter::single_unique_value;
 use eyre::Report;
-use indexmap::{indexmap, IndexMap};
+use indexmap::{IndexMap, indexmap};
 
 pub fn convert_auspice_annotations_to_genes(anns: &AuspiceGenomeAnnotations) -> Result<Vec<Gene>, Report> {
   let landmark = Landmark {

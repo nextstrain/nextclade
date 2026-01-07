@@ -7,7 +7,7 @@ use crate::analyze::nuc_sub::NucSub;
 use crate::coord::range::NucRefGlobalRange;
 use crate::graph::node::{GraphNodeKey, Node};
 use crate::tree::params::TreeBuilderParams;
-use crate::tree::split_muts::{difference_of_muts, split_muts, union_of_muts, SplitMutsResult};
+use crate::tree::split_muts::{SplitMutsResult, difference_of_muts, split_muts, union_of_muts};
 use crate::tree::tree::{
   AuspiceGraph, AuspiceGraphEdgePayload, AuspiceGraphNodePayload, TreeBranchAttrsLabels, TreeNodeAttr,
 };
@@ -17,7 +17,7 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use crate::utils::stats::mode;
 use eyre::{Report, WrapErr};
-use itertools::{chain, Itertools};
+use itertools::{Itertools, chain};
 use std::collections::BTreeMap;
 
 pub fn graph_attach_new_nodes_in_place(

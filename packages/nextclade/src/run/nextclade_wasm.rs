@@ -1,15 +1,15 @@
-use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat, GapScoreMap};
+use crate::align::gap_open::{GapScoreMap, get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::seed_match::CodonSpacedIndex;
 use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
-use crate::alphabet::nuc::{to_nuc_seq, to_nuc_seq_replacing, Nuc};
+use crate::alphabet::nuc::{Nuc, to_nuc_seq, to_nuc_seq_replacing};
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
-use crate::gene::gene_map::{filter_gene_map, GeneMap};
+use crate::gene::gene_map::{GeneMap, filter_gene_map};
 use crate::graph::graph::Graph;
-use crate::io::fasta::{read_one_fasta_from_str, FastaRecord};
+use crate::io::fasta::{FastaRecord, read_one_fasta_from_str};
 use crate::io::nextclade_csv_column_config::CsvColumnConfig;
 use crate::io::nwk_writer::nwk_write_to_string;
 use crate::run::nextclade_run_one::nextclade_run_one;
@@ -17,13 +17,13 @@ use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
 use crate::run::validate_ref_seq::validate_ref_seq;
 use crate::translate::translate_genes::Translation;
 use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::tree::tree::{check_ref_seq_mismatch, AuspiceGraph, AuspiceRefNodesDesc, AuspiceTree, CladeNodeAttrKeyDesc};
+use crate::tree::tree::{AuspiceGraph, AuspiceRefNodesDesc, AuspiceTree, CladeNodeAttrKeyDesc, check_ref_seq_mismatch};
 use crate::tree::tree_builder::graph_attach_new_nodes_in_place;
 use crate::tree::tree_preprocess::graph_preprocess_in_place;
 use crate::types::outputs::NextcladeOutputs;
 use crate::utils::any::AnyType;
-use crate::utils::option::{find_some, OptionMapRefFallible};
-use eyre::{eyre, Report, WrapErr};
+use crate::utils::option::{OptionMapRefFallible, find_some};
+use eyre::{Report, WrapErr, eyre};
 use itertools::Itertools;
 use optfield::optfield;
 use schemars::JsonSchema;
@@ -143,10 +143,10 @@ impl NextcladeParams {
             .map_ref_fallible(GeneMap::from_str)
             .wrap_err("When parsing genome annotation")?;
 
-          if let (Some(tree), Some(ref_record)) = (&tree, &ref_record) {
-            if let Some(tree_ref) = tree.root_sequence() {
-              check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
-            }
+          if let (Some(tree), Some(ref_record)) = (&tree, &ref_record)
+            && let Some(tree_ref) = tree.root_sequence()
+          {
+            check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
           }
 
           NextcladeParamsOptional {
@@ -181,10 +181,10 @@ impl NextcladeParams {
             .transpose()?
             .unwrap_or_default();
 
-          if let Some(tree) = &tree {
-            if let Some(tree_ref) = tree.root_sequence() {
-              check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
-            }
+          if let Some(tree) = &tree
+            && let Some(tree_ref) = tree.root_sequence()
+          {
+            check_ref_seq_mismatch(&ref_record.seq, tree_ref)?;
           }
 
           Ok(Self {
@@ -333,10 +333,10 @@ impl Nextclade {
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
     let seed_index = CodonSpacedIndex::from_sequence(&ref_seq);
 
-    if let Some(tree) = &tree {
-      if let Some(tree_ref) = tree.root_sequence() {
-        check_ref_seq_mismatch(&ref_record.seq, tree_ref).wrap_err("When validating input files")?;
-      }
+    if let Some(tree) = &tree
+      && let Some(tree_ref) = tree.root_sequence()
+    {
+      check_ref_seq_mismatch(&ref_record.seq, tree_ref).wrap_err("When validating input files")?;
     }
 
     validate_ref_seq(&ref_record.seq_name, &ref_seq)?;

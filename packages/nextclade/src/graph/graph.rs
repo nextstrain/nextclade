@@ -311,7 +311,9 @@ where
         .any(|edge| self.get_edge(*edge).unwrap().target() == target_key);
 
       if already_connected {
-        return make_error!("When adding a graph edge {source_key}->{target_key}: Nodes {source_key} and {target_key} are already connected.");
+        return make_error!(
+          "When adding a graph edge {source_key}->{target_key}: Nodes {source_key} and {target_key} are already connected."
+        );
       }
 
       self.edges.push(new_edge);

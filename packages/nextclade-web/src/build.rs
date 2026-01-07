@@ -8,7 +8,7 @@ use nextclade::io::dataset::{
 use nextclade::io::fasta::FastaRecord;
 use nextclade::io::file::create_file_or_stdout;
 use nextclade::io::fs::ensure_dir;
-use nextclade::io::json::{json_write_impl, JsonPretty};
+use nextclade::io::json::{JsonPretty, json_write_impl};
 use nextclade::io::nextclade_csv_column_config::CsvColumnConfig;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::qc::qc_run::QcResult;
@@ -21,7 +21,7 @@ use nextclade::translate::translate_genes::Translation;
 use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
 use nextclade::types::outputs::{NextcladeErrorOutputs, NextcladeOutputs};
 use nextclade::utils::any::AnyType;
-use schemars::{schema_for, JsonSchema};
+use schemars::{JsonSchema, schema_for};
 use std::path::Path;
 
 const OUTPUT_JSON_SCHEMA: &str = "src/gen/_SchemaRoot.json";

@@ -1,9 +1,9 @@
-use crate::io::json::{json_or_yaml_write, json_write, JsonPretty};
+use crate::io::json::{JsonPretty, json_or_yaml_write, json_write};
 use crate::io::yaml::yaml_write;
 use clap::ValueEnum;
 use eyre::Report;
 use log::info;
-use schemars::{r#gen::SchemaSettings, JsonSchema};
+use schemars::{JsonSchema, r#gen::SchemaSettings};
 use std::path::Path;
 use strum_macros::EnumIter;
 
@@ -26,7 +26,7 @@ pub fn jsonschema_write_file<T: JsonSchema>(
 
   let output_file = output_file.map_or_else(|| Path::new("-"), AsRef::as_ref);
 
-  info!("Writing JSON schema for '{title:?}' to {output_file:?}");
+  info!("Writing JSON schema for '{title:?}' to '{}'", output_file.display());
 
   match &format {
     JsonSchemaOutputFormat::Auto => json_or_yaml_write(output_file, &schema),
