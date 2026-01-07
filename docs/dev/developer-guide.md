@@ -49,41 +49,57 @@ as well as to the `--help` text for each tool.
 
    > 💡 If you are a member of Nextstrain team, then you don't need a fork and you can contribute directly to the origin repository. Still, in most cases, please submit pull requests for review, rather than pushing changes to major branches directly.
 
-2. Install Rust if not already (once) ([https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install)):
+2. Install build dependencies (once)
 
-   This step is the same as for Nextclade CLI (see above). You can skip this step if you've done the setup for Nextclade CLI already.
+   <details>
+   <summary>🐧 Linux (Ubuntu/Debian)</summary>
 
-   The only supported Rust version is the one declared in [`rust-toolchain.toml`](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml). It may change in the future.
+   ```bash
+   sudo apt-get update
+   sudo apt-get install --yes build-essential libssl-dev pkg-config
+   ```
+
+   </details>
+
+   <details>
+   <summary>🍏 macOS</summary>
+
+   Install Xcode Command Line Tools (provides compiler and linker):
+
+   ```bash
+   xcode-select --install
+   ```
+
+   </details>
+
+3. Install Rust (once) ([https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install)):
+
+   The only supported Rust version is the one declared in [`rust-toolchain.toml`](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml) (currently **1.92.0**).
 
     ```bash
-    # [once] Install Rustup, the Rust version manager
+    # Install Rustup, the Rust version manager
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    
-    # [once] Add Rust tools to the $PATH
+
+    # Add Rust tools to the $PATH
     export PATH="$PATH:$HOME/.cargo/bin"
-    
-    # [once] [Linux only] install openssl and pkgconfig. Example for Ubuntu:
-    sudo apt-get update
-    sudo apt-get install --yes libssl-dev pkg-config
-    
-    # Check your installed versions of Rust compiler, Cargo and Rustup
-    $ rustc -V
-    $ cargo -V
-    $ rustup -V
+
+    # Check your installed versions
+    rustc -V
+    cargo -V
+    rustup -V
     ```
 
    > ⚠️ Nextclade team doesn't have bandwidth to support Rust installations deviating from the [officially recommended steps](https://doc.rust-lang.org/book/ch01-01-installation.html) and Rust versions different from what is declared in [rust-toolchain.toml](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml). If you install Rust from Linux package repositories, Homebrew, Conda etc., things may or may not work, or they may work but produce wrong results. Nextclade team doesn't have bandwidth to try every platform and config, so if you decide to go unofficial route, then you are on your own. But feel free to open pull requests if fixes are necessary to make your setup work.
 
    > 💡 Note, Rustup allows to install multiple versions of Rust and to switch between them. This repository contains a [rust-toolchain.toml](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml) file, which describes which version of Rust is currently in use by Nextclade official build. Cargo and Rustup should be able to [pick it up automatically](https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file), install the required toolchain and use it when you type `cargo` commands. Any other versions of Rust toolchain are not supported.
 
-3. Prepare environment variables (once). They configure Nextclade build-time settings. Optionally adjust the variables in the `.env` file to your needs.
+4. Prepare environment variables (once). They configure Nextclade build-time settings. Optionally adjust the variables in the `.env` file to your needs.
 
     ```bash
-    # [once] Prepare dotenv file with default values
     cp .env.example .env
     ```
 
-4. Build and run Nextclade CLI in debug mode (convenient for development - faster to build, slow to run, has more debug info in the executable, error messages are more elaborate):
+5. Build and run Nextclade CLI in debug mode (convenient for development - faster to build, slow to run, has more debug info in the executable, error messages are more elaborate):
 
     ```bash
     # (Re-)build Nextclade in debug mode.
@@ -117,7 +133,7 @@ as well as to the `--help` text for each tool.
 
    > 💡 Add `-v` to Nextclade arguments to make console output more verbose. Add more occurrences, e.g. `-vv`, for even more verbose output.
 
-5. Build and run Nextclade CLI in release mode (slow to build, fast to run, very little debug info):
+6. Build and run Nextclade CLI in release mode (slow to build, fast to run, very little debug info):
 
     ```bash
     # Build Nextclade in release mode.
@@ -162,92 +178,118 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
    > 💡 If you are a member of Nextstrain team, then you don't need a fork and you can contribute directly to the origin repository. Still, in most cases, please submit pull requests for review, rather than pushing changes to branches directly.
 
-2. Install Node.js (once), by either downloading it from the official website: [nodejs.org](https://nodejs.org), or by using [nvm](https://github.com/nvm-sh/nvm).
+2. Install Node.js and Bun (once)
 
-   The only supported Node.js version is the one that is currently declared in the [`.nvmrc`](https://github.com/nextstrain/nextclade/blob/master/.nvmrc) file. It may change in the future.
+   The only supported Node.js version is the one declared in [`.nvmrc`](https://github.com/nextstrain/nextclade/blob/master/.nvmrc) (currently **22.16.0**).
 
-   If you have `nvm` installed and configured, you can quickly install and switch to this Node.js version by navigating to the root of nextclade repository (where the [`.nvmrc`](https://github.com/nextstrain/nextclade/blob/master/.nvmrc) file is) and running:
+   Install Node.js from [nodejs.org](https://nodejs.org), or using [nvm](https://github.com/nvm-sh/nvm):
 
     ```bash
     cd nextclade/
     nvm install
     nvm use
     node --version
-    bun --version
     ```
 
-    Install Bun if you don't have it ([https://bun.sh](https://bun.sh)):
+   Install Bun (version **1.2.14** recommended) from [bun.sh](https://bun.sh):
 
     ```bash
     curl -fsSL https://bun.sh/install | bash
+    bun --version
     ```
 
    > ⚠️ Nextclade team doesn't have bandwidth to support Node.js installations from Linux package repositories, Homebrew, Conda, as well as versions of Node.js which are not the same as the one currently declared in the [`.nvmrc`](https://github.com/nextstrain/nextclade/blob/master/.nvmrc), and everything else deviating from the recommended setup. If you decide to go that route - things may or may not work - you are on your own. But feel free to open pull requests if fixes are necessary to make your setup work.
 
-3. Install Rust if not already (once) ([https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install)):
+3. Install Rust and build dependencies (once)
 
-   This step is the same as for Nextclade CLI (see above). You can skip this step if you've done the setup for Nextclade CLI already.
+   Follow the same steps as for Nextclade CLI (see above). If you've already set up for CLI development, you can skip this step.
 
-   The only supported Rust version is the one declared in [`rust-toolchain.toml`](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml). It may change in the future.
+4. Install LLVM/Clang toolchain (once)
 
-    ```bash
-    # [once] Install Rustup, the Rust version manager
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    
-    # [once] Add Rust tools to the $PATH
-    export PATH="$PATH:$HOME/.cargo/bin"
-    
-    # [once] [Linux only] install openssl and pkgconfig. Example for Ubuntu:
-    sudo apt-get update
-    sudo apt-get install --yes libssl-dev pkg-config
-    
-    # Check your installed versions of Rust compiler, Cargo and Rustup
-    $ rustc -V
-    $ cargo -V
-    $ rustup -V
-    ```
+   LLVM/Clang is required for compiling Rust code to WebAssembly. Version **13** is used in the official build environment.
 
-   > ⚠️ Nextclade team doesn't have bandwidth to support Rust installations deviating from the [officially recommended steps](https://doc.rust-lang.org/book/ch01-01-installation.html) and Rust versions different from what is declared in [rust-toolchain.toml](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml). If you install Rust from Linux package repositories, Homebrew, Conda etc., things may or may not work, or they may work but produce wrong results. Nextclade team doesn't have bandwidth to try every platform and config, so if you decide to go unofficial route, then you are on your own. But feel free to open pull requests if fixes are necessary to make your setup work.
+   <details>
+   <summary>🐧 Linux (Ubuntu/Debian)</summary>
 
-   > 💡 Note, Rustup allows to install multiple versions of Rust and to switch between them. This repository contains a [rust-toolchain.toml](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml) file, which describes which version of Rust is currently in use by Nextclade official build. Cargo and Rustup should be able to [pick it up automatically](https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file), install the required toolchain and use it when you type `cargo` commands. Any other versions of Rust toolchain are not supported.
+   ```bash
+   # Add LLVM apt repository
+   wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+   echo "deb https://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-13 main" | sudo tee /etc/apt/sources.list.d/llvm.list
 
-4. Prepare environment variables (once). They configure Nextclade build-time settings. Optionally adjust the variables in the `.env` file to your needs.
+   # Install Clang 13
+   sudo apt-get update
+   sudo apt-get install --yes clang-13 lld-13 llvm-13
+   ```
+
+   </details>
+
+   <details>
+   <summary>🍏 macOS</summary>
+
+   ```bash
+   brew install llvm
+   ```
+
+   Set the following environment variables before invoking `bun wasm-prod`:
+
+   ```bash
+   export CC=/opt/homebrew/opt/llvm/bin/clang
+   export AR=/opt/homebrew/opt/llvm/bin/llvm-ar
+   ```
+
+   </details>
+
+5. Prepare environment variables (once). They configure Nextclade build-time settings. Optionally adjust the variables in the `.env` file to your needs.
 
     ```bash
     cp .env.example .env
     ```
 
-5. Install other required tools (once)
+6. Install WebAssembly toolchain (once)
+
+   The following versions are pinned for build reproducibility:
+
+   | Tool | Version |
+   |------|---------|
+   | wasm-pack | 0.13.1 |
+   | wasm-bindgen-cli | 0.2.106 |
+   | binaryen | 125 |
 
     ```bash
-    cargo install wasm-pack --locked
+    # Install wasm-pack
+    cargo install wasm-pack@0.13.1 --locked
+
+    # Install wasm-bindgen-cli (must match the version in Cargo.toml)
+    cargo install wasm-bindgen-cli@0.2.106 --locked
+
+    # Add WebAssembly compilation target
+    rustup target add wasm32-unknown-unknown
     ```
 
    <details>
-   <summary>🍏 Extra requirements for macOS [click to expand]</summary>
+   <summary>🐧 Install binaryen on Linux</summary>
 
-   > For macOS, you will also have to install llvm:
-   >
-   > ```bash
-   > brew install llvm
-   > ```
-   >
-   > Furthermore, you will need to set the following environment variables before invoking `bun wasm-prod`:
-   >
-   > ```bash
-   > export CC=/opt/homebrew/opt/llvm/bin/clang
-   > export AR=/opt/homebrew/opt/llvm/bin/llvm-ar
-   > ```
+   ```bash
+   # Ubuntu/Debian (version may differ)
+   sudo apt-get install binaryen
 
-    </details>
+   # Or download pinned version (recommended):
+   export BINARYEN_VERSION="125"
+   curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz" | sudo tar -C /usr/local -xz --strip-components=1
+   ```
 
-    You might also have to install a particular version of `wasm-bindgen-cli` (if you get an error during `bun wasm-prod`):
+   </details>
 
-    ```bash
-    cargo install wasm-bindgen-cli@0.2.106 --locked
-    ```
+   <details>
+   <summary>🍏 Install binaryen on macOS</summary>
 
-6. Install NPM dependencies (once)
+   ```bash
+   brew install binaryen
+   ```
+
+   </details>
+
+7. Install NPM dependencies (once)
 
     ```bash
     cd packages/nextclade-web
@@ -256,7 +298,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
    > ⚠️ Nextclade uses `bun` to manage NPM dependencies. While you could try `npm` or other tools instead, we don't support this.
 
-7. Build the WebAssembly module
+8. Build the WebAssembly module
 
     ```bash
     cd packages/nextclade-web
@@ -267,7 +309,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
    Repeat this step every time you are changing Rust code.
 
-8. Build and serve the development version of the web app locally
+9. Build and serve the development version of the web app locally
 
    We are going to run a development web server, which runs continuously (it does not yield terminal prompt until you stop it). It's convenient to do it in a separate terminal instance from WebAssembly module build to allow rebuilding the app and the module independently.
 
@@ -282,7 +324,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
    Note that changes in Rust code (the algorithms) are not picked up automatically and the requirement rebuilding the WebAssembly module manually (as explained above). Once you rebuild the WebAssembly module in a separate terminal instance, the dev server should pick up the changes in the algorithms - no dev server restart is necessary.
 
-9. Build and serve the production version of the web app locally
+10. Build and serve the production version of the web app locally
 
    Alternatively, the optimized ("production") version of the web app can be built and (optionally) served with
 
