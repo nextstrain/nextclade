@@ -7,6 +7,12 @@ export default function withResolve(nextConfig: NextConfig) {
     webpackConfig.resolve = {
       ...webpackConfig.resolve,
       modules: [...(webpackConfig.resolve?.modules ?? []), path.resolve('src'), path.resolve('node_modules')],
+      alias: {
+        ...webpackConfig.resolve?.alias,
+        'react-redux': path.resolve('node_modules/react-redux'),
+        'redux': path.resolve('node_modules/redux'),
+        'redux-thunk': path.resolve('node_modules/redux-thunk'),
+      },
     }
 
     return webpackConfig
