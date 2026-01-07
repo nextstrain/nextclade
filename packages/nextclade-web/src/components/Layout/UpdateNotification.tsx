@@ -142,7 +142,7 @@ const Toast = styled(ToastBase)`
 const ToastBody = styled(ToastBodyBase)`
   min-width: ${TOAST_WIDTH};
   opacity: 1 !important;
-  background: ${(props) => props.theme.bodyBg}; ;
+  background: ${(props) => props.theme.bodyBg};
 `
 
 const ToastHeader = styled(ToastHeaderBase)`

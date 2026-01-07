@@ -50,10 +50,18 @@ export function ResultsTableUnknownDataset() {
 
   // TODO: we could use a map (object) and refer to filters by name,
   // in order to reduce code duplication in the state, callbacks and components being rendered
-  const sortByIndexAsc = useSetAtom(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.asc }))
-  const sortByIndexDesc = useSetAtom(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.desc }))
-  const sortByNameAsc = useSetAtom(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.asc }))
-  const sortByNameDesc = useSetAtom(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.desc }))
+  const sortByIndexAsc = useSetAtom(
+    sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.asc }),
+  )
+  const sortByIndexDesc = useSetAtom(
+    sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.desc }),
+  )
+  const sortByNameAsc = useSetAtom(
+    sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.asc }),
+  )
+  const sortByNameDesc = useSetAtom(
+    sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.desc }),
+  )
 
   return (
     <Table rounded={false}>

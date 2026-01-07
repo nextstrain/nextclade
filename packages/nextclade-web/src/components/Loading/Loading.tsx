@@ -32,6 +32,7 @@ const BrandLogo = styled(BrandLogoBase)<{ $size: number }>`
   box-shadow: 0 0 0 0 rgba(0, 0, 0, 1);
 `
 
+// prettier-ignore
 const SpinnerAnimation = styled.div<{ $size: number }>`
   margin: auto;
   display: flex;

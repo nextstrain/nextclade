@@ -5,10 +5,10 @@ use itertools::Itertools;
 use maplit::btreemap;
 use nextclade::io::dataset::DatasetsIndexJson;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
-use nextclade::io::json::{json_parse, json_stringify, JsonPretty};
+use nextclade::io::json::{JsonPretty, json_parse, json_stringify};
 use nextclade::sort::minimizer_index::MinimizerIndexJson;
 use nextclade::sort::minimizer_search::{
-  find_best_datasets, run_minimizer_search, MinimizerSearchRecord, MinimizerSearchResult,
+  MinimizerSearchRecord, MinimizerSearchResult, find_best_datasets, run_minimizer_search,
 };
 use nextclade::sort::params::NextcladeSeqSortParams;
 use nextclade::utils::datetime::date_now;

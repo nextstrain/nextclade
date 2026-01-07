@@ -67,10 +67,10 @@ export function ButtonSuggest() {
       title: isRunning
         ? t('Running')
         : !canRun
-        ? t('Please provide sequence data for the algorithm')
-        : hasAutodetectResults
-        ? t('Re-launch suggestions engine!')
-        : t('Launch suggestions engine!'),
+          ? t('Please provide sequence data for the algorithm')
+          : hasAutodetectResults
+            ? t('Re-launch suggestions engine!')
+            : t('Launch suggestions engine!'),
     }
   }, [autodetectRunState, hasAutodetectResults, hasRequiredInputs, t])
 

@@ -240,7 +240,7 @@ function prepareOptions(genes: Gene[]) {
         isDisabled: true,
       })
 
-          for (const cds of gene.cdses) {
+      for (const cds of gene.cdses) {
         const option: Option = {
           value: `cds-${cds.name}`,
           cds,
@@ -248,7 +248,7 @@ function prepareOptions(genes: Gene[]) {
         defaultOption = option
         options.push(option)
 
-              for (const protein of cds.proteins) {
+        for (const protein of cds.proteins) {
           options.push({
             value: `protein-${protein.name}`,
             protein,

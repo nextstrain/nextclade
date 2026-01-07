@@ -73,6 +73,7 @@ export const Switch = styled.fieldset<{ $width: number }>`
   width: ${(props) => props.$width}px;
   background-color: ${(props) => props.theme.gray300};
   border-radius: 3px;
+  /* prettier-ignore */
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
   pointer-events: initial;
 `

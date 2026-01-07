@@ -16,16 +16,13 @@ export const showBadFilterAtom = jotaiAtom<boolean>(true)
 
 export const showErrorsFilterAtom = jotaiAtom<boolean>(true)
 
-export const clearAllFiltersAtom = jotaiAtom(
-  null,
-  (get, set) => {
-    set(seqNamesFilterAtom, '')
-    set(mutationsFilterAtom, '')
-    set(cladesFilterAtom, '')
-    set(aaFilterAtom, '')
-    set(showGoodFilterAtom, true)
-    set(showMediocreFilterAtom, true)
-    set(showBadFilterAtom, true)
-    set(showErrorsFilterAtom, true)
-  }
-)
+export const clearAllFiltersAtom = jotaiAtom(null, (get, set) => {
+  set(seqNamesFilterAtom, '')
+  set(mutationsFilterAtom, '')
+  set(cladesFilterAtom, '')
+  set(aaFilterAtom, '')
+  set(showGoodFilterAtom, true)
+  set(showMediocreFilterAtom, true)
+  set(showBadFilterAtom, true)
+  set(showErrorsFilterAtom, true)
+})

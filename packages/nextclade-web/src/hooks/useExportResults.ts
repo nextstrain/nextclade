@@ -92,7 +92,7 @@ function useResultsExport(exportFn: ExportFunction) {
           setIsRunning(false)
         })
     },
-    [exportFn, setGlobalError]
+    [exportFn, setGlobalError],
   )
 
   return { isRunning, isDone, fn }
@@ -121,9 +121,7 @@ function mapAllErrors<T>(results: NextcladeResult[], mapFn: (result: AnalysisErr
 }
 
 function mapGoodResults<T>(results: NextcladeResult[], datasetName: string, mapFn: (result: AnalysisOutput) => T): T[] {
-  const filteredResults = results.filter(
-    (result) => result.result?.analysisResult.datasetName === datasetName
-  )
+  const filteredResults = results.filter((result) => result.result?.analysisResult.datasetName === datasetName)
 
   return filteredResults
     .filter((result) => notUndefinedOrNull(result.result))
@@ -136,9 +134,7 @@ function mapGoodResults<T>(results: NextcladeResult[], datasetName: string, mapF
 }
 
 function mapErrors<T>(results: NextcladeResult[], datasetName: string, mapFn: (result: AnalysisError) => T): T[] {
-  const filteredResults = results.filter(
-    (result) => result.result?.analysisResult.datasetName === datasetName
-  )
+  const filteredResults = results.filter((result) => result.result?.analysisResult.datasetName === datasetName)
 
   return filteredResults
     .filter((result) => notUndefinedOrNull(result.error))
@@ -159,7 +155,7 @@ async function prepareCsvData(
   aaMotifsDescs: AaMotifsDesc[] | undefined,
   csvColumnConfig: CsvColumnConfig,
   delimiter: string,
-  worker: ExportWorker
+  worker: ExportWorker,
 ): Promise<string> {
   return worker.serializeResultsCsv(
     results,
@@ -169,7 +165,7 @@ async function prepareCsvData(
     refNodes ?? {},
     aaMotifsDescs ?? [],
     delimiter,
-    csvColumnConfig
+    csvColumnConfig,
   )
 }
 
@@ -179,7 +175,7 @@ async function prepareJsonData(
   cladeNodeAttrDescs: CladeNodeAttrDesc[] | undefined,
   phenotypeAttrDescs: PhenotypeAttrDesc[] | undefined,
   refNodes: AuspiceRefNodesDesc | undefined,
-  worker: ExportWorker
+  worker: ExportWorker,
 ): Promise<string> {
   return worker.serializeResultsJson(
     results,
@@ -187,7 +183,7 @@ async function prepareJsonData(
     cladeNodeAttrDescs ?? [],
     phenotypeAttrDescs ?? [],
     refNodes ?? {},
-    PACKAGE_VERSION
+    PACKAGE_VERSION,
   )
 }
 
@@ -195,7 +191,7 @@ function prepareFastaData(analysisResults: NextcladeResult[], datasetName: strin
   const fastaEntries = mapGoodResults(
     analysisResults,
     datasetName,
-    (result) => `>${result.analysisResult.seqName}\n${result.query}`
+    (result) => `>${result.analysisResult.seqName}\n${result.query}`,
   )
   return `${fastaEntries.join('\n')}\n`
 }
@@ -225,10 +221,7 @@ function preparePeptideFiles(analysisResults: NextcladeResult[], datasetName: st
   return Array.from(peptideFilesMap.values())
 }
 
-export const useExportFasta = createSimpleExportHook(
-  prepareFastaData,
-  'application/x-fasta;charset=utf-8'
-)
+export const useExportFasta = createSimpleExportHook(prepareFastaData, 'application/x-fasta;charset=utf-8')
 
 export const useExportCsv = createCsvExportHook(';', 'text/csv;charset=utf-8')
 
@@ -256,11 +249,11 @@ export function useExportExcel() {
         allInitialData,
         csvColumnConfig,
         datasetNameToSeqIndices,
-        seqIndicesWithoutDatasetSuggestions
+        seqIndicesWithoutDatasetSuggestions,
       )
       saveBase64File(excelData, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     },
-    [analysisResults, allInitialData, csvColumnConfig, datasetNameToSeqIndices, seqIndicesWithoutDatasetSuggestions]
+    [analysisResults, allInitialData, csvColumnConfig, datasetNameToSeqIndices, seqIndicesWithoutDatasetSuggestions],
   )
 
   return useResultsExport(exportFn)
@@ -280,7 +273,7 @@ export function useExportJson({ datasetName }: { datasetName: string }) {
       const jsonStr = await prepareJsonData(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, worker)
       saveFile(jsonStr, filename, 'application/json;charset=utf-8')
     },
-    [analysisResults, datasetName, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes]
+    [analysisResults, datasetName, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes],
   )
 
   return useResultsExport(exportFn)
@@ -288,7 +281,7 @@ export function useExportJson({ datasetName }: { datasetName: string }) {
 
 export const useExportNdjson = createResultErrorExportHook(
   (worker, results, errors) => worker.serializeResultsNdjson(results, errors),
-  'application/x-ndjson;charset=utf-8'
+  'application/x-ndjson;charset=utf-8',
 )
 
 export function useExportTree({ datasetName }: { datasetName: string }) {
@@ -302,7 +295,7 @@ export function useExportTree({ datasetName }: { datasetName: string }) {
       const jsonStr = JSON.stringify(tree, null, 2)
       saveFile(jsonStr, filename, 'application/json;charset=utf-8')
     },
-    [tree]
+    [tree],
   )
 
   if (isNil(tree)) {
@@ -322,7 +315,7 @@ export function useExportTreeNwk({ datasetName }: { datasetName: string }) {
       }
       saveFile(treeNwk, filename, 'text/x-nh;charset=utf-8')
     },
-    [treeNwk]
+    [treeNwk],
   )
 
   if (isNil(treeNwk)) {
@@ -343,7 +336,7 @@ export function useExportPeptides({ datasetName }: { datasetName: string }) {
       const files = Array.from(peptides)
       await saveZip({ files, filename })
     },
-    [analysisResults, datasetName]
+    [analysisResults, datasetName],
   )
 
   if (isEmpty(cdses)) {
@@ -355,12 +348,12 @@ export function useExportPeptides({ datasetName }: { datasetName: string }) {
 
 export const useExportGff = createSimpleResultExportHook(
   (worker, results) => worker.serializeResultsGff(results),
-  'text/x-gff3;charset=utf-8'
+  'text/x-gff3;charset=utf-8',
 )
 
 export const useExportTbl = createSimpleResultExportHook(
   (worker, results) => worker.serializeResultsTbl(results),
-  'text/x-tbl;charset=utf-8'
+  'text/x-tbl;charset=utf-8',
 )
 
 async function prepareAllExportData(
@@ -371,7 +364,7 @@ async function prepareAllExportData(
   refNodes: AuspiceRefNodesDesc | undefined,
   aaMotifsDescs: AaMotifsDesc[] | undefined,
   csvColumnConfig: CsvColumnConfig | undefined,
-  worker: ExportWorker
+  worker: ExportWorker,
 ) {
   const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
   const errors = mapErrors(analysisResults, datasetName, (err) => err)
@@ -381,8 +374,28 @@ async function prepareAllExportData(
   }
 
   const [csvStr, tsvStr, jsonStr, ndjsonStr, gffStr, tblStr] = await Promise.all([
-    prepareCsvData(results, errors, cladeNodeAttrDescs ?? [], phenotypeAttrDescs ?? [], refNodes, aaMotifsDescs ?? [], csvColumnConfig, ';', worker),
-    prepareCsvData(results, errors, cladeNodeAttrDescs ?? [], phenotypeAttrDescs ?? [], refNodes, aaMotifsDescs ?? [], csvColumnConfig, '\t', worker),
+    prepareCsvData(
+      results,
+      errors,
+      cladeNodeAttrDescs ?? [],
+      phenotypeAttrDescs ?? [],
+      refNodes,
+      aaMotifsDescs ?? [],
+      csvColumnConfig,
+      ';',
+      worker,
+    ),
+    prepareCsvData(
+      results,
+      errors,
+      cladeNodeAttrDescs ?? [],
+      phenotypeAttrDescs ?? [],
+      refNodes,
+      aaMotifsDescs ?? [],
+      csvColumnConfig,
+      '\t',
+      worker,
+    ),
     prepareJsonData(results, errors, cladeNodeAttrDescs ?? [], phenotypeAttrDescs ?? [], refNodes, worker),
     worker.serializeResultsNdjson(results, errors),
     worker.serializeResultsGff(results),
@@ -424,7 +437,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
         refNodes,
         aaMotifsDescs,
         csvColumnConfig,
-        worker
+        worker,
       )
 
       const files: ZipFileDescription[] = [
@@ -465,7 +478,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
       csvColumnConfig,
       tree,
       treeNwk,
-    ]
+    ],
   )
 
   return useResultsExport(exportFn)
@@ -481,7 +494,7 @@ export function useExportUnknownSeqTsv() {
       const tsvStr = await worker.serializeUnknownCsv(errors, seqIndicesWithoutDatasetSuggestions, '\t')
       saveFile(tsvStr, filename, 'text/tab-separated-values;charset=utf-8')
     },
-    [analysisResults, seqIndicesWithoutDatasetSuggestions]
+    [analysisResults, seqIndicesWithoutDatasetSuggestions],
   )
 
   return useResultsExport(exportFn)
@@ -514,11 +527,11 @@ function createCsvExportHook(delimiter: string, mimeType: string) {
           aaMotifsDescs,
           csvColumnConfig,
           delimiter,
-          worker
+          worker,
         )
         saveFile(csvStr, filename, mimeType)
       },
-      [analysisResults, datasetName, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, aaMotifsDescs, csvColumnConfig]
+      [analysisResults, datasetName, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, aaMotifsDescs, csvColumnConfig],
     )
 
     return useResultsExport(exportFn)
@@ -527,7 +540,7 @@ function createCsvExportHook(delimiter: string, mimeType: string) {
 
 function createSimpleResultExportHook(
   workerMethod: (worker: ExportWorker, results: AnalysisResult[]) => Promise<string>,
-  mimeType: string
+  mimeType: string,
 ) {
   return function simpleResultExportHook({ datasetName }: { datasetName: string }) {
     const analysisResults = useAtomValue(analysisResultsAtom)
@@ -538,7 +551,7 @@ function createSimpleResultExportHook(
         const data = await workerMethod(worker, results)
         saveFile(data, filename, mimeType)
       },
-      [analysisResults, datasetName]
+      [analysisResults, datasetName],
     )
 
     return useResultsExport(exportFn)
@@ -547,7 +560,7 @@ function createSimpleResultExportHook(
 
 function createResultErrorExportHook(
   workerMethod: (worker: ExportWorker, results: AnalysisResult[], errors: AnalysisError[]) => Promise<string>,
-  mimeType: string
+  mimeType: string,
 ) {
   return function resultErrorExportHook({ datasetName }: { datasetName: string }) {
     const analysisResults = useAtomValue(analysisResultsAtom)
@@ -559,7 +572,7 @@ function createResultErrorExportHook(
         const data = await workerMethod(worker, results, errors)
         saveFile(data, filename, mimeType)
       },
-      [analysisResults, datasetName]
+      [analysisResults, datasetName],
     )
 
     return useResultsExport(exportFn)
@@ -568,7 +581,7 @@ function createResultErrorExportHook(
 
 function createSimpleExportHook(
   prepareData: (analysisResults: NextcladeResult[], datasetName: string) => string,
-  mimeType: string
+  mimeType: string,
 ) {
   return function simpleExportHook({ datasetName }: { datasetName: string }) {
     const analysisResults = useAtomValue(analysisResultsAtom)
@@ -578,7 +591,7 @@ function createSimpleExportHook(
         const data = prepareData(analysisResults, datasetName)
         saveFile(data, filename, mimeType)
       },
-      [analysisResults, datasetName]
+      [analysisResults, datasetName],
     )
 
     return useResultsExport(exportFn)
