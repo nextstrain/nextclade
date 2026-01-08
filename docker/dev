@@ -33,7 +33,10 @@
 # * Build and run web application in debug mode:
 #   ./docker/dev a
 #
-# * Build and run web application in release mode:
+# * Build web application in release mode and serve:
+#   ./docker/dev ars
+#
+# * Build and run web application in release mode (watch):
 #   ./docker/dev war
 #
 # * Lint Rust code:
@@ -263,6 +266,12 @@ case "${1:-}" in
   shift
   WEB=1
   RELEASE="prod:build"
+  WATCH=0
+  ;;
+"web-release-serve" | "ars")
+  shift
+  WEB=1
+  RELEASE="prod"
   WATCH=0
   ;;
 "watch-web-release" | "war")
