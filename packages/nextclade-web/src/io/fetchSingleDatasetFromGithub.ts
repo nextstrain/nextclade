@@ -1,5 +1,4 @@
 /* eslint-disable security/detect-unsafe-regex */
-import type { Optional } from 'utility-types'
 import { isEmpty, isNil, trim } from 'lodash'
 import pMemoize from 'p-memoize'
 import { DEFAULT_DATA_OWNER, DEFAULT_DATA_REPO, DEFAULT_DATA_REPO_PATH } from 'src/constants'
@@ -37,7 +36,7 @@ export interface GitHubRepoUrlResult extends GitHubRepoUrlComponents {
   directUrl: string
 }
 
-export function parseGithubRepoUrlComponents(url: string): Optional<GitHubRepoUrlComponents> {
+export function parseGithubRepoUrlComponents(url: string): Partial<GitHubRepoUrlComponents> {
   // NOTE: for URLs in format
   //    <https://github.com/owner/repo/blob> / <branch/with/slashes> / <dirname/filename.json>
   //  there is no way to tell where branch name ends and where path starts.
@@ -74,7 +73,7 @@ export async function parseGithubRepoUrl(url_: string): Promise<GitHubRepoUrlRes
   return { owner, repo, branch, path, directUrl, originalUrl: url_ }
 }
 
-export function parseGitHubRepoShortcutComponents(shortcut: string): Optional<GitHubRepoUrlComponents> {
+export function parseGitHubRepoShortcutComponents(shortcut: string): Partial<GitHubRepoUrlComponents> {
   const GITHUB_URL_REGEX =
     /^(gh|github):((?<owner>[^/@]+)\/(?<repo>[^/@]+))?(@(?<branch>[^@]+)@?)?(\/*(?<path>[^@]+?)\/*)?$/
   const match = GITHUB_URL_REGEX.exec(shortcut)

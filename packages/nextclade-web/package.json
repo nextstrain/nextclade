@@ -149,7 +149,6 @@
     "ts-essentials": "10.0.4",
     "typeface-lato": "1.1.13",
     "url-join": "5.0.0",
-    "utility-types": "3.11.0",
     "uuid": "11.1.0",
     "wasm-feature-detect": "1.8.0"
   },
