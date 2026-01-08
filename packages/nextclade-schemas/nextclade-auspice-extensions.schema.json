@@ -362,6 +362,11 @@
                 }
               ],
               "scoreWeight": 75.0
+            },
+            "recombinants": {
+              "enabled": true,
+              "mutationsThreshold": 20,
+              "scoreWeight": 100.0
             }
           },
           "phenotypeData": [
@@ -723,6 +728,11 @@
               }
             ],
             "scoreWeight": 75.0
+          },
+          "recombinants": {
+            "enabled": true,
+            "mutationsThreshold": 20,
+            "scoreWeight": 100.0
           }
         }
       ],
@@ -801,6 +811,18 @@
           "allOf": [
             {
               "$ref": "#/definitions/QcRulesConfigStopCodons"
+            }
+          ]
+        },
+        "recombinants": {
+          "default": {
+            "enabled": false,
+            "mutationsThreshold": 0,
+            "scoreWeight": 0.0
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/QcRulesConfigRecombinants"
             }
           ]
         }
@@ -1076,6 +1098,34 @@
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
+        }
+      }
+    },
+    "QcRulesConfigRecombinants": {
+      "description": "Configuration for QC rule \"recombinants\"",
+      "examples": [
+        {
+          "enabled": true,
+          "mutationsThreshold": 20,
+          "scoreWeight": 100.0
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "mutationsThreshold": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "scoreWeight": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
         }
       }
     },
