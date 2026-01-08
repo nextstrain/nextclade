@@ -45,6 +45,15 @@
 # * Lint Rust code, apply automatic fixes:
 #   ./docker/dev lf
 #
+# * Lint web app (eslint + tsc):
+#   ./docker/dev al
+#
+# * Lint web app (eslint only):
+#   ./docker/dev ae
+#
+# * Lint web app (tsc only):
+#   ./docker/dev at
+#
 # * Format Rust code:
 #   ./docker/dev f
 #
@@ -278,6 +287,24 @@ case "${1:-}" in
   shift
   WEB=1
   RELEASE="prod:watch"
+  WATCH=0
+  ;;
+"app-lint" | "al")
+  shift
+  WEB=1
+  RELEASE="lint"
+  WATCH=0
+  ;;
+"app-eslint" | "ae")
+  shift
+  WEB=1
+  RELEASE="eslint"
+  WATCH=0
+  ;;
+"app-tsc" | "at")
+  shift
+  WEB=1
+  RELEASE="tsc"
   WATCH=0
   ;;
 "test" | "t")
