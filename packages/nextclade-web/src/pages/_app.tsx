@@ -33,6 +33,7 @@ import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
 import { QueryClient, QueryClientConfig, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { HelmetProvider } from 'react-helmet-async'
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
 import { getDatasetServerUrl, initializeDatasets } from 'src/io/fetchDatasets'
@@ -287,33 +288,35 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
 
   return (
     <Suspense fallback={fallback}>
-      <RecoilRoot>
-        <JotaiProvider store={jotaiStore}>
-          <JotaiDevTools store={jotaiStore} />
-          <ThemeProvider theme={theme}>
-            <MDXProvider components={mdxComponents}>
-              <Plausible domain={DOMAIN_STRIPPED} />
-              <QueryClientProvider client={queryClient}>
-                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                {/* @ts-ignore */}
-                <I18nextProvider i18n={i18n}>
-                  <ErrorBoundary>
-                    <Suspense>
-                      <RecoilStateInitializer />
-                    </Suspense>
-                    <Suspense fallback={fallback}>
-                      <SEO />
-                      <Component {...pageProps} />
-                      <ErrorPopup />
-                      <ReactQueryDevtools initialIsOpen={false} />
-                    </Suspense>
-                  </ErrorBoundary>
-                </I18nextProvider>
-              </QueryClientProvider>
-            </MDXProvider>
-          </ThemeProvider>
-        </JotaiProvider>
-      </RecoilRoot>
+      <HelmetProvider>
+        <RecoilRoot>
+          <JotaiProvider store={jotaiStore}>
+            <JotaiDevTools store={jotaiStore} />
+            <ThemeProvider theme={theme}>
+              <MDXProvider components={mdxComponents}>
+                <Plausible domain={DOMAIN_STRIPPED} />
+                <QueryClientProvider client={queryClient}>
+                  {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                  {/* @ts-ignore */}
+                  <I18nextProvider i18n={i18n}>
+                    <ErrorBoundary>
+                      <Suspense>
+                        <RecoilStateInitializer />
+                      </Suspense>
+                      <Suspense fallback={fallback}>
+                        <SEO />
+                        <Component {...pageProps} />
+                        <ErrorPopup />
+                        <ReactQueryDevtools initialIsOpen={false} />
+                      </Suspense>
+                    </ErrorBoundary>
+                  </I18nextProvider>
+                </QueryClientProvider>
+              </MDXProvider>
+            </ThemeProvider>
+          </JotaiProvider>
+        </RecoilRoot>
+      </HelmetProvider>
     </Suspense>
   )
 }

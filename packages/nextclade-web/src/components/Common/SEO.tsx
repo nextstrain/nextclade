@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 
 import Head from 'next/head'
 
-import { Helmet } from 'react-helmet'
+import { Helmet } from 'react-helmet-async'
 import { useRecoilValue } from 'recoil'
 
 import { DOMAIN, PROJECT_DESCRIPTION, PROJECT_NAME, URL_SOCIAL_IMAGE, TWITTER_USERNAME_FRIENDLY } from 'src/constants'
