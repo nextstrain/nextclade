@@ -1,5 +1,6 @@
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::qc::qc_config::QcRulesConfigRecombinants;
+use crate::qc::qc_rule_snp_clusters::QcResultSnpClusters;
 use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
@@ -23,11 +24,17 @@ impl QcRule for QcResultRecombinants {
 
 pub fn rule_recombinants(
   private_nuc_mutations: &PrivateNucMutations,
+  snp_clusters: Option<&QcResultSnpClusters>,
   config: &QcRulesConfigRecombinants,
 ) -> Option<QcResultRecombinants> {
   if !config.enabled {
     return None;
   }
+
+  let clustered_snps = snp_clusters.map(|sc| sc.clustered_snps.as_slice()).unwrap_or_default();
+
+  // TODO: use clustered_snps here
+  dbg!(&clustered_snps);
 
   let total_private_mutations = private_nuc_mutations.total_private_substitutions;
   let total_reversion_substitutions = private_nuc_mutations.total_reversion_substitutions;
@@ -44,7 +51,10 @@ pub fn rule_recombinants(
 
   // Calculate score based on excess mutations beyond threshold
   let score = if total_mutations_for_recombination > config.mutations_threshold {
-    clamp_min(excess_mutations as f64 * *config.score_weight / config.mutations_threshold as f64, 0.0)
+    clamp_min(
+      excess_mutations as f64 * *config.score_weight / config.mutations_threshold as f64,
+      0.0,
+    )
   } else {
     0.0
   };

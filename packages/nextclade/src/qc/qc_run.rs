@@ -72,14 +72,17 @@ pub fn qc_run(
   frame_shifts: &[FrameShift],
   config: &QcConfig,
 ) -> QcResult {
+  let snp_clusters = rule_snp_clusters(private_nuc_mutations, &config.snp_clusters);
+  let recombinants = rule_recombinants(private_nuc_mutations, snp_clusters.as_ref(), &config.recombinants);
+
   let mut result = QcResult {
     missing_data: rule_missing_data(total_missing, &config.missing_data),
     mixed_sites: rule_mixed_sites(nucleotide_composition, &config.mixed_sites),
     private_mutations: rule_private_mutations(private_nuc_mutations, &config.private_mutations),
-    snp_clusters: rule_snp_clusters(private_nuc_mutations, &config.snp_clusters),
+    snp_clusters,
     frame_shifts: rule_frame_shifts(frame_shifts, &config.frame_shifts),
     stop_codons: rule_stop_codons(translation, &config.stop_codons),
-    recombinants: rule_recombinants(private_nuc_mutations, &config.recombinants),
+    recombinants,
     overall_score: 0.0,
     overall_status: QcStatus::Good,
   };
