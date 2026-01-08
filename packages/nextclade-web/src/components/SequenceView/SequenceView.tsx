@@ -28,10 +28,14 @@ function SequenceViewUnsized({ sequence, width }: { sequence: AnalysisResult; wi
     return <SequenceViewRelative sequence={sequence} width={width} refNodeName={refNodeName} />
   }, [refNodeName, sequence, width])
 
-  return <SequenceViewWrapper>{view}</SequenceViewWrapper>
+  return view
 }
 
 export function SequenceView({ sequence }: StrictOmit<SequenceViewProps, 'width' | 'height'>) {
-  const { width } = useResizeDetector({ handleWidth: true })
-  return <SequenceViewUnsized sequence={sequence} width={width} />
+  const { width, ref } = useResizeDetector<HTMLDivElement>({ handleWidth: true })
+  return (
+    <SequenceViewWrapper ref={ref}>
+      <SequenceViewUnsized sequence={sequence} width={width} />
+    </SequenceViewWrapper>
+  )
 }

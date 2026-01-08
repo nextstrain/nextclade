@@ -275,6 +275,10 @@ export function GeneMapUnsized({ width = 0, height = 0 }: Dimensions) {
 }
 
 export function GeneMap() {
-  const { width, height } = useResizeDetector({ handleWidth: true, handleHeight: true })
-  return <GeneMapUnsized width={width} height={height} />
+  const { width, height, ref } = useResizeDetector<HTMLDivElement>({ handleWidth: true, handleHeight: true })
+  return (
+    <div ref={ref} style={{ width: '100%', height: '100%' }}>
+      <GeneMapUnsized width={width} height={height} />
+    </div>
+  )
 }

@@ -87,10 +87,14 @@ export function PeptideViewUnsized({ width, sequence, warnings = [], cdsName }: 
     return <PeptideViewRelative width={width} cds={cds} sequence={sequence} refNodeName={refNodeName} />
   }, [cds, refNodeName, sequence, t, cdsName, warnings, width])
 
-  return <SequenceViewWrapper>{view}</SequenceViewWrapper>
+  return view
 }
 
 export function PeptideView(props: StrictOmit<PeptideViewProps, 'width' | 'height'>) {
-  const { width } = useResizeDetector({ handleWidth: true })
-  return <PeptideViewUnsized {...props} width={width} />
+  const { width, ref } = useResizeDetector<HTMLDivElement>({ handleWidth: true })
+  return (
+    <SequenceViewWrapper ref={ref}>
+      <PeptideViewUnsized {...props} width={width} />
+    </SequenceViewWrapper>
+  )
 }
