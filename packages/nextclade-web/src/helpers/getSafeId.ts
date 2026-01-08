@@ -1,12 +1,4 @@
-import memoize from 'fast-memoize'
-import { isBoolean, isNil, isNumber, isString } from 'lodash'
-
-export const getSafeId = memoize(getSafeIdImpl)
-
-function getSafeIdImpl(name: string, obj: object) {
-  const str = stringifyObj(obj).replace(/(\W+)/g, '-')
-  return CSS.escape(`${name}___${str}`)
-}
+import { isBoolean, isNil, isNumber, isString, memoize } from 'lodash'
 
 function stringifyObj(obj: object): string {
   return Object.entries(obj)
@@ -23,3 +15,10 @@ function stringifyObj(obj: object): string {
     })
     .join('__')
 }
+
+function getSafeIdImpl(name: string, obj: object) {
+  const str = stringifyObj(obj).replace(/(\W+)/g, '-')
+  return CSS.escape(`${name}___${str}`)
+}
+
+export const getSafeId = memoize(getSafeIdImpl, (name, obj) => `${name}__${stringifyObj(obj)}`)

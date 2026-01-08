@@ -96,7 +96,6 @@
     "core-js": "3.42.0",
     "countries-list": "3.1.1",
     "fast-copy": "3.0.2",
-    "fast-memoize": "2.5.2",
     "fasy": "9.0.2",
     "file-saver": "2.0.5",
     "formik": "2.4.6",
