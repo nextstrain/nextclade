@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import styled, { createGlobalStyle } from 'styled-components'
-import { atom, createStore as jotaiCreateStore, useAtomValue } from 'jotai'
+import { atom, createStore as jotaiCreateStore, useAtom, useAtomValue } from 'jotai'
+import { atomWithStorage } from 'jotai/utils'
+import { useDrag } from '@use-gesture/react'
 import type { Table } from '@tanstack/react-table'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { ReactTableDevtools } from '@tanstack/react-table-devtools'
@@ -10,6 +12,8 @@ import 'jotai-devtools/styles.css'
 export const registeredTablesAtom = atom<Map<string, Table<any>>>(new Map())
 
 type DevToolsTab = 'jotai' | 'react-query' | 'table'
+
+const devToolsPositionAtom = atomWithStorage('devtools-tab-position', 50)
 
 interface DevToolsDrawerProps {
   jotaiStore: ReturnType<typeof jotaiCreateStore>
@@ -44,6 +48,35 @@ function TableDevToolsPanel() {
 export function DevToolsDrawer({ jotaiStore }: DevToolsDrawerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<DevToolsTab>('jotai')
+  const [position, setPosition] = useAtom(devToolsPositionAtom)
+
+  const bind = useDrag(
+    ({ movement: [mx], memo = position, first, last, tap, event }) => {
+      if (isOpen) return memo
+
+      if (tap) {
+        return memo
+      }
+
+      event?.preventDefault()
+
+      const availableWidth = window.innerWidth - 200
+      const deltaPercent = (mx / availableWidth) * 100
+      const newPosition = Math.max(0, Math.min(100, memo + deltaPercent))
+
+      if (last) {
+        setPosition(newPosition)
+      } else if (!first) {
+        setPosition(newPosition)
+      }
+
+      return memo
+    },
+    {
+      filterTaps: true,
+      threshold: 5,
+    },
+  )
 
   const toggleDrawer = useCallback(() => {
     setIsOpen((prev) => !prev)
@@ -84,8 +117,8 @@ export function DevToolsDrawer({ jotaiStore }: DevToolsDrawerProps) {
         <TableDevToolsPanel />
       </TableDevToolsPanelWrapper>
 
-      <DrawerWrapper>
-        <TabBar>
+      <DrawerWrapper style={{ left: `${position}%`, bottom: isOpen ? 'calc(50vh - 32px)' : 0 }}>
+        <TabBar {...bind()} $isOpen={isOpen}>
           <Tab $isActive={activeTab === 'jotai' && isOpen} onClick={handleSelectJotai} title="Jotai DevTools">
             Jotai
           </Tab>
@@ -139,6 +172,7 @@ const GlobalDevToolsStyles = createGlobalStyle`
     transform: translateY(100%) !important;
     transition: transform 0.3s ease, visibility 0s 0.3s !important;
     visibility: hidden;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4) !important;
   }
 
   /* Base state for React Query panel - hidden below viewport */
@@ -156,6 +190,7 @@ const GlobalDevToolsStyles = createGlobalStyle`
     transform: translateY(100%) !important;
     transition: transform 0.3s ease, visibility 0s 0.3s !important;
     visibility: hidden;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4) !important;
   }
 
   /* When drawer is open, both panels slide up */
@@ -188,22 +223,16 @@ const GlobalDevToolsStyles = createGlobalStyle`
 
 const DrawerWrapper = styled.div`
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  transform: translateX(-50%);
   z-index: 99999;
   display: flex;
   flex-direction: column;
   align-items: center;
   pointer-events: none;
   transition: bottom 0.3s ease;
-
-  body[data-devtools-open='true'] & {
-    bottom: calc(50vh - 32px);
-  }
 `
 
-const TabBar = styled.div`
+const TabBar = styled.div<{ $isOpen: boolean }>`
   display: flex;
   align-items: stretch;
   background-color: #1e1e2e;
@@ -211,38 +240,45 @@ const TabBar = styled.div`
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   pointer-events: auto;
+  touch-action: none;
+  cursor: ${(props) => (props.$isOpen ? 'default' : 'grab')};
+  user-select: none;
+
+  &:active {
+    cursor: ${(props) => (props.$isOpen ? 'default' : 'grabbing')};
+  }
 `
 
 const Tab = styled.button<{ $isActive: boolean }>`
-  padding: 8px 16px;
+  padding: 4px 16px;
   border: none;
   background-color: ${(props) => (props.$isActive ? '#313244' : '#1e1e2e')};
-  color: ${(props) => (props.$isActive ? '#cdd6f4' : '#6c7086')};
+  color: ${(props) => (props.$isActive ? '#fff' : '#c0c0c0')};
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
   border-bottom: 2px solid ${(props) => (props.$isActive ? '#89b4fa' : 'transparent')};
 
   &:hover {
     background-color: #313244;
-    color: #cdd6f4;
+    color: #fff;
   }
 `
 
 const ToggleButton = styled.button`
-  padding: 8px 12px;
+  padding: 4px 12px;
   border: none;
   background-color: #1e1e2e;
-  color: #6c7086;
+  color: #c0c0c0;
   font-size: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
   border-left: 1px solid #313244;
 
   &:hover {
     background-color: #313244;
-    color: #cdd6f4;
+    color: #fff;
   }
 `
 
@@ -262,6 +298,7 @@ const TableDevToolsPanelWrapper = styled.div`
   visibility: hidden;
   background-color: #1e1e2e;
   overflow: auto;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
 `
 
 const TableDevToolsEmpty = styled.div`
