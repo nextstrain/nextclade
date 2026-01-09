@@ -421,7 +421,9 @@ RUN set -euxo pipefail >/dev/null \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
+  cmake \
   gcc-mingw-w64-x86-64 \
+  nasm \
 >/dev/null \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null \
@@ -472,6 +474,7 @@ ENV OSXCROSS_MP_INC=1
 ENV MACOSX_DEPLOYMENT_TARGET=10.7
 
 RUN set -euxo pipefail >/dev/null \
+&& ln -sf x86_64-apple-darwin20.2-ld /opt/osxcross/bin/ld \
 && echo "1" | osxcross-macports install openssl -v
 
 USER ${UID}
@@ -499,6 +502,7 @@ ENV OSXCROSS_MP_INC=1
 ENV MACOSX_DEPLOYMENT_TARGET=10.7
 
 RUN set -euxo pipefail >/dev/null \
+&& ln -sf aarch64-apple-darwin20.2-ld /opt/osxcross/bin/ld \
 && echo "1" | osxcross-macports install openssl -v
 
 USER ${UID}
