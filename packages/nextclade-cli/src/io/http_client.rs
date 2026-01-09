@@ -74,9 +74,9 @@ impl HttpClient {
 
     let extra_ca_certs_filepath = env::var_os("NEXTCLADE_EXTRA_CA_CERTS").map(PathBuf::from);
     let extra_ca_certs_filepath = proxy_conf.extra_ca_certs.as_ref().or(extra_ca_certs_filepath.as_ref());
-
-    for cert in extra_ca_certs(extra_ca_certs_filepath)? {
-      client_builder = client_builder.add_root_certificate(cert);
+    let extra_certs = extra_ca_certs(extra_ca_certs_filepath)?;
+    if !extra_certs.is_empty() {
+      client_builder = client_builder.tls_certs_merge(extra_certs);
     }
 
     let user_agent = format!("{} {}", this_package_name(), this_package_version_str());
