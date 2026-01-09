@@ -25,12 +25,14 @@ export function DevToolsDrawer({ jotaiStore }: DevToolsDrawerProps) {
 
   const selectTab = useCallback(
     (tab: DevToolsTab) => {
-      setActiveTab(tab)
-      if (!isOpen) {
+      if (tab === activeTab && isOpen) {
+        setIsOpen(false)
+      } else {
+        setActiveTab(tab)
         setIsOpen(true)
       }
     },
-    [isOpen],
+    [activeTab, isOpen],
   )
 
   useEffect(() => {
@@ -62,7 +64,7 @@ export function DevToolsDrawer({ jotaiStore }: DevToolsDrawerProps) {
             onClick={handleSelectReactQuery}
             title="React Query DevTools"
           >
-            React Query
+            Query
           </Tab>
           <ToggleButton onClick={toggleDrawer} title="Toggle DevTools drawer">
             {isOpen ? '\u25BC' : '\u25B2'}
@@ -84,6 +86,11 @@ const GlobalDevToolsStyles = createGlobalStyle`
     display: none !important;
   }
 
+  /* Hide React Query DevTools close button */
+  button[aria-label='Close tanstack query devtools'] {
+    display: none !important;
+  }
+
   /* Base state for Jotai panel - hidden below viewport */
   #jotai-devtools-root > div {
     position: fixed !important;
@@ -97,7 +104,8 @@ const GlobalDevToolsStyles = createGlobalStyle`
     z-index: 99997 !important;
     border-radius: 0 !important;
     transform: translateY(100%) !important;
-    transition: transform 0.3s ease !important;
+    transition: transform 0.3s ease, visibility 0s 0.3s !important;
+    visibility: hidden;
   }
 
   /* Base state for React Query panel - hidden below viewport */
@@ -113,17 +121,24 @@ const GlobalDevToolsStyles = createGlobalStyle`
     z-index: 99997 !important;
     border-radius: 0 !important;
     transform: translateY(100%) !important;
-    transition: transform 0.3s ease !important;
+    transition: transform 0.3s ease, visibility 0s 0.3s !important;
+    visibility: hidden;
   }
 
-  /* Show Jotai panel when drawer open + jotai tab active */
+  /* When drawer is open, both panels slide up */
+  body[data-devtools-open='true'] #jotai-devtools-root > div,
+  body[data-devtools-open='true'] aside[aria-label='Tanstack query devtools'] {
+    transform: translateY(0) !important;
+    transition: transform 0.3s ease, visibility 0s 0s !important;
+  }
+
+  /* Show only the active panel (instant switch via visibility) */
   body[data-devtools-open='true'][data-devtools-tab='jotai'] #jotai-devtools-root > div {
-    transform: translateY(0) !important;
+    visibility: visible;
   }
 
-  /* Show React Query panel when drawer open + react-query tab active */
   body[data-devtools-open='true'][data-devtools-tab='react-query'] aside[aria-label='Tanstack query devtools'] {
-    transform: translateY(0) !important;
+    visibility: visible;
   }
 `
 
