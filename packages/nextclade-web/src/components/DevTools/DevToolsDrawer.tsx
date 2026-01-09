@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import styled, { createGlobalStyle } from 'styled-components'
 import { createStore as jotaiCreateStore } from 'jotai'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import 'jotai-devtools/styles.css'
 
 type DevToolsTab = 'jotai' | 'react-query'
 
@@ -41,9 +42,8 @@ export function DevToolsDrawer({ jotaiStore }: DevToolsDrawerProps) {
     }
   }, [isOpen, activeTab])
 
-  if (process.env.NODE_ENV !== 'development') {
-    return null
-  }
+  const handleSelectJotai = useCallback(() => selectTab('jotai'), [selectTab])
+  const handleSelectReactQuery = useCallback(() => selectTab('react-query'), [selectTab])
 
   return (
     <>
@@ -54,17 +54,17 @@ export function DevToolsDrawer({ jotaiStore }: DevToolsDrawerProps) {
 
       <DrawerWrapper>
         <TabBar>
-          <Tab $isActive={activeTab === 'jotai' && isOpen} onClick={() => selectTab('jotai')} title="Jotai DevTools">
+          <Tab $isActive={activeTab === 'jotai' && isOpen} onClick={handleSelectJotai} title="Jotai DevTools">
             Jotai
           </Tab>
           <Tab
             $isActive={activeTab === 'react-query' && isOpen}
-            onClick={() => selectTab('react-query')}
+            onClick={handleSelectReactQuery}
             title="React Query DevTools"
           >
             React Query
           </Tab>
-          <ToggleButton onClick={toggleDrawer} $isOpen={isOpen} title="Toggle DevTools drawer">
+          <ToggleButton onClick={toggleDrawer} title="Toggle DevTools drawer">
             {isOpen ? '\u25BC' : '\u25B2'}
           </ToggleButton>
         </TabBar>
@@ -171,7 +171,7 @@ const Tab = styled.button<{ $isActive: boolean }>`
   }
 `
 
-const ToggleButton = styled.button<{ $isOpen: boolean }>`
+const ToggleButton = styled.button`
   padding: 8px 12px;
   border: none;
   background-color: #1e1e2e;

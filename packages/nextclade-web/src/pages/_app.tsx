@@ -5,7 +5,6 @@ import { isEmpty, isNil } from 'lodash'
 import React, { useEffect, Suspense, useMemo } from 'react'
 import { RecoilEnv, RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { createStore as jotaiCreateStore, Provider as JotaiProvider } from 'jotai'
-import 'jotai-devtools/styles.css'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
@@ -32,7 +31,10 @@ import { ThemeProvider } from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
 import { QueryClient, QueryClientConfig, QueryClientProvider } from '@tanstack/react-query'
-import { DevToolsDrawer } from 'src/components/DevTools/DevToolsDrawer'
+const DevToolsDrawer =
+  process.env.NODE_ENV === 'development'
+    ? dynamic(() => import('src/components/DevTools/DevToolsDrawer').then((mod) => mod.DevToolsDrawer), { ssr: false })
+    : () => null
 import { HelmetProvider } from 'react-helmet-async'
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
@@ -263,7 +265,6 @@ function RecoilStateInitializer() {
 const REACT_QUERY_OPTIONS: QueryClientConfig = {
   defaultOptions: { queries: { retry: 1 } },
 }
-
 
 export function MyApp({ Component, pageProps, router }: AppProps) {
   const jotaiStore = useMemo(() => jotaiCreateStore(), [])
