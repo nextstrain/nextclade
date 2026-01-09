@@ -181,6 +181,30 @@ fn configure_tls(
   Ok(client_builder.tls_certs_merge(trust_anchors))
 }
 
+/// Configures automatic retry policy for transient failures.
+///
+/// # Retry Scope
+///
+/// Retries are scoped to the root URL's host only. If the server returns a redirect
+/// to a different host (e.g., CDN), retries will NOT apply to that redirected request.
+///
+/// # Retryable Conditions
+///
+/// - Network errors (no response received) - includes timeouts, connection resets
+/// - 5xx server errors (502, 503, 504, etc.)
+/// - 429 Too Many Requests (rate limiting)
+/// - 408 Request Timeout
+///
+/// # Non-Retryable
+///
+/// - 4xx client errors (except 408, 429)
+/// - Successful responses
+/// - Redirects (handled separately by reqwest)
+///
+/// # Budget
+///
+/// A 20% extra load budget prevents retry storms - if too many requests to the host
+/// are failing, retries are throttled to avoid overwhelming the server.
 fn configure_retry(
   client_builder: reqwest::blocking::ClientBuilder,
   root: &Url,
@@ -194,6 +218,7 @@ fn configure_retry(
       .max_retries_per_request(3)
       .max_extra_load(0.2)
       .classify_fn(|attempt| match attempt.status() {
+        // Network error (no response) - retry for transient failures
         None => attempt.retryable(),
         Some(status) if status.is_server_error() => attempt.retryable(),
         Some(status) if status == StatusCode::TOO_MANY_REQUESTS => attempt.retryable(),
