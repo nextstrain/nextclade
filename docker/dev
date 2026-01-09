@@ -271,6 +271,12 @@ case "${1:-}" in
   RELEASE="dev"
   WATCH=0
   ;;
+"web-nowatch" | "an")
+  shift
+  WEB=1
+  RELEASE="dev:nowatch"
+  WATCH=0
+  ;;
 "web-release" | "ar")
   shift
   WEB=1
@@ -295,16 +301,34 @@ case "${1:-}" in
   RELEASE="lint"
   WATCH=0
   ;;
+"app-lint-watch" | "alw")
+  shift
+  WEB=1
+  RELEASE="lint:watch"
+  WATCH=0
+  ;;
 "app-eslint" | "ae")
   shift
   WEB=1
   RELEASE="eslint"
   WATCH=0
   ;;
+"app-eslint-watch" | "aew")
+  shift
+  WEB=1
+  RELEASE="eslint:watch"
+  WATCH=0
+  ;;
 "app-tsc" | "at")
   shift
   WEB=1
   RELEASE="tsc"
+  WATCH=0
+  ;;
+"app-tsc-watch" | "atw")
+  shift
+  WEB=1
+  RELEASE="tsc:watch"
   WATCH=0
   ;;
 "test" | "t")
