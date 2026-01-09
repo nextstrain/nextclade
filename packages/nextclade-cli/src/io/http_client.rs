@@ -190,7 +190,9 @@ fn configure_tls(
 ///
 /// # Retryable Conditions
 ///
-/// - Network errors (no response received) - includes timeouts, connection resets
+/// - Network errors (no response received) - includes timeouts, connection resets,
+///   DNS failures, and TLS handshake errors. Note: retrying DNS/TLS errors is usually
+///   futile but harmless given the low retry count.
 /// - 5xx server errors (502, 503, 504, etc.)
 /// - 429 Too Many Requests (rate limiting)
 /// - 408 Request Timeout
