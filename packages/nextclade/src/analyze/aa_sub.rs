@@ -7,11 +7,11 @@ use crate::coord::position::AaRefPosition;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};
-use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+use std::sync::LazyLock;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -62,11 +62,11 @@ impl FromStr for AaGenotype {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    lazy_static! {
-      static ref RE: Regex = Regex::new(r"((?P<cds>.*?):(?P<pos>\d{1,10})(?P<qry>[A-Z-*])?)")
+    static RE: LazyLock<Regex> = LazyLock::new(|| {
+      Regex::new(r"((?P<cds>.*?):(?P<pos>\d{1,10})(?P<qry>[A-Z-*])?)")
         .wrap_err_with(|| "When compiling AA genotype regex")
-        .unwrap();
-    }
+        .unwrap()
+    });
 
     if let Some(captures) = RE.captures(s) {
       return match (captures.name("cds"), captures.name("pos")) {
@@ -181,11 +181,11 @@ impl FromStr for AaSub {
 
   /// Parses aminoacid substitution from string. Expects IUPAC notation commonly used in bioinformatics.
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    lazy_static! {
-      static ref RE: Regex = Regex::new(AA_MUT_REGEX)
+    static RE: LazyLock<Regex> = LazyLock::new(|| {
+      Regex::new(AA_MUT_REGEX)
         .wrap_err_with(|| format!("When compiling regular expression '{AA_MUT_REGEX}'"))
-        .unwrap();
-    }
+        .unwrap()
+    });
 
     if let Some(captures) = RE.captures(s) {
       return match (

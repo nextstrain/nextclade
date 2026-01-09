@@ -7,8 +7,7 @@ SHELL ["bash", "-euxo", "pipefail", "-c"]
 ARG DOCKER_BASE_IMAGE
 ARG DASEL_VERSION="1.22.1"
 ARG WATCHEXEC_VERSION="1.17.1"
-ARG NODEMON_VERSION="2.0.15"
-ARG YARN_VERSION="1.22.18"
+ARG BUN_VERSION="1.2.14"
 
 # Install required packages if running CentOS
 RUN set -euxo pipefail >/dev/null \
@@ -191,13 +190,7 @@ RUN set -eux >dev/null \
 && cd "${NODE_DIR}" \
 && NODE_VERSION=$(cat /.nvmrc) \
 && curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
-&& npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null
-
-# Calm down the (in)famous chatter from yarn
-RUN set -euxo pipefail >/dev/null \
-&& sed -i'' "s/this.reporter.warn(this.reporter.lang('incompatibleResolutionVersion', pattern, reqPattern));//g" "${NODE_DIR}/lib/node_modules/yarn/lib/cli.js" \
-&& sed -i'' "s/_this2\.reporter.warn(_this2\.reporter.lang('ignoredScripts'));//g" "${NODE_DIR}/lib/node_modules/yarn/lib/cli.js" \
-&& sed -i'' 's/_this3\.reporter\.warn(_this3\.reporter\.lang(peerError.*;//g' "/opt/node/lib/node_modules/yarn/lib/cli.js"
+&& npm install -g bun@${BUN_VERSION} >/dev/null
 
 RUN set -euxo pipefail >/dev/null \
 && chown -R ${UID}:${GID} "${HOME}"
@@ -234,17 +227,17 @@ RUN set -euxo pipefail >/dev/null \
 && chmod +x "${CARGO_HOME}/bin/seqkit"
 
 RUN set -euxo pipefail >/dev/null \
-&& export WASM_BINDGEN_CLI_VERSION="0.2.93" \
+&& export WASM_BINDGEN_CLI_VERSION="0.2.106" \
 && curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen" \
 && chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
 
 RUN set -euxo pipefail >/dev/null \
-&& export BINARYEN_VERSION="114" \
+&& export BINARYEN_VERSION="125" \
 && curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=2 -xz --wildcards "binaryen-version_${BINARYEN_VERSION}/bin/"'wasm*' \
 && chmod +x ${CARGO_HOME}/bin/wasm*
 
 RUN set -euxo pipefail >/dev/null \
-&& export WASM_PACK_VERSION="0.12.1" \
+&& export WASM_PACK_VERSION="0.13.1" \
 && curl -sSL "https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl/wasm-pack" \
 && chmod +x "${CARGO_HOME}/bin/wasm-pack"
 

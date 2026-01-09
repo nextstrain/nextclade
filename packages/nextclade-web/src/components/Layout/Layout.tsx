@@ -46,7 +46,15 @@ const FooterWrapper = styled.footer`
   z-index: 1001;
 `
 
-export function Layout({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
+export interface LayoutProps extends PropsWithChildren<HTMLProps<HTMLDivElement>> {
+  noProviders?: boolean // HACK: Loading page is outside of providers, so need to disable some of the functionality
+}
+
+export function Layout({ children, noProviders = false }: LayoutProps) {
+  if (noProviders) {
+    return null
+  }
+
   return (
     <Container>
       <PreviewWarning />

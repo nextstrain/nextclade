@@ -1,16 +1,9 @@
 import React, { useMemo } from 'react'
-
-import type { StrictOmit } from 'ts-essentials'
 import isAbsoluteUrl from 'is-absolute-url'
-
-import { Link, LinkProps } from './Link'
 import { LinkExternal, LinkExternalProps } from './LinkExternal'
+import Link from 'next/link'
 
-export interface LinkSmartProps extends StrictOmit<LinkProps & LinkExternalProps, 'href' | 'as'> {
-  href?: string
-}
-
-export function LinkSmart({ href, ...restProps }: LinkSmartProps) {
+export function LinkSmart({ href, ...restProps }: LinkExternalProps) {
   const external = useMemo(() => isAbsoluteUrl(href ?? ''), [href])
 
   if (!href) {

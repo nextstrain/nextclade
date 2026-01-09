@@ -1,91 +1,98 @@
 import { NextConfig } from 'next'
-import path from 'path'
-
-import { uniq } from 'lodash'
-
 import getWithMDX from '@next/mdx'
-import withPlugins from 'next-compose-plugins'
-import getWithTranspileModules from 'next-transpile-modules'
-
-import type { AppJson } from 'src/components/Layout/UpdateNotification'
-
-import { RELEASE_URL } from './../../src/constants'
+import remarkBreaks from 'remark-breaks'
+import remarkImages from 'remark-images'
+import remarkMath from 'remark-math'
+import remarkToc from 'remark-toc'
+import getWithEslint from './withEslint'
+import getWithExternals from './withExternals'
+import getWithExtraWatch from './withExtraWatch'
+import withFriendlyChunkNames from './withFriendlyChunkNames'
+import getWithFriendlyConsole from './withFriendlyConsole'
+import withIgnore from './withIgnore'
+import withRaw from './withRaw'
+import withResolve from './withResolve'
+import withSvg from './withSvg'
+import getWithTypeChecking from './withTypeChecking'
+import withWasm from './withWasm'
+import { getWithEmitFile } from './withEmitFile'
+import type { AppJson } from '../../src/components/Layout/UpdateNotification'
+import { RELEASE_URL } from '../../src/constants'
 import { findModuleRoot } from '../../lib/findModuleRoot'
-import { getGitBranch } from '../../lib/getGitBranch'
 import { getBuildNumber } from '../../lib/getBuildNumber'
 import { getBuildUrl } from '../../lib/getBuildUrl'
+import { getDomain } from '../../lib/getDomain'
+import { getGitBranch } from '../../lib/getGitBranch'
 import { getGitCommitHash } from '../../lib/getGitCommitHash'
-import { getEnvVars } from './lib/getEnvVars'
-
-import getWithExtraWatch from './withExtraWatch'
-import getWithFriendlyConsole from './withFriendlyConsole'
-import getWithLodash from './withLodash'
-import withRaw from './withRaw'
-import { getWithRobotsTxt } from './withRobotsTxt'
-import getWithTypeChecking from './withTypeChecking'
-import withoutDebugPackage from './withoutDebugPackage'
-import withSvg from './withSvg'
-import withIgnore from './withIgnore'
-import withoutMinification from './withoutMinification'
-import withFriendlyChunkNames from './withFriendlyChunkNames'
-import withResolve from './withResolve'
-import withUrlAsset from './withUrlAsset'
-import withWasm from './withWasm'
-import { getWithAppJson } from './withAppJson'
-
-const {
-  // BABEL_ENV,
-  // NODE_ENV,
-  // ANALYZE,
-  PROFILE,
-  PRODUCTION,
-  ENABLE_SOURCE_MAPS,
-  ENABLE_ESLINT,
-  ENABLE_TYPE_CHECKS,
-  // ENABLE_STYLELINT,
-  DOMAIN,
-  DOMAIN_STRIPPED,
-  DATA_FULL_DOMAIN,
-  DATA_TRY_GITHUB_BRANCH,
-} = getEnvVars()
-
-const BRANCH_NAME = getGitBranch()
+import { getenv } from '../../lib/getenv'
+import { getBrowserSupport } from './getBrowserSupport'
 
 const { pkg, moduleRoot } = findModuleRoot()
 
-const clientEnv = {
-  BRANCH_NAME: getGitBranch(),
-  PACKAGE_VERSION: pkg.version ?? '',
-  BUILD_NUMBER: getBuildNumber(),
-  TRAVIS_BUILD_WEB_URL: getBuildUrl(),
-  COMMIT_HASH: getGitCommitHash(),
+const browserSupport = getBrowserSupport(pkg.browserslist.production)
+const wasmFeatures: string[] = pkg.wasmFeatures ?? []
+
+const PRODUCTION = process.env.NODE_ENV === 'production'
+const DOMAIN = getDomain()
+const DOMAIN_STRIPPED = DOMAIN.replace('https://', '').replace('http://', '')
+const DATA_FULL_DOMAIN = getenv('DATA_FULL_DOMAIN')
+const DATA_TRY_GITHUB_BRANCH = getenv('DATA_TRY_GITHUB_BRANCH') ?? undefined
+const BRANCH_NAME = getGitBranch() ?? undefined
+const COMMIT_HASH = getGitCommitHash() ?? undefined
+const BUILD_NUMBER = getBuildNumber() ?? undefined
+const BUILD_URL = getBuildUrl() ?? undefined
+const BLOCK_SEARCH_INDEXING = DOMAIN === RELEASE_URL ? '0' : '1'
+
+const env = {
   DOMAIN,
   DOMAIN_STRIPPED,
   DATA_FULL_DOMAIN,
   DATA_TRY_GITHUB_BRANCH,
-  BLOCK_SEARCH_INDEXING: DOMAIN === RELEASE_URL ? '0' : '1',
+  PACKAGE_NAME: pkg.name,
+  PACKAGE_VERSION: pkg.version,
+  BRANCH_NAME,
+  COMMIT_HASH,
+  BUILD_NUMBER,
+  BUILD_URL,
+  BLOCK_SEARCH_INDEXING,
+  BROWSER_SUPPORT: JSON.stringify(browserSupport),
+  WASM_FEATURES: JSON.stringify(wasmFeatures),
 }
 
+const appJson = {
+  name: pkg.name,
+  version: pkg.version,
+  branchName: BRANCH_NAME,
+  commitHash: COMMIT_HASH,
+  buildNumber: BUILD_NUMBER,
+  buildUrl: BUILD_URL,
+  domain: DOMAIN,
+  domainStripped: DOMAIN_STRIPPED,
+  dataFullDomain: DATA_FULL_DOMAIN,
+  blockSearchIndexing: BLOCK_SEARCH_INDEXING,
+} satisfies AppJson
+
 const nextConfig: NextConfig = {
-  distDir: `.build/${process.env.NODE_ENV}/tmp`,
-  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx', 'all-contributorsrc'],
+  output: 'export',
+  cleanDistDir: true,
+  distDir: PRODUCTION ? '.build/production/web' : `.build/${process.env.NODE_ENV}/web`,
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
   onDemandEntries: {
     maxInactiveAge: 60 * 1000,
     pagesBufferLength: 2,
   },
-  modern: false,
-  reactStrictMode: false,
-  reactRoot: true,
+  reactStrictMode: true,
   experimental: {
-    reactRoot: true,
+    mdxRs: false,
     scrollRestoration: true,
+    swcPlugins: [
+      // ['@swc-jotai/debug-label', { atomNames: ['customAtom'] }],
+      // ['@swc-jotai/react-refresh', { atomNames: ['customAtom'] }],
+    ],
   },
-  swcMinify: true,
-  productionBrowserSourceMaps: ENABLE_SOURCE_MAPS,
+  productionBrowserSourceMaps: true,
   excludeDefaultMomentLocales: true,
-  devIndicators: {
-    buildActivity: false,
-  },
+  devIndicators: false,
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -95,113 +102,75 @@ const nextConfig: NextConfig = {
   compiler: {
     styledComponents: true,
   },
-  env: clientEnv,
   poweredByHeader: false,
+  transpilePackages: ['auspice', 'debug', 'jotai-devtools', 'semver'],
+  env,
 }
+
+const withExternals = getWithExternals({ externals: ['canvas'] })
 
 const withMDX = getWithMDX({
   extension: /\.mdx?$/,
   options: {
-    remarkPlugins: [
-      // prettier-ignore
-      require('remark-breaks'),
-      require('remark-images'),
-      require('remark-math'),
-      require('remark-slug'),
-      [
-        require('remark-toc'),
-        {
-          tight: true,
-        },
-      ],
-      // [
-      //   require('remark-autolink-headings'),
-      //   {
-      //     behavior: 'prepend',
-      //     content: {
-      //       type: 'element',
-      //       tagName: 'i',
-      //       properties: { className: ['bi', 'bi-link-45deg', 'mdx-link-icon'] },
-      //     },
-      //   },
-      // ],
-    ],
+    remarkPlugins: [remarkBreaks, remarkImages, remarkMath, [remarkToc, { tight: true }]],
     rehypePlugins: [],
   },
 })
 
 const withFriendlyConsole = getWithFriendlyConsole({
   clearConsole: false,
-  projectRoot: path.resolve(moduleRoot),
-  packageName: pkg.name || 'web',
+  projectRoot: '.',
+  packageName: 'web',
   progressBarColor: '#2a68ff',
 })
 
 const withExtraWatch = getWithExtraWatch({
-  files: [path.join(moduleRoot, 'src/types/**/*.d.ts')],
+  files: ['src/types/**/*.d.ts'],
   dirs: [],
 })
 
-const withLodash = getWithLodash({ unicode: false })
-
 const withTypeChecking = getWithTypeChecking({
-  typeChecking: ENABLE_TYPE_CHECKS,
-  eslint: ENABLE_ESLINT,
+  typeChecking: true,
   memoryLimit: 2048,
+  exclude: ['src/bin'],
 })
 
-const transpilationListDev = [
-  // prettier-ignore
-  'd3-scale',
-  'auspice',
-]
+const withEslint = getWithEslint({
+  eslint: true,
+})
 
-const transpilationListProd = uniq([
-  // prettier-ignore
-  ...transpilationListDev,
-  'debug',
-  'lodash',
-  'semver',
-])
+// This generated files need to be copied to dist dir after build:
+// "next:prod:postbuild": "cp -avr .next/static/{app.json,robots.txt} .build/production/web/",
+// TODO: after transition to App Router, use route handlers to generate files
+// https://nextjs.org/docs/app/guides/static-exports#route-handlers
+const withAppJson = getWithEmitFile({
+  path: 'static/',
+  filename: 'app.json',
+  content: JSON.stringify(appJson, null, 2),
+  hash: false,
+})
+const withRobotsTxt = getWithEmitFile({
+  path: 'static/',
+  filename: 'robots.txt',
+  content: `User-agent: *\nDisallow:${BRANCH_NAME === 'release' ? '' : ' *'}\n`,
+  hash: false,
+})
 
-const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev)
+const plugins = [
+  withIgnore,
+  withExternals,
+  withExtraWatch,
+  withSvg,
+  withFriendlyConsole,
+  withMDX,
+  withTypeChecking,
+  withEslint,
+  withFriendlyChunkNames,
+  withRaw,
+  withResolve,
+  withWasm,
+  withAppJson,
+  withRobotsTxt,
+].filter(Boolean)
 
-const withRobotsTxt = getWithRobotsTxt(`User-agent: *\nDisallow:${BRANCH_NAME === 'release' ? '' : ' *'}\n`)
-
-const withAppJson = getWithAppJson({
-  name: pkg.name,
-  version: pkg.version,
-  branchName: getGitBranch(),
-  commitHash: getGitCommitHash(),
-  buildNumber: getBuildNumber(),
-  buildUrl: getBuildUrl(),
-  domain: DOMAIN,
-  domainStripped: DOMAIN_STRIPPED,
-  dataFullDomain: DATA_FULL_DOMAIN,
-  blockSearchIndexing: DOMAIN === RELEASE_URL ? '0' : '1',
-} as AppJson)
-
-const config = withPlugins(
-  [
-    [withIgnore],
-    [withExtraWatch],
-    [withSvg],
-    [withFriendlyConsole],
-    [withMDX],
-    [withLodash],
-    [withTypeChecking],
-    [withTranspileModules],
-    PROFILE && [withoutMinification],
-    [withFriendlyChunkNames],
-    [withRaw],
-    [withResolve],
-    [withRobotsTxt],
-    [withAppJson],
-    [withUrlAsset],
-    [withWasm],
-    PRODUCTION && [withoutDebugPackage],
-  ].filter(Boolean),
-  nextConfig,
-)
-
-export default config
+export default () => plugins.reduce((acc, next) => next(acc), nextConfig)

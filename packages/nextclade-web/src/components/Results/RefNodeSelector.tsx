@@ -5,13 +5,20 @@ import { getCladeNodeAttrFounderSearchId } from 'src/helpers/relativeMuts'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
-import type { ActionMeta, GroupBase, OnChangeValue, Theme } from 'react-select/dist/declarations/src/types'
+import Select from 'react-select'
+import type {
+  ActionMeta,
+  GroupBase,
+  OnChangeValue,
+  Theme,
+  SelectComponentsConfig,
+  OptionProps,
+  StylesConfig,
+} from 'react-select'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import Select, { OptionProps, StylesConfig } from 'react-select'
 import { IsMultiValue } from 'src/components/Common/Dropdown'
 import { DropdownOption } from 'src/components/Common/DropdownOption'
 import { cladeNodeAttrDescsAtom, currentRefNodeNameAtom, refNodesAtom } from 'src/state/results.state'
-import { SelectComponents } from 'react-select/dist/declarations/src/components'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 
 interface Option {
@@ -134,7 +141,7 @@ export function RefNodeSelector({ disabled }: RefNodeSelectorProps) {
   )
 }
 
-const COMPONENTS: Partial<SelectComponents<Option, false, GroupBase<Option>>> = {
+const COMPONENTS: Partial<SelectComponentsConfig<Option, false, GroupBase<Option>>> = {
   Option: RefNodeSelectorOption,
 }
 

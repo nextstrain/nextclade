@@ -10,21 +10,19 @@ use std::collections::BTreeMap;
 
 #[derive(ValueEnum, Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
+#[derive(Default)]
 pub enum GapAlignmentSide {
+  #[default]
   Left,
   Right,
 }
 
-impl Default for GapAlignmentSide {
-  fn default() -> Self {
-    Self::Left
-  }
-}
-
 #[derive(ValueEnum, Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
+#[derive(Default)]
 pub enum AlignmentPreset {
   #[clap(help = "Suitable for very similar sequences (this is the default)")]
+  #[default]
   Default,
 
   #[clap(help = "Suitable for more diverse viruses")]
@@ -34,11 +32,6 @@ pub enum AlignmentPreset {
   ShortSequences,
 }
 
-impl Default for AlignmentPreset {
-  fn default() -> Self {
-    Self::Default
-  }
-}
 // NOTE: The `optfield` attribute creates a struct that have the same fields, but which are wrapped into `Option`,
 // as well as adds a method `.merge_opt(&opt)` to the original struct, which merges values from the optional counterpart
 // into self (mutably).

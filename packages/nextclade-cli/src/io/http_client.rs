@@ -137,7 +137,7 @@ fn extra_ca_certs(extra_ca_certs_filepath: Option<impl AsRef<Path>>) -> Result<V
     |filename| {
       let mut pem = vec![];
 
-      open_file_or_stdin(&Some(filename))?.read_to_end(&mut pem)?;
+      open_file_or_stdin(Some(&filename))?.read_to_end(&mut pem)?;
 
       Certificate::from_pem_bundle(&pem).wrap_err("While reading PEM bundle")
     },

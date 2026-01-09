@@ -2,14 +2,12 @@
 import type { Cds, Gene, Protein } from '_SchemaRoot'
 import { isEmpty } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
-import ReactSelect, { StylesConfig } from 'react-select'
-import type { FilterOptionOption } from 'react-select/dist/declarations/src/filters'
-import type { FormatOptionLabelMeta } from 'react-select/dist/declarations/src/Select'
-import type { Theme } from 'react-select/dist/declarations/src/types'
+import ReactSelect from 'react-select'
+import type { FilterOptionOption, FormatOptionLabelMeta, StylesConfig, Theme } from 'react-select'
 import { Badge as BadgeBase } from 'reactstrap'
+import styled from 'styled-components'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
-import styled from 'styled-components'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import { CDS_OPTION_NUC_SEQUENCE } from 'src/constants'
@@ -228,7 +226,6 @@ function prepareOptions(genes: Gene[]) {
     cds: defaultCds,
   }
 
-  // eslint-disable-next-line no-loops/no-loops
   for (const gene of genes) {
     if (gene.cdses.length === 1) {
       options.push({
@@ -243,8 +240,7 @@ function prepareOptions(genes: Gene[]) {
         isDisabled: true,
       })
 
-      // eslint-disable-next-line no-loops/no-loops
-      for (const cds of gene.cdses) {
+          for (const cds of gene.cdses) {
         const option: Option = {
           value: `cds-${cds.name}`,
           cds,
@@ -252,8 +248,7 @@ function prepareOptions(genes: Gene[]) {
         defaultOption = option
         options.push(option)
 
-        // eslint-disable-next-line no-loops/no-loops
-        for (const protein of cds.proteins) {
+              for (const protein of cds.proteins) {
           options.push({
             value: `protein-${protein.name}`,
             protein,

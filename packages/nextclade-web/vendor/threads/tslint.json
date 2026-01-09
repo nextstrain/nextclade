@@ -1,0 +1,33 @@
+{
+  "extends": [
+    "tslint:latest",
+    "tslint-config-prettier"
+  ],
+  "jsRules": {},
+  "rules": {
+    "curly": [true, "ignore-same-line"],
+    "interface-name": [
+      true,
+      "never-prefix"
+    ],
+    "interface-over-type-literal": false,
+    "member-ordering": false,
+    "no-implicit-dependencies": [
+      true,
+      ["tiny-worker", "worker_threads"]
+    ],
+    "no-reference": false,
+    "no-submodule-imports": false,
+    "object-literal-sort-keys": false,
+    "only-arrow-functions": false,
+    "ordered-imports": [
+      true,
+      {
+        "named-imports-order": "lowercase-first"
+      }
+    ],
+    "semicolon": false,
+    "array-type": false
+  },
+  "rulesDirectory": []
+}

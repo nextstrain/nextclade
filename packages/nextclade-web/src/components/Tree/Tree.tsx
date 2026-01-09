@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import AutoSizer from 'react-virtualized-auto-sizer'
+import AutoSizer, { Size } from 'react-virtualized-auto-sizer'
 import AuspiceEntropy from 'auspice/src/components/entropy'
 import AuspiceTree from 'auspice/src/components/tree'
 
@@ -14,6 +14,7 @@ const ENTROPY_ASPECT_RATIO = 16 / 5
 
 export const AuspiceEntropyContainer = styled.div`
   // prevent selection when dragging
+
   * {
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -33,7 +34,7 @@ export const AuspiceTreeStyled = styled(AuspiceTree)`
 export function Tree() {
   return (
     <AutoSizer>
-      {({ width, height }) => {
+      {({ width, height }: Size) => {
         const fullWidth = width * TREE_SIZE_HACK_WIDTH
         const treeHeight = height * TREE_SIZE_HACK_HEIGHT
         const entropyHeight = width / ENTROPY_ASPECT_RATIO

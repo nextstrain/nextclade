@@ -88,7 +88,7 @@ where
   /// Retrieve parent of a given node
   ///
   /// Assumes there is always only 0 or 1 parents
-  pub fn parent_of<'n>(&'n self, node: &'n Node<N>) -> Option<&Node<N>> {
+  pub fn parent_of<'n>(&'n self, node: &'n Node<N>) -> Option<&'n Node<N>> {
     self
       .parent_key_of(node)
       .map(|parent_key| self.get_node_or_crash(parent_key))
@@ -104,7 +104,7 @@ where
   }
 
   /// Retrieve keys of parent nodes of a given node.
-  pub fn iter_parent_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = GraphNodeKey> + '_ {
+  pub fn iter_parent_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = GraphNodeKey> + 'n {
     // Parents are the source nodes of inbound edges
     node
       .inbound()
@@ -116,7 +116,7 @@ where
   }
 
   /// Retrieve keys of child nodes of a given node.
-  pub fn iter_child_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = GraphNodeKey> + '_ {
+  pub fn iter_child_keys_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = GraphNodeKey> + 'n {
     // Children are the target nodes of outbound edges
     node
       .outbound()
@@ -136,7 +136,7 @@ where
   }
 
   /// Retrieve child nodes of a given node.
-  pub fn iter_children_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = &Node<N>> {
+  pub fn iter_children_of<'n>(&'n self, node: &'n Node<N>) -> impl DoubleEndedIterator<Item = &'n Node<N>> {
     self
       .iter_child_keys_of(node)
       .map(|child_key| self.get_node_or_crash(child_key))
@@ -182,17 +182,17 @@ where
   }
 
   #[inline]
-  pub fn num_nodes(&self) -> usize {
+  pub const fn num_nodes(&self) -> usize {
     self.nodes.len()
   }
 
   #[inline]
-  pub fn num_roots(&self) -> usize {
+  pub const fn num_roots(&self) -> usize {
     self.roots.len()
   }
 
   #[inline]
-  pub fn num_leaves(&self) -> usize {
+  pub const fn num_leaves(&self) -> usize {
     self.leaves.len()
   }
 

@@ -6,7 +6,7 @@ import {
   NavbarBrand as NavbarBrandBase,
   NavItem as NavItemBase,
 } from 'reactstrap'
-import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 import styled, { useTheme } from 'styled-components'
 import { BsCaretRightFill as ArrowRight } from 'react-icons/bs'
 import { FaDocker, FaGithub, FaDiscourse } from 'react-icons/fa6'
@@ -148,8 +148,8 @@ export function NavigationBar() {
   const { t } = useTranslationSafe()
   const { pathname } = useRouter()
 
-  const hasRan = useRecoilValue(hasRanAtom)
-  const canDownload = useRecoilValue(canDownloadAtom)
+  const hasRan = useAtomValue(hasRanAtom)
+  const canDownload = useAtomValue(canDownloadAtom)
 
   const linksLeft = useMemo(() => {
     return [
@@ -237,8 +237,10 @@ export function NavigationBar() {
     <Navbar light role="navigation">
       <Nav>
         <NavbarBrand tag={Link} href="/">
-          <BrandLogo />
-          <BrandText className="d-none d-md-block" />
+          <span className="d-inline-flex">
+            <BrandLogo />
+            <BrandText className="d-none d-md-block" />
+          </span>
         </NavbarBrand>
 
         {linksLeft}

@@ -3,7 +3,7 @@ use crate::io::json::is_json_value_null;
 use core::fmt::Debug;
 use core::fmt::{Display, Formatter};
 use derive_more::Display;
-use schemars::gen::SchemaGenerator;
+use schemars::r#gen::SchemaGenerator;
 use schemars::schema::Schema;
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -48,8 +48,8 @@ impl JsonSchema for GraphEdgeKey {
     "GraphEdgeKey".to_owned()
   }
 
-  fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-    gen.subschema_for::<usize>()
+  fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+    generator.subschema_for::<usize>()
   }
 }
 
@@ -97,13 +97,13 @@ impl<E: GraphEdge> Edge<E> {
   }
 
   #[inline]
-  pub fn payload_mut(&mut self) -> &mut E {
+  pub const fn payload_mut(&mut self) -> &mut E {
     &mut self.data
   }
 }
 
 impl<E: GraphEdge> Display for Edge<E> {
-  fn fmt(&self, fmt: &mut Formatter<'_>) -> core::fmt::Result {
-    write!(fmt, "{} -> {}", self.source(), self.target())
+  fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+    write!(f, "{} -> {}", self.source(), self.target())
   }
 }

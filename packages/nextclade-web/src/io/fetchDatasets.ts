@@ -1,5 +1,6 @@
 /* eslint-disable prefer-destructuring */
 import type { ParsedUrlQuery } from 'querystring'
+import { useEffect } from 'react'
 import { findSimilarStrings } from 'src/helpers/string'
 import { axiosHeadOrUndefined } from 'src/io/axiosFetch'
 import {
@@ -25,7 +26,7 @@ import {
   minimizerIndexVersionAtom,
   collectionsAtom,
 } from 'src/state/dataset.state'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { isNil } from 'lodash'
 import urljoin from 'url-join'
 import { URL_GITHUB_DATA_RAW } from 'src/constants'
@@ -165,7 +166,7 @@ export async function initializeDatasets(datasetServerUrl: string, urlQuery: Par
   }
 }
 
-/** Refetch dataset index periodically and update the local copy of if */
+/** Refetch dataset index periodically and update the local copy of it */
 export function useUpdatedDatasetIndex() {
   const datasetServerUrl = useRecoilValue(datasetServerUrlAtom)
   const setDatasetsState = useSetRecoilState(datasetsAtom)
@@ -173,29 +174,30 @@ export function useUpdatedDatasetIndex() {
   const setCollectionsState = useSetRecoilState(collectionsAtom)
   const setMinimizerIndexVersion = useSetRecoilState(minimizerIndexVersionAtom)
 
-  useQuery(
-    ['refetchDatasetIndex'],
-    async () => {
+  const { data } = useQuery({
+    queryKey: ['refetchDatasetIndex', datasetServerUrl],
+    queryFn: async () => {
       if (isNil(datasetServerUrl)) {
-        return
+        return undefined
       }
-      const { datasets, allDatasets, collections, minimizerIndexVersion } = await initializeDatasets(datasetServerUrl)
-      setDatasetsState(datasets)
-      setAllDatasetsState(allDatasets)
-      setCollectionsState(collections)
-      setMinimizerIndexVersion(minimizerIndexVersion)
+      return initializeDatasets(datasetServerUrl)
     },
-    {
-      suspense: false,
-      staleTime: 2 * 60 * 60 * 1000, // 2 hours
-      refetchInterval: 2 * 60 * 60 * 1000, // 2 hours
-      refetchIntervalInBackground: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      refetchOnWindowFocus: false,
-      enabled: !isNil(datasetServerUrl),
-    },
-  )
+    staleTime: 2 * 60 * 60 * 1000, // 2 hours
+    refetchInterval: 2 * 60 * 60 * 1000, // 2 hours
+    refetchIntervalInBackground: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    enabled: !isNil(datasetServerUrl),
+  })
+
+  useEffect(() => {
+    if (!data) return
+    setDatasetsState(data.datasets)
+    setAllDatasetsState(data.allDatasets)
+    setCollectionsState(data.collections)
+    setMinimizerIndexVersion(data.minimizerIndexVersion)
+  }, [data, setDatasetsState, setAllDatasetsState, setCollectionsState, setMinimizerIndexVersion])
 }
 
 /**

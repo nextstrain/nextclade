@@ -35,7 +35,7 @@ incremental = true
 opt-level = 2
 lto = "off"
 panic = "abort"
-strip = true
+strip = false
 
 # Optimize dependencies even in debug mode
 [profile.opt-dev.package."*"]

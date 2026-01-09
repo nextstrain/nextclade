@@ -1,29 +1,47 @@
-import { useQuery } from 'react-query'
-import type { UseQueryOptions } from 'react-query'
-
-import { axiosFetch, axiosFetchOrUndefined } from 'src/io/axiosFetch'
 import { useMemo } from 'react'
+import { StrictOmit } from 'ts-essentials'
+import { QueryKey, UseQueryOptions, useSuspenseQuery } from '@tanstack/react-query'
+import { axiosFetch, axiosFetchOrUndefined } from 'src/helpers/axiosFetch'
 
-export type UseAxiosQueryOptions<TData = unknown> = UseQueryOptions<TData, Error, TData, string[]>
+const QUERY_OPTIONS_DEFAULT = {
+  staleTime: Number.POSITIVE_INFINITY,
+  refetchOnMount: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: true,
+  refetchInterval: Number.POSITIVE_INFINITY,
+}
 
-function queryOptionsDefaulted<TData>(options?: UseAxiosQueryOptions<TData>): UseAxiosQueryOptions<TData> {
-  let newOptions: UseAxiosQueryOptions<TData> = {
-    staleTime: Number.POSITIVE_INFINITY,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-    refetchInterval: Number.POSITIVE_INFINITY,
-  }
+function queryOptionsDefaulted<T>(options: T) {
+  let newOptions = QUERY_OPTIONS_DEFAULT
   if (options) {
     newOptions = { ...newOptions, ...options }
   }
   return newOptions
 }
 
+export type QueryOptions<
+  TQueryFnData = unknown,
+  TError = unknown,
+  TData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+> = Omit<UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>, 'initialData'> & {
+  initialData?: () => undefined
+}
+
+export type UseAxiosQueryOptions<TData = unknown> = StrictOmit<
+  QueryOptions<TData, Error, TData, string[]>,
+  'queryKey' | 'queryFn'
+>
+
 /** Makes a cached fetch request */
 export function useAxiosQuery<TData = unknown>(url: string, options?: UseAxiosQueryOptions<TData>): TData {
   const newOptions = useMemo(() => queryOptionsDefaulted(options), [options])
-  const res = useQuery<TData, Error, TData, string[]>([url], async () => axiosFetch(url), newOptions)
+  const res = useSuspenseQuery<TData, Error, TData, string[]>({
+    queryKey: [url],
+    queryFn: async () => axiosFetch(url),
+    ...newOptions,
+  })
+
   return useMemo(() => {
     if (!res.data) {
       throw new Error(`Fetch failed: ${url}`)
@@ -37,12 +55,12 @@ export function useAxiosQueryOrUndefined<TData = unknown>(
   url: string,
   options?: UseAxiosQueryOptions<TData | undefined>,
 ): TData | undefined {
-  const newOptions = useMemo(() => queryOptionsDefaulted<TData | undefined>(options), [options])
-  const res = useQuery<TData | undefined, Error, TData | undefined, string[]>(
-    [url],
-    async () => axiosFetchOrUndefined(url),
-    newOptions,
-  )
+  const newOptions = useMemo(() => queryOptionsDefaulted(options), [options])
+  const res = useSuspenseQuery<TData | undefined, Error, TData | undefined, string[]>({
+    queryKey: [url],
+    queryFn: async () => axiosFetchOrUndefined(url),
+    ...newOptions,
+  })
   return useMemo(() => {
     if (!res.data) {
       return undefined

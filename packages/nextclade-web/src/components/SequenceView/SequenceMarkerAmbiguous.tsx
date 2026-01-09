@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { get } from 'lodash'

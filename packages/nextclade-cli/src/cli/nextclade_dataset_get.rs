@@ -28,20 +28,19 @@ pub fn nextclade_dataset_get(
   let verbose = log::max_level() > LevelFilter::Info;
 
   let http = HttpClient::new(server, proxy_config, verbose)?;
-  let dataset = dataset_http_get(&http, name, tag)?;
+  let dataset = dataset_http_get(&http, name, tag.as_ref())?;
 
   if let Some(output_dir) = &output_dir {
-    dataset_dir_download(&http, &dataset, tag, output_dir)?;
+    dataset_dir_download(&http, &dataset, tag.as_ref(), output_dir)?;
   } else if let Some(output_zip) = &output_zip {
-    dataset_zip_download(&http, &dataset, tag, output_zip)?;
+    dataset_zip_download(&http, &dataset, tag.as_ref(), output_zip)?;
   }
 
   Ok(())
 }
 
-pub fn dataset_http_get(http: &HttpClient, name: impl AsRef<str>, tag: &Option<String>) -> Result<Dataset, Report> {
+pub fn dataset_http_get(http: &HttpClient, name: impl AsRef<str>, tag: Option<&String>) -> Result<Dataset, Report> {
   let name = name.as_ref();
-  let tag = tag.as_ref();
 
   let DatasetsIndexJson { collections, .. } = download_datasets_index_json(http)?;
 
@@ -73,7 +72,7 @@ pub fn dataset_http_get(http: &HttpClient, name: impl AsRef<str>, tag: &Option<S
       Some(tag) => {
         if dataset.has_tag(tag) {
           // ...and if a tag is matching, use that tag
-          let tag = dataset.resolve_tag(&Some(tag));
+          let tag = dataset.resolve_tag(Some(&tag));
           Ok((dataset, tag))
         } else {
           // ...and if no tags matching, display error
@@ -117,10 +116,12 @@ pub fn dataset_file_http_get(
 
 fn format_suggestions(candidates: impl Iterator<Item = impl AsRef<str> + Copy>, actual: impl AsRef<str>) -> String {
   let suggestions = find_similar_strings(candidates, &actual).take(20).collect_vec();
-  (!suggestions.is_empty())
-    .then(|| {
+  if !suggestions.is_empty() {
+    {
       let suggestions = suggestions.iter().map(|s| format!("- {}", s.as_ref())).join("\n");
       format!("\n\nDid you mean:\n{suggestions}\n?")
-    })
-    .unwrap_or_default()
+    }
+  } else {
+    String::new()
+  }
 }

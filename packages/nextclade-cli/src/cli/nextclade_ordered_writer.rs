@@ -204,10 +204,10 @@ impl NextcladeOrderedWriter {
           output_tsv_writer.write_nuc_error(index, &seq_name, &cause)?;
         }
         if let Some(output_ndjson_writer) = &mut self.output_ndjson_writer {
-          output_ndjson_writer.write_nuc_error(index, &seq_name, &[cause.clone()])?;
+          output_ndjson_writer.write_nuc_error(index, &seq_name, std::slice::from_ref(&cause))?;
         }
         if let Some(output_json_writer) = &mut self.output_json_writer {
-          output_json_writer.write_nuc_error(index, &seq_name, &[cause]);
+          output_json_writer.write_nuc_error(index, &seq_name, std::slice::from_ref(&cause));
         }
       }
     }

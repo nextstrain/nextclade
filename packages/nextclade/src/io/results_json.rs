@@ -69,12 +69,12 @@ impl ResultsJson {
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[PhenotypeAttrDesc],
     ref_nodes: &AuspiceRefNodesDesc,
-    nextclade_web_version: &Option<String>,
+    nextclade_web_version: Option<&String>,
   ) -> Self {
     let mut this = Self::new(clade_node_attrs, phenotype_attr_keys, ref_nodes);
     this.results = outputs.to_vec();
     this.errors = errors.to_vec();
-    this.nextclade_web_version = nextclade_web_version.clone();
+    this.nextclade_web_version = nextclade_web_version.cloned();
     this
   }
 }
@@ -127,7 +127,7 @@ pub fn results_to_json_string(
   clade_node_attrs: &[CladeNodeAttrKeyDesc],
   phenotype_attr_keys: &[PhenotypeAttrDesc],
   ref_nodes: &AuspiceRefNodesDesc,
-  nextclade_web_version: &Option<String>,
+  nextclade_web_version: Option<&String>,
 ) -> Result<String, Report> {
   let results_json = ResultsJson::from_outputs(
     outputs,

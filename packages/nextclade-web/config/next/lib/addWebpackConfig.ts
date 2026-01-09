@@ -1,6 +1,6 @@
-import type { NextConfig, WebpackConfigContext } from 'next'
+import type { NextConfig } from 'next'
+import type { WebpackConfigContext } from 'next/dist/server/config-shared'
 import type { Configuration } from 'webpack'
-
 import { CustomWebpackConfig } from './CustomWebpackConfig'
 
 export function addWebpackConfig(nextConfig: NextConfig, customWebpackConfig: CustomWebpackConfig) {

@@ -1,19 +1,36 @@
 import type { NextConfig } from 'next'
+import { addWebpackConfig } from './lib/addWebpackConfig'
 
-import { addWebpackLoader } from './lib/addWebpackLoader'
+// See: https://react-svgr.com/docs/next/
+export default function withSvg(_: NextConfig) {
+  return addWebpackConfig(_, (_nextConfig, config, _options) => {
+    // Grab the existing rule that handles SVG imports
+    // @ts-ignore
+    const fileLoaderRule = config.module?.rules?.find((rule) => rule?.test?.test?.('.svg'))
 
-export default function withSvg(nextConfig: NextConfig) {
-  return addWebpackLoader(nextConfig, (_webpackConfig, _context) => ({
-    test: /\.svg$/i,
-    issuer: /\.(ts|tsx|js|jsx|md|mdx|scss|sass|css)$/,
-    use: [
+    config.module?.rules?.push(
+      // Reapply the existing rule, but only for svg imports ending in ?url
       {
-        loader: '@svgr/webpack',
-        options: {
-          removeViewbox: false,
-          typescript: false,
-        },
+        // @ts-ignore
+        ...(fileLoaderRule ?? {}),
+        test: /\.svg$/i,
+        resourceQuery: /url/, // *.svg?url
       },
-    ],
-  }))
+      // Convert all other *.svg imports to React components
+      {
+        test: /\.svg$/i,
+        // @ts-ignore
+        issuer: fileLoaderRule?.issuer,
+        // @ts-ignore
+        resourceQuery: { not: [...(fileLoaderRule?.resourceQuery?.not ?? {}), /url/] }, // exclude if *.svg?url
+        use: ['@svgr/webpack'],
+      },
+    )
+
+    // Modify the file loader rule to ignore *.svg, since we have it handled now.
+    // @ts-ignore
+    fileLoaderRule.exclude = /\.svg$/i
+
+    return config
+  })
 }

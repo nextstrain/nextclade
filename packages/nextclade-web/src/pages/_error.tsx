@@ -1,5 +1,5 @@
+import { ServerResponse } from 'http'
 import React, { ErrorInfo, useMemo } from 'react'
-import type { NextPageContext } from 'next'
 import { Col, Container as ContainerBase, Row } from 'reactstrap'
 import get from 'lodash/get'
 
@@ -94,7 +94,13 @@ function ErrorPage({ statusCode, title, error, errorInfo }: ErrorPageProps) {
   )
 }
 
-ErrorPage.getInitialProps = ({ res, err }: NextPageContext): Promise<ErrorPageProps> | ErrorPageProps => {
+ErrorPage.getInitialProps = ({
+  res,
+  err,
+}: {
+  res?: ServerResponse
+  err?: Error & { statusCode: number | undefined }
+}): Promise<ErrorPageProps> | ErrorPageProps => {
   const statusCode = res?.statusCode ?? err?.statusCode
   return { statusCode }
 }

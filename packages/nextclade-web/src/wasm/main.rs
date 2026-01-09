@@ -105,7 +105,7 @@ impl NextcladeWasm {
   }
 
   /// Runs analysis on one sequence and returns its result. This runs in many webworkers concurrently.
-  pub fn analyze(&mut self, dataset_name: &str, input: &str) -> Result<String, JsError> {
+  pub fn analyze(&self, dataset_name: &str, input: &str) -> Result<String, JsError> {
     let input: FastaRecord = jserr(json_parse(input).wrap_err("When parsing FASTA record JSON"))?;
 
     let nextclade = jserr(
@@ -189,7 +189,7 @@ impl NextcladeWasm {
         &clade_node_attrs,
         &phenotype_attrs,
         &ref_nodes,
-        &nextclade_web_version,
+        nextclade_web_version.as_ref(),
       )
       .wrap_err("When serializing results JSON"),
     )

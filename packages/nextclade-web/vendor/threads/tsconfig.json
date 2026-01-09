@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "declaration": true,
+    "esModuleInterop": true,
+    "target": "es2015",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["es2015"],
+    "outDir": "dist",
+    "strict": true
+  },
+  "include": [
+    "./src/index.ts",
+    "./src/observable.ts",
+    "./src/master/*",
+    "./src/worker/*",
+    "./types/tiny-worker.d.ts",
+    "./types/is-observable.d.ts"
+  ]
+}

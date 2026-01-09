@@ -123,7 +123,7 @@ impl JsonSchemaOutputFormat {
 
 pub fn cli_handle_schema(args: &NextcladeSchemaArgs) -> Result<(), Report> {
   match &args.command {
-    NextcladeSchemaCommand::Write(args) => generate_schema(&args.for_format, &args.as_format, &args.output)?,
+    NextcladeSchemaCommand::Write(args) => generate_schema(&args.for_format, &args.as_format, args.output.as_ref())?,
   }
   Ok(())
 }
@@ -131,7 +131,7 @@ pub fn cli_handle_schema(args: &NextcladeSchemaArgs) -> Result<(), Report> {
 pub fn generate_schema(
   for_format: &NextcladeFileFormat,
   as_format: &JsonSchemaOutputFormat,
-  output: &Option<PathBuf>,
+  output: Option<&PathBuf>,
 ) -> Result<(), Report> {
   match &for_format {
     NextcladeFileFormat::All => {
@@ -142,7 +142,7 @@ pub fn generate_schema(
           };
           let ext = as_format.get_extension();
           let path = add_extension(output.join(filename), ext);
-          generate_schema(&fmt, as_format, &Some(path))?;
+          generate_schema(&fmt, as_format, Some(&path))?;
         }
       } else {
         return make_error!("Output directory (--output) is required when using --for=all or when --for is omitted");
@@ -152,11 +152,15 @@ pub fn generate_schema(
     NextcladeFileFormat::OutputJson => jsonschema_write_file::<ResultsJson>(output, as_format)?,
     NextcladeFileFormat::OutputNdjson => jsonschema_write_file::<NextcladeOutputs>(output, as_format)?,
     NextcladeFileFormat::InternalIndexJson => jsonschema_write_file::<DatasetsIndexJson>(output, as_format)?,
-    NextcladeFileFormat::InternalDatasetCollectionJson => jsonschema_write_file::<DatasetCollection>(output, as_format)?,
+    NextcladeFileFormat::InternalDatasetCollectionJson => {
+      jsonschema_write_file::<DatasetCollection>(output, as_format)?;
+    }
     NextcladeFileFormat::InternalDatasetJson => jsonschema_write_file::<Dataset>(output, as_format)?,
     NextcladeFileFormat::InternalMinimizerIndexJson => jsonschema_write_file::<MinimizerIndexJson>(output, as_format)?,
     NextcladeFileFormat::OutputDatasetListJson => jsonschema_write_file::<DatasetListJson>(output, as_format)?,
-    NextcladeFileFormat::NextcladeAuspiceExtensions => jsonschema_write_file::<AuspiceMetaExtensionsNextclade>(output, as_format)?,
+    NextcladeFileFormat::NextcladeAuspiceExtensions => {
+      jsonschema_write_file::<AuspiceMetaExtensionsNextclade>(output, as_format)?;
+    }
   }
   Ok(())
 }

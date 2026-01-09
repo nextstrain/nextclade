@@ -1,6 +1,5 @@
-import type { NextConfig } from 'next'
 import ExtraWatchWebpackPlugin from 'extra-watch-webpack-plugin'
-
+import type { NextConfig } from 'next'
 import { addWebpackPlugin } from './lib/addWebpackPlugin'
 
 export interface WithExtraWatchOptions {

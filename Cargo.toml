@@ -6,13 +6,12 @@ members = [
 ]
 
 exclude = [
-  "packages/3rdparty",
+  "packages/thirdparty",
   "packages/nextclade-schemas",
 ]
 
 
 [workspace.package]
-name = "nextclade"
 version = "3.18.1"
 description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. Library module."
 repository = "https://github.com/nextstrain/nextclade"
@@ -25,92 +24,94 @@ authors = ["Nextstrain team"]
 
 
 [workspace.dependencies]
-assert2 = "=0.3.11"
+assert2 = "=0.3.16"
 atty = "=0.2.14"
 auto_ops = "=0.3.0"
 base64 = "=0.22.1"
 bio = "=1.3.1"
 bio-types = "=1.0.0"
-bzip2 = { version = "=0.4.4", features = ["static"] }
-chrono = { version = "=0.4.26", default-features = false, features = ["clock", "std", "wasmbind"] }
-clap = { version = "=4.4.2", features = ["derive", "color", "unicode", "unstable-styles"] }
-clap-markdown = "=0.1.4"
-clap_complete = "=4.4.1"
-clap_complete_fig = "=4.4.0"
-color-eyre = "=0.6.2"
-comfy-table = "=7.0.1"
-console = "=0.15.11"
+bzip2 = { version = "=0.6.1", features = ["static"] }
+chrono = { version = "=0.4.42", default-features = false, features = ["clock", "std", "wasmbind"] }
+clap = { version = "=4.5.53", features = ["derive", "color", "unicode", "unstable-styles"] }
+clap-markdown = "=0.1.5"
+clap_complete = "=4.5.64"
+clap_complete_fig = "=4.5.2"
+color-eyre = "=0.6.5"
+comfy-table = "=7.2.1"
+console = "=0.16.2"
 console_error_panic_hook = "=0.1.7"
-criterion = { version = "=0.5.1", features = ["html_reports"] }
-crossbeam = "=0.8.2"
-crossbeam-channel = "=0.5.8"
-csv = "=1.2.2"
-ctor = "=0.2.2"
-derive_more = "=0.99.17"
+criterion = { version = "=0.8.1", features = ["html_reports"] }
+crossbeam = "=0.8.4"
+crossbeam-channel = "=0.5.15"
+csv = "=1.4.0"
+ctor = "=0.6.3"
+derive_more = { version = "=2.1.1", features = ["display"] }
 dotenv = "=0.15.0"
 dotenv_codegen = "=0.15.0"
-edit-distance = "=2.1.0"
-either = "=1.8.1"
-env_logger = "=0.10.0"
-eyre = "=0.6.8"
-flate2 = "=1.0.26"
+edit-distance = "=2.2.2"
+either = "=1.15.0"
+env_logger = "=0.11.8"
+eyre = "=0.6.12"
+flate2 = "=1.1.5"
 gcollections = "=1.5.0"
-getrandom = { version = "=0.2.10", features = ["js"] }
+getrandom = { version = "=0.3.4", features = ["wasm_js"] }
 indexmap = { version = "=1.9.3", features = ["serde"] }
-intervallum = "=1.4.0"
-itertools = "=0.11.0"
-js-sys = { version = "=0.3.64", features = [] }
-lazy_static = "=1.4.0"
-log = "=0.4.19"
+intervallum = "=1.4.4"
+itertools = "=0.14.0"
+js-sys = { version = "=0.3.83", features = [] }
+lazy_static = "=1.5.0"
+log = "=0.4.29"
 maplit = "=1.0.2"
 multimap = "=0.8.3"
-num = "=0.4.0"
-num-traits = "=0.2.15"
-num_cpus = "=1.16.0"
-optfield = "=0.3.0"
-ordered-float = { version = "=3.9.1", features = ["rand", "serde", "schemars"] }
-owo-colors = { version = "=3.5.0", features = ["supports-colors"] }
-percent-encoding = "=2.3.1"
-pretty_assertions = "=1.3.0"
-rayon = "=1.7.0"
-regex = "=1.8.4"
-reqwest = { version = "=0.12.8", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls-native-roots", "rustls-tls-webpki-roots"] }
-rstest = "=0.17.0"
-rstest_reuse = "=0.5.0"
-rust_xlsxwriter = { version = "=0.66.0", features = ["wasm"] }
+num = "=0.4.3"
+num-traits = "=0.2.19"
+num_cpus = "=1.17.0"
+optfield = "=0.4.0"
+ordered-float = { version = "=5.1.0", features = ["rand", "serde", "schemars"] }
+owo-colors = { version = "=4.2.3", features = ["supports-colors"] }
+percent-encoding = "=2.3.2"
+pretty_assertions = "=1.4.1"
+rayon = "=1.11.0"
+regex = "=1.12.2"
+reqwest = { version = "=0.13.1", default-features = false, features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls", "rustls-native-certs", "webpki-roots"] }
+rstest = "=0.26.1"
+rstest_reuse = "=0.7.0"
+rust_xlsxwriter = { version = "=0.92.2", features = ["wasm"] }
 schemars = { version = "=0.8.22", features = ["chrono", "either", "enumset", "indexmap", "raw_value", "preserve_order"] }
-semver = { version = "=1.0.17", features = ["serde"] }
-serde = { version = "=1.0.164", features = ["derive"] }
-serde-wasm-bindgen = { version = "=0.5.0" }
-serde_json = { version = "=1.0.99", features = ["preserve_order", "indexmap", "unbounded_depth"] }
-serde_repr = "=0.1.12"
-serde_stacker = { version = "=0.1.8" }
-serde_yaml = "=0.9.22"
-strsim = "=0.10.0"
-strum = "=0.27.1"
-strum_macros = "=0.27.1"
+semver = { version = "=1.0.27", features = ["serde"] }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde-wasm-bindgen = { version = "=0.6.5" }
+serde_json = { version = "=1.0.148", features = ["preserve_order", "indexmap", "unbounded_depth"] }
+serde_repr = "=0.1.20"
+serde_stacker = { version = "=0.1.14" }
+serde_yaml = "=0.9.34"
+strsim = "=0.11.1"
+strum = "=0.27.2"
+strum_macros = "=0.27.2"
 tinytemplate = "=1.2.1"
 traversal = "=0.1.2"
-url = { version = "=2.4.0", features = ["serde"] }
-urlencoding = "=2.1.2"
-validator = { version = "=0.16.1", features = ["derive"] }
-wasm-bindgen = { version = "=0.2.93", features = ["serde-serialize"] }
+url = { version = "=2.5.7", features = ["serde"] }
+urlencoding = "=2.1.3"
+validator = { version = "=0.20.0", features = ["derive"] }
+wasm-bindgen = { version = "=0.2.106", features = ["serde-serialize"] }
 wasm-logger = "=0.2.0"
-web-sys = { version = "=0.3.64", features = ["console"] }
+web-sys = { version = "=0.3.83", features = ["console"] }
 xz2 = { version = "=0.1.7", features = ["static"] }
-zip = { version = "=0.6.6", default-features = false, features = ["aes-crypto", "deflate", "time"] }
-zstd = { version = "=0.12.3", features = ["zstdmt"] }
+zip = { version = "=7.0.0", default-features = false, features = ["aes-crypto", "deflate", "time"] }
+zstd = { version = "=0.13.3", features = ["zstdmt"] }
 
 
 [workspace.lints.rust]
 # Lint groups
 # https://doc.rust-lang.org/rustc/lints/groups.html
-deprecated_in_future = "warn"
-future_incompatible = "warn"
-nonstandard_style = "warn"
-rust_2018_idioms = "warn"
-rust_2021_compatibility = "warn"
-trivial_numeric_casts = "warn"
+future_incompatible = { level = "warn", priority = -1 }
+keyword_idents = { level = "warn", priority = -1 }
+nonstandard_style = { level = "warn", priority = -1 }
+rust_2018_idioms = { level = "warn", priority = -1 }
+rust_2021_compatibility = { level = "warn", priority = -1 }
+
+# Silence cfg warnings from dependency proc macros (wasm-bindgen, ctor)
+unexpected_cfgs = "allow"
 
 # Disable some of the lints enabled by default
 # https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html
@@ -119,9 +120,9 @@ elided_lifetimes_in_paths = "allow"
 # Enable lints not enabled by default
 # https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
 absolute_paths_not_starting_with_crate = "warn"
+deprecated_in_future = "warn"
 explicit_outlives_requirements = "warn"
 ffi_unwind_calls = "warn"
-keyword_idents = "warn"
 let_underscore_drop = "warn"
 macro_use_extern_crate = "warn"
 meta_variable_misuse = "warn"
@@ -133,13 +134,14 @@ rust_2021_prefixes_incompatible_syntax = "warn"
 rust_2021_prelude_collisions = "warn"
 single_use_lifetimes = "warn"
 trivial_casts = "warn"
+trivial_numeric_casts = "warn"
 unit_bindings = "warn"
 unsafe_code = "warn"
 unsafe_op_in_unsafe_fn = "warn"
 unused_lifetimes = "warn"
 unused_macro_rules = "warn"
 unused_qualifications = "warn"
-unused_tuple_struct_fields = "warn"
+dead_code = "warn"
 variant_size_differences = "warn"
 # missing_copy_implementations = "warn"
 # missing_debug_implementations = "warn"
@@ -157,9 +159,12 @@ nursery = { level = "warn", priority = -1 }
 # Disable some of the Clippy lints
 absolute_paths = "allow"
 allow_attributes = "allow"
+allow_attributes_without_reason = "allow"
+arbitrary_source_item_ordering = "allow"
 arithmetic_side_effects = "allow"
 as_conversions = "allow"
 assign_op_pattern = "allow"
+assigning_clones = "allow"
 bool_to_int_with_if = "allow"
 cast_lossless = "allow"
 cast_possible_truncation = "allow"
@@ -183,6 +188,7 @@ implicit_return = "allow"
 inconsistent_digit_grouping = "allow"
 indexing_slicing = "allow"
 integer_division = "allow"
+integer_division_remainder_used = "allow"
 iter_nth_zero = "allow"
 large_digit_groups = "allow"
 len_without_is_empty = "allow"
@@ -216,6 +222,7 @@ print_stdout = "allow"
 pub_use = "allow"
 pub_with_shorthand = "allow"
 question_mark_used = "allow"
+redundant_test_prefix = "allow"
 self_named_module_files = "allow"
 semicolon_inside_block = "allow"
 semicolon_outside_block = "allow"
@@ -231,6 +238,7 @@ std_instead_of_alloc = "allow"
 std_instead_of_core = "allow"
 struct_field_names = "allow"
 suboptimal_flops = "allow"
+too_long_first_doc_paragraph = "allow"
 too_many_arguments = "allow"
 too_many_lines = "allow"
 type_repetition_in_bounds = "allow"
@@ -239,6 +247,7 @@ unreachable = "allow"
 unreadable_literal = "allow"
 unsafe_derive_deserialize = "allow"
 unused_self = "allow"
+unused_trait_names = "allow"
 unused_unit = "allow"
 unwrap_in_result = "allow"
 unwrap_used = "allow"

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
 import { Button, ButtonProps } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import { hasSingleCurrentDatasetAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
@@ -18,7 +19,7 @@ export function ButtonRun({ singleDatasetMode, ...restProps }: ButtonRunProps) {
   const run = useRunAnalysis()
   const onClick = useCallback(() => run({ isSingle: singleDatasetMode }), [run, singleDatasetMode])
 
-  const isAnalysisRunning = useRecoilValue(isAnalysisRunningAtom)
+  const isAnalysisRunning = useAtomValue(isAnalysisRunningAtom)
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
   const isAutodetectRunning = useRecoilValue(isAutodetectRunningAtom)

@@ -51,16 +51,8 @@ pub fn split_muts2(left: &BranchMutations, right: &BranchMutations) -> SplitMuts
   let mut aa_subs_left = BTreeMap::<String, Vec<AaSub>>::new();
   let mut aa_subs_right = BTreeMap::<String, Vec<AaSub>>::new();
 
-  let keys_mut_left = left
-    .aa_muts
-    .keys()
-    .map(std::clone::Clone::clone)
-    .collect::<HashSet<_>>();
-  let keys_mut_right = right
-    .aa_muts
-    .keys()
-    .map(std::clone::Clone::clone)
-    .collect::<HashSet<_>>();
+  let keys_mut_left = left.aa_muts.keys().map(Clone::clone).collect::<HashSet<_>>();
+  let keys_mut_right = right.aa_muts.keys().map(Clone::clone).collect::<HashSet<_>>();
   let mut shared_keys = keys_mut_left.intersection(&keys_mut_right).collect_vec();
   shared_keys.sort();
 
@@ -99,18 +91,18 @@ pub fn split_muts2(left: &BranchMutations, right: &BranchMutations) -> SplitMuts
       aa_subs_for_gene_right.push(aa_muts_right[j].clone());
       j += 1;
     }
-    aa_subs_shared.insert(cds_name.to_string(), aa_subs_for_gene_shared);
-    aa_subs_left.insert(cds_name.to_string(), aa_subs_for_gene_left);
-    aa_subs_right.insert(cds_name.to_string(), aa_subs_for_gene_right);
+    aa_subs_shared.insert(cds_name.clone(), aa_subs_for_gene_shared);
+    aa_subs_left.insert(cds_name.clone(), aa_subs_for_gene_left);
+    aa_subs_right.insert(cds_name.clone(), aa_subs_for_gene_right);
   }
   for (k, v) in &left.aa_muts {
     if !shared_keys.contains(&k) {
-      aa_subs_left.insert(k.to_string(), v.clone());
+      aa_subs_left.insert(k.clone(), v.clone());
     }
   }
   for (k, v) in &right.aa_muts {
     if !shared_keys.contains(&k) {
-      aa_subs_right.insert(k.to_string(), v.clone());
+      aa_subs_right.insert(k.clone(), v.clone());
     }
   }
 

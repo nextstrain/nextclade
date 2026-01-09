@@ -14,7 +14,8 @@ where
 {
   let filepath = filepath.as_ref();
   let file = create_file_or_stdout(filepath)?;
-  nwk_write_to_writer(file, graph).wrap_err_with(|| format!("When writing graph to Newick file: {filepath:#?}"))
+  nwk_write_to_writer(file, graph)
+    .wrap_err_with(|| format!("When writing graph to Newick file: {}", filepath.display()))
 }
 
 pub fn nwk_write_to_string<N, E, D>(graph: &Graph<N, E, D>) -> Result<String, Report>

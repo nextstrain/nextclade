@@ -3,7 +3,7 @@
 # Runs various day-to-day dev commands inside dev docker container.
 #
 # The container includes all the tools required for maintaining the project. But this container and script exist
-# for convenience only and are not required for operations. The usual `cargo` and `yarn` workflows can still be used
+# for convenience only and are not required for operations. The usual `cargo` and `bun` workflows can still be used
 # (see dev guide).
 #
 # See the full list of possible commands in the long `case` block halfway through the script.
@@ -66,8 +66,8 @@
 # * Run arbitrary command inside the container:
 #   ./docker/dev cargo --version
 #
-# * Run arbitrary yarn command, in the context of web app, inside the container:
-#   ./docker/dev a yarn add --dev react
+# * Run arbitrary bun command, in the context of web app, inside the container:
+#   ./docker/dev a bun add --dev react
 #
 
 set -euo pipefail
@@ -564,17 +564,18 @@ elif [ "${BUILD}" == "1" ]; then
 elif [ "${SMOKE_TEST}" == "1" ]; then
   COMMAND="./tests/run-smoke-tests 'cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} --bin=nextclade'"
 elif [ "${WASM}" == "1" ]; then
-  COMMAND=${COMMAND:=yarn install && yarn wasm-${RELEASE}}
+  COMMAND=${COMMAND:=bun install && bun wasm-${RELEASE}}
   COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && ${COMMAND}\""
 elif [ "${WEB}" == "1" ]; then
-  if [[ "${RELEASE}" == *"dev"* ]]; then
-    PORTS="--network=host"
-  else
-    WEB_PORT_PROD=${WEB_PORT_PROD:-8080}
-    PORTS="-p ${WEB_PORT_PROD}:${WEB_PORT_PROD}"
-  fi
-  COMMAND=${COMMAND:=yarn install && yarn ${RELEASE}}
-  COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && ${COMMAND}\""
+#  if [[ "${RELEASE}" == *"dev"* ]]; then
+#    WEB_PORT_DEV=${WEB_PORT_DEV:-3000}
+#    PORTS="-p ${WEB_PORT_DEV}:${WEB_PORT_DEV}"
+#  else
+#    WEB_PORT_PROD=${WEB_PORT_PROD:-8080}
+#    PORTS="-p ${WEB_PORT_PROD}:${WEB_PORT_PROD}"
+#  fi
+  COMMAND=${COMMAND:=bun install && bun ${RELEASE}}
+  COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && mkdir -p .cache && ${COMMAND}\""
 elif [ "${TEST}" == "1" ]; then
     COMMAND="cargo -q nextest run --cargo-quiet --no-fail-fast --color=always --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${TEST_FLAGS} -- ${*:-} ${SUCCESS_OR_FAILURE}"
 elif [ "${E2E_TEST}" == "1" ]; then
@@ -584,13 +585,13 @@ elif [ "${E2E_TEST}" == "1" ]; then
     WEB_PORT="${WEB_PORT_PROD}"
   fi
   E2E_BASE_URL="http://localhost:${WEB_PORT}"
-  COMMAND="export E2E_BASE_URL='${E2E_BASE_URL}' && yarn install && yarn ${E2E_TEST_MODE} ${*:-}"
+  COMMAND="export E2E_BASE_URL='${E2E_BASE_URL}' && bun install && bun ${E2E_TEST_MODE} ${*:-}"
   COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && ${COMMAND}\""
 elif [ "${BENCH}" == "1" ]; then
   PRETTY_BENCH="( grep --color=always --line-buffered -vP \"Benchmarking|Gnuplot not found, using plotters backend\" || true )"
   COMMAND="cargo -q bench --workspace --benches --color=always --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} | ${PRETTY_BENCH} ${SUCCESS_OR_FAILURE}"
 elif [ "${LINT}" == "1" ]; then
-  COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all-targets --all ${FIX:-} ${LINT_DENY}"
+  COMMAND="cargo clippy --exclude=thirdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all-targets --all ${FIX:-} ${LINT_DENY}"
 elif [ "${FORMAT}" == "1" ]; then
   if [ -z "${FIX}" ]; then
     FIX="-q"
@@ -644,6 +645,7 @@ ${NICE} docker run --rm \
   --env="RUST_LOG=${RUST_LOG}" \
   --env-file="${PROJECT_ROOT_DIR}/.env" \
   --ulimit core=0 \
+  --network=host \
   ${PORTS} \
   "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
   bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${COMMAND} ${SUCCESS_OR_FAILURE}"

@@ -18,6 +18,7 @@ import {
 } from 'reactstrap'
 import styled from 'styled-components'
 import { useRecoilValue } from 'recoil'
+import { useAtom } from 'jotai'
 
 import {
   aaFilterAtom,
@@ -31,7 +32,6 @@ import {
 } from 'src/state/resultFilters.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { isResultsFilterPanelCollapsedAtom } from 'src/state/settings.state'
-import { useRecoilStateDeferred } from 'src/hooks/useRecoilStateDeferred'
 
 export const Card = styled(ReactstrapCard)<ReactstrapCardProps>`
   box-shadow: 1px 1px 3px 2px rgba(128, 128, 128, 0.5);
@@ -94,14 +94,14 @@ export function ResultsFilter() {
 
   // TODO: we could use a map (object) and refer to filters by name,
   // in order to reduce code duplication in the state, callbacks and components being rendered
-  const [seqNamesFilter, setSeqNamesFilter] = useRecoilStateDeferred(seqNamesFilterAtom)
-  const [mutationsFilter, setMutationsFilter] = useRecoilStateDeferred(mutationsFilterAtom)
-  const [cladesFilter, setCladesFilter] = useRecoilStateDeferred(cladesFilterAtom)
-  const [aaFilter, setAAFilter] = useRecoilStateDeferred(aaFilterAtom)
-  const [showGood, setShowGood] = useRecoilStateDeferred(showGoodFilterAtom)
-  const [showMediocre, setShowMediocre] = useRecoilStateDeferred(showMediocreFilterAtom)
-  const [showBad, setShowBad] = useRecoilStateDeferred(showBadFilterAtom)
-  const [showErrors, setShowErrors] = useRecoilStateDeferred(showErrorsFilterAtom)
+  const [seqNamesFilter, setSeqNamesFilter] = useAtom(seqNamesFilterAtom)
+  const [mutationsFilter, setMutationsFilter] = useAtom(mutationsFilterAtom)
+  const [cladesFilter, setCladesFilter] = useAtom(cladesFilterAtom)
+  const [aaFilter, setAAFilter] = useAtom(aaFilterAtom)
+  const [showGood, setShowGood] = useAtom(showGoodFilterAtom)
+  const [showMediocre, setShowMediocre] = useAtom(showMediocreFilterAtom)
+  const [showBad, setShowBad] = useAtom(showBadFilterAtom)
+  const [showErrors, setShowErrors] = useAtom(showErrorsFilterAtom)
 
   const handleSeqNamesFilterChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,14 +1,13 @@
 import React, { useCallback } from 'react'
 
 import Select from 'react-select'
-import type { ActionMeta, OnChangeValue } from 'react-select/dist/declarations/src/types'
-import type { StateManagerProps } from 'react-select/dist/declarations/src/useStateManager'
+import type { ActionMeta, OnChangeValue, Props as ReactSelectProps } from 'react-select'
 
 import { DropdownOption } from 'src/components/Common/DropdownOption'
 
 export type IsMultiValue = false
 
-export interface DropdownProps extends StateManagerProps<DropdownOption<string>, IsMultiValue> {
+export interface DropdownProps extends ReactSelectProps<DropdownOption<string>, IsMultiValue> {
   identifier: string
   defaultOption?: DropdownOption<string>
   onValueChange?(value: string): void

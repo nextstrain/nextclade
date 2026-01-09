@@ -269,7 +269,8 @@ impl QcConfig {
 
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
-    let data = read_file_to_string(filepath).wrap_err_with(|| format!("When reading QC config file {filepath:#?}"))?;
-    Self::from_str(&data).wrap_err_with(|| format!("When parsing QC config file {filepath:#?}"))
+    let data =
+      read_file_to_string(filepath).wrap_err_with(|| format!("When reading QC config file {}", filepath.display()))?;
+    Self::from_str(&data).wrap_err_with(|| format!("When parsing QC config file {}", filepath.display()))
   }
 }

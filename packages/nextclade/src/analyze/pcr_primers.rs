@@ -55,10 +55,10 @@ impl PcrPrimer {
   pub fn from_path(filepath: impl AsRef<Path>, ref_seq_str: &str) -> Result<Vec<Self>, Report> {
     let filepath = filepath.as_ref();
 
-    let data =
-      read_file_to_string(filepath).wrap_err_with(|| format!("When reading PCR primers file {filepath:#?}"))?;
+    let data = read_file_to_string(filepath)
+      .wrap_err_with(|| format!("When reading PCR primers file {}", filepath.display()))?;
 
-    Self::from_str(&data, ref_seq_str).wrap_err_with(|| format!("When parsing PCR primers file {filepath:#?}"))
+    Self::from_str(&data, ref_seq_str).wrap_err_with(|| format!("When parsing PCR primers file {}", filepath.display()))
   }
 }
 

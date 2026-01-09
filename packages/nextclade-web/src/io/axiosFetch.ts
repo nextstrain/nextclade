@@ -17,7 +17,7 @@ export class HttpRequestError extends Error {
 
   constructor(error_: AxiosError) {
     super(error_.message)
-    this.url = error_.config.url
+    this.url = error_.config?.url
     this.status = error_.response?.status ?? error_.status ?? error_.code
     this.statusText = error_.response?.statusText
   }

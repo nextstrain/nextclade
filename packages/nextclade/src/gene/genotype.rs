@@ -3,7 +3,6 @@ use crate::coord::position::NucRefGlobalPosition;
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};
-use lazy_static::lazy_static;
 use regex::Regex;
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -11,6 +10,7 @@ use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::str;
 use std::str::FromStr;
+use std::sync::LazyLock;
 
 const GENOTYPE_REGEX: &str = r"((?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
 
@@ -54,11 +54,11 @@ impl<L: Letter<L>> FromStr for Genotype<L> {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    lazy_static! {
-      static ref RE: Regex = Regex::new(GENOTYPE_REGEX)
+    static RE: LazyLock<Regex> = LazyLock::new(|| {
+      Regex::new(GENOTYPE_REGEX)
         .wrap_err_with(|| format!("When compiling regular expression '{GENOTYPE_REGEX}'"))
-        .unwrap();
-    }
+        .unwrap()
+    });
 
     if let Some(captures) = RE.captures(s) {
       return match (captures.name("pos"), captures.name("qry")) {

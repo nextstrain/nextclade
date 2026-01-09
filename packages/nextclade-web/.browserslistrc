@@ -1,8 +1,0 @@
-[production]
-defaults
-cover 99%
-since 2017
-
-[development]
-last 10 Chrome versions
-last 10 Firefox versions

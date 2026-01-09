@@ -209,15 +209,15 @@ impl Dataset {
     self.versions.iter().map(|ver| ver.tag.as_str())
   }
 
-  pub fn resolve_tag(&self, tag: &Option<impl AsRef<str>>) -> String {
-    match tag.as_ref().map(AsRef::as_ref) {
+  pub fn resolve_tag(&self, tag: Option<&impl AsRef<str>>) -> String {
+    match tag.map(AsRef::as_ref) {
       None | Some("latest") => &self.version.tag,
       Some(tag) => tag,
     }
     .to_owned()
   }
 
-  pub fn file_path(&self, filename: impl AsRef<str>, tag: &Option<String>) -> String {
+  pub fn file_path(&self, filename: impl AsRef<str>, tag: Option<&String>) -> String {
     [&self.path, &self.resolve_tag(tag), filename.as_ref()].iter().join("/")
   }
 
@@ -225,7 +225,7 @@ impl Dataset {
     [&self.path, self.tag_latest(), filename.as_ref()].iter().join("/")
   }
 
-  pub fn zip_path(&self, tag: &Option<String>) -> String {
+  pub fn zip_path(&self, tag: Option<&String>) -> String {
     self.file_path("dataset.zip", tag)
   }
 
@@ -320,7 +320,7 @@ impl DatasetCompatibility {
     self
       .cli
       .as_ref()
-      .map_or(true, |min_cli_version| cli_version >= min_cli_version)
+      .is_none_or(|min_cli_version| cli_version >= min_cli_version)
   }
 }
 

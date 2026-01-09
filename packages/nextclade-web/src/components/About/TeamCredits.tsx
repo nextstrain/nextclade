@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import { shuffle } from 'lodash'
 import React, { ReactNode, useMemo } from 'react'
 import { Col, Row } from 'reactstrap'

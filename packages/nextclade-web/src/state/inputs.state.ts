@@ -1,7 +1,9 @@
 import { isEmpty } from 'lodash'
 import { useCallback, useEffect } from 'react'
 import { atom, selector, useRecoilState, useResetRecoilState } from 'recoil'
+import { useSetAtom } from 'jotai'
 import type { AlgorithmInput, AuspiceTree } from 'src/types'
+import { AlgorithmGlobalStatus } from 'src/types'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { allTreesAtom, allTreesNwkAtom, analysisResultsAtom, analysisStatusGlobalAtom } from 'src/state/results.state'
 import { allViewedCdsAtom } from 'src/state/seqViewSettings.state'
@@ -18,18 +20,18 @@ export function useQuerySeqInputs() {
   const resetSeqInputsStorage = useResetRecoilState(qrySeqInputsStorageAtom)
   const resetSuggestionsAndDatasets = useResetSuggestionsAndDatasets()
 
-  const resetAnalysisStatusGlobal = useResetRecoilState(analysisStatusGlobalAtom)
-  const resetAnalysisResults = useResetRecoilState(analysisResultsAtom)
+  const resetAnalysisStatusGlobal = useSetAtom(analysisStatusGlobalAtom)
+  const resetAnalysisResults = useSetAtom(analysisResultsAtom)
   const resetTree = useResetRecoilState(allTreesAtom)
   const resetNwkTree = useResetRecoilState(allTreesNwkAtom)
   const resetViewedCds = useResetRecoilState(allViewedCdsAtom)
   const resetCdsOrderPreference = useResetRecoilState(allViewedCdsAtom)
-  const clearAllFilters = useResetRecoilState(clearAllFiltersAtom)
+  const clearAllFilters = useSetAtom(clearAllFiltersAtom)
 
   const clearResults = useCallback(() => {
     resetSuggestionsAndDatasets()
-    resetAnalysisStatusGlobal()
-    resetAnalysisResults()
+    resetAnalysisStatusGlobal(AlgorithmGlobalStatus.idle)
+    resetAnalysisResults([])
     resetTree()
     resetNwkTree()
     resetViewedCds()

@@ -40,7 +40,7 @@ impl FastaRecord {
     self.index = 0;
   }
 
-  pub fn is_empty(&self) -> bool {
+  pub const fn is_empty(&self) -> bool {
     self.seq_name.is_empty() && self.seq_name.is_empty() && self.index == 0
   }
 }
@@ -84,7 +84,7 @@ impl<'a> FastaReader<'a> {
 
     let readers: Vec<Box<dyn BufRead + 'a>> = filepaths
       .iter()
-      .map(|filepath| -> Result<Box<dyn BufRead + 'a>, Report> { open_file_or_stdin(&Some(filepath)) })
+      .map(|filepath| -> Result<Box<dyn BufRead + 'a>, Report> { open_file_or_stdin(Some(&filepath)) })
       .collect::<Result<Vec<Box<dyn BufRead + 'a>>, Report>>()?;
 
     let concat = Concat::with_delimiter(readers.into_iter(), Some(b"\n".to_vec()));
@@ -116,7 +116,7 @@ impl<'a> FastaReader<'a> {
       return make_error!("Expected character '>' at record start.");
     }
 
-    record.seq_name = self.line[1..].trim().to_owned();
+    self.line[1..].trim().clone_into(&mut record.seq_name);
 
     loop {
       self.line.clear();
@@ -161,7 +161,7 @@ pub fn read_many_fasta<P: AsRef<Path>>(filepaths: &[P]) -> Result<Vec<FastaRecor
 pub fn read_one_fasta_from_file(filepath: impl AsRef<Path>) -> Result<FastaRecord, Report> {
   let filepath = filepath.as_ref();
   let reader = FastaReader::from_path(filepath)?;
-  read_one_fasta_from_fasta_reader(reader).wrap_err_with(|| format!("When reading file {filepath:?}"))
+  read_one_fasta_from_fasta_reader(reader).wrap_err_with(|| format!("When reading file {}", filepath.display()))
 }
 
 pub fn read_one_fasta_from_str(contents: impl AsRef<str>) -> Result<FastaRecord, Report> {
@@ -266,10 +266,10 @@ impl FastaPeptideWriter {
 }
 
 pub fn parse_fasta_header(header: &str) -> (String, String) {
-  header
-    .split_once(' ')
-    .map(|(seqid, desc)| (seqid.to_owned(), desc.to_owned()))
-    .unwrap_or((header.to_owned(), String::new()))
+  header.split_once(' ').map_or_else(
+    || (header.to_owned(), String::new()),
+    |(seqid, desc)| (seqid.to_owned(), desc.to_owned()),
+  )
 }
 
 #[cfg(test)]

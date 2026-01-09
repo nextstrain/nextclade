@@ -5,9 +5,16 @@ import { rgba } from 'polished'
 import { hasSeqsWithoutDatasetSuggestionsAtom } from 'src/state/autodetect.state'
 import styled from 'styled-components'
 import { useRecoilState, useRecoilValue } from 'recoil'
-import Select, { OptionProps, StylesConfig } from 'react-select'
-import type { SelectComponents } from 'react-select/dist/declarations/src/components'
-import type { ActionMeta, GroupBase, OnChangeValue, Theme } from 'react-select/dist/declarations/src/types'
+import Select from 'react-select'
+import type {
+  ActionMeta,
+  GroupBase,
+  OnChangeValue,
+  Theme,
+  SelectComponentsConfig,
+  OptionProps,
+  StylesConfig,
+} from 'react-select'
 import { attrStrMaybe, Dataset } from 'src/types'
 import type { IsMultiValue } from 'src/components/Common/Dropdown'
 import { datasetsForAnalysisAtom, UNKNOWN_DATASET_NAME, viewedDatasetNameAtom } from 'src/state/dataset.state'
@@ -168,14 +175,14 @@ const OptionBody = styled.div<{ isSelected?: boolean; isFocused?: boolean; isDis
     p.isSelected
       ? p.theme.primary
       : p.isFocused
-      ? rgba(p.theme.primary, p.isDisabled ? 0.1 : 0.33)
-      : p.isDisabled
-      ? '#f9f9f9'
-      : 'inherit'};
+        ? rgba(p.theme.primary, p.isDisabled ? 0.1 : 0.33)
+        : p.isDisabled
+          ? '#f9f9f9'
+          : 'inherit'};
   color: ${(p) => (p.isDisabled ? rgba('#ccc', p.isFocused ? 0.8 : 1) : p.isSelected ? 'white' : 'inherit')};
 `
 
-const COMPONENTS: Partial<SelectComponents<Option, false, GroupBase<Option>>> = {
+const COMPONENTS: Partial<SelectComponentsConfig<Option, false, GroupBase<Option>>> = {
   Option: OptionComponent,
 }
 

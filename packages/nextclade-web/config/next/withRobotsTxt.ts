@@ -1,9 +1,9 @@
+import process from 'node:process'
 import { NextConfig } from 'next'
 import { addWebpackPlugin } from './lib/addWebpackPlugin'
-import EmitFilePlugin from './lib/EmitFilePlugin'
-import { getEnvVars } from './lib/getEnvVars'
+import { EmitFilePlugin } from './lib/EmitFilePlugin'
 
-const { PRODUCTION } = getEnvVars()
+const PRODUCTION = process.env.NODE_ENV === 'production'
 
 export const getWithRobotsTxt = (content: string) => (nextConfig: NextConfig) => {
   return addWebpackPlugin(

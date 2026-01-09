@@ -5,6 +5,8 @@ import 'css.escape'
 import { isEmpty, isNil } from 'lodash'
 import React, { useEffect, Suspense, useMemo } from 'react'
 import { RecoilEnv, RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
+import { createStore as jotaiCreateStore, Provider as JotaiProvider } from 'jotai'
+import 'jotai-devtools/styles.css'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
@@ -30,8 +32,8 @@ import { isInitializedAtom } from 'src/state/settings.state'
 import { ThemeProvider } from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
-import { QueryClient, QueryClientConfig, QueryClientProvider } from 'react-query'
-import { ReactQueryDevtools } from 'react-query/devtools'
+import { QueryClient, QueryClientConfig, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
 import { getDatasetServerUrl, initializeDatasets } from 'src/io/fetchDatasets'
@@ -259,10 +261,19 @@ function RecoilStateInitializer() {
 }
 
 const REACT_QUERY_OPTIONS: QueryClientConfig = {
-  defaultOptions: { queries: { suspense: true, retry: 1 } },
+  defaultOptions: { queries: { retry: 1 } },
+}
+
+function JotaiDevTools({ store }: { store: ReturnType<typeof jotaiCreateStore> }) {
+  if (process.env.NODE_ENV === 'development') {
+    const { DevTools } = require('jotai-devtools') // eslint-disable-line global-require, @typescript-eslint/no-require-imports
+    return <DevTools store={store} />
+  }
+  return null
 }
 
 export function MyApp({ Component, pageProps, router }: AppProps) {
+  const jotaiStore = useMemo(() => jotaiCreateStore(), [])
   const queryClient = useMemo(() => new QueryClient(REACT_QUERY_OPTIONS), [])
   const fallback = useMemo(() => <LoadingPage />, [])
 
@@ -278,28 +289,31 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
   return (
     <Suspense fallback={fallback}>
       <RecoilRoot>
-        <ThemeProvider theme={theme}>
-          <MDXProvider components={mdxComponents}>
-            <Plausible domain={DOMAIN_STRIPPED} />
-            <QueryClientProvider client={queryClient}>
-              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-              {/* @ts-ignore */}
-              <I18nextProvider i18n={i18n}>
-                <ErrorBoundary>
-                  <Suspense>
-                    <RecoilStateInitializer />
-                  </Suspense>
-                  <Suspense fallback={fallback}>
-                    <SEO />
-                    <Component {...pageProps} />
-                    <ErrorPopup />
-                    <ReactQueryDevtools initialIsOpen={false} />
-                  </Suspense>
-                </ErrorBoundary>
-              </I18nextProvider>
-            </QueryClientProvider>
-          </MDXProvider>
-        </ThemeProvider>
+        <JotaiProvider store={jotaiStore}>
+          <JotaiDevTools store={jotaiStore} />
+          <ThemeProvider theme={theme}>
+            <MDXProvider components={mdxComponents}>
+              <Plausible domain={DOMAIN_STRIPPED} />
+              <QueryClientProvider client={queryClient}>
+                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                {/* @ts-ignore */}
+                <I18nextProvider i18n={i18n}>
+                  <ErrorBoundary>
+                    <Suspense>
+                      <RecoilStateInitializer />
+                    </Suspense>
+                    <Suspense fallback={fallback}>
+                      <SEO />
+                      <Component {...pageProps} />
+                      <ErrorPopup />
+                      <ReactQueryDevtools initialIsOpen={false} />
+                    </Suspense>
+                  </ErrorBoundary>
+                </I18nextProvider>
+              </QueryClientProvider>
+            </MDXProvider>
+          </ThemeProvider>
+        </JotaiProvider>
       </RecoilRoot>
     </Suspense>
   )

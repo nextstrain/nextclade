@@ -1,5 +1,5 @@
-import type { Pool as PoolType, PoolOptions } from 'threads/dist/master/pool'
-import type { TaskRunFunction, WorkerDescriptor } from 'threads/dist/master/pool-types'
+import type { Pool as PoolType, PoolOptions } from 'threads/pool'
+import type { TaskRunFunction, WorkerDescriptor } from 'threads/pool-types'
 import { Pool as createPool, Thread } from 'threads'
 import { concurrent } from 'fasy'
 import { spawn } from 'src/workers/spawn'
@@ -45,7 +45,7 @@ export class PoolExtended<ThreadType extends Thread> {
     return this.pool.events()
   }
 
-  public async queue<Return>(task: TaskRunFunction<ThreadType, Return>) {
+  public async queue<Return>(task: TaskRunFunction<ThreadType, Return>): Promise<Return> {
     return this.pool.queue(task)
   }
 

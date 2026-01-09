@@ -3,10 +3,10 @@ use edit_distance::edit_distance;
 use eyre::Report;
 use indexmap::{indexmap, IndexMap};
 use itertools::{Either, Itertools};
-use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::str::FromStr;
+use std::sync::LazyLock;
 use strum::VariantNames;
 use strum_macros::{Display, EnumString, VariantNames};
 
@@ -111,9 +111,9 @@ impl Default for CsvColumnConfig {
   }
 }
 
-lazy_static! {
-  // Default configuration and layout of CSV column categories
-  pub static ref CSV_COLUMN_CONFIG_MAP_DEFAULT: CsvColumnConfigMap = indexmap! {
+// Default configuration and layout of CSV column categories
+pub static CSV_COLUMN_CONFIG_MAP_DEFAULT: LazyLock<CsvColumnConfigMap> = LazyLock::new(|| {
+  indexmap! {
     CsvColumnCategory::General => indexmap! {
       o!("index") => true,
       o!("seqName") => true,
@@ -207,16 +207,21 @@ lazy_static! {
       o!("warnings") => true,
       o!("errors") => true,
     }
-  };
+  }
+});
 
-  pub static ref CSV_POSSIBLE_CATEGORIES: Vec<String> = CsvColumnCategory::VARIANTS.iter()
+pub static CSV_POSSIBLE_CATEGORIES: LazyLock<Vec<String>> = LazyLock::new(|| {
+  CsvColumnCategory::VARIANTS
+    .iter()
     .copied()
     .map(String::from)
-    .collect_vec();
+    .collect_vec()
+});
 
-  pub static ref CSV_POSSIBLE_COLUMNS: Vec<String> = CSV_COLUMN_CONFIG_MAP_DEFAULT
+pub static CSV_POSSIBLE_COLUMNS: LazyLock<Vec<String>> = LazyLock::new(|| {
+  CSV_COLUMN_CONFIG_MAP_DEFAULT
     .iter()
     .flat_map(|(_, columns)| columns.iter())
     .map(|(column, _)| column.clone())
-    .collect_vec();
-}
+    .collect_vec()
+});

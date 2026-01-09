@@ -6,27 +6,58 @@
  * Do not use this to fix bugs or introduce features. Consider contributing to the upstream project instead.
  *
  */
-import { serial } from 'fasy'
-import fs from 'fs-extra'
-import glob from 'glob'
-import { promisify } from 'util'
+import { uniq } from 'lodash'
+import { concurrent, serial } from 'fasy'
+import { readFile, readJson, rm, writeFile, writeJson } from 'fs-extra'
+import { globby } from 'globby'
 
 export async function replace(filename: string, searchValue: string | RegExp, replaceValue = '') {
-  const content = await fs.readFile(filename, 'utf8')
+  const content = await readFile(filename, 'utf8')
   const newContent = content.replace(searchValue, replaceValue)
-  await fs.writeFile(filename, newContent, { encoding: 'utf8' })
+  await writeFile(filename, newContent, { encoding: 'utf8' })
 }
 
 /** Strips timerStart() and timerEnd() calls from Auspice */
 export async function removeAuspiceTimers() {
-  await fs.rm('node_modules/auspice/src/util/perf.js', { force: true })
+  await rm('node_modules/auspice/src/util/perf.js', { force: true })
 
-  const files = await promisify(glob)('node_modules/auspice/src/**/*.js')
+  const files = await globby('node_modules/auspice/src/**/*.js')
 
-  await serial.forEach(async (file) => {
+  await serial.forEach(async (file: string) => {
     await replace(file, /.*(timerStart|timerEnd)\(".+"\);.*\n/g, '')
     await replace(file, /.*import { timerStart, timerEnd }.*\n/g, '')
   }, files)
+}
+
+export async function removeJotaiDevtoolsWarnings() {
+  const files = await globby('node_modules/jotai-devtools/dist/**/*.js')
+
+  await serial.forEach(async (file: string) => {
+    await replace(file, /console\.warn\(.*?\);/gs, '')
+  }, files)
+}
+
+async function removeConsoleHmrMessages() {
+  const filesToPatch = await globby(
+    [
+      'node_modules/next/dist/**/*.js',
+      'node_modules/webpack-hot-middleware/*.js',
+      'node_modules/webpack/hot/*.js',
+      'node_modules/webpack/lib/hmr/*.js',
+    ],
+    {
+      onlyFiles: true,
+      ignore: ['**/*.map', '**/*.d.ts'],
+    },
+  )
+  await concurrent.forEach(async (file: string) => {
+    await replace(
+      file,
+      /(window\.)?console\.(log|warn|error)\((.*?)(\[HMR\]|\[Fast Refresh\]|Refreshing page data)(.*?)\);/g,
+      '',
+    )
+    // await replace(file, /(\[HMR\]|\[Fast Refresh\]|Refreshing page data)/g, '')
+  }, uniq(filesToPatch))
 }
 
 export async function main() {
@@ -38,26 +69,6 @@ export async function main() {
       `console.warn("Warning: <title> should not be used in _document.js's <Head>. https://nextjs.org/docs/messages/no-document-title");`,
     ),
 
-    // Removes warning about babel codegen skipping optimizations. We only use babel in form of babel-node, to transpile
-    // dev scripts on the fly, so this is not at all worth any attention.
-    // Reason: too noisy
-    serial.forEach(
-      async (file) => {
-        await replace(
-          file,
-          'console.error("[BABEL] Note: The code generator has deoptimised the styling of " + `${opts.filename} as it exceeds the max of ${"500KB"}.`);',
-        )
-        await replace(
-          file,
-          'console.error(\n' +
-            '        "[BABEL] Note: The code generator has deoptimised the styling of " +\n' +
-            '          `${opts.filename} as it exceeds the max of ${"500KB"}.`,\n' +
-            '      );',
-        )
-      },
-      ['node_modules/@babel/generator/lib/index.js', 'node_modules/next/dist/compiled/babel/bundle.js'],
-    ),
-
     replace(
       'node_modules/next/dist/build/index.js',
       "`${Log.prefixes.info} ${ignoreTypeScriptErrors ? 'Skipping validation of types' : 'Checking validity of types'}`",
@@ -67,40 +78,10 @@ export async function main() {
     // Removes reminder about upgrading caniuse database. Nice, but not that important. Will be handled along with
     // routine package updates.
     // Reason: too noisy
-    serial.forEach(
-      async (file) =>
-        replace(
-          file,
-          `      console.warn(
-        'Browserslist: caniuse-lite is outdated. Please run:\\n' +
-          '  npx browserslist@latest --update-db\\n' +
-          '  Why you should do it regularly: ' +
-          'https://github.com/browserslist/browserslist#browsers-data-updating'
-      )`,
-        ),
-      ['node_modules/browserslist/node.js'],
-    ),
-
-    serial.forEach(
-      async (file) =>
-        replace(
-          file,
-          `console.warn("Browserslist: caniuse-lite is outdated. Please run:\\n"+"  npx browserslist@latest --update-db\\n"+"  Why you should do it regularly: "+"https://github.com/browserslist/browserslist#browsers-data-updating")`,
-        ),
-      [
-        'node_modules/next/dist/compiled/browserslist/index.js',
-        'node_modules/next/dist/compiled/cssnano-simple/index.js',
-      ],
-    ),
-
-    // Fast refresh messages in browser console
     replace(
-      'node_modules/next/dist/client/dev/error-overlay/hot-dev-client.js',
-      "console.log('[Fast Refresh] rebuilding');",
-    ),
-    replace(
-      'node_modules/next/dist/client/dev/error-overlay/hot-dev-client.js',
-      'console.log(`[Fast Refresh] done in ${latency}ms`);',
+      'node_modules/next/dist/compiled/browserslist/index.js',
+      'console.warn("Browserslist: caniuse-lite is outdated. Please run:\\n"+"  npx update-browserslist-db@latest\\n"+"  Why you should do it regularly: "+"https://github.com/browserslist/update-db#readme")',
+      '',
     ),
 
     replace(
@@ -108,7 +89,9 @@ export async function main() {
       'Log.warn(`You have added a custom /_error page without a custom /404 page. This prevents the 404 page from being auto statically optimized.\\nSee here for info: https://nextjs.org/docs/messages/custom-error-no-custom-404`);',
     ),
 
+    removeConsoleHmrMessages(),
     removeAuspiceTimers(),
+    removeJotaiDevtoolsWarnings(),
   ])
 
   // More useless messages from Next.js
@@ -143,8 +126,8 @@ export async function main() {
 
   // From fork-ts-checker-webpack-plugin
   await replace(
-    'node_modules/fork-ts-checker-webpack-plugin/lib/hooks/tapDoneToAsyncGetIssues.js',
-    "configuration.logger.issues.log(chalk_1.default.cyan('Issues checking in progress...'));",
+    'node_modules/fork-ts-checker-webpack-plugin/lib/hooks/tap-done-to-async-get-issues.js',
+    "config.logger.log(chalk_1.default.cyan('Type-checking in progress...'));",
   )
 
   // Auspice: Remove requires for '@extensions' modules from `extensions.js`

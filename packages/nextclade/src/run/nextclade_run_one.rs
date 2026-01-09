@@ -385,7 +385,7 @@ pub fn nextclade_run_one(
         ref_seq.len(),
       );
 
-    let clade_founder_info = find_clade_founder(graph, nearest_node_id, &clade, &nuc_params, &aa_params)?;
+    let clade_founder_info = find_clade_founder(graph, nearest_node_id, clade.as_ref(), &nuc_params, &aa_params)?;
 
     let clade_node_attr_founder_info =
       find_clade_node_attrs_founders(graph, nearest_node_id, clade_node_attr_descs, &nuc_params, &aa_params)?;

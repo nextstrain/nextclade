@@ -28,12 +28,11 @@ pub struct CladeNodeAttrFounderInfo {
 pub fn find_clade_founder(
   graph: &AuspiceGraph,
   nearest_node_id: GraphNodeKey,
-  clade: &Option<String>,
+  clade: Option<&String>,
   nuc_params: &FindPrivateNucMutationsParams,
   aa_params: &FindPrivateAaMutationsParams,
 ) -> Result<Option<CladeNodeAttrFounderInfo>, Report> {
   clade
-    .as_ref()
     .map(|clade| -> Result<_, Report> {
       let node_key = graph_find_clade_founder(graph, nearest_node_id, clade)?;
       let node = graph.get_node(node_key)?.payload();

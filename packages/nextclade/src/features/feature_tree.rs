@@ -9,11 +9,11 @@ use crate::utils::error::to_eyre_error;
 use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
 use eyre::{eyre, Report, WrapErr};
 use itertools::{chain, Itertools};
-use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::io::Read;
 use std::path::Path;
+use std::sync::LazyLock;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -24,7 +24,7 @@ pub struct FeatureTree {
 impl FeatureTree {
   pub fn from_gff3_file<P: AsRef<Path>>(filename: P) -> Result<Self, Report> {
     let filename = filename.as_ref();
-    let mut file = open_file_or_stdin(&Some(filename))?;
+    let mut file = open_file_or_stdin(Some(&filename))?;
     let mut buf = vec![];
     file.read_to_end(&mut buf)?;
     Self::from_gff3_str(String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
@@ -137,11 +137,11 @@ fn read_gff3_feature_tree_str(content: impl AsRef<str>) -> Result<Vec<SequenceRe
 fn parse_sequence_region_header(line: &str) -> Result<(String, usize, usize), Report> {
   const SEQ_REGION_REGEX: &str = r"^##sequence-region\s+(?P<id>\S+?)\s+(?P<start>\d{1,10})\s+(?P<end>\d{1,10})$";
 
-  lazy_static! {
-    static ref RE: Regex = Regex::new(SEQ_REGION_REGEX)
+  static RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(SEQ_REGION_REGEX)
       .wrap_err_with(|| format!("When compiling regular expression '{SEQ_REGION_REGEX}'"))
-      .unwrap();
-  }
+      .unwrap()
+  });
 
   let captures = RE.captures(line).ok_or_else(|| eyre!("Unknown format"))?;
   match (captures.name("id"), captures.name("start"), captures.name("end")) {
@@ -224,7 +224,7 @@ fn build_hierarchy_of_features(features: &[Feature]) -> Result<Vec<FeatureGroup>
   // Group children according to their `ID` (Features with the same `ID` are considered the same feature, just split into multiple segments).
   let all_features = features
     .iter()
-    .group_by(|feature| feature.id.clone())
+    .chunk_by(|feature| feature.id.clone())
     .into_iter()
     .map(|(_, features)| FeatureGroup::new(&features.cloned().collect_vec()))
     .collect_vec();

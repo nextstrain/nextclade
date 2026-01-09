@@ -99,7 +99,6 @@ export const SequenceMarkerUnsequencedStart = memo(
 
     return (
       <SequenceMarker id={id} begin={begin} end={end} pixelsPerBase={pixelsPerBase}>
-        {/* eslint-disable-next-line sonarjs/no-duplicate-string */}
         {t('Not sequenced: {{range}}', { range: formatRange({ begin, end }) })}
       </SequenceMarker>
     )

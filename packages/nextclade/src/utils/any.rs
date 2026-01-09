@@ -69,19 +69,21 @@ impl AnyType {
   }
 
   pub fn as_str(&self) -> Result<&str, Report> {
-    self.as_str_maybe().ok_or(eyre!("Cannot parse value as str"))
+    self.as_str_maybe().ok_or_else(|| eyre!("Cannot parse value as str"))
   }
 
   pub fn as_int(&self) -> Result<isize, Report> {
-    self.as_int_maybe().ok_or(eyre!("Cannot parse value as int"))
+    self.as_int_maybe().ok_or_else(|| eyre!("Cannot parse value as int"))
   }
 
   pub fn as_float(&self) -> Result<f64, Report> {
-    self.as_float_maybe().ok_or(eyre!("Cannot parse value as float"))
+    self
+      .as_float_maybe()
+      .ok_or_else(|| eyre!("Cannot parse value as float"))
   }
 
   pub fn as_bool(&self) -> Result<bool, Report> {
-    self.as_bool_maybe().ok_or(eyre!("Cannot parse value as bool"))
+    self.as_bool_maybe().ok_or_else(|| eyre!("Cannot parse value as bool"))
   }
 }
 

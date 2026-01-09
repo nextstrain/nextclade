@@ -156,7 +156,7 @@ pub fn find_best_datasets(
       if let Some(&best_top_dataset) = key_of_max_value(&top_hit_by_dataset) {
         if hit_by_dataset[best_top_dataset] == hit_by_dataset[best_dataset] {
           best_dataset = best_top_dataset;
-        };
+        }
 
         let matched: BTreeSet<_> = results
           .iter()
@@ -214,13 +214,12 @@ pub fn find_best_suggestion_for_seq(
     .iter()
     .find(|best_dataset| best_dataset.qry_indices.contains(&qry_index));
 
-  best_dataset.and_then(|best_dataset| {
-    results[&qry_index]
-      .datasets
-      .iter()
-      .find(|d| d.name == best_dataset.name)
-      .cloned()
-  })
+  let best_dataset = best_dataset?;
+  results[&qry_index]
+    .datasets
+    .iter()
+    .find(|d| d.name == best_dataset.name)
+    .cloned()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]

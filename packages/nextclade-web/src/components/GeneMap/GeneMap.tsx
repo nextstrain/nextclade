@@ -1,8 +1,8 @@
 import { groupBy, isEmpty, isNil } from 'lodash'
 import { transparentize } from 'polished'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { useResizeDetector, Dimensions } from 'react-resize-detector'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { isInNucleotideViewAtom, viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
@@ -218,9 +218,7 @@ export function CdsSegmentView({
   )
 }
 
-export type GeneMapProps = ReactResizeDetectorDimensions
-
-export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
+export function GeneMapUnsized({ width = 0, height = 0 }: Dimensions) {
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
   const cdsesAll = useRecoilValue(cdsesAtom({ datasetName }))
   const genomeSize = useRecoilValue(genomeSizeAtom({ datasetName })) ?? 0
@@ -276,4 +274,7 @@ export function GeneMapUnsized({ width = 0, height = 0 }: GeneMapProps) {
   )
 }
 
-export const GeneMap = withResizeDetector(GeneMapUnsized, { handleWidth: true, handleHeight: true })
+export function GeneMap() {
+  const { width, height } = useResizeDetector({ handleWidth: true, handleHeight: true })
+  return <GeneMapUnsized width={width} height={height} />
+}

@@ -1,5 +1,3 @@
-/* eslint-disable no-param-reassign,no-plusplus,no-loops/no-loops,prefer-destructuring,no-else-return,unicorn/prefer-code-point */
-
 /**
  * Color Hash
  * by Simone Piccian (zanza00)

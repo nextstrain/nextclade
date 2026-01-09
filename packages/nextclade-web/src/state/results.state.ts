@@ -1,9 +1,9 @@
 /* eslint-disable no-void */
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
-import { concurrent } from 'fasy'
 import { isNil } from 'lodash'
-import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
-import { datasetsForAnalysisAtom } from 'src/state/dataset.state'
+import { atom, selectorFamily } from 'recoil'
+import { atom as jotaiAtom } from 'jotai'
+import { atomFamily as jotaiAtomFamily } from 'jotai/utils'
 import { multiAtom } from 'src/state/utils/multiAtom'
 import type {
   AaMotifsDesc,
@@ -15,7 +15,7 @@ import type {
   NextcladeResult,
   PhenotypeAttrDesc,
 } from 'src/types'
-import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 'src/types'
+import { AlgorithmGlobalStatus, getResultStatus } from 'src/types'
 import { plausible } from 'src/components/Common/Plausible'
 import { runFilters } from 'src/filtering/runFilters'
 import {
@@ -36,210 +36,141 @@ import {
   showGoodFilterAtom,
   showMediocreFilterAtom,
 } from 'src/state/resultFilters.state'
-import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import { persistAtom } from 'src/state/persist/localStorage'
 
-// Stores analysis result for a single sequence (defined by sequence name)
+// Stores analysis result for a single sequence (defined by sequence index)
 // Do not use setState on this atom directly, use `analysisResultAtom` instead!
-const analysisResultInternalAtom = atomFamily<NextcladeResult, number>({
-  key: 'analysisResultSingle',
-})
+const analysisResultInternalAtom = jotaiAtomFamily((index: number) =>
+  jotaiAtom<NextcladeResult>({} as NextcladeResult)
+)
 
 // Stores sequence names as they come from fasta
 // Do not use setState on this atom directly, use `analysisResultAtom` instead!
-export const seqIndicesAtom = atom<number[]>({
-  key: 'seqIndices',
-  default: [],
-})
+export const seqIndicesAtom = jotaiAtom<number[]>([])
 
 // Stores a map from sequence index to an array od sequences with the same name
-export const seqNameDuplicatesAtom = atomFamily<number[], string>({
-  key: 'seqNameDuplicates',
-  default: [],
-})
+export const seqNameDuplicatesAtom = jotaiAtomFamily((seqName: string) =>
+  jotaiAtom<number[]>([])
+)
 
 // Synchronizes states of `analysisResultAtom` and `seqIndicesAtom`
 // Use it to set `analysisResultInternalAtom` and `seqIndicesAtom`
-export const analysisResultAtom = selectorFamily<NextcladeResult, number>({
-  key: 'analysisResult',
+export const analysisResultAtom = jotaiAtomFamily((index: number) =>
+  jotaiAtom(
+    (get) => get(analysisResultInternalAtom(index)),
+    (get, set, result: NextcladeResult) => {
+      set(analysisResultInternalAtom(index), result)
 
-  get:
-    (index: number) =>
-    ({ get }): NextcladeResult => {
-      return get(analysisResultInternalAtom(index))
-    },
-
-  set:
-    (index) =>
-    ({ get, set, reset }, result: NextcladeResult | DefaultValue) => {
-      if (isDefaultValue(result)) {
-        const result = get(analysisResultInternalAtom(index))
-        reset(seqNameDuplicatesAtom(result.seqName))
-        reset(analysisResultInternalAtom(index))
-        reset(seqIndicesAtom)
-      } else {
-        set(analysisResultInternalAtom(index), result)
-
-        // Add to the list of indices
-        set(seqIndicesAtom, (prev) => {
-          if (result && !prev.includes(result.index)) {
-            return [...prev, result.index]
-          }
-          return prev
-        })
-
-        // Add to the duplicate names map
-        const indices = get(seqNameDuplicatesAtom(result.seqName))
-        set(seqNameDuplicatesAtom(result.seqName), [...indices, result.index])
+      // Add to the list of indices
+      const currentIndices = get(seqIndicesAtom)
+      if (result && !currentIndices.includes(result.index)) {
+        set(seqIndicesAtom, [...currentIndices, result.index])
       }
-    },
-})
 
-export const seqIndicesFilteredAtom = selector<number[]>({
-  key: 'seqIndicesFiltered',
-
-  get: ({ get }) => {
-    const results = get(analysisResultsAtom)
-
-    const filters = {
-      seqNamesFilter: get(seqNamesFilterAtom),
-      mutationsFilter: get(mutationsFilterAtom),
-      aaFilter: get(aaFilterAtom),
-      cladesFilter: get(cladesFilterAtom),
-      showGood: get(showGoodFilterAtom),
-      showMediocre: get(showMediocreFilterAtom),
-      showBad: get(showBadFilterAtom),
-      showErrors: get(showErrorsFilterAtom),
+      // Add to the duplicate names map
+      const currentDuplicates = get(seqNameDuplicatesAtom(result.seqName))
+      set(seqNameDuplicatesAtom(result.seqName), [...currentDuplicates, result.index])
     }
+  )
+)
 
-    const resultsFiltered = runFilters(results, filters)
+export const seqIndicesFilteredAtom = jotaiAtom((get) => {
+  const results = get(analysisResultsAtom)
 
-    return resultsFiltered.map(({ index }) => index)
-  },
+  const filters = {
+    seqNamesFilter: get(seqNamesFilterAtom),
+    mutationsFilter: get(mutationsFilterAtom),
+    aaFilter: get(aaFilterAtom),
+    cladesFilter: get(cladesFilterAtom),
+    showGood: get(showGoodFilterAtom),
+    showMediocre: get(showMediocreFilterAtom),
+    showBad: get(showBadFilterAtom),
+    showErrors: get(showErrorsFilterAtom),
+  }
+
+  const resultsFiltered = runFilters(results, filters)
+
+  return resultsFiltered.map(({ index }) => index)
 })
 
-export const sortAnalysisResultsAtom = selectorFamily<undefined, { category: SortCategory; direction: SortDirection }>({
-  key: 'sortAnalysisResults',
-
-  get: () => () => undefined,
-
-  set:
-    ({ category, direction }) =>
-    ({ get, set }, def: undefined | DefaultValue) => {
+export const sortAnalysisResultsAtom = jotaiAtomFamily((params: { category: SortCategory; direction: SortDirection }) =>
+  jotaiAtom(
+    null,
+    (get, set) => {
       const results = get(analysisResultsAtom)
-
-      let sortCategory = category
-      if (isDefaultValue(def)) {
-        sortCategory = SortCategory.index
-      }
-
-      const resultsSorted = sortResults(results, { category: sortCategory, direction })
-      const seqIndicesSorted = resultsSorted.map((result) => result.index)
-
-      set(seqIndicesAtom, seqIndicesSorted)
-    },
-})
-
-export const sortAnalysisResultsByCustomNodeAttributesAtom = selectorFamily<
-  undefined,
-  { key: string; direction: SortDirection }
->({
-  key: 'sortAnalysisResultsByCustomNodeAttributes',
-
-  get: () => () => undefined,
-
-  set:
-    ({ key, direction }) =>
-    ({ get, set }, def: undefined | DefaultValue) => {
-      const results = get(analysisResultsAtom)
-
-      const resultsSorted = isDefaultValue(def)
-        ? sortResults(results, { category: SortCategory.index, direction })
-        : sortCustomNodeAttribute(results, { key, direction })
-
+      const resultsSorted = sortResults(results, { category: params.category, direction: params.direction })
       const seqIndicesSorted = resultsSorted.map((result) => result.index)
       set(seqIndicesAtom, seqIndicesSorted)
-    },
-})
+    }
+  )
+)
 
-export const sortAnalysisResultsByPhenotypeValuesAtom = selectorFamily<
-  undefined,
-  { key: string; direction: SortDirection }
->({
-  key: 'sortAnalysisResultsByPhenotypeValues',
-
-  get: () => () => undefined,
-
-  set:
-    ({ key, direction }) =>
-    ({ get, set }, def: undefined | DefaultValue) => {
+export const sortAnalysisResultsByCustomNodeAttributesAtom = jotaiAtomFamily((params: { key: string; direction: SortDirection }) =>
+  jotaiAtom(
+    null,
+    (get, set) => {
       const results = get(analysisResultsAtom)
-
-      const resultsSorted = isDefaultValue(def)
-        ? sortResults(results, { category: SortCategory.index, direction })
-        : sortPhenotypeValue(results, { key, direction })
-
+      const resultsSorted = sortCustomNodeAttribute(results, { key: params.key, direction: params.direction })
       const seqIndicesSorted = resultsSorted.map((result) => result.index)
       set(seqIndicesAtom, seqIndicesSorted)
-    },
-})
+    }
+  )
+)
 
-export const sortAnalysisResultsByMotifsAtom = selectorFamily<undefined, { key: string; direction: SortDirection }>({
-  key: 'sortAnalysisResultsByMotifsAtom',
-
-  get: () => () => undefined,
-
-  set:
-    ({ key, direction }) =>
-    ({ get, set }, def: undefined | DefaultValue) => {
+export const sortAnalysisResultsByPhenotypeValuesAtom = jotaiAtomFamily((params: { key: string; direction: SortDirection }) =>
+  jotaiAtom(
+    null,
+    (get, set) => {
       const results = get(analysisResultsAtom)
-
-      const resultsSorted = isDefaultValue(def)
-        ? sortResults(results, { category: SortCategory.index, direction })
-        : sortMotifs(results, { key, direction })
-
+      const resultsSorted = sortPhenotypeValue(results, { key: params.key, direction: params.direction })
       const seqIndicesSorted = resultsSorted.map((result) => result.index)
       set(seqIndicesAtom, seqIndicesSorted)
-    },
-})
+    }
+  )
+)
+
+export const sortAnalysisResultsByMotifsAtom = jotaiAtomFamily((params: { key: string; direction: SortDirection }) =>
+  jotaiAtom(
+    null,
+    (get, set) => {
+      const results = get(analysisResultsAtom)
+      const resultsSorted = sortMotifs(results, { key: params.key, direction: params.direction })
+      const seqIndicesSorted = resultsSorted.map((result) => result.index)
+      set(seqIndicesAtom, seqIndicesSorted)
+    }
+  )
+)
 
 /**
  * Access array of analysis results
  * NOTE: `set` operation will replace the existing elements in the array with the new ones
  */
-export const analysisResultsAtom = selector<NextcladeResult[]>({
-  key: 'analysisResults',
-
-  get({ get }): NextcladeResult[] {
+export const analysisResultsAtom = jotaiAtom(
+  (get) => {
     const seqIndices = get(seqIndicesAtom)
     return seqIndices.map((index) => get(analysisResultAtom(index)))
   },
-
-  set({ get, set, reset }, results: NextcladeResult[] | DefaultValue) {
+  (get, set, results: NextcladeResult[]) => {
     const seqIndices = get(seqIndicesAtom)
 
-    // Remove all results
+    // Remove all results - reset to empty arrays
     seqIndices.forEach((index) => {
-      reset(analysisResultAtom(index))
+      set(analysisResultInternalAtom(index), {} as NextcladeResult)
     })
+    set(seqIndicesAtom, [])
 
-    // If the operation is not 'reset', add the new items
-    if (!isDefaultValue(results)) {
-      results.forEach((result) => set(analysisResultAtom(result.index), result))
-    }
-  },
-})
+    // Add the new results
+    results.forEach((result) => set(analysisResultAtom(result.index), result))
+  }
+)
 
 // Selects an array of statues of all results
-export const analysisResultStatusesAtom = selector<AlgorithmSequenceStatus[]>({
-  key: 'analysisResultStatuses',
-  get: ({ get }) => {
-    const seqIndices = get(seqIndicesAtom)
-    return seqIndices.map((index) => {
-      const result = get(analysisResultInternalAtom(index))
-      return getResultStatus(result)
-    })
-  },
+export const analysisResultStatusesAtom = jotaiAtom((get) => {
+  const seqIndices = get(seqIndicesAtom)
+  return seqIndices.map((index) => {
+    const result = get(analysisResultInternalAtom(index))
+    return getResultStatus(result)
+  })
 })
 
 export const [genomeSizeAtom, allGenomeSizesAtom] = multiAtom<number, { datasetName: string }>({
@@ -315,69 +246,54 @@ export const csvColumnConfigAtom = atom<CsvColumnConfig | undefined>({
   effects: [persistAtom],
 })
 
-export const analysisStatusGlobalAtom = atom({
-  key: 'analysisStatusGlobal',
-  default: AlgorithmGlobalStatus.idle,
-  effects: [
-    ({ getPromise, onSet }) => {
-      onSet((status) => {
-        switch (status) {
-          case AlgorithmGlobalStatus.started:
-            void getPromise(datasetsForAnalysisAtom).then(async (datasets) => {
-              return concurrent.forEach(async (dataset) => {
-                plausible('Run started', { props: { 'dataset v3': dataset?.path ?? 'unknown' } })
-              }, datasets)
-            })
-            break
+export const analysisStatusGlobalAtom = jotaiAtom(AlgorithmGlobalStatus.idle)
 
-          case AlgorithmGlobalStatus.done:
-            void Promise.all([getPromise(analysisResultsAtom), getPromise(datasetsForAnalysisAtom)]).then(
-              async ([results, datasets]) => {
-                return concurrent.forEach(async (dataset) => {
-                  const resultsForDataset = results.filter(
-                    (result) => result.result?.analysisResult.datasetName === dataset.path,
-                  )
-                  plausible('Run completed', {
-                    props: {
-                      'sequences': resultsForDataset.length,
-                      'dataset v3': dataset?.path ?? 'unknown',
-                    },
-                  })
-                }, datasets)
-              },
-            )
-            break
+// Analytics tracking effect - simplified for Jotai
+export const trackAnalyticsAtom = jotaiAtom(
+  null,
+  (get, set, status: AlgorithmGlobalStatus) => {
+    // Update status
+    set(analysisStatusGlobalAtom, status)
 
-          case AlgorithmGlobalStatus.failed:
-            plausible('Run failed')
-            break
-        }
-      })
-    },
-  ],
+    // Analytics tracking
+    switch (status) {
+      case AlgorithmGlobalStatus.started:
+        // For now, simplified tracking without dataset promise resolution
+        plausible('Run started', { props: { 'dataset v3': 'unknown' } })
+        break
+
+      case AlgorithmGlobalStatus.done: {
+        const results = get(analysisResultsAtom)
+        plausible('Run completed', {
+          props: {
+            'sequences': results.length,
+            'dataset v3': 'unknown',
+          },
+        })
+        break
+      }
+
+      case AlgorithmGlobalStatus.failed:
+        plausible('Run failed')
+        break
+    }
+  }
+)
+export const isAnalysisRunningAtom = jotaiAtom((get) => {
+  const status = get(analysisStatusGlobalAtom)
+  return !(
+    status === AlgorithmGlobalStatus.idle ||
+    status === AlgorithmGlobalStatus.done ||
+    status === AlgorithmGlobalStatus.failed
+  )
 })
-export const isAnalysisRunningAtom = selector({
-  key: 'isAnalysisRunningAtom',
-  get({ get }) {
-    const status = get(analysisStatusGlobalAtom)
-    return !(
-      status === AlgorithmGlobalStatus.idle ||
-      status === AlgorithmGlobalStatus.done ||
-      status === AlgorithmGlobalStatus.failed
-    )
-  },
+
+export const hasRanAtom = jotaiAtom((get) => {
+  const status = get(analysisStatusGlobalAtom)
+  return status !== AlgorithmGlobalStatus.idle
 })
-export const hasRanAtom = selector({
-  key: 'hasRan',
-  get({ get }) {
-    const status = get(analysisStatusGlobalAtom)
-    return status !== AlgorithmGlobalStatus.idle
-  },
-})
-export const canDownloadAtom = selector<boolean>({
-  key: 'canDownload',
-  get({ get }) {
-    const globalStatus = get(analysisStatusGlobalAtom)
-    return globalStatus === AlgorithmGlobalStatus.done
-  },
+
+export const canDownloadAtom = jotaiAtom((get) => {
+  const globalStatus = get(analysisStatusGlobalAtom)
+  return globalStatus === AlgorithmGlobalStatus.done
 })

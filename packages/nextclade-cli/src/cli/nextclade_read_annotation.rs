@@ -10,7 +10,7 @@ use std::io::Read;
 pub fn nextclade_read_annotation(args: &NextcladeReadAnnotationArgs) -> Result<(), Report> {
   let content = {
     let mut content = String::new();
-    open_file_or_stdin(&args.input_annotation)?.read_to_string(&mut content)?;
+    open_file_or_stdin(args.input_annotation.as_ref())?.read_to_string(&mut content)?;
     content
   };
 

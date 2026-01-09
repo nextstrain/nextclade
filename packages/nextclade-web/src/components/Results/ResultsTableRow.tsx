@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react'
 import { areEqual, ListChildComponentProps } from 'react-window'
-import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 
 import type { CladeNodeAttrDesc } from 'auspice'
 import type { AaMotifsDesc, PhenotypeAttrDesc } from 'src/types'
@@ -41,7 +41,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
     aaMotifsDescs,
   } = useMemo(() => data[index], [data, index])
 
-  const { result, error } = useRecoilValue(analysisResultAtom(seqIndex))
+  const { result, error } = useAtomValue(analysisResultAtom(seqIndex))
 
   if (error) {
     return <ResultsTableRowError {...restProps} index={seqIndex} columnWidthsPx={columnWidthsPx} />

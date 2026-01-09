@@ -189,8 +189,7 @@ export class SeqAutodetectWasmWorker {
 // export function mapDatasetToSeqs(records: MinimizerSearchRecord[]): Record<string, MinimizerSearchRecordGroup> {
 //   const names = uniq(records.flatMap((record) => record.result.datasets.map((dataset) => dataset.name)))
 //   let byDataset: Record<string, MinimizerSearchRecordGroup> = {}
-//   // eslint-disable-next-line no-loops/no-loops
-//   for (const name of names) {
+// //   for (const name of names) {
 //     // Find sequence records which match this dataset
 //     const selectedRecords = records.filter((record) => record.result.datasets.some((dataset) => dataset.name === name))
 //

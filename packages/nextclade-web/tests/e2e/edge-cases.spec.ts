@@ -65,7 +65,7 @@ test.describe('URL Parameter Edge Cases', () => {
   })
 
   test('should handle very long URLs', async () => {
-    const longPath = '/very/long/path/'.repeat(20) + 'file.fasta'
+    const longPath = `${'/very/long/path/'.repeat(20)}file.fasta`
     const longUrl = `https://example.com${longPath}`
 
     await tester.navigateWithParams({
@@ -81,6 +81,7 @@ test.describe('URL Parameter Edge Cases', () => {
   })
 
   test('should handle non-ASCII characters in URLs', async () => {
+    // eslint-disable-next-line only-ascii/only-ascii
     const urlWithNonAscii = 'https://example.com/файл.fasta'
     await tester.navigateWithParams({
       'dataset-name': TEST_DATASETS.SARS_COV_2.name,

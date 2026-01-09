@@ -1,56 +1,31 @@
-import { atom, selector } from 'recoil'
+import { atom as jotaiAtom } from 'jotai'
 
-export const seqNamesFilterAtom = atom<string>({
-  key: 'seqNamesFilter',
-  default: '',
-})
+export const seqNamesFilterAtom = jotaiAtom<string>('')
 
-export const mutationsFilterAtom = atom<string>({
-  key: 'mutationsFilter',
-  default: '',
-})
+export const mutationsFilterAtom = jotaiAtom<string>('')
 
-export const cladesFilterAtom = atom<string>({
-  key: 'cladesFilter',
-  default: '',
-})
+export const cladesFilterAtom = jotaiAtom<string>('')
 
-export const aaFilterAtom = atom<string>({
-  key: 'aaFilter',
-  default: '',
-})
+export const aaFilterAtom = jotaiAtom<string>('')
 
-export const showGoodFilterAtom = atom<boolean>({
-  key: 'showGoodFilter',
-  default: true,
-})
+export const showGoodFilterAtom = jotaiAtom<boolean>(true)
 
-export const showMediocreFilterAtom = atom<boolean>({
-  key: 'showMediocreFilter',
-  default: true,
-})
+export const showMediocreFilterAtom = jotaiAtom<boolean>(true)
 
-export const showBadFilterAtom = atom<boolean>({
-  key: 'showBadFilter',
-  default: true,
-})
+export const showBadFilterAtom = jotaiAtom<boolean>(true)
 
-export const showErrorsFilterAtom = atom<boolean>({
-  key: 'showErrorsFilter',
-  default: true,
-})
+export const showErrorsFilterAtom = jotaiAtom<boolean>(true)
 
-export const clearAllFiltersAtom = selector({
-  key: 'clearAllFiltersAtom',
-  get: () => undefined,
-  set: ({ reset }) => {
-    reset(seqNamesFilterAtom)
-    reset(mutationsFilterAtom)
-    reset(cladesFilterAtom)
-    reset(aaFilterAtom)
-    reset(showGoodFilterAtom)
-    reset(showMediocreFilterAtom)
-    reset(showBadFilterAtom)
-    reset(showErrorsFilterAtom)
-  },
-})
+export const clearAllFiltersAtom = jotaiAtom(
+  null,
+  (get, set) => {
+    set(seqNamesFilterAtom, '')
+    set(mutationsFilterAtom, '')
+    set(cladesFilterAtom, '')
+    set(aaFilterAtom, '')
+    set(showGoodFilterAtom, true)
+    set(showMediocreFilterAtom, true)
+    set(showBadFilterAtom, true)
+    set(showErrorsFilterAtom, true)
+  }
+)

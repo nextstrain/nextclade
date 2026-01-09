@@ -20,11 +20,11 @@ pub struct Insertion<T: Letter<T>> {
 }
 
 impl<T: Letter<T>> Insertion<T> {
-  pub fn len(&self) -> usize {
+  pub const fn len(&self) -> usize {
     self.ins.len()
   }
 
-  pub fn is_empty(&self) -> bool {
+  pub const fn is_empty(&self) -> bool {
     self.len() == 0
   }
 }

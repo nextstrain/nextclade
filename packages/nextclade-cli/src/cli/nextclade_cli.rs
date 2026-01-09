@@ -12,7 +12,6 @@ use clap_complete::{generate, Shell};
 use clap_complete_fig::Fig;
 use eyre::{eyre, ContextCompat, Report, WrapErr};
 use itertools::Itertools;
-use lazy_static::lazy_static;
 use nextclade::io::console::CliColorMode;
 use nextclade::io::fs::add_extension;
 use nextclade::run::params::NextcladeInputParamsOptional;
@@ -24,15 +23,15 @@ use std::fmt::Debug;
 use std::io;
 use std::path::PathBuf;
 use std::str::FromStr;
+use std::sync::LazyLock;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use url::Url;
 
 const DATA_FULL_DOMAIN: &str = getenv!("DATA_FULL_DOMAIN");
 
-lazy_static! {
-  pub static ref SHELLS: Vec<&'static str> = ["bash", "elvish", "fish", "fig", "powershell", "zsh"].to_vec();
-}
+pub static SHELLS: LazyLock<Vec<&'static str>> =
+  LazyLock::new(|| ["bash", "elvish", "fish", "fig", "powershell", "zsh"].to_vec());
 
 fn styles() -> styling::Styles {
   styling::Styles::styled()
@@ -888,7 +887,7 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
 
       let output_translations_template = output_translations_path
         .to_str()
-        .wrap_err_with(|| format!("When converting path to string: {output_translations_path:?}"))?
+        .wrap_err_with(|| format!("When converting path to string: {}", output_translations_path.display()))?
         .to_owned();
 
       output_translations.get_or_insert(output_translations_template);

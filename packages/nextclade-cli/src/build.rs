@@ -20,12 +20,12 @@ fn main() -> Result<(), Report> {
   generate_schema(
     &NextcladeFileFormat::All,
     &JsonSchemaOutputFormat::Json,
-    &Some(PathBuf::from("../nextclade-schemas")),
+    Some(&PathBuf::from("../nextclade-schemas")),
   )?;
   generate_schema(
     &NextcladeFileFormat::All,
     &JsonSchemaOutputFormat::Yaml,
-    &Some(PathBuf::from("../nextclade-schemas")),
+    Some(&PathBuf::from("../nextclade-schemas")),
   )?;
   Ok(())
 }

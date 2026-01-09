@@ -112,7 +112,7 @@ where
   }
 
   #[inline]
-  pub fn data_len(&self) -> usize {
+  pub const fn data_len(&self) -> usize {
     self.data.len()
   }
 
@@ -149,16 +149,16 @@ impl<T: Default + Clone, I: NumCast + Copy, J: NumCast + Copy> Index<(I, J)> for
   type Output = T;
 
   #[inline]
-  fn index(&self, index2d: (I, J)) -> &Self::Output {
-    self.data.index(self.get_index(index2d))
+  fn index(&self, index: (I, J)) -> &Self::Output {
+    self.data.index(self.get_index(index))
   }
 }
 
 /// Allows 2-dimensional mutable indexing using a tuple
 impl<T: Default + Clone, I: NumCast + Copy, J: NumCast + Copy> IndexMut<(I, J)> for Band2d<T> {
   #[inline]
-  fn index_mut(&mut self, index2d: (I, J)) -> &mut Self::Output {
-    self.data.index_mut(self.get_index(index2d))
+  fn index_mut(&mut self, index: (I, J)) -> &mut Self::Output {
+    self.data.index_mut(self.get_index(index))
   }
 }
 

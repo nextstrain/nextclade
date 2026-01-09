@@ -15,7 +15,6 @@ use crate::{make_error, make_internal_report};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use log::warn;
-use num::Integer;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -30,11 +29,11 @@ pub struct GeneMap {
 }
 
 impl GeneMap {
-  pub fn new() -> Self {
+  pub const fn new() -> Self {
     Self::from_genes(vec![])
   }
 
-  pub fn from_genes(genes: Vec<Gene>) -> Self {
+  pub const fn from_genes(genes: Vec<Gene>) -> Self {
     Self { genes }
   }
 
@@ -49,10 +48,10 @@ impl GeneMap {
 
   pub fn from_path<P: AsRef<Path>>(filename: P) -> Result<Self, Report> {
     let filename = filename.as_ref();
-    let mut file = open_file_or_stdin(&Some(filename))?;
+    let mut file = open_file_or_stdin(Some(&filename))?;
     let mut buf = vec![];
     file.read_to_end(&mut buf)?;
-    Self::from_str(String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {filename:?}"))
+    Self::from_str(String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {}", filename.display()))
   }
 
   pub fn from_str(content: impl AsRef<str>) -> Result<Self, Report> {
@@ -109,12 +108,12 @@ impl GeneMap {
   }
 
   #[must_use]
-  pub fn is_empty(&self) -> bool {
+  pub const fn is_empty(&self) -> bool {
     self.genes.is_empty()
   }
 
   #[must_use]
-  pub fn len(&self) -> usize {
+  pub const fn len(&self) -> usize {
     self.genes.len()
   }
 
@@ -170,7 +169,7 @@ impl GeneMap {
 
   pub fn validate(&self) -> Result<(), Report> {
     self.iter_cdses().try_for_each(|cds| {
-      cds.len().is_multiple_of(&3).then_some(()).ok_or_else(|| {
+      cds.len().is_multiple_of(3).then_some(()).ok_or_else(|| {
         let segment_lengths = cds.segments.iter().map(CdsSegment::len).join("+");
         let n_segments = cds.segments.len();
         eyre!(
@@ -212,7 +211,7 @@ impl GeneMap {
 }
 
 /// Filters genome annotation according to the list of requested cdses.
-pub fn filter_gene_map(mut gene_map: GeneMap, cdses: &Option<Vec<String>>) -> GeneMap {
+pub fn filter_gene_map(mut gene_map: GeneMap, cdses: Option<&Vec<String>>) -> GeneMap {
   if let Some(cdses) = cdses {
     let all_cdses = gene_map.iter_cdses().cloned().collect_vec();
     let requested_but_not_found = get_requested_cdses_not_in_genemap(&all_cdses, cdses);

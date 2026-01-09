@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 
 import { ColumnName } from 'src/components/Results/ColumnName'
 import {
@@ -20,7 +20,7 @@ export interface ResultsTableRowPendingProps {
 export function ResultsTableRowPending({ index, columnWidthsPx, ...restProps }: ResultsTableRowPendingProps) {
   const { t } = useTranslationSafe()
   const text = useMemo(() => t('Analyzing...'), [t])
-  const { seqName } = useRecoilValue(analysisResultAtom(index))
+  const { seqName } = useAtomValue(analysisResultAtom(index))
 
   return (
     <TableRowPending {...restProps}>

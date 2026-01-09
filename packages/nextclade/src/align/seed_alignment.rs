@@ -115,7 +115,7 @@ pub fn create_alignment_band(
 
   // loop over remaining seeds in chain
   for next_seed in chain.iter().skip(1) {
-    let mean_offset = (next_seed.offset + current_seed.offset) / 2; // offset of gap seed
+    let mean_offset = isize::midpoint(next_seed.offset, current_seed.offset); // offset of gap seed
     let shift = abs_shift(current_seed, next_seed) / 2; // distance from mean offset
     look_forward_length = shift + excess_bandwidth;
 

@@ -1,5 +1,3 @@
-/* eslint-disable lodash/prefer-is-nil */
-
 import { isNil } from 'lodash'
 
 export function notUndefined<T>(x: T | undefined): x is NonNullable<T> {

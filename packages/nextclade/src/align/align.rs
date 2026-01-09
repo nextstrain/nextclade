@@ -182,9 +182,9 @@ mod tests {
 
     let gene_map = GeneMap::new();
 
-    let mut ref_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    ref_path.push("test_data");
-    ref_path.push("reference.fasta");
+    let ref_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+      .join("test_data")
+      .join("reference.fasta");
     let ref_seq = to_nuc_seq(fs::read_to_string(ref_path).unwrap().trim()).unwrap();
     let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &params);
 
