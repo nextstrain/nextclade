@@ -9,7 +9,7 @@ export GID=$(shell id -g)
 SHELL:=bash
 .ONESHELL:
 
-.PHONY: docs docs-clean docker-docs docker-paper paper-preprint docker-paper-preprint clean distclean
+.PHONY: docs docs-clean docker-docs docker-paper paper-preprint docker-paper-preprint clean distclean data
 
 
 ######################## Docs #################################################
@@ -80,6 +80,12 @@ docker-paper-preprint:
 	--ulimit core=0 \
 	"$${CONTAINER_IMAGE_NAME}" \
 		bash -c "make paper-preprint"
+
+
+######################## Data #################################################
+
+data:
+	@./scripts/get-data
 
 
 ######################## Clean ################################################

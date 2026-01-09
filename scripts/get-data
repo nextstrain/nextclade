@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+# Download Nextclade datasets from GitHub.
+#
+# Downloads the data/ directory from a nextclade_data repository and extracts
+# it to a local directory.
+#
+# Usage:
+#   ./scripts/get-data [options]
+#
+# Options:
+#   -r, --repo OWNER/REPO   GitHub repository (default: nextstrain/nextclade_data)
+#   -b, --branch BRANCH     Branch name (default: master)
+#   -o, --output DIR        Output directory (default: ./data/$branch)
+#   -h, --help              Show this help message
+#
+# Examples:
+#   ./scripts/get-data
+#   ./scripts/get-data --branch release
+#   ./scripts/get-data --repo myorg/nextclade_data --branch dev --output /tmp/mydata
+
+set -euo pipefail
+trap "exit" INT
+
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${THIS_DIR}/.." && pwd)"
+
+usage() {
+  sed -n '3,/^[^#]/p' "${BASH_SOURCE[0]}" | sed '$d; s/^# \?//'
+}
+
+repo="nextstrain/nextclade_data"
+branch="master"
+output_dir="${PROJECT_ROOT}/data/${branch}"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -r|--repo)
+      repo="$2"
+      shift 2
+      ;;
+    -b|--branch)
+      branch="$2"
+      shift 2
+      ;;
+    -o|--output)
+      output_dir="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      printf "Unknown option: %s\n" "$1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+printf "Downloading datasets from %s@%s to %s\n" "${repo}" "${branch}" "${output_dir}"
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "${tmpdir}"' EXIT
+
+git clone --depth 1 --filter=blob:none --sparse --branch "${branch}" \
+  "https://github.com/${repo}.git" "${tmpdir}/repo" --quiet
+
+pushd "${tmpdir}/repo" >/dev/null
+git sparse-checkout set data --quiet
+popd >/dev/null
+
+mkdir -p "${output_dir}"
+cp -r "${tmpdir}/repo/data"/* "${output_dir}/"
