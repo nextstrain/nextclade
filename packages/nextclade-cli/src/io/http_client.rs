@@ -1,14 +1,13 @@
+use crate::io::tls;
 use clap::{Parser, ValueHint};
-use eyre::{Report, WrapErr};
+use eyre::Report;
 use log::info;
-use nextclade::io::file::open_file_or_stdin;
 use nextclade::make_internal_error;
 use nextclade::utils::info::{this_package_name, this_package_version_str};
 use reqwest::blocking::Client;
-use reqwest::tls::Certificate;
 use reqwest::{Method, Proxy, StatusCode, retry};
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Duration;
 use url::Url;
@@ -48,51 +47,13 @@ pub struct HttpClient {
 
 impl HttpClient {
   pub fn new(root: &Url, proxy_conf: &ProxyConfig, verbose: bool) -> Result<Self, Report> {
-    // Append trailing slash to the root URL. Otherwise `Url::join()` replaces the path rather than appending.
-    // See: https://github.com/servo/rust-url/issues/333
     let root = Url::from_str(&format!("{}/", root.as_str()))?;
 
     let mut client_builder = Client::builder();
 
-    client_builder = if let Some(proxy_url) = &proxy_conf.proxy {
-      let proxy = match (&proxy_conf.proxy_user, &proxy_conf.proxy_pass) {
-        (Some(proxy_user), Some(proxy_pass)) => {
-          let proxy = Proxy::all(proxy_url.clone())?.basic_auth(proxy_user, proxy_pass);
-          Ok(proxy)
-        }
-        (None, None) => {
-          let proxy = Proxy::all(proxy_url.clone())?;
-          Ok(proxy)
-        }
-        _ => make_internal_error!("`--proxy-user` and `--proxy-pass` must be either both specified or both omitted"),
-      }?;
-
-      client_builder.proxy(proxy)
-    } else {
-      client_builder
-    };
-
-    let extra_ca_certs_filepath = env::var_os("NEXTCLADE_EXTRA_CA_CERTS").map(PathBuf::from);
-    let extra_ca_certs_filepath = proxy_conf.extra_ca_certs.as_ref().or(extra_ca_certs_filepath.as_ref());
-    let extra_certs = extra_ca_certs(extra_ca_certs_filepath)?;
-    if !extra_certs.is_empty() {
-      client_builder = client_builder.tls_certs_merge(extra_certs);
-    }
-
-    if let Some(host) = root.host_str().map(ToOwned::to_owned) {
-      client_builder = client_builder.retry(
-        retry::for_host(host)
-          .max_retries_per_request(3)
-          .max_extra_load(0.2)
-          .classify_fn(|attempt| match attempt.status() {
-            None => attempt.retryable(),
-            Some(status) if status.is_server_error() => attempt.retryable(),
-            Some(status) if status == StatusCode::TOO_MANY_REQUESTS => attempt.retryable(),
-            Some(status) if status == StatusCode::REQUEST_TIMEOUT => attempt.retryable(),
-            _ => attempt.success(),
-          }),
-      );
-    }
+    client_builder = configure_proxy(client_builder, proxy_conf)?;
+    client_builder = configure_tls(client_builder, proxy_conf)?;
+    client_builder = configure_retry(client_builder, &root);
 
     let user_agent = format!("{} {}", this_package_name(), this_package_version_str());
 
@@ -130,8 +91,6 @@ impl HttpClient {
   }
 
   pub fn request<U: AsRef<str> + ?Sized>(&self, method: Method, url: &U) -> Result<Vec<u8>, Report> {
-    // Trim leading '/', otherwise Url::join() replaces the path rather than appending.
-    // See: https://github.com/servo/rust-url/issues/333
     let url = url.as_ref().trim_start_matches('/');
     let abs_url = self.root.join(url)?;
     info!("HTTP '{method}' request to '{abs_url}'");
@@ -146,15 +105,100 @@ impl HttpClient {
   }
 }
 
-fn extra_ca_certs(extra_ca_certs_filepath: Option<impl AsRef<Path>>) -> Result<Vec<Certificate>, Report> {
-  extra_ca_certs_filepath.map_or_else(
-    || Ok(vec![]),
-    |filename| {
-      let mut pem = vec![];
+fn configure_proxy(
+  client_builder: reqwest::blocking::ClientBuilder,
+  proxy_conf: &ProxyConfig,
+) -> Result<reqwest::blocking::ClientBuilder, Report> {
+  let Some(proxy_url) = &proxy_conf.proxy else {
+    return Ok(client_builder);
+  };
 
-      open_file_or_stdin(Some(&filename))?.read_to_end(&mut pem)?;
+  let proxy = match (&proxy_conf.proxy_user, &proxy_conf.proxy_pass) {
+    (Some(user), Some(pass)) => Ok(Proxy::all(proxy_url.clone())?.basic_auth(user, pass)),
+    (None, None) => Ok(Proxy::all(proxy_url.clone())?),
+    _ => make_internal_error!("`--proxy-user` and `--proxy-pass` must be either both specified or both omitted"),
+  }?;
 
-      Certificate::from_pem_bundle(&pem).wrap_err("While reading PEM bundle")
-    },
+  Ok(client_builder.proxy(proxy))
+}
+
+/// Configures TLS certificate verification for HTTPS connections.
+///
+/// # Trust Store Composition
+///
+/// The final trust store combines three certificate sources:
+///
+/// 1. **Mozilla Root CAs** (always present)
+///    - Baked-in from `webpki-root-certs` crate (~150 certificates)
+///    - Ensures HTTPS works even in minimal containers without system certs
+///
+/// 2. **User Extra CAs** (optional)
+///    - From `--extra-ca-certs` argument or `NEXTCLADE_EXTRA_CA_CERTS` env var
+///    - Required for enterprise SSL-inspecting proxies (corporate firewalls)
+///
+/// 3. **System CAs** (when available)
+///    - Loaded by `rustls-platform-verifier` via `rustls-native-certs`
+///    - Respects `SSL_CERT_FILE` and `SSL_CERT_DIR` environment variables
+///
+/// # How It Works
+///
+/// ```text
+/// tls_certs_merge([mozilla_roots, user_extras])
+///        |
+///        v
+/// reqwest passes to rustls-platform-verifier as "extra_roots"
+///        |
+///        v
+/// Platform verifier adds extra_roots to RootCertStore
+///        |
+///        v
+/// Platform verifier loads system certs via rustls-native-certs
+///        |
+///        v
+/// Both are combined in the final trust store
+/// ```
+///
+/// This design ensures the trust store is never empty (Mozilla roots always present),
+/// while still loading and trusting system certificates when available.
+fn configure_tls(
+  client_builder: reqwest::blocking::ClientBuilder,
+  proxy_conf: &ProxyConfig,
+) -> Result<reqwest::blocking::ClientBuilder, Report> {
+  // Resolve extra CA certs path: CLI arg takes precedence over env var
+  let extra_certs_path = env::var_os("NEXTCLADE_EXTRA_CA_CERTS").map(PathBuf::from);
+  let extra_certs_path = proxy_conf.extra_ca_certs.as_ref().or(extra_certs_path.as_ref());
+
+  // Build combined trust anchors: Mozilla roots + user extras
+  // System certs are added later by rustls-platform-verifier
+  let trust_anchors = tls::build_trust_anchors(extra_certs_path)?;
+
+  // tls_certs_merge() passes these to rustls-platform-verifier::Verifier::new_with_extra_roots()
+  // The verifier then:
+  // 1. Adds our trust_anchors to RootCertStore
+  // 2. Loads system certs via rustls_native_certs::load_native_certs()
+  // 3. Adds system certs to the same store
+  // Result: all three sources (mozilla, user, system) are trusted
+  Ok(client_builder.tls_certs_merge(trust_anchors))
+}
+
+fn configure_retry(
+  client_builder: reqwest::blocking::ClientBuilder,
+  root: &Url,
+) -> reqwest::blocking::ClientBuilder {
+  let Some(host) = root.host_str().map(ToOwned::to_owned) else {
+    return client_builder;
+  };
+
+  client_builder.retry(
+    retry::for_host(host)
+      .max_retries_per_request(3)
+      .max_extra_load(0.2)
+      .classify_fn(|attempt| match attempt.status() {
+        None => attempt.retryable(),
+        Some(status) if status.is_server_error() => attempt.retryable(),
+        Some(status) if status == StatusCode::TOO_MANY_REQUESTS => attempt.retryable(),
+        Some(status) if status == StatusCode::REQUEST_TIMEOUT => attempt.retryable(),
+        _ => attempt.success(),
+      }),
   )
 }

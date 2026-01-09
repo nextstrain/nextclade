@@ -70,7 +70,7 @@ percent-encoding = "=2.3.2"
 pretty_assertions = "=1.4.1"
 rayon = "=1.11.0"
 regex = "=1.12.2"
-reqwest = { version = "=0.13.1", features = ["blocking", "socks", "gzip", "deflate", "brotli", "zstd"] }
+reqwest = { version = "=0.13.1", default-features = false, features = ["blocking", "socks", "gzip", "deflate", "brotli", "zstd", "rustls", "rustls-native-certs"] }
 rstest = "=0.26.1"
 rust_xlsxwriter = { version = "=0.92.2", features = ["wasm"] }
 schemars = { version = "=0.8.22", features = ["chrono", "either", "enumset", "indexmap", "raw_value", "preserve_order"] }
@@ -92,6 +92,7 @@ validator = { version = "=0.20.0", features = ["derive"] }
 wasm-bindgen = { version = "=0.2.106", features = ["serde-serialize"] }
 wasm-logger = "=0.2.0"
 web-sys = { version = "=0.3.83", features = ["console"] }
+webpki-root-certs = "=1.0.5"
 xz2 = { version = "=0.1.7", features = ["static"] }
 zip = { version = "=7.0.0", default-features = false, features = ["aes-crypto", "deflate", "time"] }
 zstd = { version = "=0.13.3", features = ["zstdmt"] }

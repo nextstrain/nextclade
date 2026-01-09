@@ -49,6 +49,7 @@ strum = { workspace = true }
 strum_macros = { workspace = true }
 tinytemplate = { workspace = true }
 url = { workspace = true }
+webpki-root-certs = { workspace = true }
 zip = { workspace = true }
 
 [dev-dependencies]
