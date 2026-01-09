@@ -32,7 +32,7 @@ import { ThemeProvider } from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 import { MDXProvider } from '@mdx-js/react'
 import { QueryClient, QueryClientConfig, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { DevToolsDrawer } from 'src/components/DevTools/DevToolsDrawer'
 import { HelmetProvider } from 'react-helmet-async'
 import { DOMAIN_STRIPPED } from 'src/constants'
 import { parseUrl } from 'src/helpers/parseUrl'
@@ -264,13 +264,6 @@ const REACT_QUERY_OPTIONS: QueryClientConfig = {
   defaultOptions: { queries: { retry: 1 } },
 }
 
-function JotaiDevTools({ store }: { store: ReturnType<typeof jotaiCreateStore> }) {
-  if (process.env.NODE_ENV === 'development') {
-    const { DevTools } = require('jotai-devtools') // eslint-disable-line global-require, @typescript-eslint/no-require-imports
-    return <DevTools store={store} />
-  }
-  return null
-}
 
 export function MyApp({ Component, pageProps, router }: AppProps) {
   const jotaiStore = useMemo(() => jotaiCreateStore(), [])
@@ -291,7 +284,6 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
       <HelmetProvider>
         <RecoilRoot>
           <JotaiProvider store={jotaiStore}>
-            <JotaiDevTools store={jotaiStore} />
             <ThemeProvider theme={theme}>
               <MDXProvider components={mdxComponents}>
                 <Plausible domain={DOMAIN_STRIPPED} />
@@ -307,7 +299,7 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
                         <SEO />
                         <Component {...pageProps} />
                         <ErrorPopup />
-                        <ReactQueryDevtools initialIsOpen={false} />
+                        <DevToolsDrawer jotaiStore={jotaiStore} />
                       </Suspense>
                     </ErrorBoundary>
                   </I18nextProvider>
