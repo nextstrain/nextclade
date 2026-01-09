@@ -207,10 +207,7 @@ fn configure_tls(
 ///
 /// A 20% extra load budget prevents retry storms - if too many requests to the host
 /// are failing, retries are throttled to avoid overwhelming the server.
-fn configure_retry(
-  client_builder: reqwest::blocking::ClientBuilder,
-  root: &Url,
-) -> reqwest::blocking::ClientBuilder {
+fn configure_retry(client_builder: reqwest::blocking::ClientBuilder, root: &Url) -> reqwest::blocking::ClientBuilder {
   let Some(host) = root.host_str().map(ToOwned::to_owned) else {
     return client_builder;
   };

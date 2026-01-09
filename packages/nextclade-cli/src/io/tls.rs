@@ -166,9 +166,7 @@ pub fn extra_ca_certs(filepath: Option<impl AsRef<Path>>) -> Result<Vec<Certific
 /// A vector containing:
 /// - Mozilla root certificates (always present)
 /// - User extra certificates (0 or more, from file if provided)
-pub fn build_trust_anchors(
-  extra_certs_filepath: Option<impl AsRef<Path>>,
-) -> Result<Vec<Certificate>, Report> {
+pub fn build_trust_anchors(extra_certs_filepath: Option<impl AsRef<Path>>) -> Result<Vec<Certificate>, Report> {
   let extra_certs = extra_ca_certs(extra_certs_filepath)?;
 
   // Chain Mozilla roots with user extras.
