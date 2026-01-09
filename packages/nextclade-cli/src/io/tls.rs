@@ -136,7 +136,7 @@ pub fn extra_ca_certs(filepath: Option<impl AsRef<Path>>) -> Result<Vec<Certific
     |filename| {
       let mut pem_bundle = vec![];
       open_file_or_stdin(Some(&filename))?.read_to_end(&mut pem_bundle)?;
-      Certificate::from_pem_bundle(&pem_bundle).wrap_err("Failed to parse PEM certificate bundle")
+      Certificate::from_pem_bundle(&pem_bundle).wrap_err("While parsing PEM certificate bundle")
     },
   )
 }
