@@ -292,6 +292,8 @@
     "delay": 500
   },
   "overrides": {
+    "@types/react": "18.3.23",
+    "@types/react-dom": "18.3.7",
     "bootstrap": "4.6.1",
     "classnames": "2.5.1",
     "debug": "file:vendor/debug",
