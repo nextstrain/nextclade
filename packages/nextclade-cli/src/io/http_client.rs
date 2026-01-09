@@ -129,7 +129,7 @@ fn configure_proxy(
 /// The final trust store combines three certificate sources:
 ///
 /// 1. **Mozilla Root CAs** (always present)
-///    - Baked-in from `webpki-root-certs` crate (~150 certificates)
+///    - Baked-in from `webpki-root-certs` crate
 ///    - Ensures HTTPS works even in minimal containers without system certs
 ///
 /// 2. **User Extra CAs** (optional)

@@ -90,7 +90,7 @@ use std::path::Path;
 /// Invalid certificates are silently skipped (should not happen with the curated Mozilla set).
 pub fn mozilla_root_certs() -> Vec<Certificate> {
   // webpki_root_certs::TLS_SERVER_ROOT_CERTS is &[CertificateDer<'static>]
-  // containing ~150 Mozilla-trusted root CA certificates in DER format.
+  // containing Mozilla-trusted root CA certificates in DER format.
   webpki_root_certs::TLS_SERVER_ROOT_CERTS
     .iter()
     .filter_map(|cert_der| {
@@ -160,7 +160,7 @@ pub fn extra_ca_certs(filepath: Option<impl AsRef<Path>>) -> Result<Vec<Certific
 /// # Returns
 ///
 /// A vector containing:
-/// - Mozilla root certificates (~150 certs, always present)
+/// - Mozilla root certificates (always present)
 /// - User extra certificates (0 or more, from file if provided)
 pub fn build_trust_anchors(
   extra_certs_filepath: Option<impl AsRef<Path>>,
