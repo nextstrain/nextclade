@@ -6,7 +6,7 @@ use nextclade::make_internal_error;
 use nextclade::utils::info::{this_package_name, this_package_version_str};
 use reqwest::blocking::Client;
 use reqwest::tls::Certificate;
-use reqwest::{Method, Proxy};
+use reqwest::{Method, Proxy, StatusCode, retry};
 use std::env;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -77,6 +77,21 @@ impl HttpClient {
     let extra_certs = extra_ca_certs(extra_ca_certs_filepath)?;
     if !extra_certs.is_empty() {
       client_builder = client_builder.tls_certs_merge(extra_certs);
+    }
+
+    if let Some(host) = root.host_str().map(ToOwned::to_owned) {
+      client_builder = client_builder.retry(
+        retry::for_host(host)
+          .max_retries_per_request(3)
+          .max_extra_load(0.2)
+          .classify_fn(|attempt| match attempt.status() {
+            None => attempt.retryable(),
+            Some(status) if status.is_server_error() => attempt.retryable(),
+            Some(status) if status == StatusCode::TOO_MANY_REQUESTS => attempt.retryable(),
+            Some(status) if status == StatusCode::REQUEST_TIMEOUT => attempt.retryable(),
+            _ => attempt.success(),
+          }),
+      );
     }
 
     let user_agent = format!("{} {}", this_package_name(), this_package_version_str());
