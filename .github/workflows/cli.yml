@@ -184,7 +184,7 @@ jobs:
           CROSS="${{ matrix.arch }}" ./docker/dev build-release
 
       - name: "Upload build artifacts (${{ matrix.arch }})"
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: out-${{ matrix.arch }}
           path: ./.out/*
