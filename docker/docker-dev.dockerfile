@@ -183,9 +183,10 @@ RUN set -euxo pipefail >/dev/null \
 && chmod +x "/usr/bin/watchexec" \
 && watchexec --version
 
-# Install Node.js
+# Install Node.js (skip on old glibc systems like CentOS 7 or Debian 9 - not needed for CLI builds)
 COPY .nvmrc /
-RUN set -eux >dev/null \
+RUN set -eux >/dev/null \
+&& if [[ "$DOCKER_BASE_IMAGE" == *manylinux2014* ]] || [[ "$DOCKER_BASE_IMAGE" == debian:9* ]]; then exit 0; fi \
 && mkdir -p "${NODE_DIR}" \
 && cd "${NODE_DIR}" \
 && NODE_VERSION=$(cat /.nvmrc) \
