@@ -76,6 +76,7 @@
 
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use log::warn;
 use nextclade::io::file::open_file_or_stdin;
 use reqwest::tls::Certificate;
 use std::path::Path;
@@ -87,16 +88,19 @@ use std::path::Path;
 /// system certificates are unavailable (e.g., minimal Docker containers).
 ///
 /// The certificates are in DER format and are converted to reqwest's Certificate type.
-/// Invalid certificates are silently skipped (should not happen with the curated Mozilla set).
+/// Invalid certificates log a warning and are skipped (should not happen with the curated Mozilla set).
 pub fn mozilla_root_certs() -> Vec<Certificate> {
   // webpki_root_certs::TLS_SERVER_ROOT_CERTS is &[CertificateDer<'static>]
   // containing Mozilla-trusted root CA certificates in DER format.
   webpki_root_certs::TLS_SERVER_ROOT_CERTS
     .iter()
-    .filter_map(|cert_der| {
+    .enumerate()
+    .filter_map(|(i, cert_der)| {
       // Convert from rustls CertificateDer to reqwest Certificate.
       // cert_der.as_ref() gives us &[u8] (the raw DER bytes).
-      Certificate::from_der(cert_der.as_ref()).ok()
+      Certificate::from_der(cert_der.as_ref())
+        .map_err(|e| warn!("Failed to parse Mozilla root certificate at index {i}: {e}"))
+        .ok()
     })
     .collect_vec()
 }
