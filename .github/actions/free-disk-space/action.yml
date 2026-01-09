@@ -1,0 +1,50 @@
+name: "Free disk space"
+description: "Remove pre-installed packages to free disk space on GitHub-hosted runners"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Free disk space"
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        sudo swapoff -a || true
+        sudo rm -f /swapfile || true
+
+        mapfile -t purge_list < <(dpkg -l | awk '
+          /^ii/ {
+            p=$2
+            if (p ~ /^(dotnet-.*|llvm-.*|php.*|mongodb-.*|mysql-.*)$/) print p
+          }')
+        sudo apt-get purge -y "${purge_list[@]:-}" azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri || true
+        sudo apt-get autoremove -y --purge
+        sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/*
+
+        sudo rm -rf \
+          /opt/ghc \
+          /opt/hostedtoolcache/CodeQL \
+          /usr/local/.ghcup \
+          /usr/local/graalvm \
+          /usr/local/lib/android \
+          /usr/local/share/chromium \
+          /usr/local/share/powershell \
+          /usr/share/dotnet \
+          ~/.cache/*
+
+        docker ps -q | xargs -r docker stop || true
+        docker system prune -af --volumes || true
+        docker builder prune -af || true
+        docker buildx prune -af || true
+
+    - name: "Check disk space"
+      shell: bash
+      run: |
+        echo ""
+
+        df -Th | awk 'NR == 1; NR > 1 {print $0 | "sort -n"}'
+
+        echo ""
+
+        lsblk -o MOUNTPOINT,FSTYPE,FSSIZE,FSAVAIL,FSUSE%,TYPE,NAME,ROTA,SIZE,MODEL,UUID
