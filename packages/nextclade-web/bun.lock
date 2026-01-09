@@ -13,6 +13,8 @@
         "@tanstack/query-core": "5.77.2",
         "@tanstack/react-query": "5.77.2",
         "@tanstack/react-query-devtools": "5.77.2",
+        "@tanstack/react-table": "8.21.3",
+        "@tanstack/react-table-devtools": "8.21.3",
         "auspice": "2.59.1",
         "axios": "1.9.0",
         "base64-js": "1.5.1",
@@ -873,6 +875,12 @@
     "@tanstack/react-query": ["@tanstack/react-query@5.77.2", "", { "dependencies": { "@tanstack/query-core": "5.77.2" }, "peerDependencies": { "react": "^18 || ^19" } }, "sha512-BRHxWdy1mHmgAcYA/qy2IPLylT81oebLgkm9K85viN2Qol/Vq48t1dzDFeDIVQjTWDV96AmqsLNPlH5HjyKCxA=="],
 
     "@tanstack/react-query-devtools": ["@tanstack/react-query-devtools@5.77.2", "", { "dependencies": { "@tanstack/query-devtools": "5.76.0" }, "peerDependencies": { "@tanstack/react-query": "^5.77.2", "react": "^18 || ^19" } }, "sha512-TxB9boB0dmTJByAfh36kbhvohNHZiPJe+m+PCnbnfL+gdDHJbp174S6BwbU2dHx980njeAKFmWz8tgHNKG3itw=="],
+
+    "@tanstack/react-table": ["@tanstack/react-table@8.21.3", "", { "dependencies": { "@tanstack/table-core": "8.21.3" }, "peerDependencies": { "react": ">=16.8", "react-dom": ">=16.8" } }, "sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww=="],
+
+    "@tanstack/react-table-devtools": ["@tanstack/react-table-devtools@8.21.3", "", { "dependencies": { "@tanstack/react-table": "8.21.3" }, "peerDependencies": { "react": ">=16.8", "react-dom": ">=16.8" } }, "sha512-nIAl72PGgsiUkh2QE/cnR95SwO4UGSOqBdG8R0Vo3HvQ5m6/RwfiUSx0lqGPyXCd8ai1RLsLcFFrNh4pCuBTvQ=="],
+
+    "@tanstack/table-core": ["@tanstack/table-core@8.21.3", "", {}, "sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg=="],
 
     "@testing-library/dom": ["@testing-library/dom@10.4.0", "", { "dependencies": { "@babel/code-frame": "^7.10.4", "@babel/runtime": "^7.12.5", "@types/aria-query": "^5.0.1", "aria-query": "5.3.0", "chalk": "^4.1.0", "dom-accessibility-api": "^0.5.9", "lz-string": "^1.5.0", "pretty-format": "^27.0.2" } }, "sha512-pemlzrSESWbdAloYml3bAJMEfNh1Z7EduzqPKprCH5S341frlpYnUEW0H72dLxa6IsYr+mPno20GiSm+h9dEdQ=="],
 
