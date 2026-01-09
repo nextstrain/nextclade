@@ -1,3 +1,0 @@
-##gff-version 3
-##sequence-region CY018818.1 1 2273
-CY018818.1	feature	gene	15	2195	.	+	.	gene_name "PA"

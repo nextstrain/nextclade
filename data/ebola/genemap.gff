@@ -1,9 +1,0 @@
-##gff-version 3
-##sequence-region KR075003.1 1 18958
-KR075003.1	feature	gene	470	2689	.	+	0	gene_name "NP"
-KR075003.1	feature	gene	3129	4151	.	+	0	gene_name "VP35"
-KR075003.1	feature	gene	4479	5459	.	+	0	gene_name "VP40"
-KR075003.1	feature	gene	6039	8069	.	+	0	gene_name "GP"
-KR075003.1	feature	gene	8509	9375	.	+	0	gene_name "VP30"
-KR075003.1	feature	gene	10345	11100	.	+	0	gene_name "VP24"
-KR075003.1	feature	gene	11581	18219	.	+	0	gene_name "L"
