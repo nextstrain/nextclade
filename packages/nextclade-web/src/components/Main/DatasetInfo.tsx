@@ -77,7 +77,7 @@ export function DatasetInfo({ dataset, showTagSelector = false, showBadge = fals
   return (
     <div className="d-flex flex-column" {...restProps}>
       <DatasetNameHeading title={datasetName}>
-        <DatasetName>{datasetName}</DatasetName>
+        <DatasetName data-testid="dataset-name">{datasetName}</DatasetName>
         <DatasetInfoBadges dataset={dataset} />
       </DatasetNameHeading>
 

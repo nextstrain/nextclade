@@ -46,54 +46,37 @@ export class URLParameterTester {
   }
 
   async waitForAppLoaded() {
-    await this.page.waitForSelector('[role="navigation"]')
-    await this.page.waitForFunction(
-      () => {
-        const spinners = document.querySelectorAll('[data-testid="loading"], .spinner')
-        return spinners.length === 0
-      },
-      { timeout: 5000 },
-    )
+    await this.page.waitForSelector('[role="navigation"]', { timeout: 10_000 })
   }
 
   async waitForDatasetLoaded() {
     await this.waitForAppLoaded()
 
-    // Wait for either dataset info or error message
-    await Promise.race([
-      this.page.waitForSelector('h4[class*="DatasetNameHeading"]', { timeout: 5000 }), // Dataset name heading
-      this.page.waitForSelector('h2:has-text("An unexpected error has occurred")', { timeout: 5000 }), // Error heading
-    ])
-
-    // Check for error conditions
-    const hasError = await this.page
-      .locator('h2:has-text("An unexpected error has occurred")')
-      .first()
-      .isVisible()
-      .catch(() => false)
-
-    if (hasError) {
-      const errorText = await this.page.textContent('body')
-      throw new Error(`Dataset loading failed: ${errorText}`)
-    }
+    // Wait for the "Change reference dataset" button which only appears when dataset is loaded
+    // This works in both dev and prod builds
+    await this.page.waitForSelector('button:has-text("Change reference dataset")', { timeout: 10_000 })
   }
 
   async getDatasetNameLocator(expectedName: string) {
     await this.waitForDatasetLoaded()
-    // Look for h4 heading that contains the dataset name
-    return this.page.locator('h4[class*="DatasetNameHeading"]').filter({ hasText: expectedName }).first()
+    // Use data-testid which works in both dev and prod builds
+    return this.page.getByTestId('dataset-name').filter({ hasText: expectedName }).first()
   }
 
   async checkForErrors() {
-    await this.waitForAppLoaded()
-
-    const hasError = await this.page
-      .locator('h2:has-text("An unexpected error has occurred")')
-      .first()
+    // Check for error page (full page error via error boundary)
+    const hasErrorPage = await this.page
+      .getByTestId('error-page')
       .isVisible()
       .catch(() => false)
 
-    if (hasError) {
+    // Check for error popup (modal error via globalErrorAtom)
+    const hasErrorPopup = await this.page
+      .getByTestId('error-popup')
+      .isVisible()
+      .catch(() => false)
+
+    if (hasErrorPage || hasErrorPopup) {
       const errorText = await this.page.textContent('body')
       throw new Error(`Unexpected error in UI: ${errorText}`)
     }

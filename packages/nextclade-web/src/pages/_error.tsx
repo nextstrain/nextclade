@@ -73,7 +73,7 @@ function ErrorPage({ statusCode, title, error, errorInfo }: ErrorPageProps) {
 
   return (
     <Layout>
-      <MainContent>
+      <MainContent data-testid="error-page">
         <MainSectionTitle />
 
         <Row noGutters>
