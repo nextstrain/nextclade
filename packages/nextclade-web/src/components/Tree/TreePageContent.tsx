@@ -6,7 +6,7 @@ import { I18nextProvider } from 'react-i18next'
 import { Store } from 'redux'
 import { ButtonSvg } from 'src/components/Tree/ButtonSvg'
 import styled, { ThemeProvider } from 'styled-components'
-import type { AuspiceState } from 'auspice'
+import type { AuspiceJsonV2, AuspiceState } from 'auspice'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import { changeColorBy } from 'auspice/src/actions/colors'
@@ -71,11 +71,16 @@ const AUSPICE_SIDEBAR_THEME = {
   'unselectedBackground': '#888',
 }
 
-export default function TreePageContent() {
+export interface TreePageContentProps {
+  tree?: AuspiceJsonV2
+}
+
+export default function TreePageContent({ tree: treeProp }: TreePageContentProps) {
   const { t } = useTranslationSafe()
 
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
-  const tree = useRecoilValue(treeAtom(datasetName))
+  const treeFromState = useRecoilValue(treeAtom(datasetName))
+  const tree = treeProp ?? treeFromState
 
   const [store, setStore] = useState<Store<AuspiceState> | null>(null)
 
