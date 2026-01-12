@@ -15,6 +15,30 @@ This is only useful if you know programming at least a little or is curious abou
 
 > ⚠️ Datasets are managed in a [separate repository](https://github.com/nextstrain/nextclade_data)
 
+## Tool versions
+
+Nextclade uses a centralized version management system. All tool versions are tracked in [`tool-versions.json`](https://github.com/nextstrain/nextclade/blob/master/tool-versions.json) at the project root.
+
+The file contains three categories:
+- `dependencies` - required tools for building Nextclade
+- `devDependencies` - tools for development workflows
+- `optionalDependencies` - tools for specific tasks (benchmarking, data processing)
+
+Versions can be either:
+- Simple strings (e.g., `"bun": "1.3.5"`)
+- References to other files (e.g., Rust version from `rust-toolchain.toml`, Node.js from `.nvmrc`)
+
+To look up a tool version, use the `scripts/get-version` script:
+
+```bash
+# Get version of a tool
+./scripts/get-version bun        # outputs: 1.3.5
+./scripts/get-version rust       # outputs: 1.92.0 (from rust-toolchain.toml)
+./scripts/get-version node       # outputs: 22.16.0 (from .nvmrc)
+```
+
+The Docker build environment uses this system to ensure consistent versions across all builds.
+
 ## Developing locally
 
 ### Nextclade CLI
@@ -74,7 +98,7 @@ as well as to the `--help` text for each tool.
 
 3. Install Rust (once) ([https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install)):
 
-   The only supported Rust version is the one declared in [`rust-toolchain.toml`](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml) (currently **1.92.0**).
+   The only supported Rust version is the one declared in [`rust-toolchain.toml`](https://github.com/nextstrain/nextclade/blob/master/rust-toolchain.toml). Check the current version with `./scripts/get-version rust`.
 
    ```bash
    # Install Rustup, the Rust version manager
@@ -180,7 +204,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
 2. Install Node.js and Bun (once)
 
-   The only supported Node.js version is the one declared in [`.nvmrc`](https://github.com/nextstrain/nextclade/blob/master/.nvmrc) (currently **22.16.0**).
+   The only supported Node.js version is the one declared in [`.nvmrc`](https://github.com/nextstrain/nextclade/blob/master/.nvmrc). Check the current version with `./scripts/get-version node`.
 
    Install Node.js from [nodejs.org](https://nodejs.org), or using [nvm](https://github.com/nvm-sh/nvm):
 
@@ -191,7 +215,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
    node --version
    ```
 
-   Install Bun (version **1.2.14** recommended) from [bun.sh](https://bun.sh):
+   Install Bun from [bun.sh](https://bun.sh). Check the required version with `./scripts/get-version bun`:
 
    ```bash
    curl -fsSL https://bun.sh/install | bash
@@ -206,7 +230,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
 4. Install LLVM/Clang toolchain (once)
 
-   LLVM/Clang is required for compiling Rust code to WebAssembly. Version **13** is used in the official build environment.
+   LLVM/Clang is required for compiling Rust code to WebAssembly. Check the required version with `./scripts/get-version clang`.
 
    <details>
    <summary>🐧 Linux (Ubuntu/Debian)</summary>
@@ -247,20 +271,22 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
 6. Install WebAssembly toolchain (once)
 
-   The following versions are pinned for build reproducibility:
+   Tool versions are tracked in [`tool-versions.json`](https://github.com/nextstrain/nextclade/blob/master/tool-versions.json). Use `./scripts/get-version <tool>` to check current versions:
 
-   | Tool             | Version |
-   | ---------------- | ------- |
-   | wasm-pack        | 0.13.1  |
-   | wasm-bindgen-cli | 0.2.106 |
-   | binaryen         | 125     |
+   ```bash
+   ./scripts/get-version wasm-pack         # wasm-pack version
+   ./scripts/get-version wasm-bindgen-cli  # wasm-bindgen-cli version (from Cargo.toml)
+   ./scripts/get-version binaryen          # binaryen version
+   ```
 
    ```bash
    # Install wasm-pack
-   cargo install wasm-pack@0.13.1 --locked
+   WASM_PACK_VERSION="$(./scripts/get-version wasm-pack)"
+   cargo install wasm-pack@${WASM_PACK_VERSION} --locked
 
    # Install wasm-bindgen-cli (must match the version in Cargo.toml)
-   cargo install wasm-bindgen-cli@0.2.106 --locked
+   WASM_BINDGEN_CLI_VERSION="$(./scripts/get-version wasm-bindgen-cli)"
+   cargo install wasm-bindgen-cli@${WASM_BINDGEN_CLI_VERSION} --locked
 
    # Add WebAssembly compilation target
    rustup target add wasm32-unknown-unknown
@@ -270,11 +296,11 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
    <summary>🐧 Install binaryen on Linux</summary>
 
    ```bash
-   # Ubuntu/Debian (version may differ)
+   # Ubuntu/Debian (version may differ from project requirements)
    sudo apt-get install binaryen
 
    # Or download pinned version (recommended):
-   export BINARYEN_VERSION="125"
+   BINARYEN_VERSION="$(./scripts/get-version binaryen)"
    curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz" | sudo tar -C /usr/local -xz --strip-components=1
    ```
 
