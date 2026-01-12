@@ -56,7 +56,7 @@ done
 [ -z "$repo" ] && echo "--repo is required" >/dev/stderr && exit 1
 [ -z "$git_sha" ] && echo "--git_sha is required" >/dev/stderr && exit 1
 
-version=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
+version=$(dasel -i toml -o yaml 'workspace.package.version' < Cargo.toml)
 release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 prerelease_flag=${release_type:+--prerelease}
 

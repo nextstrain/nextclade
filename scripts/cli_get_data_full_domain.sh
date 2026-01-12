@@ -16,7 +16,7 @@ THIS_DIR="$(
 
 : "${1:?Branch name is required as the first argument.}"
 
-version=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
+version=$(dasel -i toml -o yaml 'workspace.package.version' < Cargo.toml)
 prerel=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 branch="${1}"
 

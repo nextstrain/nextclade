@@ -63,7 +63,7 @@ fi
 printf "✅\n"
 
 printf "Pre-check: Cargo.toml is in sync with package.json... "
-CARGO_VERSION=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
+CARGO_VERSION=$(dasel -i toml -o yaml 'workspace.package.version' < Cargo.toml)
 PKG_VERSION=$(jq -r ".version" packages/nextclade-web/package.json)
 if [ "${CARGO_VERSION}" != "${PKG_VERSION}" ]; then
   printf "\nERROR: Version mismatch: Cargo.toml (%s) != package.json (%s)\n" "${CARGO_VERSION}" "${PKG_VERSION}" >&2
@@ -93,7 +93,7 @@ printf "✅\n"
 
 printf "Bump Cargo.toml version..."
 cargo set-version --workspace --bump="${BUMP_TYPE}" 2>&1 | awk '!/^\s*Upgrading / && !/^\s*$/'
-VERSION=$(dasel select -r toml -w - -s ".workspace.package.version" -f "Cargo.toml")
+VERSION=$(dasel -i toml -o yaml 'workspace.package.version' < Cargo.toml)
 if [ "${VERSION}" == "${CARGO_VERSION}" ]; then
   echo "ERROR: Version did not change after cargo set-version." >&2
   exit 1
