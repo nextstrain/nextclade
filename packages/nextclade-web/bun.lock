@@ -17,7 +17,7 @@
         "@tanstack/react-table": "8.21.3",
         "@tanstack/react-table-devtools": "8.21.3",
         "@use-gesture/react": "10.3.1",
-        "auspice": "2.59.1",
+        "auspice": "2.67.0",
         "axios": "1.9.0",
         "base64-js": "1.5.1",
         "bootstrap": "4.6.1",
@@ -802,6 +802,222 @@
 
     "@sindresorhus/merge-streams": ["@sindresorhus/merge-streams@2.3.0", "", {}, "sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg=="],
 
+    "@stdlib/array-float32": ["@stdlib/array-float32@0.2.2", "", { "dependencies": { "@stdlib/assert-has-float32array-support": "^0.2.2" }, "os": "!android" }, "sha512-pTcy1FNQrrJLL1LMxJjuVpcKJaibbGCFFTe41iCSXpSOC8SuTBuNohrO6K9+xR301Ruxxn4yrzjJJ6Fa3nQJ2g=="],
+
+    "@stdlib/array-float64": ["@stdlib/array-float64@0.2.2", "", { "dependencies": { "@stdlib/assert-has-float64array-support": "^0.2.2" }, "os": "!android" }, "sha512-ZmV5wcacGrhT0maw9dfLXNv4N3ZwFUV3D7ItFfZFGFnKIJbubrWzwtaYnxzIXigrDc8g3F6FVHRpsQLMxq0/lA=="],
+
+    "@stdlib/array-uint16": ["@stdlib/array-uint16@0.2.2", "", { "dependencies": { "@stdlib/assert-has-uint16array-support": "^0.2.2" }, "os": "!android" }, "sha512-z5c/Izw43HkKfb1pTgEUMAS8GFvhtHkkHZSjX3XJN+17P0VjknxjlSvPiCBGqaDX9jXtlWH3mn1LSyDKtJQoeA=="],
+
+    "@stdlib/array-uint32": ["@stdlib/array-uint32@0.2.2", "", { "dependencies": { "@stdlib/assert-has-uint32array-support": "^0.2.2" }, "os": "!android" }, "sha512-3T894I9C2MqZJJmRCYFTuJp4Qw9RAt+GzYnVPyIXoK1h3TepUXe9VIVx50cUFIibdXycgu0IFGASeAb3YMyupw=="],
+
+    "@stdlib/array-uint8": ["@stdlib/array-uint8@0.2.2", "", { "dependencies": { "@stdlib/assert-has-uint8array-support": "^0.2.2" }, "os": "!android" }, "sha512-Ip9MUC8+10U9x0crMKWkpvfoUBBhWzc6k5SI4lxx38neFVmiJ3f+5MBADEagjpoKSBs71vlY2drnEZe+Gs2Ytg=="],
+
+    "@stdlib/assert-has-float32array-support": ["@stdlib/assert-has-float32array-support@0.2.2", "", { "dependencies": { "@stdlib/assert-is-float32array": "^0.2.2", "@stdlib/constants-float64-pinf": "^0.2.2" }, "os": "!android" }, "sha512-pi2akQl8mVki43fF1GNQVLYW0bHIPp2HuRNThX9GjB3OFQTpvrV8/3zPSh4lOxQa5gRiabgf0+Rgeu3AOhEw9A=="],
+
+    "@stdlib/assert-has-float64array-support": ["@stdlib/assert-has-float64array-support@0.2.2", "", { "dependencies": { "@stdlib/assert-is-float64array": "^0.2.2" }, "os": "!android" }, "sha512-8L3GuKY1o0dJARCOsW9MXcugXapaMTpSG6dGxyNuUVEvFfY5UOzcj9/JIDal5FjqSgqVOGL5qZl2qtRwub34VA=="],
+
+    "@stdlib/assert-has-own-property": ["@stdlib/assert-has-own-property@0.2.2", "", { "os": "!android" }, "sha512-m5rV4Z2/iNkwx2vRsNheM6sQZMzc8rQQOo90LieICXovXZy8wA5jNld4kRKjMNcRt/TjrNP7i2Rhh8hruRDlHg=="],
+
+    "@stdlib/assert-has-symbol-support": ["@stdlib/assert-has-symbol-support@0.2.2", "", { "os": "!android" }, "sha512-vCsGGmDZz5dikGgdF26rIL0y0nHvH7qaVf89HLLTybceuZijAqFSJEqcB3Gpl5uaeueLNAWExHi2EkoUVqKHGg=="],
+
+    "@stdlib/assert-has-tostringtag-support": ["@stdlib/assert-has-tostringtag-support@0.2.2", "", { "dependencies": { "@stdlib/assert-has-symbol-support": "^0.2.1" }, "os": "!android" }, "sha512-bSHGqku11VH0swPEzO4Y2Dr+lTYEtjSWjamwqCTC8udOiOIOHKoxuU4uaMGKJjVfXG1L+XefLHqzuO5azxdRaA=="],
+
+    "@stdlib/assert-has-uint16array-support": ["@stdlib/assert-has-uint16array-support@0.2.2", "", { "dependencies": { "@stdlib/assert-is-uint16array": "^0.2.1", "@stdlib/constants-uint16-max": "^0.2.2" }, "os": "!android" }, "sha512-aL188V7rOkkEH4wYjfpB+1waDO4ULxo5ppGEK6X0kG4YiXYBL2Zyum53bjEQvo0Nkn6ixe18dNzqqWWytBmDeg=="],
+
+    "@stdlib/assert-has-uint32array-support": ["@stdlib/assert-has-uint32array-support@0.2.2", "", { "dependencies": { "@stdlib/assert-is-uint32array": "^0.2.1", "@stdlib/constants-uint32-max": "^0.2.2" }, "os": "!android" }, "sha512-+UHKP3mZOACkJ9CQjeKNfbXHm5HGQB862V5nV5q3UQlHPzhslnXKyG1SwAxTx+0g88C/2vlDLeqG8H4TH2UTFA=="],
+
+    "@stdlib/assert-has-uint8array-support": ["@stdlib/assert-has-uint8array-support@0.2.2", "", { "dependencies": { "@stdlib/assert-is-uint8array": "^0.2.1", "@stdlib/constants-uint8-max": "^0.2.2" }, "os": "!android" }, "sha512-VfzrB0BMik9MvPyKcMDJL3waq4nM30RZUrr2EuuQ/RbUpromRWSDbzGTlRq5SfjtJrHDxILPV3rytDCc03dgWA=="],
+
+    "@stdlib/assert-is-array": ["@stdlib/assert-is-array@0.2.2", "", { "dependencies": { "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-aJyTX2U3JqAGCATgaAX9ygvDHc97GCIKkIhiZm/AZaLoFHPtMA1atQ4bKcefEC8Um9eefryxTHfFPfSr9CoNQQ=="],
+
+    "@stdlib/assert-is-big-endian": ["@stdlib/assert-is-big-endian@0.2.2", "", { "dependencies": { "@stdlib/array-uint16": "^0.2.1", "@stdlib/array-uint8": "^0.2.1" }, "os": "!android" }, "sha512-mPEl30/bqZh++UyQbxlyOuB7k0wC73y5J9nD2J6Ud6Fcl76R5IAGHRW0WT3W18is/6jG1jzMd8hrISFyD7N0sA=="],
+
+    "@stdlib/assert-is-boolean": ["@stdlib/assert-is-boolean@0.2.2", "", { "dependencies": { "@stdlib/assert-has-tostringtag-support": "^0.2.2", "@stdlib/boolean-ctor": "^0.2.2", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2", "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-3KFLRTYZpX6u95baZ6PubBvjehJs2xBU6+zrenR0jx8KToUYCnJPxqqj7JXRhSD+cOURmcjj9rocVaG9Nz18Pg=="],
+
+    "@stdlib/assert-is-buffer": ["@stdlib/assert-is-buffer@0.2.2", "", { "dependencies": { "@stdlib/assert-is-object-like": "^0.2.1" }, "os": "!android" }, "sha512-4/WMFTEcDYlVbRhxY8Wlqag4S70QCnn6WmQ4wmfiLW92kqQHsLvTNvdt/qqh/SDyDV31R/cpd3QPsVN534dNEA=="],
+
+    "@stdlib/assert-is-float32array": ["@stdlib/assert-is-float32array@0.2.2", "", { "dependencies": { "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-hxEKz/Y4m1NYuOaiQKoqQA1HeAYwNXFqSk3FJ4hC71DuGNit2tuxucVyck3mcWLpLmqo0+Qlojgwo5P9/C/9MQ=="],
+
+    "@stdlib/assert-is-float64array": ["@stdlib/assert-is-float64array@0.2.2", "", { "dependencies": { "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-3R1wLi6u/IHXsXMtaLnvN9BSpqAJ8tWhwjOOr6kadDqCWsU7Odc7xKLeAXAInAxwnV8VDpO4ifym4A3wehazPQ=="],
+
+    "@stdlib/assert-is-function": ["@stdlib/assert-is-function@0.2.2", "", { "dependencies": { "@stdlib/utils-type-of": "^0.2.1" }, "os": "!android" }, "sha512-whY69DUYWljCJ79Cvygp7VzWGOtGTsh3SQhzNuGt+ut6EsOW+8nwiRkyBXYKf/MOF+NRn15pxg8cJEoeRgsPcA=="],
+
+    "@stdlib/assert-is-little-endian": ["@stdlib/assert-is-little-endian@0.2.2", "", { "dependencies": { "@stdlib/array-uint16": "^0.2.1", "@stdlib/array-uint8": "^0.2.1" }, "os": "!android" }, "sha512-KMzPndj85jDiE1+hYCpw12k2OQOVkfpCo7ojCmCl8366wtKGEaEdGbz1iH98zkxRvnZLSMXcYXI2z3gtdmB0Ag=="],
+
+    "@stdlib/assert-is-number": ["@stdlib/assert-is-number@0.2.2", "", { "dependencies": { "@stdlib/assert-has-tostringtag-support": "^0.2.2", "@stdlib/number-ctor": "^0.2.2", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2", "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-sWpJ59GqGbmlcdYSUV/OYkmQW8k47w10+E0K0zPu1x1VKzhjgA5ZB2sJcpgI8Vt3ckRLjdhuc62ZHJkrJujG7A=="],
+
+    "@stdlib/assert-is-object": ["@stdlib/assert-is-object@0.2.2", "", { "dependencies": { "@stdlib/assert-is-array": "^0.2.1" }, "os": "!android" }, "sha512-sNnphJuHyMDHHHaonlx6vaCKMe4sHOn0ag5Ck4iW3kJtM2OZB2J4h8qFcwKzlMk7fgFu7vYNGCZtpm1dYbbUfQ=="],
+
+    "@stdlib/assert-is-object-like": ["@stdlib/assert-is-object-like@0.2.2", "", { "dependencies": { "@stdlib/assert-tools-array-function": "^0.2.1", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2" }, "os": "!android" }, "sha512-MjQBpHdEebbJwLlxh/BKNH8IEHqY0YlcCMRKOQU0UOlILSJg0vG+GL4fDDqtx9FSXxcTqC+w3keHx8kAKvQhzg=="],
+
+    "@stdlib/assert-is-plain-object": ["@stdlib/assert-is-plain-object@0.2.2", "", { "dependencies": { "@stdlib/assert-has-own-property": "^0.2.1", "@stdlib/assert-is-function": "^0.2.1", "@stdlib/assert-is-object": "^0.2.1", "@stdlib/utils-get-prototype-of": "^0.2.1", "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-o4AFWgBsSNzZAOOfIrxoDFYTqnLuGiaHDFwIeZGUHdpQeav2Fll+sGeaqOcekF7yKawoswnwWdJqTsjapb4Yzw=="],
+
+    "@stdlib/assert-is-regexp": ["@stdlib/assert-is-regexp@0.2.2", "", { "dependencies": { "@stdlib/assert-has-tostringtag-support": "^0.2.2", "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-2JtiUtRJxPaVXL7dkWoV3n5jouI65DwYDXsDXg3xo23TXlTNGgU/HhKO4FWC1Yqju7YMZi0hcZSW6E9v8ISqeQ=="],
+
+    "@stdlib/assert-is-string": ["@stdlib/assert-is-string@0.2.2", "", { "dependencies": { "@stdlib/assert-has-tostringtag-support": "^0.2.2", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2", "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-SOkFg4Hq443hkadM4tzcwTHWvTyKP9ULOZ8MSnnqmU0nBX1zLVFLFGY8jnF6Cary0dL0V7QQBCfuxqKFM6u2PQ=="],
+
+    "@stdlib/assert-is-uint16array": ["@stdlib/assert-is-uint16array@0.2.2", "", { "dependencies": { "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-w3+HeTiXGLJGw5nCqr0WbvgArNMEj7ulED1Yd19xXbmmk2W1ZUB+g9hJDOQTiKsTU4AVyH4/As+aA8eDVmWtmg=="],
+
+    "@stdlib/assert-is-uint32array": ["@stdlib/assert-is-uint32array@0.2.2", "", { "dependencies": { "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-3F4nIHg1Qp0mMIsImWUC8DwQ3qBK5vdIJTjS2LufLbFBhHNmv5kK1yJiIXQDTLkENU0STZe05TByo01ZNLOmDQ=="],
+
+    "@stdlib/assert-is-uint8array": ["@stdlib/assert-is-uint8array@0.2.2", "", { "dependencies": { "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-51WnDip6H2RrN0CbqWmfqySAjam8IZ0VjlfUDc3PtcgrZGrKKjVgyHAsT/L3ZDydwF+aB94uvYJu5QyrCPNaZw=="],
+
+    "@stdlib/assert-tools-array-function": ["@stdlib/assert-tools-array-function@0.2.2", "", { "dependencies": { "@stdlib/assert-is-array": "^0.2.1", "@stdlib/error-tools-fmtprodmsg": "^0.2.2", "@stdlib/string-format": "^0.2.2" }, "os": "!android" }, "sha512-FYeT7X9x0C8Nh+MN6IJUDz+7i7yB6mio2/SDlrvyepjyPSU/cfHfwW0GEOnQhxZ+keLZC/YqDD930WjRODwMdA=="],
+
+    "@stdlib/boolean-ctor": ["@stdlib/boolean-ctor@0.2.2", "", { "os": "!android" }, "sha512-qIkHzmfxDvGzQ3XI9R7sZG97QSaWG5TvWVlrvcysOGT1cs6HtQgnf4D//SRzZ52VLm8oICP+6OKtd8Hpm6G7Ww=="],
+
+    "@stdlib/complex-float32-ctor": ["@stdlib/complex-float32-ctor@0.0.2", "", { "dependencies": { "@stdlib/assert-is-number": "^0.2.2", "@stdlib/error-tools-fmtprodmsg": "^0.2.2", "@stdlib/number-float64-base-to-float32": "^0.2.1", "@stdlib/string-format": "^0.2.2", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2", "@stdlib/utils-define-property": "^0.2.4" }, "os": "!android" }, "sha512-QsTLynhTRmDT0mSkfdHj0FSqQSxh2nKx+vvrH3Y0/Cd/r0WoHFZwyibndDxshfkf9B7nist8QKyvV82I3IZciA=="],
+
+    "@stdlib/complex-float32-reim": ["@stdlib/complex-float32-reim@0.1.2", "", { "dependencies": { "@stdlib/array-float32": "^0.2.2", "@stdlib/complex-float32-ctor": "^0.0.2" }, "os": "!android" }, "sha512-24H+t1xwQF6vhOoMZdDA3TFB4M+jb5Swm/FwNaepovlzVIG2NlthUZs6mZg1T3oegqesIRQRwhpn4jIPjuGiTw=="],
+
+    "@stdlib/complex-float64-ctor": ["@stdlib/complex-float64-ctor@0.0.3", "", { "dependencies": { "@stdlib/assert-is-number": "^0.2.2", "@stdlib/complex-float32-ctor": "^0.0.2", "@stdlib/error-tools-fmtprodmsg": "^0.2.2", "@stdlib/string-format": "^0.2.2", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2", "@stdlib/utils-define-property": "^0.2.4" }, "os": "!android" }, "sha512-oixCtBif+Uab2rKtgedwQTbQTEC+wVSu4JQH935eJ8Jo0eL6vXUHHlVrkLgYKlCDLvq5px1QQn42Czg/ixh6Gw=="],
+
+    "@stdlib/complex-float64-reim": ["@stdlib/complex-float64-reim@0.1.2", "", { "dependencies": { "@stdlib/array-float64": "^0.2.2", "@stdlib/complex-float64-ctor": "^0.0.3" }, "os": "!android" }, "sha512-q6RnfgbUunApAYuGmkft1oOM3x3xVMVJwNRlRgfIXwKDb8pYt+S/CeIwi3Su5SF6ay3AqA1s+ze7m21osXAJyw=="],
+
+    "@stdlib/constants-float64-exponent-bias": ["@stdlib/constants-float64-exponent-bias@0.2.2", "", { "os": "!android" }, "sha512-zLWkjzDYHSsBsXB/4mwHysOGl64JS3XBt/McjvjCLc/IZpfsUNFxLCl7oVCplXzYYHcQj/RfEBFy6cxQ6FvdpQ=="],
+
+    "@stdlib/constants-float64-high-word-abs-mask": ["@stdlib/constants-float64-high-word-abs-mask@0.2.2", "", { "os": "!android" }, "sha512-YtYngcHlw9qvOpmsSlkNHi6cy/7Y7QkyYh5kJbDvuOUXPDKa3rEwBln4mKjbWsXhmmN0bk7TLypH7Ryd/UAjUQ=="],
+
+    "@stdlib/constants-float64-high-word-exponent-mask": ["@stdlib/constants-float64-high-word-exponent-mask@0.2.2", "", { "os": "!android" }, "sha512-LhYUXvpnLOFnWr8ucHA9N/H75VxcS2T9EoBDTmWBZoKj2Pg0icGVDmcNciRLIWbuPA9osgcKpxoU+ADIfaipVA=="],
+
+    "@stdlib/constants-float64-high-word-sign-mask": ["@stdlib/constants-float64-high-word-sign-mask@0.2.1", "", { "os": "!android" }, "sha512-Fep/Ccgvz5i9d5k96zJsDjgXGno8HJfmH7wihLmziFmA2z9t7NSacH4/BH4rPJ5yXFHLkacNLDxaF1gO1XpcLA=="],
+
+    "@stdlib/constants-float64-high-word-significand-mask": ["@stdlib/constants-float64-high-word-significand-mask@0.2.2", "", { "os": "!android" }, "sha512-eDDyiQ5PR1/qyklrW0Pus0ZopM7BYjkWTjqhSHhj0DibH6UMwSMlIl4ddCh3VX37p5eByuAavnaPgizk5c9mUw=="],
+
+    "@stdlib/constants-float64-ln-two": ["@stdlib/constants-float64-ln-two@0.2.2", "", { "os": "!android" }, "sha512-EQ8EJ6B1wPfuhva0aApKIsF7lTna++txV4AUzL2wTfwDHw6RzWpA44u+k54KnLF8ZXUNIYDNQHHvtzdfKrFzCA=="],
+
+    "@stdlib/constants-float64-max-base2-exponent": ["@stdlib/constants-float64-max-base2-exponent@0.2.2", "", { "os": "!android" }, "sha512-KmDe98pJ2HXz2SbqyFfSDhlSSVD7JssjbZ5K11HEK2avqMcoCbdHH20T+6/TpA01VqaK8dLbeyphOfALcDdMKA=="],
+
+    "@stdlib/constants-float64-max-base2-exponent-subnormal": ["@stdlib/constants-float64-max-base2-exponent-subnormal@0.2.1", "", { "os": "!android" }, "sha512-D1wBNn54Hu2pK6P/yBz0FtPBI3/7HdgK8igYjWDKWUKzC92R/6PHZ9q5NzedcGxoBs8MUk1zNpP0tZyYj9Y4YQ=="],
+
+    "@stdlib/constants-float64-min-base2-exponent-subnormal": ["@stdlib/constants-float64-min-base2-exponent-subnormal@0.2.1", "", { "os": "!android" }, "sha512-fTXfvctXWj/48gK+gbRBrHuEHEKY4QOJoXSGp414Sz6vUxHusHJJ686p8ze3XqM7CY6fmL09ZgdGz/uhJl/7lw=="],
+
+    "@stdlib/constants-float64-ninf": ["@stdlib/constants-float64-ninf@0.2.2", "", { "dependencies": { "@stdlib/number-ctor": "^0.2.2" }, "os": "!android" }, "sha512-Iu+wZs/vgudAKVg9FEcRY3FadkmvsWuq/wJ3jIHjhaP5xcnoF3XJUO4IneEndybHwehfJL65NShnDsJcg1gicw=="],
+
+    "@stdlib/constants-float64-pinf": ["@stdlib/constants-float64-pinf@0.2.2", "", { "os": "!android" }, "sha512-UcwnWaSkUMD8QyKADwkXPlY7yOosCPZpE2EDXf/+WOzuWi5vpsec+JaasD5ggAN8Rv8OTVmexTFs1uZfrHgqVQ=="],
+
+    "@stdlib/constants-float64-smallest-normal": ["@stdlib/constants-float64-smallest-normal@0.2.2", "", { "os": "!android" }, "sha512-GXNBkdqLT9X+dU59O1kmb7W5da/RhSXSvxx0xG5r7ipJPOtRLfTXGGvvTzWD4xA3Z5TKlrEL6ww5sph9BsPJnA=="],
+
+    "@stdlib/constants-float64-two-pi": ["@stdlib/constants-float64-two-pi@0.2.2", "", { "os": "!android" }, "sha512-cyXuwYOersVsA8tDSJ0ocMbtOc5KGxjlGvYC4vrpLQVkgNpxcGbA57n6JvaGmNk7+InXXbQ7qhTWGbTNgafcLQ=="],
+
+    "@stdlib/constants-uint16-max": ["@stdlib/constants-uint16-max@0.2.2", "", { "os": "!android" }, "sha512-qaFXbxgFnAkt73P5Ch7ODb0TsOTg0LEBM52hw6qt7+gTMZUdS0zBAiy5J2eEkTxA9rD9X3nIyUtLf2C7jafNdw=="],
+
+    "@stdlib/constants-uint32-max": ["@stdlib/constants-uint32-max@0.2.2", "", { "os": "!android" }, "sha512-2G44HQgIKDrh3tJUkmvtz+eM+uwDvOMF+2I3sONcTHacANb+zP7la4LDYiTp+HFkPJyfh/kPapXBiHpissAb1A=="],
+
+    "@stdlib/constants-uint8-max": ["@stdlib/constants-uint8-max@0.2.2", "", { "os": "!android" }, "sha512-ZTBQq3fqS/Y4ll6cPY5SKaS266EfmKP9PW3YLJaTELmYIzVo9w2RFtfCqN05G3olTQ6Le9MUEE/C6VFgZNElDQ=="],
+
+    "@stdlib/error-tools-fmtprodmsg": ["@stdlib/error-tools-fmtprodmsg@0.2.2", "", { "os": "!android" }, "sha512-2IliQfTes4WV5odPidZFGD5eYDswZrPXob7oOu95Q69ERqImo8WzSwnG2EDbHPyOyYCewuMfM5Ha6Ggf+u944Q=="],
+
+    "@stdlib/fs-exists": ["@stdlib/fs-exists@0.2.2", "", { "dependencies": { "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2" }, "os": "!android" }, "sha512-uGLqc7izCIam2aTyv0miyktl4l8awgRkCS39eIEvvvnKIaTBF6pxfac7FtFHeEQKE3XhtKsOmdQ/yJjUMChLuA=="],
+
+    "@stdlib/fs-resolve-parent-path": ["@stdlib/fs-resolve-parent-path@0.2.2", "", { "dependencies": { "@stdlib/assert-has-own-property": "^0.2.2", "@stdlib/assert-is-function": "^0.2.2", "@stdlib/assert-is-plain-object": "^0.2.2", "@stdlib/assert-is-string": "^0.2.2", "@stdlib/error-tools-fmtprodmsg": "^0.2.2", "@stdlib/fs-exists": "^0.2.2", "@stdlib/process-cwd": "^0.2.2", "@stdlib/string-format": "^0.2.2", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2" }, "os": "!android" }, "sha512-ZG78ouZc+pdPLtU+sSpYTvbKTiLUgn6NTtlVFYmcmkYRFn+fGOOakwVuhYMcYG6ti10cLD6WzB/YujxIt8f+nA=="],
+
+    "@stdlib/math-base-assert-is-even": ["@stdlib/math-base-assert-is-even@0.2.3", "", { "dependencies": { "@stdlib/math-base-assert-is-integer": "^0.2.4", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-cziGv8F/aNyfME7Wx2XJjnYBnf9vIeh8yTIzlLELd0OqGHqfsHU5OQxxcl9x5DbjZ1G/w0lphWxHFHYCuwFCHw=="],
+
+    "@stdlib/math-base-assert-is-infinite": ["@stdlib/math-base-assert-is-infinite@0.2.2", "", { "dependencies": { "@stdlib/constants-float64-ninf": "^0.2.2", "@stdlib/constants-float64-pinf": "^0.2.1", "@stdlib/utils-library-manifest": "^0.2.1" }, "os": "!android" }, "sha512-4zDZuinC3vkXRdQepr0ZTwWX3KgM0VIWqYthOmCSgLLA87L9M9z9MgUZL1QeYeYa0+60epjDcQ8MS3ecT70Jxw=="],
+
+    "@stdlib/math-base-assert-is-integer": ["@stdlib/math-base-assert-is-integer@0.2.5", "", { "dependencies": { "@stdlib/math-base-special-floor": "^0.2.3", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-Zi8N66GbWtSCR3OUsRdBknjNlX+aBN8w6CaVEP5+Jy/a7MgMYzevS52TNS5sm8jqzKBlFhZlPLex+Zl2GlPvSA=="],
+
+    "@stdlib/math-base-assert-is-nan": ["@stdlib/math-base-assert-is-nan@0.2.2", "", { "dependencies": { "@stdlib/utils-library-manifest": "^0.2.1" }, "os": "!android" }, "sha512-QVS8rpWdkR9YmHqiYLDVLsCiM+dASt/2feuTl4T/GSdou3Y/PS/4j/tuDvCDoHDNfDkULUW+FCVjKYpbyoeqBQ=="],
+
+    "@stdlib/math-base-assert-is-odd": ["@stdlib/math-base-assert-is-odd@0.3.0", "", { "dependencies": { "@stdlib/math-base-assert-is-even": "^0.2.2", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-V44F3xdR5/bHXqqYvE/AldLnVmijLr/rgf7EjnJXXDQLfPCgemy0iHTFl19N68KG1YO9SMPdyOaNjh4K0O9Qqw=="],
+
+    "@stdlib/math-base-napi-binary": ["@stdlib/math-base-napi-binary@0.3.0", "", { "dependencies": { "@stdlib/complex-float32-ctor": "^0.0.2", "@stdlib/complex-float32-reim": "^0.1.2", "@stdlib/complex-float64-ctor": "^0.0.3", "@stdlib/complex-float64-reim": "^0.1.2", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-bhwsmGMOMN1srcpNAFRjDMSXe9ue1s/XmaoBBlqcG6S2nqRQlIVnKKH4WZx4hmC1jDqoFXuNPJGE47VXpVV+mA=="],
+
+    "@stdlib/math-base-napi-unary": ["@stdlib/math-base-napi-unary@0.2.3", "", { "dependencies": { "@stdlib/complex-float32-ctor": "^0.0.2", "@stdlib/complex-float32-reim": "^0.1.1", "@stdlib/complex-float64-ctor": "^0.0.3", "@stdlib/complex-float64-reim": "^0.1.1", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-BCyJmpq2S8EFo2yMt1z+v1EL7nn8RHcM6jn7fa8n3BTP679K0MSlawIh3A0CFogfrTdjPM4G44VO1ddsdLExcg=="],
+
+    "@stdlib/math-base-special-abs": ["@stdlib/math-base-special-abs@0.2.2", "", { "dependencies": { "@stdlib/constants-float64-high-word-abs-mask": "^0.2.2", "@stdlib/math-base-napi-unary": "^0.2.3", "@stdlib/number-float64-base-to-words": "^0.2.2", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-cw5CXj05c/L0COaD9J+paHXwmoN5IBYh+Spk0331f1pEMvGxSO1KmCREZaooUEEFKPhKDukEHKeitja2yAQh4Q=="],
+
+    "@stdlib/math-base-special-ceil": ["@stdlib/math-base-special-ceil@0.2.2", "", { "dependencies": { "@stdlib/math-base-napi-unary": "^0.2.3", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-zGkDaMcPrxQ9Zo+fegf2MyI8UPIrVTK5sc/FgCN9qdwEFJTKGLsBd249T3xH7L2MDxx5JbIMGrr6L4U4uEm2Hw=="],
+
+    "@stdlib/math-base-special-copysign": ["@stdlib/math-base-special-copysign@0.2.2", "", { "dependencies": { "@stdlib/constants-float64-high-word-abs-mask": "^0.2.2", "@stdlib/constants-float64-high-word-sign-mask": "^0.2.1", "@stdlib/math-base-napi-binary": "^0.3.0", "@stdlib/number-float64-base-from-words": "^0.2.2", "@stdlib/number-float64-base-get-high-word": "^0.2.2", "@stdlib/number-float64-base-to-words": "^0.2.2", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-m9nWIQhKsaNrZtS2vIPeToWDbzs/T0d0NWy7gSci38auQVufSbF6FYnCKl0f+uwiWlh5GYXs0uVbyCp7FFXN+A=="],
+
+    "@stdlib/math-base-special-exp": ["@stdlib/math-base-special-exp@0.2.4", "", { "dependencies": { "@stdlib/constants-float64-ninf": "^0.2.2", "@stdlib/constants-float64-pinf": "^0.2.2", "@stdlib/math-base-assert-is-nan": "^0.2.2", "@stdlib/math-base-napi-unary": "^0.2.3", "@stdlib/math-base-special-ldexp": "^0.2.3", "@stdlib/math-base-special-trunc": "^0.2.2", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-G6pZqu1wA4WwBj7DcnztA+/ro61wXJUTpKFLOwrIb2f/28pHGpA//Lub+3vAk6/ksAkhJ+qM/dfdM2ue7zLuEw=="],
+
+    "@stdlib/math-base-special-floor": ["@stdlib/math-base-special-floor@0.2.3", "", { "dependencies": { "@stdlib/math-base-napi-unary": "^0.2.1", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-zTkxVRawtWwJ4NmAT/1e+ZsIoBj1JqUquGOpiNVGNIKtyLOeCONZlZSbN7zuxPkshvmcSjpQ/VLKR8Tw/37E9A=="],
+
+    "@stdlib/math-base-special-ldexp": ["@stdlib/math-base-special-ldexp@0.2.3", "", { "dependencies": { "@stdlib/constants-float64-exponent-bias": "^0.2.2", "@stdlib/constants-float64-max-base2-exponent": "^0.2.2", "@stdlib/constants-float64-max-base2-exponent-subnormal": "^0.2.1", "@stdlib/constants-float64-min-base2-exponent-subnormal": "^0.2.1", "@stdlib/constants-float64-ninf": "^0.2.2", "@stdlib/constants-float64-pinf": "^0.2.2", "@stdlib/math-base-assert-is-infinite": "^0.2.2", "@stdlib/math-base-assert-is-nan": "^0.2.2", "@stdlib/math-base-special-abs": "^0.2.2", "@stdlib/math-base-special-copysign": "^0.2.1", "@stdlib/number-float32-base-to-word": "^0.2.2", "@stdlib/number-float64-base-exponent": "^0.2.2", "@stdlib/number-float64-base-from-words": "^0.2.2", "@stdlib/number-float64-base-normalize": "^0.2.3", "@stdlib/number-float64-base-to-words": "^0.2.2", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-yD4YisQGVTJmTJUshuzpaoq34sxJtrU+Aw4Ih39mzgXiQi6sh3E3nijB8WXDNKr2v05acUWJ1PRMkkJSfu16Kg=="],
+
+    "@stdlib/math-base-special-pow": ["@stdlib/math-base-special-pow@0.3.0", "", { "dependencies": { "@stdlib/constants-float64-exponent-bias": "^0.2.2", "@stdlib/constants-float64-high-word-abs-mask": "^0.2.2", "@stdlib/constants-float64-high-word-significand-mask": "^0.2.2", "@stdlib/constants-float64-ln-two": "^0.2.2", "@stdlib/constants-float64-ninf": "^0.2.2", "@stdlib/constants-float64-pinf": "^0.2.2", "@stdlib/math-base-assert-is-infinite": "^0.2.2", "@stdlib/math-base-assert-is-integer": "^0.2.5", "@stdlib/math-base-assert-is-nan": "^0.2.2", "@stdlib/math-base-assert-is-odd": "^0.3.0", "@stdlib/math-base-napi-binary": "^0.3.0", "@stdlib/math-base-special-abs": "^0.2.2", "@stdlib/math-base-special-copysign": "^0.2.1", "@stdlib/math-base-special-ldexp": "^0.2.2", "@stdlib/math-base-special-sqrt": "^0.2.2", "@stdlib/number-float64-base-get-high-word": "^0.2.2", "@stdlib/number-float64-base-set-high-word": "^0.2.2", "@stdlib/number-float64-base-set-low-word": "^0.2.2", "@stdlib/number-float64-base-to-words": "^0.2.2", "@stdlib/number-uint32-base-to-int32": "^0.2.2", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-sMDYRUYGFyMXDHcCYy7hE07lV7jgI6rDspLMROKyESWcH4n8j54XE4/0w0i8OpdzR40H895MaPWU/tVnU1tP6w=="],
+
+    "@stdlib/math-base-special-sqrt": ["@stdlib/math-base-special-sqrt@0.2.2", "", { "dependencies": { "@stdlib/math-base-napi-unary": "^0.2.1", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-YWxe9vVE5blDbRPDAdZfU03vfGTBHy/8pLDa/qLz7SiJj5n5sVWKObdbMR2oPHF4c6DaZh4IYkrcHFleiY8YkQ=="],
+
+    "@stdlib/math-base-special-trunc": ["@stdlib/math-base-special-trunc@0.2.2", "", { "dependencies": { "@stdlib/math-base-napi-unary": "^0.2.3", "@stdlib/math-base-special-ceil": "^0.2.1", "@stdlib/math-base-special-floor": "^0.2.3", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-cvizbo6oFEbdiv7BrtEMODGW+cJcBgyAIleJnIpCf75C722Y/IZgWikWhACSjv4stxGywFubx85B7uvm3vLgwA=="],
+
+    "@stdlib/number-ctor": ["@stdlib/number-ctor@0.2.2", "", { "os": "!android" }, "sha512-98pL4f1uiXVIw9uRV6t4xecMFUYRRTUoctsqDDV8MSRtKEYDzqkWCNz/auupJFJ135L1ejzkejh73fASsgcwKQ=="],
+
+    "@stdlib/number-float32-base-to-word": ["@stdlib/number-float32-base-to-word@0.2.2", "", { "dependencies": { "@stdlib/array-float32": "^0.2.2", "@stdlib/array-uint32": "^0.2.2", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-/I866ocLExPpAjgZnHAjeaBw3ZHg5tVPcRdJoTPEiBG2hwD/OonHdCsfB9lu6FxO6sbp7I9BR1JolCoEyrhmYg=="],
+
+    "@stdlib/number-float64-base-exponent": ["@stdlib/number-float64-base-exponent@0.2.2", "", { "dependencies": { "@stdlib/constants-float64-exponent-bias": "^0.2.2", "@stdlib/constants-float64-high-word-exponent-mask": "^0.2.2", "@stdlib/number-float64-base-get-high-word": "^0.2.1", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-mYivBQKCuu54ulorf5A5rIhFaGPjGvmtkxhvK14q7gzRA80si83dk8buUsLpeeYsakg7yLn10RCVjBEP9/gm7Q=="],
+
+    "@stdlib/number-float64-base-from-words": ["@stdlib/number-float64-base-from-words@0.2.2", "", { "dependencies": { "@stdlib/array-float64": "^0.2.1", "@stdlib/array-uint32": "^0.2.2", "@stdlib/assert-is-little-endian": "^0.2.1", "@stdlib/number-float64-base-to-words": "^0.2.1", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-SzMDXSnIDZ8l3PDmtN9TPKTf0mUmh83kKCtj4FisKTcTbcmUmT/ovmrpMTiqdposymjHBieNvGiCz/K03NmlAA=="],
+
+    "@stdlib/number-float64-base-get-high-word": ["@stdlib/number-float64-base-get-high-word@0.2.2", "", { "dependencies": { "@stdlib/array-float64": "^0.2.1", "@stdlib/array-uint32": "^0.2.2", "@stdlib/assert-is-little-endian": "^0.2.1", "@stdlib/number-float64-base-to-words": "^0.2.1", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-LMNQAHdLZepKOFMRXAXLuq30GInmEdTtR0rO7Ka4F3m7KpYvw84JMyvZByMQHBu+daR6JNr2a/o9aFjmVIe51g=="],
+
+    "@stdlib/number-float64-base-normalize": ["@stdlib/number-float64-base-normalize@0.2.3", "", { "dependencies": { "@stdlib/constants-float64-smallest-normal": "^0.2.2", "@stdlib/math-base-assert-is-infinite": "^0.2.2", "@stdlib/math-base-assert-is-nan": "^0.2.2", "@stdlib/math-base-special-abs": "^0.2.1", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-HT+3fhYZOEg2JgHBWS/ysc9ZveQZV10weKbtxhLHOsvceQVp1GbThsLik62mU2/3f96S9MgiVfPfSDI3jnBoYw=="],
+
+    "@stdlib/number-float64-base-set-high-word": ["@stdlib/number-float64-base-set-high-word@0.2.2", "", { "dependencies": { "@stdlib/array-float64": "^0.2.1", "@stdlib/array-uint32": "^0.2.2", "@stdlib/assert-is-little-endian": "^0.2.1", "@stdlib/number-float64-base-to-words": "^0.2.1", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-bLvH15GJgX5URMaOOJAQgO8/dCJPYUQoXPZH7ecSC3XnnVMfWEf43knkjEGYCnWp4nro5hPRElbtdV4mKEjpUg=="],
+
+    "@stdlib/number-float64-base-set-low-word": ["@stdlib/number-float64-base-set-low-word@0.2.2", "", { "dependencies": { "@stdlib/array-float64": "^0.2.1", "@stdlib/array-uint32": "^0.2.2", "@stdlib/assert-is-little-endian": "^0.2.1", "@stdlib/number-float64-base-to-words": "^0.2.1", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-E1pGjTwacJ+Tkt5rKQNdwitKnM1iDgMlulYosNdn6CtvU0Pkq359bNhscMscxehdY3MifwuJpuGzDWD2EGUXzQ=="],
+
+    "@stdlib/number-float64-base-to-float32": ["@stdlib/number-float64-base-to-float32@0.2.2", "", { "dependencies": { "@stdlib/array-float32": "^0.2.1" }, "os": "!android" }, "sha512-T5snDkVNZY6pomrSW/qLWQfZ9JHgqCFLi8jaaarfNj2o+5NMUuvvRifLUIacTm8/uC96xB0j3+wKTh1zbIV5ig=="],
+
+    "@stdlib/number-float64-base-to-words": ["@stdlib/number-float64-base-to-words@0.2.2", "", { "dependencies": { "@stdlib/array-float64": "^0.2.1", "@stdlib/array-uint32": "^0.2.2", "@stdlib/assert-is-little-endian": "^0.2.1", "@stdlib/os-byte-order": "^0.2.1", "@stdlib/os-float-word-order": "^0.2.2", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2", "@stdlib/utils-library-manifest": "^0.2.2" }, "os": "!android" }, "sha512-nkFHHXoMhb3vcfl7ZvzgiNdqBdBfbKxHtgvDXRxrNQoVmyYbnjljjYD489d2/TAhe+Zvn7qph6QLgTod3zaeww=="],
+
+    "@stdlib/number-uint32-base-to-int32": ["@stdlib/number-uint32-base-to-int32@0.2.2", "", { "os": "!android" }, "sha512-NPADfdHE/3VEifKDttXM24dRj5YQqxwh2wTRD8fQrpHeaWiMIUo8yDqWrrFNIdLVAcqjL2SwWpo4VJ7oKTYaIA=="],
+
+    "@stdlib/object-ctor": ["@stdlib/object-ctor@0.2.1", "", { "os": "!android" }, "sha512-HEIBBpfdQS9Nh5mmIqMk9fzedx6E0tayJrVa2FD7No86rVuq/Ikxq1QP7qNXm+i6z9iNUUS/lZq7BmJESWO/Zg=="],
+
+    "@stdlib/os-byte-order": ["@stdlib/os-byte-order@0.2.2", "", { "dependencies": { "@stdlib/assert-is-big-endian": "^0.2.1", "@stdlib/assert-is-little-endian": "^0.2.1" }, "os": "!android" }, "sha512-2y6rHAvZo43YmZu9u/E/7cnqZa0hNTLoIiMpV1IxQ/7iv03xZ45Z3xyvWMk0b7bAWwWL7iUknOAAmEchK/kHBA=="],
+
+    "@stdlib/os-float-word-order": ["@stdlib/os-float-word-order@0.2.2", "", { "dependencies": { "@stdlib/os-byte-order": "^0.2.1" }, "os": "!android" }, "sha512-5xpcEuxv/CudKctHS5czKdM7Bj/gC+sm/5R5bRPYyqxANM67t365j3v2v8rmmOxkEp9t0fa8Dggx8VmOkpJXaA=="],
+
+    "@stdlib/process-cwd": ["@stdlib/process-cwd@0.2.2", "", { "os": "!android" }, "sha512-8Q/nA/ud5d5PEzzG6ZtKzcOw+RMLm5CWR8Wd+zVO5vcPj+JD7IV7M2lBhbzfUzr63Torrf/vEhT3cob8vUHV/A=="],
+
+    "@stdlib/regexp-extended-length-path": ["@stdlib/regexp-extended-length-path@0.2.2", "", { "dependencies": { "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2" }, "os": "!android" }, "sha512-z3jqauEsaxpsQU3rj1A1QnOgu17pyW5kt+Az8QkoTk7wqNE8HhPikI6k4o7XBHV689rSFWZCl4c4W+7JAiNObQ=="],
+
+    "@stdlib/regexp-function-name": ["@stdlib/regexp-function-name@0.2.2", "", { "dependencies": { "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2" }, "os": "!android" }, "sha512-0z/KRsgHJJ3UQkmBeLH+Nin0hXIeA+Fw1T+mnG2V5CHnTA6FKlpxJxWrvwLEsRX7mR/DNtDp06zGyzMFE/4kig=="],
+
+    "@stdlib/stats-base-dists-degenerate-pdf": ["@stdlib/stats-base-dists-degenerate-pdf@0.2.2", "", { "dependencies": { "@stdlib/constants-float64-pinf": "^0.2.1", "@stdlib/math-base-assert-is-nan": "^0.2.1", "@stdlib/utils-constant-function": "^0.2.2", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2" }, "os": "!android" }, "sha512-yofLQxBOL2ZzdTCAFKOcfr5bG9r8YMFYJXwjGViZwlptWJGGSr45IRNoiOvY/ivDoTiaT1ikMaq3uj+QQuRprg=="],
+
+    "@stdlib/stats-base-dists-normal-pdf": ["@stdlib/stats-base-dists-normal-pdf@0.2.2", "", { "dependencies": { "@stdlib/constants-float64-pinf": "^0.2.2", "@stdlib/constants-float64-two-pi": "^0.2.2", "@stdlib/math-base-assert-is-nan": "^0.2.2", "@stdlib/math-base-special-exp": "^0.2.3", "@stdlib/math-base-special-pow": "^0.3.0", "@stdlib/math-base-special-sqrt": "^0.2.2", "@stdlib/stats-base-dists-degenerate-pdf": "^0.2.2", "@stdlib/utils-constant-function": "^0.2.2", "@stdlib/utils-define-nonenumerable-read-only-property": "^0.2.2" }, "os": "!android" }, "sha512-5jr6/6Y0bsayfLAEkNHp2G69DtT27hBLuryFRCSfokb2ohX87LRHnIqTtOEIeJE/cAhYegPueX+liXwH/TJsxg=="],
+
+    "@stdlib/string-base-format-interpolate": ["@stdlib/string-base-format-interpolate@0.2.2", "", { "os": "!android" }, "sha512-i9nU9rAB2+o/RR66TS9iQ8x+YzeUDL1SGiAo6GY3hP6Umz5Dx9Qp/v8T69gWVsb4a1YSclz5+YeCWaFgwvPjKA=="],
+
+    "@stdlib/string-base-format-tokenize": ["@stdlib/string-base-format-tokenize@0.2.2", "", { "os": "!android" }, "sha512-kXq2015i+LJjqth5dN+hYnvJXBSzRm8w0ABWB5tYAsIuQTpQK+mSo2muM8JBEFEnqUHAwpUsu2qNTK/9o8lsJg=="],
+
+    "@stdlib/string-base-lowercase": ["@stdlib/string-base-lowercase@0.4.0", "", { "os": "!android" }, "sha512-IH35Z5e4T+S3b3SfYY39mUhrD2qvJVp4VS7Rn3+jgj4+C3syocuAPsJ8C4OQXWGfblX/N9ymizbpFBCiVvMW8w=="],
+
+    "@stdlib/string-base-replace": ["@stdlib/string-base-replace@0.2.2", "", { "os": "!android" }, "sha512-Y4jZwRV4Uertw7AlA/lwaYl1HjTefSriN5+ztRcQQyDYmoVN3gzoVKLJ123HPiggZ89vROfC+sk/6AKvly+0CA=="],
+
+    "@stdlib/string-format": ["@stdlib/string-format@0.2.2", "", { "dependencies": { "@stdlib/string-base-format-interpolate": "^0.2.1", "@stdlib/string-base-format-tokenize": "^0.2.2" }, "os": "!android" }, "sha512-GUa50uxgMAtoItsxTbMmwkyhIwrCxCrsjzk3nAbLnt/1Kt1EWOWMwsALqZdD6K4V/xSJ4ns6PZur3W6w+vKk9g=="],
+
+    "@stdlib/string-replace": ["@stdlib/string-replace@0.2.2", "", { "dependencies": { "@stdlib/assert-is-function": "^0.2.2", "@stdlib/assert-is-regexp": "^0.2.2", "@stdlib/assert-is-string": "^0.2.2", "@stdlib/error-tools-fmtprodmsg": "^0.2.2", "@stdlib/string-base-replace": "^0.2.2", "@stdlib/string-format": "^0.2.2", "@stdlib/utils-escape-regexp-string": "^0.2.2" }, "os": "!android" }, "sha512-czNS5IU7sBuHjac45Y3VWUTsUoi82yc8JsMZrOMcjgSrEuDrVmA6sNJg7HC1DuSpdPjm/v9uUk102s1gIfk3Nw=="],
+
+    "@stdlib/symbol-ctor": ["@stdlib/symbol-ctor@0.2.2", "", { "os": "!android" }, "sha512-XsmiTfHnTb9jSPf2SoK3O0wrNOXMxqzukvDvtzVur1XBKfim9+seaAS4akmV1H3+AroAXQWVtde885e1B6jz1w=="],
+
+    "@stdlib/utils-constant-function": ["@stdlib/utils-constant-function@0.2.2", "", { "os": "!android" }, "sha512-ezRenGy5zU4R0JTfha/bpF8U+Hx0b52AZV++ca/pcaQVvPBRkgCsJacXX0eDbexoBB4+ZZ1vcyIi4RKJ0RRlbQ=="],
+
+    "@stdlib/utils-constructor-name": ["@stdlib/utils-constructor-name@0.2.2", "", { "dependencies": { "@stdlib/assert-is-buffer": "^0.2.1", "@stdlib/regexp-function-name": "^0.2.2", "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-TBtO3MKDAf05ij5ajmyBCbpKKt0Lfahn5tu18gqds4PkFltgcw5tVZfSHY5DZ2HySJQ2GMMYjPW2Kbg6yPCSVg=="],
+
+    "@stdlib/utils-convert-path": ["@stdlib/utils-convert-path@0.2.2", "", { "dependencies": { "@stdlib/assert-is-string": "^0.2.2", "@stdlib/error-tools-fmtprodmsg": "^0.2.2", "@stdlib/regexp-extended-length-path": "^0.2.2", "@stdlib/string-base-lowercase": "^0.4.0", "@stdlib/string-format": "^0.2.2", "@stdlib/string-replace": "^0.2.1" }, "os": "!android" }, "sha512-8nNuAgt23Np9NssjShUrPK42c6gRTweGuoQw+yTpTfBR9VQv8WFyt048n8gRGUlAHizrdMNpEY9VAb7IBzpVYw=="],
+
+    "@stdlib/utils-define-nonenumerable-read-only-property": ["@stdlib/utils-define-nonenumerable-read-only-property@0.2.2", "", { "dependencies": { "@stdlib/utils-define-property": "^0.2.3" }, "os": "!android" }, "sha512-V3mpAesJemLYDKG376CsmoczWPE/4LKsp8xBvUxCt5CLNAx3J/1W39iZQyA5q6nY1RStGinGn1/dYZwa8ig0Uw=="],
+
+    "@stdlib/utils-define-property": ["@stdlib/utils-define-property@0.2.4", "", { "dependencies": { "@stdlib/error-tools-fmtprodmsg": "^0.2.1", "@stdlib/string-format": "^0.2.1" }, "os": "!android" }, "sha512-XlMdz7xwuw/sqXc9LbsV8XunCzZXjbZPC+OAdf4t4PBw4ZRwGzlTI6WED+f4PYR5Tp9F1cHgLPyMYCIBfA2zRg=="],
+
+    "@stdlib/utils-escape-regexp-string": ["@stdlib/utils-escape-regexp-string@0.2.2", "", { "dependencies": { "@stdlib/assert-is-string": "^0.2.1", "@stdlib/error-tools-fmtprodmsg": "^0.2.2", "@stdlib/string-format": "^0.2.2" }, "os": "!android" }, "sha512-areCibzgpmvm6pGKBg+mXkSDJW4NxtS5jcAT7RtunGMdAYhA/I5whISMPaeJkIT2XhjjFkjKBaIs5pF6aPr4fQ=="],
+
+    "@stdlib/utils-get-prototype-of": ["@stdlib/utils-get-prototype-of@0.2.2", "", { "dependencies": { "@stdlib/assert-is-function": "^0.2.1", "@stdlib/object-ctor": "^0.2.1", "@stdlib/utils-native-class": "^0.2.1" }, "os": "!android" }, "sha512-eDb1BAvt7GW/jduBkfuQrUsA9p09mV8RW20g0DWPaxci6ORYg/UB0tdbAA23aZz2QUoxdYY5s/UJxlq/GHwoKQ=="],
+
+    "@stdlib/utils-global": ["@stdlib/utils-global@0.2.2", "", { "dependencies": { "@stdlib/assert-is-boolean": "^0.2.1", "@stdlib/error-tools-fmtprodmsg": "^0.2.2", "@stdlib/string-format": "^0.2.2" }, "os": "!android" }, "sha512-A4E8VFHn+1bpfJ4PA8H2b62CMQpjv2A+H3QDEBrouLFWne0wrx0TNq8vH6VYHxx9ZRxhgWQjfHiSAxtUJobrbQ=="],
+
+    "@stdlib/utils-library-manifest": ["@stdlib/utils-library-manifest@0.2.2", "", { "dependencies": { "@stdlib/fs-resolve-parent-path": "^0.2.1", "@stdlib/utils-convert-path": "^0.2.1", "debug": "^2.6.9", "resolve": "^1.1.7" }, "os": "!android" }, "sha512-YqzVLuBsB4wTqzdUtRArAjBJoT3x61iop2jFChXexhl6ejV3vDpHcukEEkqIOcJKut+1cG5TLJdexgHNt1C0NA=="],
+
+    "@stdlib/utils-native-class": ["@stdlib/utils-native-class@0.2.2", "", { "dependencies": { "@stdlib/assert-has-own-property": "^0.2.1", "@stdlib/assert-has-tostringtag-support": "^0.2.2", "@stdlib/symbol-ctor": "^0.2.2" }, "os": "!android" }, "sha512-cSn/FozbEpfR/FlJAoceQtZ8yUJFhZ8RFkbEsxW/7+H4o09yln3lBS0HSfUJISYNtpTNN/2/Fup88vmvwspvwA=="],
+
+    "@stdlib/utils-type-of": ["@stdlib/utils-type-of@0.2.2", "", { "dependencies": { "@stdlib/utils-constructor-name": "^0.2.1", "@stdlib/utils-global": "^0.2.2" }, "os": "!android" }, "sha512-RLGFxPNgY9AtVVrFGdKO6Y3pOd/Ov2WA4O2/czZN/AbgYzbPdoF0KkfvHRIney6k+TtvoyYB8YqZXJ4G88f9BQ=="],
+
     "@storybook/core": ["@storybook/core@8.6.15", "", { "dependencies": { "@storybook/theming": "8.6.15", "better-opn": "^3.0.2", "browser-assert": "^1.2.1", "esbuild": "^0.18.0 || ^0.19.0 || ^0.20.0 || ^0.21.0 || ^0.22.0 || ^0.23.0 || ^0.24.0 || ^0.25.0", "esbuild-register": "^3.5.0", "jsdoc-type-pratt-parser": "^4.0.0", "process": "^0.11.10", "recast": "^0.23.5", "semver": "^7.6.2", "util": "^0.12.5", "ws": "^8.2.3" }, "peerDependencies": { "prettier": "^2 || ^3" }, "optionalPeers": ["prettier"] }, "sha512-VFpKcphNurJpSC4fpUfKL3GTXVoL53oytghGR30QIw5jKWwaT50HVbTyb41BLOUuZjmMhUQA8weiQEew6RX0gw=="],
 
     "@storybook/global": ["@storybook/global@5.0.0", "", {}, "sha512-FcOqPAXACP0I3oJ/ws6/rrPT9WGhu915Cg8D02a9YxLo0DE9zI+a9A5gRGvmQ09fiWPukqI8ZAEoQEdWUKMQdQ=="],
@@ -1294,7 +1510,7 @@
 
     "attr-accept": ["attr-accept@2.2.5", "", {}, "sha512-0bDNnY/u6pPwHDMoF0FieU354oBi0a8rD9FcsLwzcGWbc8KS8KPIi7y+s13OlVY+gMWc/9xEMUgNE6Qm8ZllYQ=="],
 
-    "auspice": ["auspice@2.59.1", "", { "dependencies": { "@babel/core": "^7.3.4", "@babel/plugin-proposal-class-properties": "^7.3.4", "@babel/plugin-proposal-decorators": "^7.3.0", "@babel/plugin-syntax-dynamic-import": "^7.8.3", "@babel/plugin-transform-runtime": "^7.8.3", "@babel/preset-env": "^7.9.6", "@babel/preset-react": "^7.0.0", "@babel/preset-typescript": "^7.21.0", "@hot-loader/react-dom": "^16.13.0", "@reduxjs/toolkit": "^1.9.7", "argparse": "^1.0.10", "babel-loader": "^8.0.4", "babel-plugin-lodash": "^3.3.4", "babel-plugin-strip-function-call": "^1.0.2", "babel-plugin-styled-components": "^1.10.0", "binomial": "^0.2.0", "buffer": "^6.0.3", "chalk": "^2.4.1", "clean-webpack-plugin": "^4.0.0", "compression": "^1.7.3", "compression-webpack-plugin": "^3.1.0", "core-js": "^3.6.5", "create-react-class": "^15.7.0", "css-loader": "^3.4.0", "css.escape": "^1.5.1", "d3-array": "^2.2.0", "d3-axis": "^1.0.6", "d3-brush": "^1.0.4", "d3-color": "^1.0.3", "d3-ease": "^1.0.3", "d3-format": "^1.3.0", "d3-interpolate": "^1.1.5", "d3-scale": "^1.0.5", "d3-selection": "^1.1.0", "d3-shape": "^1.2.0", "d3-timer": "^1.0.7", "d3-transition": "^1.2.0", "d3-zoom": "^1.1.3", "dom-to-image": "^2.6.0", "dompurify": "^2.3.3", "express": "^4.16.3", "express-naked-redirect": "^0.1.9", "express-static-gzip": "^0.2.2", "html-webpack-plugin": "^4.5.2", "i18next": "^19.3.2", "leaflet": "1.7.1", "leaflet-gesture-handling": "1.2.1", "linspace": "^1.0.0", "lodash": "^4.17.21", "lodash-webpack-plugin": "^0.11.6", "marked": "^0.7.0", "mousetrap": "^1.6.2", "null-loader": "^4.0.0", "outer-product": "0.0.4", "papaparse": "^5.3.1", "prop-types": "^15.6.0", "query-string": "^4.2.3", "react": "^16.8.6", "react-collapsible": "^2.8.4", "react-dom": "^16.8.6", "react-ga": "^2.2.0", "react-helmet": "^5.2.1", "react-hot-loader": "^4.8.4", "react-i18next": "^11.15.6", "react-icons": "^3.9.0", "react-redux": "^7.2.6", "react-select": "^5.2.2", "react-tooltip": "^4.2.10", "react-transition-group": "^1.2.1", "react-virtualized": "^9.22.3", "regenerator-runtime": "^0.13.5", "style-loader": "^0.13.2", "styled-components": "^4.0.3", "typeface-lato": "^0.0.75", "webpack": "^5.74.0", "webpack-bundle-analyzer": "^3.9.0", "webpack-dev-middleware": "^3.7.3", "webpack-hot-middleware": "^2.25.2", "whatwg-fetch": "^0.10.1", "xlsx": "^0.17.1", "yaml-front-matter": "^4.0.0" }, "bin": { "auspice": "auspice.js" } }, "sha512-JdfCQ2waAY/BPeIZ58tAUIYWwopY28FuQ3JjG+esa5fPbp5+Ovbx4rl6LqWCscohyojdxgJvJX4l8a1Av2b9ZA=="],
+    "auspice": ["auspice@2.67.0", "", { "dependencies": { "@babel/core": "^7.3.4", "@babel/plugin-proposal-class-properties": "^7.3.4", "@babel/plugin-proposal-decorators": "^7.3.0", "@babel/plugin-syntax-dynamic-import": "^7.8.3", "@babel/plugin-transform-runtime": "^7.8.3", "@babel/preset-env": "^7.9.6", "@babel/preset-react": "^7.0.0", "@babel/preset-typescript": "^7.21.0", "@hot-loader/react-dom": "^16.13.0", "@reduxjs/toolkit": "^1.9.7", "@stdlib/stats-base-dists-normal-pdf": "^0.2.2", "argparse": "^1.0.10", "babel-loader": "^8.0.4", "babel-plugin-lodash": "^3.3.4", "babel-plugin-strip-function-call": "^1.0.2", "babel-plugin-styled-components": "^1.10.0", "binomial": "^0.2.0", "buffer": "^6.0.3", "chalk": "^2.4.1", "clean-webpack-plugin": "^4.0.0", "compression": "^1.7.3", "compression-webpack-plugin": "^3.1.0", "core-js": "^3.43.0", "create-react-class": "^15.7.0", "css-loader": "^3.4.0", "css.escape": "^1.5.1", "d3-array": "^2.2.0", "d3-axis": "^1.0.6", "d3-brush": "^1.0.4", "d3-color": "^1.0.3", "d3-ease": "^1.0.3", "d3-format": "^1.3.0", "d3-interpolate": "^1.1.5", "d3-scale": "^1.0.5", "d3-selection": "^1.1.0", "d3-shape": "^1.2.0", "d3-timer": "^1.0.7", "d3-transition": "^1.2.0", "d3-zoom": "^1.1.3", "dom-to-image": "^2.6.0", "dompurify": "^2.3.3", "express": "^4.16.3", "express-naked-redirect": "^0.1.9", "express-static-gzip": "^0.2.2", "html-webpack-plugin": "^4.5.2", "i18next": "^19.3.2", "leaflet": "1.7.1", "leaflet-gesture-handling": "1.2.1", "linspace": "^1.0.0", "lodash": "^4.17.21", "lodash-webpack-plugin": "^0.11.6", "marked": "^4.0.10", "mousetrap": "^1.6.2", "null-loader": "^4.0.0", "outer-product": "0.0.4", "papaparse": "^5.3.1", "prop-types": "^15.6.0", "query-string": "^4.2.3", "react": "^16.8.6", "react-collapsible": "^2.8.4", "react-dom": "^16.8.6", "react-ga": "^2.2.0", "react-helmet": "^5.2.1", "react-hot-loader": "^4.8.4", "react-i18next": "^11.15.6", "react-icons": "^3.9.0", "react-redux": "^7.2.6", "react-select": "^5.2.2", "react-tooltip": "^4.2.10", "react-transition-group": "^1.2.1", "react-virtualized": "^9.22.3", "regenerator-runtime": "^0.13.5", "style-loader": "^0.13.2", "styled-components": "^4.0.3", "typeface-lato": "^0.0.75", "webpack": "^5.74.0", "webpack-bundle-analyzer": "^3.9.0", "webpack-dev-middleware": "^3.7.3", "webpack-hot-middleware": "^2.25.2", "whatwg-fetch": "^0.10.1", "xlsx": "^0.17.1", "yaml-front-matter": "^4.0.0" }, "bin": { "auspice": "auspice.js" } }, "sha512-JjFSgBHAiHGgPsiNQ8pHxEGe283ovaW+/CqxaBPb+LN7TnufcXa3WuB4zLoeMslFOfheWUK5kq5idy6hIgRwrw=="],
 
     "autoprefixer": ["autoprefixer@10.4.21", "", { "dependencies": { "browserslist": "^4.24.4", "caniuse-lite": "^1.0.30001702", "fraction.js": "^4.3.7", "normalize-range": "^0.1.2", "picocolors": "^1.1.1", "postcss-value-parser": "^4.2.0" }, "peerDependencies": { "postcss": "^8.1.0" }, "bin": { "autoprefixer": "bin/autoprefixer" } }, "sha512-O+A6LWV5LDHSJD3LjHYoNi4VLsj/Whi7k6zG12xTYaU4cQ8oxQGckXNX8cRHK5yOZ/ppVHe0ZBXGzSV9jXdVbQ=="],
 
@@ -2674,7 +2890,7 @@
 
     "markdown-table": ["markdown-table@3.0.4", "", {}, "sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw=="],
 
-    "marked": ["marked@0.7.0", "", { "bin": { "marked": "./bin/marked" } }, "sha512-c+yYdCZJQrsRjTPhUx7VKkApw9bwDkNbHUKo1ovgcfDjb2kc8rLuRbIFyXL5WOEUwzSSKo3IXpph2K6DqB/KZg=="],
+    "marked": ["marked@4.3.0", "", { "bin": { "marked": "bin/marked.js" } }, "sha512-PRsaiG84bK+AMvxziE/lCFss8juXjNaWzVbN5tXAm4XjeaS9NAHhop+PjQxz2A9h8Q4M/xGmzP8vqNwy6JeK0A=="],
 
     "matcher": ["matcher@3.0.0", "", { "dependencies": { "escape-string-regexp": "^4.0.0" } }, "sha512-OkeDaAZ/bQCxeFAozM55PKcKU0yJMPGifLwV4Qgjitu+5MoAfSQN4lsLJeXZ1b8w0x+/Emda6MZgXS1jvsapng=="],
 
@@ -4144,6 +4360,8 @@
 
     "@rollup/pluginutils/picomatch": ["picomatch@2.3.1", "", {}, "sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA=="],
 
+    "@stdlib/utils-library-manifest/debug": ["debug@file:vendor/debug", {}],
+
     "@storybook/core/semver": ["semver@7.7.3", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q=="],
 
     "@storybook/core/util": ["util@0.12.5", "", { "dependencies": { "inherits": "^2.0.3", "is-arguments": "^1.0.4", "is-generator-function": "^1.0.7", "is-typed-array": "^1.1.3", "which-typed-array": "^1.1.2" } }, "sha512-kZf/K6hEIrWHI6XqOFUiiMa+79wE/D8Q+NCNAWclkyg3b4d2k7s0QGepNjiABc+aR3N1PAyHL7p6UcLY6LmrnA=="],
@@ -4205,6 +4423,8 @@
     "asn1.js/bn.js": ["bn.js@4.12.2", "", {}, "sha512-n4DSx829VRTRByMRGdjQ9iqsN0Bh4OolPsFnaZBLcbi8iXcB+kJ9s7EnRt4wILZNV3kPLHkRVfOc/HvhC3ovDw=="],
 
     "auspice/argparse": ["argparse@1.0.10", "", { "dependencies": { "sprintf-js": "~1.0.2" } }, "sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg=="],
+
+    "auspice/core-js": ["core-js@3.47.0", "", {}, "sha512-c3Q2VVkGAUyupsjRnaNX6u8Dq2vAdzm9iuPj5FW0fRxzlxgq9Q39MDq10IvmQSpLgHQNyQzQmOo6bgGHmH3NNg=="],
 
     "auspice/express": ["express@4.22.1", "", { "dependencies": { "accepts": "~1.3.8", "array-flatten": "1.1.1", "body-parser": "~1.20.3", "content-disposition": "~0.5.4", "content-type": "~1.0.4", "cookie": "~0.7.1", "cookie-signature": "~1.0.6", "debug": "2.6.9", "depd": "2.0.0", "encodeurl": "~2.0.0", "escape-html": "~1.0.3", "etag": "~1.8.1", "finalhandler": "~1.3.1", "fresh": "~0.5.2", "http-errors": "~2.0.0", "merge-descriptors": "1.0.3", "methods": "~1.1.2", "on-finished": "~2.4.1", "parseurl": "~1.3.3", "path-to-regexp": "~0.1.12", "proxy-addr": "~2.0.7", "qs": "~6.14.0", "range-parser": "~1.2.1", "safe-buffer": "5.2.1", "send": "~0.19.0", "serve-static": "~1.16.2", "setprototypeof": "1.2.0", "statuses": "~2.0.1", "type-is": "~1.6.18", "utils-merge": "1.0.1", "vary": "~1.1.2" } }, "sha512-F2X8g9P1X7uCPZMA3MVf9wcTqlyNp7IhH5qPCI0izhaOIYXaW9L535tGA3qmjRzpH+bZczqq7hVKxTR4NWnu+g=="],
 
