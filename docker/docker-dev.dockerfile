@@ -5,9 +5,10 @@ FROM $DOCKER_BASE_IMAGE as base
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 ARG DOCKER_BASE_IMAGE
-ARG DASEL_VERSION="1.22.1"
-ARG WATCHEXEC_VERSION="1.17.1"
-ARG BUN_VERSION="1.2.14"
+ARG DASEL_VERSION="3.2.1"
+ARG WATCHEXEC_VERSION="2.3.2"
+ARG BUN_VERSION="1.3.5"
+ARG PLAYWRIGHT_VERSION="1.57.0"
 
 # Install required packages if running CentOS
 RUN set -euxo pipefail >/dev/null \
@@ -167,7 +168,7 @@ RUN set -euxo pipefail >/dev/null \
 
 # Install jq, a tool to query JSON files
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL -o "/usr/bin/jq" "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" \
+&& curl -fsSL -o "/usr/bin/jq" "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-amd64" \
 && chmod +x "/usr/bin/jq" \
 && jq --version
 
@@ -175,11 +176,11 @@ RUN set -euxo pipefail >/dev/null \
 RUN set -euxo pipefail >/dev/null \
 && curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel" \
 && chmod +x "/usr/bin/dasel" \
-&& dasel --version
+&& dasel version
 
 # Install watchexec - file watcher
 RUN set -euxo pipefail >/dev/null \
-&& curl -sSL "https://github.com/watchexec/watchexec/releases/download/cli-v${WATCHEXEC_VERSION}/watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl.tar.xz" | tar -C "/usr/bin/" -xJ --strip-components=1 "watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl/watchexec" \
+&& curl -sSL "https://github.com/watchexec/watchexec/releases/download/v${WATCHEXEC_VERSION}/watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl.tar.xz" | tar -C "/usr/bin/" -xJ --strip-components=1 "watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl/watchexec" \
 && chmod +x "/usr/bin/watchexec" \
 && watchexec --version
 
@@ -202,7 +203,7 @@ USER ${UID}
 COPY rust-toolchain.toml "${HOME}/rust-toolchain.toml"
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "${HOME}/rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel -i toml -o yaml 'toolchain.channel' < "${HOME}/rust-toolchain.toml") \
 && curl --proto '=https' -sSf https://sh.rustup.rs > rustup-init \
 && chmod +x rustup-init \
 && ./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}" \
@@ -211,19 +212,19 @@ RUN set -euxo pipefail >/dev/null \
 # Install toolchain from rust-toolchain.toml and make it default
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel -i toml -o yaml 'toolchain.channel' < "rust-toolchain.toml") \
 && rustup toolchain install "${RUST_TOOLCHAIN}" \
 && rustup default "${RUST_TOOLCHAIN}"
 
 # Install remaining toolchain components from rust-toolchain.toml
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
-&& RUST_TOOLCHAIN=$(dasel select -r toml -w - -s ".toolchain.channel" -f "rust-toolchain.toml") \
+&& RUST_TOOLCHAIN=$(dasel -i toml -o yaml 'toolchain.channel' < "rust-toolchain.toml") \
 && rustup show \
 && rustup default "${RUST_TOOLCHAIN}"
 
 RUN set -euxo pipefail >/dev/null \
-&& export SEQKIT_VERSION="2.5.0" \
+&& export SEQKIT_VERSION="2.12.0" \
 && curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v${SEQKIT_VERSION}/seqkit_linux_amd64.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "seqkit" \
 && chmod +x "${CARGO_HOME}/bin/seqkit"
 
@@ -243,12 +244,12 @@ RUN set -euxo pipefail >/dev/null \
 && chmod +x "${CARGO_HOME}/bin/wasm-pack"
 
 RUN set -euxo pipefail >/dev/null \
-&& export CARGO_WATCH_VERSION="8.4.0" \
+&& export CARGO_WATCH_VERSION="8.5.3" \
 && curl -sSL "https://github.com/watchexec/cargo-watch/releases/download/v${CARGO_WATCH_VERSION}/cargo-watch-v${CARGO_WATCH_VERSION}-x86_64-unknown-linux-gnu.tar.xz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xJ "cargo-watch-v${CARGO_WATCH_VERSION}-x86_64-unknown-linux-gnu/cargo-watch" \
 && chmod +x "${CARGO_HOME}/bin/cargo-watch"
 
 RUN set -euxo pipefail >/dev/null \
-&& export CARGO_NEXTEST_VERSION="0.9.67" \
+&& export CARGO_NEXTEST_VERSION="0.9.120" \
 && curl -sSL "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-${CARGO_NEXTEST_VERSION}/cargo-nextest-${CARGO_NEXTEST_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-nextest" \
 && chmod +x "${CARGO_HOME}/bin/cargo-nextest"
 
@@ -277,6 +278,8 @@ ENV CC_x86_64-unknown-linux-gnu=clang
 ENV CXX_x86_64-unknown-linux-gnu=clang++
 
 FROM dev as e2e
+
+ARG PLAYWRIGHT_VERSION
 
 # Install Playwright browser dependencies and browsers for E2E testing
 USER 0
@@ -310,7 +313,6 @@ RUN set -euxo pipefail >/dev/null \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && rm -rf /var/lib/apt/lists/* \
-&& export PLAYWRIGHT_VERSION="1.45.1" \
 && npm install -g @playwright/test@${PLAYWRIGHT_VERSION} >/dev/null \
 && npx playwright install chromium >/dev/null \
 && npx playwright install-deps chromium >/dev/null

@@ -639,7 +639,6 @@ elif [ "${WEB}" == "1" ]; then
 elif [ "${TEST}" == "1" ]; then
     COMMAND="cargo -q nextest run --cargo-quiet --no-fail-fast --color=always --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${TEST_FLAGS} -- ${*:-} ${SUCCESS_OR_FAILURE}"
 elif [ "${E2E_TEST}" == "1" ]; then
-  PORTS="--network=host"
   WEB_PORT="${WEB_PORT_DEV}"
   if [ "${E2E_TEST_PROD}" == "1" ]; then
     WEB_PORT="${WEB_PORT_PROD}"
