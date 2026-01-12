@@ -1,3 +1,4 @@
+import { config as loadEnv } from 'dotenv'
 import { NextConfig } from 'next'
 import getWithMDX from '@next/mdx'
 import remarkBreaks from 'remark-breaks'
@@ -18,16 +19,18 @@ import withWasm from './withWasm'
 import { getWithEmitFile } from './withEmitFile'
 import type { AppJson } from '../../src/components/Layout/UpdateNotification'
 import { RELEASE_URL } from '../../src/constants'
-import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getBuildNumber } from '../../lib/getBuildNumber'
 import { getBuildUrl } from '../../lib/getBuildUrl'
 import { getDomain } from '../../lib/getDomain'
 import { getGitBranch } from '../../lib/getGitBranch'
 import { getGitCommitHash } from '../../lib/getGitCommitHash'
 import { getenv } from '../../lib/getenv'
+import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getBrowserSupport } from './getBrowserSupport'
 
 const { pkg, moduleRoot } = findModuleRoot()
+
+loadEnv({ path: `${moduleRoot}/../../.env` })
 
 const browserSupport = getBrowserSupport(pkg.browserslist.production)
 const wasmFeatures: string[] = pkg.wasmFeatures ?? []
