@@ -302,7 +302,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
    ```bash
    cd packages/nextclade-web
-   bun wasm-prod
+   bun run wasm-prod
    ```
 
    This step might take a lot of time. The WebAssembly module and accompanying Typescript code should be been generated into `packages/nextclade-web/src/gen/`. The web application should be able to find it there.
@@ -317,7 +317,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 
    ```bash
    cd packages/nextclade-web
-   bun dev
+   bun run dev
    ```
 
    This runs Next.js dev server (continuously). Open `http://localhost:3000/` in the browser. Typescript code changes should trigger automatic rebuild and fast refresh of the app in the browser - no dev server restart is typically necessary.
@@ -329,8 +329,8 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 Alternatively, the optimized ("production") version of the web app can be built and (optionally) served with
 
     ```bash
-    bun prod:build
-    bun prod:serve
+    bun run prod:build
+    bun run prod:serve
     ```
 
 Open `http://localhost:8080/` in the browser.
@@ -357,19 +357,19 @@ Use this script to extract strings apply machine translations:
 ```bash
 # Extract English strings from the code of Nextclade Web.
 # The result will be in `packages/nextclade-web/src/i18n/resources/en/`.
-bun i18n
+bun run i18n
 
 # Deduplicate, correct, sort and otherwise 'massage' the extracted strings.
-bun i18n:fix
+bun run i18n:fix
 
 # Translate strings from English to all languages using json-autotranslate.
 # Cached strings will be copied as is from cache. If a string is not present in cache,
 # it will be machine translated using AWS Translate.
 # This step requires AWS credentials (see json-autotranslate docs and ask your AWS admin).
-i18n:translate
+bun run i18n:translate
 
 # 'Massage' the newly translated strings again.
-bun i18n:fix
+bun run i18n:fix
 ```
 
 #### Apply manual corrections
@@ -378,16 +378,16 @@ If you want to override machine translation, then edit the cached strings in [`p
 
 ```bash
 # Deduplicate, correct, sort and otherwise 'massage' the extracted strings.
-bun i18n:fix
+bun run i18n:fix
 
 # Translate strings from English to all languages using json-autotranslate.
 # Cached strings will be copied as is from cache. If a string is not present in cache,
 # it will be machine translated using AWS Translate.
 # This step requires AWS credentials (see json-autotranslate docs and ask your AWS admin).
-i18n:translate
+bun run i18n:translate
 
 # 'Massage' the newly translated strings again.
-bun i18n:fix
+bun run i18n:fix
 ```
 
 Note that dev team does not necessarily understand all supported languages, so it cannot verify quality of either machine or human translations for most languages, except a few.
@@ -459,7 +459,7 @@ The web app is linted using [eslint](https://github.com/eslint/eslint) and [tsc]
 
 ```bash
 cd packages/nextclade-web
-bun lint
+bun run lint
 ```
 
 The `eslint` configuration is in `eslint.config.mjs`. `tsc` configuration is in `tsconfig.json`.
@@ -484,7 +484,7 @@ We use `prettier` to format TS and JS code. It is installed during initial setup
 
 ```bash
 cd packages/nextclade-web
-bun format:fix
+bun run format:fix
 ```
 
 Make sure your text editor is [configured](https://prettier.io/docs/en/editors.html) to use `prettier` and to honor [editorconfig](https://editorconfig.org/) settings.
