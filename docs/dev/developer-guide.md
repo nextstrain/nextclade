@@ -242,7 +242,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
 5. Prepare environment variables (once). They configure Nextclade build-time settings. Optionally adjust the variables in the `.env` file to your needs.
 
    ```bash
-   cp .env.example .env
+   cp packages/nextclade-web/.env.example packages/nextclade-web/.env
    ```
 
 6. Install WebAssembly toolchain (once)
