@@ -48,9 +48,12 @@ jobs:
 
           mkdir -p "${HOME}/bin"
           export PATH="${HOME}/bin:${PATH}"
-          curl -fsSL "https://github.com/cli/cli/releases/download/v2.42.1/gh_2.42.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.42.1_linux_amd64/bin/gh
-          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
-          curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+          GH_CLI_VERSION=$(./scripts/get-version gh)
+          curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 "gh_${GH_CLI_VERSION}_linux_amd64/bin/gh"
+          DASEL_VERSION=$(./scripts/get-version dasel)
+          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+          JQ_VERSION=$(./scripts/get-version jq)
+          curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 
           git config --global user.email "${{ secrets.GIT_USER_EMAIL }}"
           git config --global user.name "${{ secrets.GIT_USER_NAME }}"

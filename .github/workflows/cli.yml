@@ -111,7 +111,8 @@ jobs:
       - name: "Install deps"
         run: |
           mkdir -p "${HOME}/bin"
-          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+          DASEL_VERSION=$(./scripts/get-version dasel)
+          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
 
       - name: "Prepare .env file"
         run: |
@@ -277,8 +278,10 @@ jobs:
 
           mkdir -p "${HOME}/bin"
           export PATH="${HOME}/bin:${PATH}"
-          curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
-          curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v2.5.0/seqkit_linux_amd64.tar.gz" | tar -C "${HOME}/bin" -xz "seqkit"
+          JQ_VERSION=$(./scripts/get-version jq)
+          curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+          SEQKIT_VERSION=$(./scripts/get-version seqkit)
+          curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v${SEQKIT_VERSION}/seqkit_linux_amd64.tar.gz" | tar -C "${HOME}/bin" -xz "seqkit"
 
       - name: "Download build artifacts"
         uses: actions/download-artifact@v6
@@ -407,10 +410,14 @@ jobs:
       - name: "Install deploy dependencies"
         run: |
           mkdir -p "${HOME}/bin"
-          curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
-          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
-          curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v0.7.0/git-cliff-0.7.0-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${HOME}/bin" --strip-components=1 -xz "git-cliff-0.7.0/git-cliff"
-          curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+          GH_CLI_VERSION=$(./scripts/get-version gh)
+          curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 "gh_${GH_CLI_VERSION}_linux_amd64/bin/gh"
+          DASEL_VERSION=$(./scripts/get-version dasel)
+          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+          GIT_CLIFF_VERSION=$(./scripts/get-version git-cliff)
+          curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v${GIT_CLIFF_VERSION}/git-cliff-${GIT_CLIFF_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${HOME}/bin" --strip-components=1 -xz "git-cliff-${GIT_CLIFF_VERSION}/git-cliff"
+          JQ_VERSION=$(./scripts/get-version jq)
+          curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-amd64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 
       - name: "Publish build artifacts to GitHub releases"
         run: |
@@ -444,7 +451,8 @@ jobs:
       - name: "Install deploy dependencies"
         run: |
           mkdir -p "${HOME}/bin"
-          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+          DASEL_VERSION=$(./scripts/get-version dasel)
+          curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
 
       - name: "Login to Docker Hub"
         uses: docker/login-action@v3

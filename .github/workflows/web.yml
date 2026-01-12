@@ -243,7 +243,8 @@ jobs:
       - name: "Install deploy dependencies"
         run: |
           mkdir -p "${HOME}/bin"
-          curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
+          GH_CLI_VERSION=$(./scripts/get-version gh)
+          curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 "gh_${GH_CLI_VERSION}_linux_amd64/bin/gh"
 
           sudo apt-get install brotli pigz parallel rename --yes -qq >/dev/null
 
