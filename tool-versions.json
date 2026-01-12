@@ -22,6 +22,7 @@
     "cram": "0.7",
     "genometools": "latest",
     "gh": "2.83.1",
+    "git-cliff": "0.7.0",
     "hyperfine": "1.20.0",
     "seqkit": "2.12.0",
     "table2asn": "latest"
