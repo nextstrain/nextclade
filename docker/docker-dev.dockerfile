@@ -1,14 +1,10 @@
 ARG DOCKER_BASE_IMAGE
 
-FROM $DOCKER_BASE_IMAGE as base
+FROM $DOCKER_BASE_IMAGE AS base
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 ARG DOCKER_BASE_IMAGE
-ARG DASEL_VERSION="3.2.1"
-ARG WATCHEXEC_VERSION="2.3.2"
-ARG BUN_VERSION="1.3.5"
-ARG PLAYWRIGHT_VERSION="1.57.0"
 
 # Install required packages if running CentOS
 RUN set -euxo pipefail >/dev/null \
@@ -166,21 +162,29 @@ RUN set -euxo pipefail >/dev/null \
 RUN set -euxo pipefail >/dev/null \
 && pip3 install --user --upgrade cram
 
+# Copy version management files
+COPY tool-versions.json /tool-versions.json
+COPY scripts/get-version /usr/local/bin/get-version
+RUN chmod +x /usr/local/bin/get-version
+
 # Install jq, a tool to query JSON files
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL -o "/usr/bin/jq" "https://github.com/jqlang/jq/releases/download/jq-1.8.1/jq-linux-amd64" \
+&& JQ_VERSION="$(get-version -f /tool-versions.json jq)" \
+&& curl -fsSLo "/usr/bin/jq" "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-amd64" \
 && chmod +x "/usr/bin/jq" \
 && jq --version
 
 # Install dasel, a tool to query TOML files
 RUN set -euxo pipefail >/dev/null \
-&& curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel" \
+&& DASEL_VERSION="$(get-version -f /tool-versions.json dasel)" \
+&& curl -fsSLo "/usr/bin/dasel" "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" \
 && chmod +x "/usr/bin/dasel" \
 && dasel version
 
 # Install watchexec - file watcher
 RUN set -euxo pipefail >/dev/null \
-&& curl -sSL "https://github.com/watchexec/watchexec/releases/download/v${WATCHEXEC_VERSION}/watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl.tar.xz" | tar -C "/usr/bin/" -xJ --strip-components=1 "watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl/watchexec" \
+&& WATCHEXEC_VERSION="$(get-version -f /tool-versions.json watchexec)" \
+&& curl -fsSL "https://github.com/watchexec/watchexec/releases/download/v${WATCHEXEC_VERSION}/watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl.tar.xz" | tar -C "/usr/bin/" -xJ --strip-components=1 "watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl/watchexec" \
 && chmod +x "/usr/bin/watchexec" \
 && watchexec --version
 
@@ -191,8 +195,9 @@ RUN set -eux >/dev/null \
 && mkdir -p "${NODE_DIR}" \
 && cd "${NODE_DIR}" \
 && NODE_VERSION=$(cat /.nvmrc) \
-&& curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
-&& npm install -g bun@${BUN_VERSION} >/dev/null
+&& curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
+&& BUN_VERSION="$(get-version -f /tool-versions.json bun)" \
+&& npm install -g "bun@${BUN_VERSION}" >/dev/null
 
 RUN set -euxo pipefail >/dev/null \
 && chown -R ${UID}:${GID} "${HOME}"
@@ -223,34 +228,37 @@ RUN set -euxo pipefail >/dev/null \
 && rustup show \
 && rustup default "${RUST_TOOLCHAIN}"
 
+# Copy Cargo.toml for wasm-bindgen-cli version resolution
+COPY Cargo.toml /Cargo.toml
+
 RUN set -euxo pipefail >/dev/null \
-&& export SEQKIT_VERSION="2.12.0" \
-&& curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v${SEQKIT_VERSION}/seqkit_linux_amd64.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "seqkit" \
+&& SEQKIT_VERSION="$(get-version -f /tool-versions.json seqkit)" \
+&& curl -fsSL "https://github.com/shenwei356/seqkit/releases/download/v${SEQKIT_VERSION}/seqkit_linux_amd64.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "seqkit" \
 && chmod +x "${CARGO_HOME}/bin/seqkit"
 
 RUN set -euxo pipefail >/dev/null \
-&& export WASM_BINDGEN_CLI_VERSION="0.2.106" \
-&& curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen" \
+&& WASM_BINDGEN_CLI_VERSION="$(get-version -f /tool-versions.json wasm-bindgen-cli)" \
+&& curl -fsSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen" \
 && chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
 
 RUN set -euxo pipefail >/dev/null \
-&& export BINARYEN_VERSION="125" \
-&& curl -sSL "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=2 -xz --wildcards "binaryen-version_${BINARYEN_VERSION}/bin/"'wasm*' \
+&& BINARYEN_VERSION="$(get-version -f /tool-versions.json binaryen)" \
+&& curl -fsSL "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=2 -xz --wildcards "binaryen-version_${BINARYEN_VERSION}/bin/"'wasm*' \
 && chmod +x ${CARGO_HOME}/bin/wasm*
 
 RUN set -euxo pipefail >/dev/null \
-&& export WASM_PACK_VERSION="0.13.1" \
-&& curl -sSL "https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl/wasm-pack" \
+&& WASM_PACK_VERSION="$(get-version -f /tool-versions.json wasm-pack)" \
+&& curl -fsSL "https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl/wasm-pack" \
 && chmod +x "${CARGO_HOME}/bin/wasm-pack"
 
 RUN set -euxo pipefail >/dev/null \
-&& export CARGO_WATCH_VERSION="8.5.3" \
-&& curl -sSL "https://github.com/watchexec/cargo-watch/releases/download/v${CARGO_WATCH_VERSION}/cargo-watch-v${CARGO_WATCH_VERSION}-x86_64-unknown-linux-gnu.tar.xz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xJ "cargo-watch-v${CARGO_WATCH_VERSION}-x86_64-unknown-linux-gnu/cargo-watch" \
+&& CARGO_WATCH_VERSION="$(get-version -f /tool-versions.json cargo-watch)" \
+&& curl -fsSL "https://github.com/watchexec/cargo-watch/releases/download/v${CARGO_WATCH_VERSION}/cargo-watch-v${CARGO_WATCH_VERSION}-x86_64-unknown-linux-gnu.tar.xz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xJ "cargo-watch-v${CARGO_WATCH_VERSION}-x86_64-unknown-linux-gnu/cargo-watch" \
 && chmod +x "${CARGO_HOME}/bin/cargo-watch"
 
 RUN set -euxo pipefail >/dev/null \
-&& export CARGO_NEXTEST_VERSION="0.9.120" \
-&& curl -sSL "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-${CARGO_NEXTEST_VERSION}/cargo-nextest-${CARGO_NEXTEST_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-nextest" \
+&& CARGO_NEXTEST_VERSION="$(get-version -f /tool-versions.json cargo-nextest)" \
+&& curl -fsSL "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-${CARGO_NEXTEST_VERSION}/cargo-nextest-${CARGO_NEXTEST_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-nextest" \
 && chmod +x "${CARGO_HOME}/bin/cargo-nextest"
 
 
@@ -272,14 +280,15 @@ USER ${UID}
 
 
 # Native compilation for Linux x86_64 with gnu-libc
-FROM base as dev
+FROM base AS dev
 
 ENV CC_x86_64-unknown-linux-gnu=clang
 ENV CXX_x86_64-unknown-linux-gnu=clang++
 
-FROM dev as e2e
+FROM dev AS e2e
 
-ARG PLAYWRIGHT_VERSION
+# Copy package.json for playwright version resolution
+COPY packages/nextclade-web/package.json /packages/nextclade-web/package.json
 
 # Install Playwright browser dependencies and browsers for E2E testing
 USER 0
@@ -313,22 +322,23 @@ RUN set -euxo pipefail >/dev/null \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && rm -rf /var/lib/apt/lists/* \
-&& npm install -g @playwright/test@${PLAYWRIGHT_VERSION} >/dev/null \
+&& PLAYWRIGHT_VERSION="$(get-version -f /tool-versions.json playwright)" \
+&& npm install -g "@playwright/test@${PLAYWRIGHT_VERSION}" >/dev/null \
 && npx playwright install chromium >/dev/null \
 && npx playwright install-deps chromium >/dev/null
 
 USER ${UID}
 
 # Cross-compilation for Linux x86_64 with gnu-libc.
-# Same as native, but convenient to have for mass cross-compilation.
-FROM dev as cross-x86_64-unknown-linux-gnu
+# Same AS native, but convenient to have for mass cross-compilation.
+FROM dev AS cross-x86_64-unknown-linux-gnu
 
 ENV CC_x86_64-unknown-linux-gnu=gcc
 ENV CXX_x86_64-unknown-linux-gnu=g++
 
 
 # Cross-compilation for Linux x86_64 with libmusl
-FROM base as cross-x86_64-unknown-linux-musl
+FROM base AS cross-x86_64-unknown-linux-musl
 
 ARG MUSL_CC_X86_64_URL
 ENV MUSL_CC_X86_64_URL="${MUSL_CC_X86_64_URL}"
@@ -351,7 +361,7 @@ ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=x86_64-linux-musl-gcc
 
 
 # Cross-compilation to WebAssembly
-FROM base as cross-wasm32-unknown-unknown
+FROM base AS cross-wasm32-unknown-unknown
 
 USER 0
 
@@ -364,7 +374,7 @@ USER ${UID}
 
 
 # Cross-compilation for Linux ARM64
-FROM base as cross-aarch64-unknown-linux-gnu
+FROM base AS cross-aarch64-unknown-linux-gnu
 
 USER 0
 
@@ -391,7 +401,7 @@ ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 
 # Cross-compilation for Linux ARM64 with libmusl
-FROM base as cross-aarch64-unknown-linux-musl
+FROM base AS cross-aarch64-unknown-linux-musl
 
 ARG MUSL_CC_AARCH64_URL
 ENV MUSL_CC_AARCH64_URL=${MUSL_CC_AARCH64_URL}
@@ -414,7 +424,7 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc
 
 
 # Cross-compilation for Windows x86_64
-FROM base as cross-x86_64-pc-windows-gnu
+FROM base AS cross-x86_64-pc-windows-gnu
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
@@ -439,7 +449,7 @@ RUN set -euxo pipefail >/dev/null \
 
 
 # Builds osxcross for Mac cross-compiation
-FROM base as osxcross
+FROM base AS osxcross
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
@@ -455,7 +465,7 @@ USER ${UID}
 
 
 # Cross-compilation for macOS x86_64
-FROM osxcross as cross-x86_64-apple-darwin
+FROM osxcross AS cross-x86_64-apple-darwin
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
@@ -484,7 +494,7 @@ USER ${UID}
 
 
 # Cross-compilation for macOS ARM64
-FROM osxcross as cross-aarch64-apple-darwin
+FROM osxcross AS cross-aarch64-apple-darwin
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 

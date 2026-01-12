@@ -1,0 +1,423 @@
+#!/usr/bin/env python3
+"""
+Get the version of a tool from a versions JSON file.
+
+Looks up a tool in dependencies, devDependencies, and optionalDependencies.
+Handles both simple string values and complex file references.
+
+Usage:
+  get-version [options] <tool-name>
+
+Arguments:
+  tool-name   Name of the tool to look up (e.g., bun, rust, node)
+
+Options:
+  -h, --help                  Show this help
+  -f, --versions-file <path>  Path to versions JSON file
+                              (default: tool-versions.json in project root)
+
+Examples:
+  get-version bun                              # outputs: 1.3.5
+  get-version rust                             # outputs: 1.92.0 (from rust-toolchain.toml)
+  get-version node                             # outputs: 24.12.0 (from .nvmrc)
+  get-version wasm-bindgen-cli                 # outputs: 0.2.106 (from Cargo.toml)
+  get-version --versions-file ./versions.json bun
+"""
+
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+CATEGORIES = ("dependencies", "devDependencies", "optionalDependencies")
+
+
+HELP = __doc__ or ""
+
+
+def main():
+    # type: () -> None
+    args = sys.argv[1:]
+    versions_file = None  # type: Optional[Path]
+    tool = None  # type: Optional[str]
+
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg in ("-h", "--help"):
+            print(HELP.strip())
+            sys.exit(0)
+        elif arg in ("-f", "--versions-file"):
+            if i + 1 >= len(args):
+                print("Error: --versions-file requires an argument", file=sys.stderr)
+                sys.exit(1)
+            versions_file = Path(args[i + 1])
+            i += 2
+        elif arg == "--":
+            i += 1
+            break
+        elif arg.startswith("-"):
+            print("Unknown option: %s\n" % arg, file=sys.stderr)
+            print(HELP.strip(), file=sys.stderr)
+            sys.exit(1)
+        else:
+            break
+        continue
+
+    positional = args[i:]
+    if len(positional) != 1:
+        print("Error: Expected exactly one tool name\n", file=sys.stderr)
+        print(HELP.strip(), file=sys.stderr)
+        sys.exit(1)
+
+    tool = positional[0]
+
+    if versions_file is None:
+        project_root = Path(__file__).resolve().parent.parent
+        versions_file = project_root / "tool-versions.json"
+    else:
+        project_root = versions_file.resolve().parent
+
+    if not versions_file.is_file():
+        print("Error: Versions file not found: %s" % versions_file, file=sys.stderr)
+        sys.exit(1)
+
+    version = find_tool_version(tool, versions_file, project_root)
+    if version is None:
+        print("Error: Tool '%s' not found in %s" % (tool, versions_file.name), file=sys.stderr)
+        sys.exit(1)
+
+    print(version)
+
+
+def find_tool_version(tool, versions_file, project_root):
+    # type: (str, Path, Path) -> Optional[str]
+    with versions_file.open() as f:
+        data = json.load(f)
+
+    for category in CATEGORIES:
+        if category not in data:
+            continue
+        if tool not in data[category]:
+            continue
+        entry = data[category][tool]
+        return resolve_entry(entry, project_root)
+
+    return None
+
+
+def resolve_entry(entry, project_root):
+    # type: (Any, Path) -> str
+    if isinstance(entry, str):
+        return entry
+    return resolve_complex_entry(entry, project_root)
+
+
+def resolve_complex_entry(entry, project_root):
+    # type: (Dict[str, Any], Path) -> str
+    path = entry.get("path")
+    fmt = entry.get("format")
+    key = entry.get("key")
+    value_type = entry.get("value_type")
+
+    if not path:
+        print("Error: Missing 'path' field in entry", file=sys.stderr)
+        sys.exit(1)
+
+    if not fmt:
+        print("Error: Missing 'format' field in entry", file=sys.stderr)
+        sys.exit(1)
+
+    full_path = project_root / path
+    if not full_path.is_file():
+        print("Error: File '%s' not found" % path, file=sys.stderr)
+        sys.exit(1)
+
+    version = read_version_from_file(full_path, fmt, key)
+    version = apply_value_type_transform(version, value_type)
+    return version
+
+
+def read_version_from_file(file, fmt, key):
+    # type: (Path, str, Optional[str]) -> str
+    if fmt == "plain":
+        return file.read_text().strip()
+
+    if fmt == "toml":
+        if not key:
+            print("Error: Missing 'key' field for toml format", file=sys.stderr)
+            sys.exit(1)
+        data = parse_toml(file.read_text())
+        return get_nested_value(data, key)
+
+    if fmt == "json":
+        if not key:
+            print("Error: Missing 'key' field for json format", file=sys.stderr)
+            sys.exit(1)
+        with file.open() as f:
+            data = json.load(f)
+        return get_nested_value(data, key)
+
+    print("Error: Unknown format '%s'" % fmt, file=sys.stderr)
+    sys.exit(1)
+
+
+def get_nested_value(data, key):
+    # type: (Dict[str, Any], str) -> str
+    parts = key.split(".")
+    current = data  # type: Any
+    for part in parts:
+        if not isinstance(current, dict) or part not in current:
+            print("Error: Key '%s' not found" % key, file=sys.stderr)
+            sys.exit(1)
+        current = current[part]
+    if not isinstance(current, str):
+        print("Error: Value at '%s' is not a string" % key, file=sys.stderr)
+        sys.exit(1)
+    return current
+
+
+def parse_toml(content):
+    # type: (str) -> Dict[str, Any]
+    """
+    Minimal TOML parser supporting:
+    - Basic key-value pairs (key = "value")
+    - Dotted keys (a.b.c = "value")
+    - Tables ([section] and [section.subsection])
+    - Inline tables ({ key = "value" })
+    - String values (basic and literal)
+    """
+    result = {}  # type: Dict[str, Any]
+    current_table = result  # type: Dict[str, Any]
+    current_path = []  # type: List[str]
+
+    for line in content.splitlines():
+        line = line.strip()
+
+        if not line or line.startswith("#"):
+            continue
+
+        if line.startswith("["):
+            match = re.match(r"^\[([^\]]+)\]", line)
+            if match:
+                table_name = match.group(1).strip()
+                current_path = parse_key(table_name)
+                current_table = result
+                for part in current_path:
+                    if part not in current_table:
+                        current_table[part] = {}
+                    current_table = current_table[part]
+            continue
+
+        if "=" in line:
+            key_part, _, value_part = line.partition("=")
+            key_part = key_part.strip()
+            value_part = value_part.strip()
+
+            keys = parse_key(key_part)
+            value = parse_toml_value(value_part)
+
+            target = current_table
+            for k in keys[:-1]:
+                if k not in target:
+                    target[k] = {}
+                target = target[k]
+            target[keys[-1]] = value
+
+    return result
+
+
+def parse_key(key):
+    # type: (str) -> List[str]
+    """Parse a TOML key, handling quoted segments."""
+    parts = []  # type: List[str]
+    current = ""
+    in_quotes = False
+    quote_char = ""
+
+    i = 0
+    while i < len(key):
+        c = key[i]
+        if not in_quotes:
+            if c in ('"', "'"):
+                in_quotes = True
+                quote_char = c
+            elif c == ".":
+                if current:
+                    parts.append(current)
+                    current = ""
+            else:
+                current += c
+        else:
+            if c == quote_char:
+                in_quotes = False
+                quote_char = ""
+            else:
+                current += c
+        i += 1
+
+    if current:
+        parts.append(current)
+
+    return [p.strip() for p in parts]
+
+
+def parse_toml_value(value):
+    # type: (str) -> Any
+    """Parse a TOML value."""
+    value = value.strip()
+
+    if value.startswith("#"):
+        return ""
+
+    if "#" in value:
+        for i, c in enumerate(value):
+            if c == "#":
+                in_string = False
+                quote_char = ""
+                for j in range(i):
+                    if value[j] in ('"', "'") and (j == 0 or value[j - 1] != "\\"):
+                        if not in_string:
+                            in_string = True
+                            quote_char = value[j]
+                        elif value[j] == quote_char:
+                            in_string = False
+                if not in_string:
+                    value = value[:i].strip()
+                    break
+
+    if value.startswith('"""'):
+        end = value.find('"""', 3)
+        if end != -1:
+            return value[3:end]
+        return value[3:]
+
+    if value.startswith("'''"):
+        end = value.find("'''", 3)
+        if end != -1:
+            return value[3:end]
+        return value[3:]
+
+    if value.startswith('"') and value.endswith('"'):
+        return value[1:-1].replace('\\"', '"').replace("\\n", "\n").replace("\\t", "\t")
+
+    if value.startswith("'") and value.endswith("'"):
+        return value[1:-1]
+
+    if value.startswith("{") and value.endswith("}"):
+        return parse_inline_table(value)
+
+    if value.startswith("[") and value.endswith("]"):
+        return parse_toml_array(value)
+
+    if value.lower() == "true":
+        return True
+    if value.lower() == "false":
+        return False
+
+    try:
+        return int(value)
+    except ValueError:
+        pass
+
+    try:
+        return float(value)
+    except ValueError:
+        pass
+
+    return value
+
+
+def parse_inline_table(value):
+    # type: (str) -> Dict[str, Any]
+    """Parse a TOML inline table { key = value, ... }"""
+    result = {}  # type: Dict[str, Any]
+    content = value[1:-1].strip()
+
+    if not content:
+        return result
+
+    pairs = split_inline_table(content)
+    for pair in pairs:
+        if "=" in pair:
+            k, _, v = pair.partition("=")
+            keys = parse_key(k.strip())
+            parsed_value = parse_toml_value(v.strip())
+            target = result
+            for key in keys[:-1]:
+                if key not in target:
+                    target[key] = {}
+                target = target[key]
+            target[keys[-1]] = parsed_value
+
+    return result
+
+
+def split_inline_table(content):
+    # type: (str) -> List[str]
+    """Split inline table content by commas, respecting nested structures."""
+    parts = []  # type: List[str]
+    current = ""
+    depth = 0
+    in_string = False
+    quote_char = ""
+
+    for c in content:
+        if not in_string:
+            if c in ('"', "'"):
+                in_string = True
+                quote_char = c
+            elif c in ("{", "["):
+                depth += 1
+            elif c in ("}", "]"):
+                depth -= 1
+            elif c == "," and depth == 0:
+                parts.append(current.strip())
+                current = ""
+                continue
+        elif c == quote_char:
+            in_string = False
+
+        current += c
+
+    if current.strip():
+        parts.append(current.strip())
+
+    return parts
+
+
+def parse_toml_array(value):
+    # type: (str) -> List[Any]
+    """Parse a TOML array [ value, ... ]"""
+    content = value[1:-1].strip()
+    if not content:
+        return []
+
+    parts = split_inline_table(content)
+    return [parse_toml_value(p.strip()) for p in parts if p.strip()]
+
+
+def apply_value_type_transform(version, value_type):
+    # type: (str, Optional[str]) -> str
+    if not value_type:
+        return version
+
+    if value_type == "CargoVersionReq":
+        return re.sub(r"^[=^~]", "", version)
+
+    if value_type == "NpmVersionReq":
+        return re.sub(r"^[=^~><]*", "", version)
+
+    if value_type == "NvmChannel":
+        return re.sub(r"^v", "", version)
+
+    if value_type == "RustupChannel":
+        return version
+
+    print("Error: Unknown value_type '%s'" % value_type, file=sys.stderr)
+    sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -3,4 +3,8 @@
 !/\.nvmrc
 !/\.downloads
 !/\.out
+!/tool-versions.json
+!/scripts/get-version
+!/Cargo.toml
+!/packages/nextclade-web/package.json
 
