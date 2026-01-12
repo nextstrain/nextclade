@@ -417,7 +417,7 @@ For routine development, it is recommended to configure your text editor to see 
 
 (these instructions can go out of date with time, so make sure you check VSCode community for what's latest and greatest)
 
-> Make sure you have ["Rust Analyzer" extension](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) (and not deprecated "Rust" extension), and configure it to use clippy: hit Ctrl+Shit+P, then find "Preferences: Open user settings (JSON)", then add:
+> Make sure you have ["Rust Analyzer" extension](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) (and not deprecated "Rust" extension), and configure it to use clippy: hit Ctrl+Shift+P, then find "Preferences: Open user settings (JSON)", then add:
 >
 > ```
 > "rust-analyzer.check.command": "clippy",
@@ -508,7 +508,7 @@ The workflows run on every pull request on GitHub and every push to a major bran
 > Clone the fork https://github.com/nextstrain/bioconda-recipes as described in the readme. Follow the instructions precisely, don't invent anything new. Then push the latest updates from the upstream to the fork with this command:
 >
 > ```
-> cd biooconda-recipes && git push nextstrain bioconda/master:master
+> cd bioconda-recipes && git push nextstrain bioconda/master:master
 > ```
 >
 > Then go to the failing job and restart it.
@@ -588,7 +588,7 @@ Run the usual `dataset list` and `dataset get`, with an additional flag:
 
 This will tell Nextclade to use the local dataset server instead of the default one.
 
-See Nextclade CLI user documentation for more details about available command ine arguments. You can type type `nextclade --help` for help screen. Each subcommand has it's own help screen, e.g `nextclade dataset get --help`.
+See Nextclade CLI user documentation for more details about available command ine arguments. You can type `nextclade --help` for help screen. Each subcommand has it's own help screen, e.g `nextclade dataset get --help`.
 
 ### Temporarily use custom dataset server with Nextclade Web
 
@@ -671,7 +671,7 @@ Nextclade project tries hard to adhere to [Semantic Versioning 2.0.0](https://se
 - Follow comments in the script `./scripts/release` on how to install dependencies for this script.
 - Run `./scripts/release <bump_type>`, where `bump_type` signifies by how much you want to increment the version. It should be one of: `major`, `minor`, `patch`, `rc`, `beta`, `alpha`. Note that `rc`, `beta` and `alpha` will make a prerelease, that is - marked as "prerelease" on GitHub Releases and not overwriting "latest" tags on DockerHub.
 - Verify the changes the script applied:
-  - versions are bumped in all `Cargo.toml` files (one at the root adn one for each package) and the root`Cargo.lock` file.
+  - versions are bumped in all `Cargo.toml` files (one at the root and one for each package) and the root`Cargo.lock` file.
   - version is bumped in `package.json` file.
   - a local commit created on branch `master` with a message containing the version number that you expect
 - The script will provide instructions on how to push the changes. You can push to `master`, or fast-forward either `staging` or `release` to `master` and then push to `staging` or `release`. A push to any of these branches will trigger CI deployment to the corresponding environment. Most often you push the release commit to all 3 major branches.
