@@ -68,7 +68,7 @@ git clone --depth 1 --filter=blob:none --sparse --branch "${branch}" \
   "https://github.com/${repo}.git" "${tmpdir}/repo" --quiet
 
 pushd "${tmpdir}/repo" >/dev/null
-git sparse-checkout set data --quiet
+git sparse-checkout set data  >/dev/null
 popd >/dev/null
 
 mkdir -p "${output_dir}"
