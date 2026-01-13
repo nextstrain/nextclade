@@ -284,7 +284,7 @@ jobs:
           curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v${SEQKIT_VERSION}/seqkit_linux_amd64.tar.gz" | tar -C "${HOME}/bin" -xz "seqkit"
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: out-*
           merge-multiple: true
@@ -314,7 +314,7 @@ jobs:
   #          submodules: true
   #
   #      - name: "Download build artifacts"
-  #        uses: actions/download-artifact@v6
+  #        uses: actions/download-artifact@v7
   #        with:
   #          name: "out"
   #          path: ".out"
@@ -344,7 +344,7 @@ jobs:
         uses: ./.github/actions/free-disk-space
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: out-*
           merge-multiple: true
@@ -372,7 +372,7 @@ jobs:
         uses: ./.github/actions/free-disk-space
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: out-*
           merge-multiple: true
@@ -401,7 +401,7 @@ jobs:
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: out-*
           merge-multiple: true
@@ -442,7 +442,7 @@ jobs:
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: out-*
           merge-multiple: true
