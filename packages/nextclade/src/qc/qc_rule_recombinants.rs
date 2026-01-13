@@ -139,7 +139,8 @@ pub fn rule_recombinants(
 
   let ls_strategy_score = label_switching.as_ref().map_or(0.0, |ls| ls.score);
 
-  let overall_score = (wt_strategy_score + ls_strategy_score) * *config.score_weight;
+  let wt_score_contribution = if wt_config.enabled { wt_strategy_score } else { 0.0 };
+  let overall_score = (wt_score_contribution + ls_strategy_score) * *config.score_weight;
   let status = QcStatus::from_score(overall_score);
 
   Some(QcResultRecombinants {
