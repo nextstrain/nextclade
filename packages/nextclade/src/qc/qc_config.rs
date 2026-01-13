@@ -352,7 +352,6 @@ pub struct QcRulesConfigRecombinants {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub reversion_clustering: Option<QcRecombConfigReversionClustering>,
 
-  #[deprecated(note = "Use weighted_threshold.threshold instead")]
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub mutations_threshold: Option<usize>,
 }
