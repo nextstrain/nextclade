@@ -5,6 +5,7 @@
 /data_dev*/
 /data_local*
 /data/
+!/data/recomb/
 /docs/build/
 /e2e/cli/snapshots/
 /e2e/cli/tmp/
