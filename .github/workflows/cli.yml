@@ -265,14 +265,17 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: "Set up Docker Buildx"
-        uses: docker/setup-buildx-action@v3
-
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
+
+      - name: "Set up Docker Buildx"
+        uses: docker/setup-buildx-action@v3
+
+      - name: "Free disk space"
+        uses: ./.github/actions/free-disk-space
 
       - name: "Install dependencies"
         run: |
@@ -331,14 +334,17 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: "Set up Docker Buildx"
-        uses: docker/setup-buildx-action@v3
-
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
+
+      - name: "Set up Docker Buildx"
+        uses: docker/setup-buildx-action@v3
+
+      - name: "Free disk space"
+        uses: ./.github/actions/free-disk-space
 
       - name: "Download build artifacts"
         uses: actions/download-artifact@v6
@@ -364,6 +370,9 @@ jobs:
         with:
           fetch-depth: 1
           submodules: true
+
+      - name: "Free disk space"
+        uses: ./.github/actions/free-disk-space
 
       - name: "Download build artifacts"
         uses: actions/download-artifact@v6
