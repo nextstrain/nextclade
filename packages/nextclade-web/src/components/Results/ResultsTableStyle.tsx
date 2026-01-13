@@ -17,7 +17,7 @@ export const COLUMN_WIDTHS = {
   rowIndex: 45,
   id: 45,
   seqName: 250,
-  qc: 130,
+  qc: 150,
   clade: 110,
   coverage: 50,
   mut: 50,
