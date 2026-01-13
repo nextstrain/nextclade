@@ -1,5 +1,6 @@
 import { config as loadEnv } from 'dotenv'
 import { NextConfig } from 'next'
+import { v5 as uuidv5 } from 'uuid'
 import getWithMDX from '@next/mdx'
 import remarkBreaks from 'remark-breaks'
 import remarkImages from 'remark-images'
@@ -132,6 +133,11 @@ const nextConfig: NextConfig = {
     'semver',
   ],
   env,
+  rewrites: !PRODUCTION
+    ? async () => [
+        { source: '/.well-known/appspecific/:path*', destination: '/_next/static/.well-known/appspecific/:path*' },
+      ]
+    : undefined,
 }
 
 const withExternals = getWithExternals({ externals: ['canvas'] })
@@ -183,6 +189,22 @@ const withRobotsTxt = getWithEmitFile({
   hash: false,
 })
 
+const withDevToolsJson = !PRODUCTION
+  ? getWithEmitFile({
+      path: 'static/.well-known/appspecific/',
+      filename: 'com.chrome.devtools.json',
+      content: (() => {
+        const UUID_NAMESPACE_URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8'
+        return JSON.stringify(
+          { workspace: { root: moduleRoot, uuid: uuidv5(moduleRoot, UUID_NAMESPACE_URL) } },
+          null,
+          2,
+        )
+      })(),
+      hash: false,
+    })
+  : undefined
+
 const plugins = [
   withIgnore,
   withExternals,
@@ -198,6 +220,7 @@ const plugins = [
   withWasm,
   withAppJson,
   withRobotsTxt,
-].filter(Boolean)
+  ...(withDevToolsJson ? [withDevToolsJson] : []),
+]
 
 export default () => plugins.reduce((acc, next) => next(acc), nextConfig)
