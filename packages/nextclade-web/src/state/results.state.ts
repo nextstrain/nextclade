@@ -1,6 +1,6 @@
 /* eslint-disable no-void */
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
-import { isNil } from 'lodash'
+import { isNil, union } from 'lodash'
 import { atom, selectorFamily } from 'recoil'
 import { atom as jotaiAtom } from 'jotai'
 import { atomFamily as jotaiAtomFamily } from 'jotai/utils'
@@ -65,7 +65,7 @@ export const analysisResultAtom = jotaiAtomFamily((index: number) =>
 
       // Add to the duplicate names map
       const currentDuplicates = get(seqNameDuplicatesAtom(result.seqName))
-      set(seqNameDuplicatesAtom(result.seqName), [...currentDuplicates, result.index])
+      set(seqNameDuplicatesAtom(result.seqName), union(currentDuplicates, [result.index]))
     },
   ),
 )
