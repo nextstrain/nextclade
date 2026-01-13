@@ -26,19 +26,102 @@ THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #    identified as directories containing a 'pathogen.json' file.
 #
 #     ./tests/run-smoke-tests 'target/release/nextclade' '.../nextclade_data/data_output'
+#
+# Options:
+#   -j, --jobs <N>        Total jobs (default: JOBS env var, or nproc)
+#   --datasets-dir <dir>  Directory for datasets (default: DATASETS_DIR env var)
+#   --results-dir <dir>   Directory for results (default: RESULTS_DIR env var)
 
-export NEXTCLADE_BIN="${1:? "Usage: ${0} <path_to_nextclade> [path_to_dataset_collection_dir]"}"
-export INPUT_DATASETS_DIR="${2:-}"
+# Parse arguments
+NEXTCLADE_BIN=""
+INPUT_DATASETS_DIR=""
+JOBS_ARG=""
+DATASETS_DIR_ARG=""
+RESULTS_DIR_ARG=""
 
-export DATASETS_DIR="${THIS_DIR}/../tmp/smoke-tests/dataset"
-export RESULTS_DIR="${THIS_DIR}/../tmp/smoke-tests/result"
+while [[ $# -gt 0 ]]; do
+  case "${1}" in
+    -j|--jobs)
+      JOBS_ARG="${2}"
+      shift 2
+      ;;
+    --datasets-dir)
+      DATASETS_DIR_ARG="${2}"
+      shift 2
+      ;;
+    --results-dir)
+      RESULTS_DIR_ARG="${2}"
+      shift 2
+      ;;
+    -*)
+      printf "Unknown option: %s\n" "${1}" >&2
+      exit 1
+      ;;
+    *)
+      if [[ -z "${NEXTCLADE_BIN}" ]]; then
+        NEXTCLADE_BIN="${1}"
+      elif [[ -z "${INPUT_DATASETS_DIR}" ]]; then
+        INPUT_DATASETS_DIR="${1}"
+      else
+        printf "Unexpected argument: %s\n" "${1}" >&2
+        exit 1
+      fi
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "${NEXTCLADE_BIN}" ]]; then
+  printf "Usage: %s [options] <path_to_nextclade> [path_to_dataset_collection_dir]\n" "${0}" >&2
+  printf "Options:\n" >&2
+  printf "  -j, --jobs <N>        Total jobs (default: JOBS env var, or nproc)\n" >&2
+  printf "  --datasets-dir <dir>  Directory for datasets (default: DATASETS_DIR env var)\n" >&2
+  printf "  --results-dir <dir>   Directory for results (default: RESULTS_DIR env var)\n" >&2
+  exit 1
+fi
+
+export NEXTCLADE_BIN
+export INPUT_DATASETS_DIR
+
+# Determine total jobs: CLI arg > env var > nproc
+TOTAL_JOBS="${JOBS_ARG:-${JOBS:-$(nproc)}}"
+
+# Split threads between parallel and nextclade to avoid over-subscription
+case "${TOTAL_JOBS}" in
+  1)
+    PARALLEL_JOBS=1
+    NEXTCLADE_JOBS=1
+    ;;
+  2|3)
+    PARALLEL_JOBS=2
+    NEXTCLADE_JOBS=2
+    ;;
+  *)
+    read -r PARALLEL_JOBS NEXTCLADE_JOBS < <(python3 -c "
+import math
+C = ${TOTAL_JOBS}
+P = int(math.sqrt(C))
+P = P if C % P == 0 else P - 1 if P > 1 and C % (P - 1) == 0 else P
+print(C // P, P)
+")
+    ;;
+esac
+
+export PARALLEL_JOBS
+export NEXTCLADE_JOBS
+
+printf "Using %d parallel jobs with %d nextclade threads each (total: %d)\n" "${PARALLEL_JOBS}" "${NEXTCLADE_JOBS}" "$((PARALLEL_JOBS * NEXTCLADE_JOBS))"
+
+# Determine directories: CLI arg > env var > default
+export DATASETS_DIR="${DATASETS_DIR_ARG:-${DATASETS_DIR:-${THIS_DIR}/../tmp/smoke-tests/dataset}}"
+export RESULTS_DIR="${RESULTS_DIR_ARG:-${RESULTS_DIR:-${THIS_DIR}/../tmp/smoke-tests/result}}"
 
 function run_with_name() {
   local name="${1}"
   local sequences="${2}"
   local out_dir="${RESULTS_DIR}/${name}/with_name"
 
-  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --jobs="${NEXTCLADE_JOBS}" --retry-reverse-complement --in-order --include-reference \
     --dataset-name="${name}" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -52,7 +135,7 @@ function run_with_dataset_dir() {
   local sequences="${3}"
   local out_dir="${RESULTS_DIR}/${name}/with_dataset"
 
-  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --jobs="${NEXTCLADE_JOBS}" --retry-reverse-complement --in-order --include-reference \
     --input-dataset="${dataset_dir}" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -66,7 +149,7 @@ function run_with_dataset_zip() {
   local sequences="${3}"
   local out_dir="${RESULTS_DIR}/${name}/with_dataset_zip"
 
-  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --jobs="${NEXTCLADE_JOBS}" --retry-reverse-complement --in-order --include-reference \
     --input-dataset="${zip_path}" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -82,7 +165,7 @@ function run_with_ref_only() {
 
   if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
 
-  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --jobs="${NEXTCLADE_JOBS}" --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
     --output-all="${out_dir}" \
@@ -99,7 +182,7 @@ function run_with_ref_and_annotation() {
   if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
   if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
 
-  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --jobs="${NEXTCLADE_JOBS}" --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-annotation="${dataset_dir}/genome_annotation.gff3" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
@@ -117,7 +200,7 @@ function run_with_ref_and_tree() {
   if [ ! -f "${dataset_dir}/reference.fasta" ]; then return; fi
   if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
 
-  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --jobs="${NEXTCLADE_JOBS}" --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-tree="${dataset_dir}/tree.json" \
     --output-translations="${out_dir}/translations/{cds}.translation.fasta" \
@@ -135,7 +218,7 @@ function run_with_ref_and_annotation_and_tree() {
   if [ ! -f "${dataset_dir}/genome_annotation.gff3" ]; then return; fi
   if [ ! -f "${dataset_dir}/tree.json" ]; then return; fi
 
-  "${NEXTCLADE_BIN}" run --quiet --retry-reverse-complement --in-order --include-reference \
+  "${NEXTCLADE_BIN}" run --quiet --jobs="${NEXTCLADE_JOBS}" --retry-reverse-complement --in-order --include-reference \
     --input-ref="${dataset_dir}/reference.fasta" \
     --input-annotation="${dataset_dir}/genome_annotation.gff3" \
     --input-tree="${dataset_dir}/tree.json" \
@@ -284,10 +367,10 @@ if [ -n "${INPUT_DATASETS_DIR}" ]; then
 
   printf "Found %d datasets\n" "${#dataset_dirs[@]}"
 
-  parallel --jobs=+0 run_local_dataset ::: "${dataset_dirs[@]}"
+  parallel --jobs="${PARALLEL_JOBS}" run_local_dataset ::: "${dataset_dirs[@]}"
 else
   printf "Downloading datasets and running smoke tests\n"
   all_datasets="$("${NEXTCLADE_BIN}" dataset list --include-deprecated --only-names)"
   printf "Will download %d datasets\n" "$(printf "%s" "${all_datasets}" | wc -l)"
-  parallel --jobs=+0 download_and_run_dataset ::: "${all_datasets}"
+  parallel --jobs="${PARALLEL_JOBS}" download_and_run_dataset ::: "${all_datasets}"
 fi
