@@ -12,15 +12,18 @@ runs:
         sudo swapoff -a || true
         sudo rm -f /swapfile || true
 
+        echo 'Acquire::Languages "none";' | sudo tee /etc/apt/apt.conf.d/99disable-translations > /dev/null
+
         mapfile -t purge_list < <(dpkg -l | awk '
           /^ii/ {
             p=$2
             if (p ~ /^(dotnet-.*|llvm-.*|php.*|mongodb-.*|mysql-.*)$/) print p
           }')
         sudo apt-get purge -y "${purge_list[@]:-}" azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri || true
-        sudo apt-get autoremove -y --purge
+        sudo apt-get autoremove -y --purge \
+          -o APT::AutoRemove::RecommendsImportant=false \
+          -o APT::AutoRemove::SuggestsImportant=false
         sudo apt-get clean
-        sudo rm -rf /var/lib/apt/lists/*
 
         sudo rm -rf \
           /opt/ghc \
