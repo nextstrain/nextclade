@@ -933,7 +933,6 @@
           ]
         },
         "mutationsThreshold": {
-          "deprecated": true,
           "type": [
             "integer",
             "null"
