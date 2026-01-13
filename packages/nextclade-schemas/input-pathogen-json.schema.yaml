@@ -597,7 +597,6 @@ definitions:
         - $ref: '#/definitions/QcRecombConfigMultiAncestor'
         - type: 'null'
       mutationsThreshold:
-        deprecated: true
         type:
         - integer
         - 'null'
