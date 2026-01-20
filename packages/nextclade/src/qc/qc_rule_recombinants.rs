@@ -111,12 +111,15 @@ pub fn rule_recombinants(
     .as_ref()
     .and_then(|ls_config| strategy_label_switching(private_nuc_mutations, ls_config));
 
-  let su_score = spatial_uniformity.as_ref().map_or(0.0, |su| su.score);
-  let cg_score = cluster_gaps.as_ref().map_or(0.0, |cg| cg.score);
-  let rc_score = reversion_clustering.as_ref().map_or(0.0, |rc| rc.score);
-  let ls_score = label_switching.as_ref().map_or(0.0, |ls| ls.score);
-
-  let combined_score = su_score + cg_score + rc_score + ls_score;
+  let combined_score: f64 = [
+    spatial_uniformity.as_ref().map(|r| r.score),
+    cluster_gaps.as_ref().map(|r| r.score),
+    reversion_clustering.as_ref().map(|r| r.score),
+    label_switching.as_ref().map(|r| r.score),
+  ]
+  .into_iter()
+  .flatten()
+  .sum();
   let overall_score = combined_score * *config.score_weight;
   let status = QcStatus::from_score(overall_score);
 
@@ -275,8 +278,17 @@ fn strategy_label_switching(
   private_muts: &PrivateNucMutations,
   config: &QcRecombConfigLabelSwitching,
 ) -> Option<RecombResultLabelSwitching> {
-  if !config.enabled || private_muts.labeled_substitutions.is_empty() {
+  if !config.enabled {
     return None;
+  }
+
+  if private_muts.labeled_substitutions.is_empty() {
+    return Some(RecombResultLabelSwitching {
+      num_labels: 0,
+      label_segments: BTreeMap::new(),
+      num_switches: 0,
+      score: 0.0,
+    });
   }
 
   let mut label_positions: BTreeMap<String, Vec<isize>> = BTreeMap::new();
@@ -298,15 +310,14 @@ fn strategy_label_switching(
     });
   }
 
-  let mut label_centroids = label_positions
+  let label_centroids = label_positions
     .iter()
     .map(|(label, positions)| {
       let centroid = positions.iter().sum::<isize>() as f64 / positions.len() as f64;
       (label.clone(), centroid)
     })
+    .sorted_by_key(|(_, centroid)| OrderedFloat(*centroid))
     .collect_vec();
-
-  label_centroids.sort_by(|a, b| OrderedFloat(a.1).cmp(&OrderedFloat(b.1)));
 
   let num_switches = label_centroids.len().saturating_sub(1);
   let score = num_switches as f64 * *config.weight;
@@ -516,7 +527,11 @@ mod tests {
     let config = make_ls_config(true, 50.0, 2);
 
     let result = strategy_label_switching(&private_muts, &config);
-    assert!(result.is_none());
+    assert!(result.is_some());
+    let result = result.unwrap();
+    assert_eq!(result.num_labels, 0);
+    assert_eq!(result.num_switches, 0);
+    assert_score(result.score, 0.0);
   }
 
   #[test]
