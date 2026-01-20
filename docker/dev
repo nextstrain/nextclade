@@ -331,6 +331,12 @@ case "${1:-}" in
   RELEASE="tsc:watch"
   WATCH=0
   ;;
+"app-format" | "af")
+  shift
+  WEB=1
+  RELEASE="format:fix"
+  WATCH=0
+  ;;
 "test" | "t")
   shift
   TEST=1
