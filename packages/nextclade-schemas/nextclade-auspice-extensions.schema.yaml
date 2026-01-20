@@ -760,9 +760,7 @@ definitions:
     examples:
     - enabled: false
       minGapSize: 1000
-      weightPerGap: 25.0
-      weightGapSize: 0.01
-      weight: 50.0
+      weight: 1250.0
     type: object
     properties:
       enabled:
@@ -773,16 +771,8 @@ definitions:
         type: integer
         format: uint
         minimum: 0.0
-      weightPerGap:
-        default: 0.0
-        type: number
-        format: double
-      weightGapSize:
-        default: 0.0
-        type: number
-        format: double
       weight:
-        default: 50.0
+        default: 0.0
         type: number
         format: double
   QcRecombConfigReversionClustering:

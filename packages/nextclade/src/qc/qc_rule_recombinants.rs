@@ -214,13 +214,11 @@ fn strategy_cluster_gaps(
 
   let max_gap = gaps.iter().copied().max().unwrap_or(0);
 
-  let base_score = if max_gap >= config.min_gap_size {
-    (clusters.len() as f64 - 1.0) * *config.weight_per_gap
-      + (max_gap as f64 / config.min_gap_size as f64) * *config.weight_gap_size
+  let score = if max_gap >= config.min_gap_size {
+    (clusters.len() as f64 - 1.0) * *config.weight
   } else {
     0.0
   };
-  let score = base_score * *config.weight;
 
   Some(RecombResultClusterGaps {
     num_clusters: clusters.len(),
@@ -411,8 +409,6 @@ mod tests {
     QcRecombConfigClusterGaps {
       enabled,
       min_gap_size,
-      weight_per_gap: OrderedFloat(25.0),
-      weight_gap_size: OrderedFloat(0.01),
       weight: OrderedFloat(weight),
     }
   }
@@ -701,9 +697,8 @@ mod tests {
     assert_eq!(result.num_clusters, 2);
     assert_eq!(result.max_gap, 4800);
     assert_eq!(result.gaps, vec![4800]);
-    let expected_base = 1.0 * 25.0 + (4800.0 / 1000.0) * 0.01;
-    let expected_score = expected_base * 1.0;
-    assert_score(result.score, expected_score);
+    // 1 gap * 1.0 weight = 1.0
+    assert_score(result.score, 1.0);
   }
 
   #[test]
@@ -716,9 +711,8 @@ mod tests {
     assert_eq!(result.num_clusters, 3);
     assert_eq!(result.max_gap, 4900);
     assert_eq!(result.gaps, vec![4800, 4900]);
-    let expected_base = 2.0 * 25.0 + (4900.0 / 1000.0) * 0.01;
-    let expected_score = expected_base * 1.0;
-    assert_score(result.score, expected_score);
+    // 2 gaps * 1.0 weight = 2.0
+    assert_score(result.score, 2.0);
   }
 
   #[test]
@@ -730,9 +724,8 @@ mod tests {
     let result = result.unwrap();
     assert_eq!(result.num_clusters, 2);
     assert_eq!(result.max_gap, 1000);
-    let expected_base = 1.0 * 25.0 + (1000.0 / 1000.0) * 0.01;
-    let expected_score = expected_base * 1.0;
-    assert_score(result.score, expected_score);
+    // 1 gap * 1.0 weight = 1.0
+    assert_score(result.score, 1.0);
   }
 
   #[test]
@@ -742,8 +735,7 @@ mod tests {
     let result = strategy_cluster_gaps(Some(&snp_clusters), &config);
     assert!(result.is_some());
     let result = result.unwrap();
-    let expected_base = 1.0 * 25.0 + (4800.0 / 1000.0) * 0.01;
-    let expected_score = expected_base * 2.0;
-    assert_score(result.score, expected_score);
+    // 1 gap * 2.0 weight = 2.0
+    assert_score(result.score, 2.0);
   }
 }

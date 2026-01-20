@@ -256,10 +256,6 @@ impl QcRecombConfigSpatialUniformity {
   }
 }
 
-const fn default_cluster_gaps_weight() -> OrderedFloat<f64> {
-  OrderedFloat(50.0)
-}
-
 /// Configuration for recombinant detection strategy: cluster gap analysis
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -268,9 +264,6 @@ const fn default_cluster_gaps_weight() -> OrderedFloat<f64> {
 pub struct QcRecombConfigClusterGaps {
   pub enabled: bool,
   pub min_gap_size: usize,
-  pub weight_per_gap: OrderedFloat<f64>,
-  pub weight_gap_size: OrderedFloat<f64>,
-  #[serde(default = "default_cluster_gaps_weight")]
   pub weight: OrderedFloat<f64>,
 }
 
@@ -279,9 +272,7 @@ impl QcRecombConfigClusterGaps {
     Self {
       enabled: false,
       min_gap_size: 1000,
-      weight_per_gap: OrderedFloat(25.0),
-      weight_gap_size: OrderedFloat(0.01),
-      weight: OrderedFloat(50.0),
+      weight: OrderedFloat(1250.0),
     }
   }
 }

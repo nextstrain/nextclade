@@ -89,9 +89,7 @@
       "clusterGaps": {
         "enabled": true,
         "minGapSize": 1000,
-        "weightPerGap": 25.0,
-        "weightGapSize": 0.01,
-        "weight": 50.0
+        "weight": 1250.0
       }
     },
     "snpClusters": {
