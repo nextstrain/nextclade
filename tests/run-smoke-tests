@@ -31,6 +31,32 @@ THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #   -j, --jobs <N>        Total jobs (default: JOBS env var, or nproc)
 #   --datasets-dir <dir>  Directory for datasets (default: DATASETS_DIR env var)
 #   --results-dir <dir>   Directory for results (default: RESULTS_DIR env var)
+#   --fast                Run only fast datasets (~12 datasets vs ~90, for CI)
+
+# Fast datasets: curated list of datasets that run quickly (<10s each with 2 threads).
+# Selected for diversity (different pathogens, features) while keeping total time reasonable.
+# Datasets are slow due to: large genomes × many sequences × large trees.
+FAST_DATASETS=(
+  # Flu segments - small genomes, fast alignment
+  "nextstrain/flu/h3n2/ha/EPI1857216"
+  "nextstrain/flu/h3n2/na/EPI1857215"
+  "nextstrain/flu/h1n1pdm/ha/MW626062"
+  "nextstrain/flu/b/ha/KX058884"
+  "nextstrain/flu/h3n2/ns"
+  # RSV - medium size, reasonable tree
+  "nextstrain/rsv/a/EPI_ISL_412866"
+  "nextstrain/rsv/b/EPI_ISL_1653999"
+  # Measles - no tree, fast
+  "nextstrain/measles/N450/WHO-2012"
+  # Rubella - small tree
+  "nextstrain/rubella/E1"
+  # Orthoebolavirus - medium
+  "nextstrain/orthoebolavirus/ebov"
+  # Mumps - small
+  "nextstrain/mumps/sh"
+  # Yellow fever - no tree
+  "nextstrain/yellow-fever/prM-E"
+)
 
 # Parse arguments
 NEXTCLADE_BIN=""
@@ -38,7 +64,9 @@ INPUT_DATASETS_DIR=""
 JOBS_ARG=""
 DATASETS_DIR_ARG=""
 RESULTS_DIR_ARG=""
+FAST_MODE=false
 
+# shfmt:off
 while [[ $# -gt 0 ]]; do
   case "${1}" in
     -j|--jobs)
@@ -52,6 +80,10 @@ while [[ $# -gt 0 ]]; do
     --results-dir)
       RESULTS_DIR_ARG="${2}"
       shift 2
+      ;;
+    --fast)
+      FAST_MODE=true
+      shift
       ;;
     -*)
       printf "Unknown option: %s\n" "${1}" >&2
@@ -70,6 +102,7 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+# shfmt:on
 
 if [[ -z "${NEXTCLADE_BIN}" ]]; then
   printf "Usage: %s [options] <path_to_nextclade> [path_to_dataset_collection_dir]\n" "${0}" >&2
@@ -77,6 +110,7 @@ if [[ -z "${NEXTCLADE_BIN}" ]]; then
   printf "  -j, --jobs <N>        Total jobs (default: JOBS env var, or nproc)\n" >&2
   printf "  --datasets-dir <dir>  Directory for datasets (default: DATASETS_DIR env var)\n" >&2
   printf "  --results-dir <dir>   Directory for results (default: RESULTS_DIR env var)\n" >&2
+  printf "  --fast                Run only fast datasets (for CI, ~12 datasets vs ~90)\n" >&2
   exit 1
 fi
 
@@ -365,12 +399,37 @@ if [ -n "${INPUT_DATASETS_DIR}" ]; then
     exit 1
   fi
 
+  if "${FAST_MODE}"; then
+    # Filter to only fast datasets by matching directory suffixes
+    filtered_dirs=()
+    for dir in "${dataset_dirs[@]}"; do
+      for fast_name in "${FAST_DATASETS[@]}"; do
+        if [[ "${dir}" == *"${fast_name}"* ]]; then
+          filtered_dirs+=("${dir}")
+          break
+        fi
+      done
+    done
+    dataset_dirs=("${filtered_dirs[@]}")
+    printf "Fast mode: filtered to %d datasets\n" "${#dataset_dirs[@]}"
+    if (( ${#dataset_dirs[@]} == 0 )); then
+      printf "Error: no datasets matched fast mode filters\n" >&2
+      exit 1
+    fi
+  fi
+
   printf "Found %d datasets\n" "${#dataset_dirs[@]}"
 
   parallel --jobs="${PARALLEL_JOBS}" run_local_dataset ::: "${dataset_dirs[@]}"
 else
-  printf "Downloading datasets and running smoke tests\n"
-  all_datasets="$("${NEXTCLADE_BIN}" dataset list --include-deprecated --only-names)"
-  printf "Will download %d datasets\n" "$(printf "%s" "${all_datasets}" | wc -l)"
-  parallel --jobs="${PARALLEL_JOBS}" download_and_run_dataset ::: "${all_datasets}"
+  if "${FAST_MODE}"; then
+    printf "Downloading fast datasets and running smoke tests (fast mode)\n"
+    printf "Will download %d datasets\n" "${#FAST_DATASETS[@]}"
+    parallel --jobs="${PARALLEL_JOBS}" download_and_run_dataset ::: "${FAST_DATASETS[@]}"
+  else
+    printf "Downloading datasets and running smoke tests\n"
+    all_datasets="$("${NEXTCLADE_BIN}" dataset list --include-deprecated --only-names)"
+    printf "Will download %d datasets\n" "$(printf "%s" "${all_datasets}" | wc -l)"
+    parallel --jobs="${PARALLEL_JOBS}" download_and_run_dataset ::: "${all_datasets}"
+  fi
 fi

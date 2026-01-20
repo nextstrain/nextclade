@@ -295,7 +295,7 @@ jobs:
           export PATH="${HOME}/bin:${PATH}"
 
           chmod +x ./.out/*
-          JOBS=2 ./tests/run-smoke-tests ./.out/nextclade-x86_64-unknown-linux-gnu
+          JOBS=2 ./tests/run-smoke-tests --fast ./.out/nextclade-x86_64-unknown-linux-gnu
 
       - name: "Validate output query GFF files (linux)"
         run: |

@@ -352,12 +352,6 @@ case "${1:-}" in
   SMOKE_TEST=1
   WATCH=0
   ;;
-"test-smoke-release" | "tsr")
-  shift
-  SMOKE_TEST=1
-  RELEASE="--release"
-  WATCH=0
-  ;;
 "test-unit" | "tu")
   shift
   TEST=1
@@ -628,7 +622,25 @@ elif [ "${BUILD}" == "1" ]; then
   fi
   COMMAND="cargo build -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${SMOKE_TEST}" == "1" ]; then
-  COMMAND="./tests/run-smoke-tests 'cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} --bin=nextclade'"
+  DEFAULT_BIN=".build/docker/release/nextclade"
+  # Check if any non-flag argument (binary path) is provided
+  HAS_BIN=false
+  for arg in "${@}"; do
+    if [[ "${arg}" != -* ]]; then
+      HAS_BIN=true
+      break
+    fi
+  done
+  if ! "${HAS_BIN}"; then
+    if [ ! -f "${DEFAULT_BIN}" ]; then
+      printf "Error: No binary specified and default not found: %s\n" "${DEFAULT_BIN}" >&2
+      printf "Build first with: ./docker/dev br nextclade\n" >&2
+      exit 1
+    fi
+    COMMAND="./tests/run-smoke-tests ${*:-} '${DEFAULT_BIN}'"
+  else
+    COMMAND="./tests/run-smoke-tests ${*}"
+  fi
 elif [ "${WASM}" == "1" ]; then
   COMMAND=${COMMAND:=bun install && bun wasm-${RELEASE}}
   COMMAND="bash -c \"set -euo pipefail && cd packages/nextclade-web && ${COMMAND}\""
