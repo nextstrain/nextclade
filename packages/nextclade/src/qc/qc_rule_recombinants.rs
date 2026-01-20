@@ -8,7 +8,6 @@ use crate::qc::qc_recomb_utils::{PositionCluster, compute_cv, find_position_clus
 use crate::qc::qc_rule_snp_clusters::QcResultSnpClusters;
 use crate::qc::qc_run::{QcRule, QcStatus};
 use itertools::Itertools;
-use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -308,16 +307,14 @@ fn strategy_label_switching(
     });
   }
 
-  let label_centroids = label_positions
+  let sorted_mutations = private_muts
+    .labeled_substitutions
     .iter()
-    .map(|(label, positions)| {
-      let centroid = positions.iter().sum::<isize>() as f64 / positions.len() as f64;
-      (label.clone(), centroid)
-    })
-    .sorted_by_key(|(_, centroid)| OrderedFloat(*centroid))
+    .filter_map(|sub| sub.labels.first().map(|label| (sub.substitution.pos.as_isize(), label)))
+    .sorted_by_key(|(pos, _)| *pos)
     .collect_vec();
 
-  let num_switches = label_centroids.len().saturating_sub(1);
+  let num_switches = sorted_mutations.iter().tuple_windows().filter(|(a, b)| a.1 != b.1).count();
   let score = num_switches as f64 * *config.weight;
 
   Some(RecombResultLabelSwitching {
@@ -335,6 +332,7 @@ mod tests {
   use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
   use crate::coord::position::NucRefGlobalPosition;
   use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
+  use ordered_float::OrderedFloat;
 
   fn assert_score(actual: f64, expected: f64) {
     assert!(
@@ -591,6 +589,30 @@ mod tests {
     assert_eq!(result.num_labels, 3);
     assert_eq!(result.num_switches, 2);
     assert_score(result.score, 50.0);
+  }
+
+  #[test]
+  fn test_label_switching_interleaved() {
+    let private_muts = PrivateNucMutations {
+      labeled_substitutions: vec![
+        make_labeled_sub(100, vec!["Alpha"]),
+        make_labeled_sub(300, vec!["Beta"]),
+        make_labeled_sub(500, vec!["Alpha"]),
+        make_labeled_sub(700, vec!["Beta"]),
+        make_labeled_sub(900, vec!["Alpha"]),
+      ],
+      ..Default::default()
+    };
+    let config = make_ls_config(true, 10.0, 2);
+
+    let result = strategy_label_switching(&private_muts, &config);
+    assert!(result.is_some());
+    let result = result.unwrap();
+    assert_eq!(result.num_labels, 2);
+    assert_eq!(result.num_switches, 4);
+    assert_score(result.score, 40.0);
+    assert_eq!(result.label_segments.get("Alpha"), Some(&3));
+    assert_eq!(result.label_segments.get("Beta"), Some(&2));
   }
 
   #[test]
