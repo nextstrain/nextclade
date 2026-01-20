@@ -50,6 +50,6 @@ export function formatQCRecombinants<TFunction extends TFunctionInterface>(
     message,
     details: detailsStr,
     total: totalPrivateSubstitutions,
-    score: round(score),
+    score: round(score, 1),
   })
 }
