@@ -314,7 +314,11 @@ fn strategy_label_switching(
     .sorted_by_key(|(pos, _)| *pos)
     .collect_vec();
 
-  let num_switches = sorted_mutations.iter().tuple_windows().filter(|(a, b)| a.1 != b.1).count();
+  let num_switches = sorted_mutations
+    .iter()
+    .tuple_windows()
+    .filter(|(a, b)| a.1 != b.1)
+    .count();
   let score = num_switches as f64 * *config.weight;
 
   Some(RecombResultLabelSwitching {
