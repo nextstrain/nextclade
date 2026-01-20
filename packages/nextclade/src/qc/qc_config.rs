@@ -233,33 +233,6 @@ impl QcRulesConfigStopCodons {
   }
 }
 
-/// Configuration for recombinant detection strategy: weighted mutation threshold
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
-#[serde(rename_all = "camelCase")]
-#[serde(default)]
-#[schemars(example = "QcRecombConfigWeightedThreshold::example")]
-pub struct QcRecombConfigWeightedThreshold {
-  pub enabled: bool,
-  pub weight: OrderedFloat<f64>,
-  pub threshold: usize,
-  pub weight_unlabeled: OrderedFloat<f64>,
-  pub weight_labeled: OrderedFloat<f64>,
-  pub weight_reversion: OrderedFloat<f64>,
-}
-
-impl QcRecombConfigWeightedThreshold {
-  pub const fn example() -> Self {
-    Self {
-      enabled: true,
-      weight: OrderedFloat(1.0),
-      threshold: 20,
-      weight_unlabeled: OrderedFloat(1.0),
-      weight_labeled: OrderedFloat(1.0),
-      weight_reversion: OrderedFloat(2.0),
-    }
-  }
-}
-
 /// Configuration for recombinant detection strategy: spatial uniformity (coefficient of variation)
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -283,6 +256,10 @@ impl QcRecombConfigSpatialUniformity {
   }
 }
 
+const fn default_cluster_gaps_weight() -> OrderedFloat<f64> {
+  OrderedFloat(50.0)
+}
+
 /// Configuration for recombinant detection strategy: cluster gap analysis
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -293,6 +270,8 @@ pub struct QcRecombConfigClusterGaps {
   pub min_gap_size: usize,
   pub weight_per_gap: OrderedFloat<f64>,
   pub weight_gap_size: OrderedFloat<f64>,
+  #[serde(default = "default_cluster_gaps_weight")]
+  pub weight: OrderedFloat<f64>,
 }
 
 impl QcRecombConfigClusterGaps {
@@ -302,6 +281,7 @@ impl QcRecombConfigClusterGaps {
       min_gap_size: 1000,
       weight_per_gap: OrderedFloat(25.0),
       weight_gap_size: OrderedFloat(0.01),
+      weight: OrderedFloat(50.0),
     }
   }
 }
@@ -362,9 +342,6 @@ pub struct QcRulesConfigRecombinants {
   pub score_weight: OrderedFloat<f64>,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub weighted_threshold: Option<QcRecombConfigWeightedThreshold>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub spatial_uniformity: Option<QcRecombConfigSpatialUniformity>,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -375,9 +352,6 @@ pub struct QcRulesConfigRecombinants {
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub label_switching: Option<QcRecombConfigLabelSwitching>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub mutations_threshold: Option<usize>,
 }
 
 impl QcRulesConfigRecombinants {
@@ -385,28 +359,10 @@ impl QcRulesConfigRecombinants {
     Self {
       enabled: false,
       score_weight: OrderedFloat(100.0),
-      weighted_threshold: None,
       spatial_uniformity: None,
       cluster_gaps: None,
       reversion_clustering: None,
       label_switching: None,
-      mutations_threshold: None,
-    }
-  }
-
-  pub fn get_weighted_threshold_config(&self) -> QcRecombConfigWeightedThreshold {
-    if let Some(config) = &self.weighted_threshold {
-      config.clone()
-    } else {
-      let threshold = self.mutations_threshold.unwrap_or(20);
-      QcRecombConfigWeightedThreshold {
-        enabled: true,
-        weight: OrderedFloat(1.0),
-        threshold,
-        weight_unlabeled: OrderedFloat(1.0),
-        weight_labeled: OrderedFloat(1.0),
-        weight_reversion: OrderedFloat(1.0),
-      }
     }
   }
 }

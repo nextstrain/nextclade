@@ -8,19 +8,9 @@ use crate::qc::qc_recomb_utils::{PositionCluster, compute_cv, find_position_clus
 use crate::qc::qc_rule_snp_clusters::QcResultSnpClusters;
 use crate::qc::qc_run::{QcRule, QcStatus};
 use itertools::Itertools;
-use num::traits::clamp_min;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct RecombResultWeightedThreshold {
-  pub weighted_count: f64,
-  pub threshold: usize,
-  pub excess: f64,
-  pub score: f64,
-}
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -68,9 +58,6 @@ pub struct QcResultRecombinants {
   pub total_unlabeled_substitutions: usize,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  pub weighted_threshold: Option<RecombResultWeightedThreshold>,
-
-  #[serde(skip_serializing_if = "Option::is_none")]
   pub spatial_uniformity: Option<RecombResultSpatialUniformity>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
@@ -104,28 +91,6 @@ pub fn rule_recombinants(
   let total_labeled_substitutions = private_nuc_mutations.total_labeled_substitutions;
   let total_unlabeled_substitutions = private_nuc_mutations.total_unlabeled_substitutions;
 
-  let wt_config = config.get_weighted_threshold_config();
-
-  let weighted_count = *wt_config.weight_unlabeled * total_unlabeled_substitutions as f64
-    + *wt_config.weight_labeled * total_labeled_substitutions as f64
-    + *wt_config.weight_reversion * total_reversion_substitutions as f64;
-
-  let threshold = wt_config.threshold;
-  let excess = (weighted_count - threshold as f64).max(0.0);
-
-  let wt_strategy_score = if weighted_count > threshold as f64 {
-    clamp_min(excess * *wt_config.weight / threshold as f64, 0.0)
-  } else {
-    0.0
-  };
-
-  let weighted_threshold = wt_config.enabled.then_some(RecombResultWeightedThreshold {
-    weighted_count,
-    threshold,
-    excess,
-    score: wt_strategy_score,
-  });
-
   let spatial_uniformity = config
     .spatial_uniformity
     .as_ref()
@@ -146,13 +111,12 @@ pub fn rule_recombinants(
     .as_ref()
     .and_then(|ls_config| strategy_label_switching(private_nuc_mutations, ls_config));
 
-  let wt_score = if wt_config.enabled { wt_strategy_score } else { 0.0 };
   let su_score = spatial_uniformity.as_ref().map_or(0.0, |su| su.score);
   let cg_score = cluster_gaps.as_ref().map_or(0.0, |cg| cg.score);
   let rc_score = reversion_clustering.as_ref().map_or(0.0, |rc| rc.score);
   let ls_score = label_switching.as_ref().map_or(0.0, |ls| ls.score);
 
-  let combined_score = wt_score + su_score + cg_score + rc_score + ls_score;
+  let combined_score = su_score + cg_score + rc_score + ls_score;
   let overall_score = combined_score * *config.score_weight;
   let status = QcStatus::from_score(overall_score);
 
@@ -163,7 +127,6 @@ pub fn rule_recombinants(
     total_reversion_substitutions,
     total_labeled_substitutions,
     total_unlabeled_substitutions,
-    weighted_threshold,
     spatial_uniformity,
     cluster_gaps,
     reversion_clustering,
@@ -248,12 +211,13 @@ fn strategy_cluster_gaps(
 
   let max_gap = gaps.iter().copied().max().unwrap_or(0);
 
-  let score = if max_gap >= config.min_gap_size {
+  let base_score = if max_gap >= config.min_gap_size {
     (clusters.len() as f64 - 1.0) * *config.weight_per_gap
       + (max_gap as f64 / config.min_gap_size as f64) * *config.weight_gap_size
   } else {
     0.0
   };
+  let score = base_score * *config.weight;
 
   Some(RecombResultClusterGaps {
     num_clusters: clusters.len(),
@@ -432,12 +396,13 @@ mod tests {
     }
   }
 
-  fn make_cg_config(enabled: bool, min_gap_size: usize) -> QcRecombConfigClusterGaps {
+  fn make_cg_config(enabled: bool, min_gap_size: usize, weight: f64) -> QcRecombConfigClusterGaps {
     QcRecombConfigClusterGaps {
       enabled,
       min_gap_size,
       weight_per_gap: OrderedFloat(25.0),
       weight_gap_size: OrderedFloat(0.01),
+      weight: OrderedFloat(weight),
     }
   }
 
@@ -650,12 +615,10 @@ mod tests {
     let config = QcRulesConfigRecombinants {
       enabled: true,
       score_weight: OrderedFloat(1.0),
-      weighted_threshold: None,
       spatial_uniformity: Some(make_su_config(true, 1.0, 50.0, 10)),
       cluster_gaps: None,
       reversion_clustering: Some(make_rc_config(true, 0.3, 50.0)),
       label_switching: Some(make_ls_config(true, 50.0, 2)),
-      mutations_threshold: Some(100),
     };
 
     let result = rule_recombinants(&private_muts, None, 1000, &config);
@@ -669,7 +632,7 @@ mod tests {
 
   #[test]
   fn test_cluster_gaps_disabled() {
-    let config = make_cg_config(false, 1000);
+    let config = make_cg_config(false, 1000, 1.0);
     let snp_clusters = make_snp_clusters(vec![(100, 200, 5), (5000, 5100, 4)]);
     let result = strategy_cluster_gaps(Some(&snp_clusters), &config);
     assert!(result.is_none());
@@ -677,7 +640,7 @@ mod tests {
 
   #[test]
   fn test_cluster_gaps_no_snp_clusters() {
-    let config = make_cg_config(true, 1000);
+    let config = make_cg_config(true, 1000, 1.0);
     let result = strategy_cluster_gaps(None, &config);
     assert!(result.is_some());
     let result = result.unwrap();
@@ -689,7 +652,7 @@ mod tests {
 
   #[test]
   fn test_cluster_gaps_single_cluster() {
-    let config = make_cg_config(true, 1000);
+    let config = make_cg_config(true, 1000, 1.0);
     let snp_clusters = make_snp_clusters(vec![(100, 200, 5)]);
     let result = strategy_cluster_gaps(Some(&snp_clusters), &config);
     assert!(result.is_some());
@@ -702,7 +665,7 @@ mod tests {
 
   #[test]
   fn test_cluster_gaps_two_clusters_gap_below_threshold() {
-    let config = make_cg_config(true, 1000);
+    let config = make_cg_config(true, 1000, 1.0);
     let snp_clusters = make_snp_clusters(vec![(100, 200, 5), (500, 600, 4)]);
     let result = strategy_cluster_gaps(Some(&snp_clusters), &config);
     assert!(result.is_some());
@@ -715,7 +678,7 @@ mod tests {
 
   #[test]
   fn test_cluster_gaps_two_clusters_gap_above_threshold() {
-    let config = make_cg_config(true, 1000);
+    let config = make_cg_config(true, 1000, 1.0);
     let snp_clusters = make_snp_clusters(vec![(100, 200, 5), (5000, 5100, 4)]);
     let result = strategy_cluster_gaps(Some(&snp_clusters), &config);
     assert!(result.is_some());
@@ -723,13 +686,14 @@ mod tests {
     assert_eq!(result.num_clusters, 2);
     assert_eq!(result.max_gap, 4800);
     assert_eq!(result.gaps, vec![4800]);
-    let expected_score = 1.0 * 25.0 + (4800.0 / 1000.0) * 0.01;
+    let expected_base = 1.0 * 25.0 + (4800.0 / 1000.0) * 0.01;
+    let expected_score = expected_base * 1.0;
     assert_score(result.score, expected_score);
   }
 
   #[test]
   fn test_cluster_gaps_three_clusters() {
-    let config = make_cg_config(true, 1000);
+    let config = make_cg_config(true, 1000, 1.0);
     let snp_clusters = make_snp_clusters(vec![(100, 200, 5), (5000, 5100, 4), (10000, 10100, 3)]);
     let result = strategy_cluster_gaps(Some(&snp_clusters), &config);
     assert!(result.is_some());
@@ -737,20 +701,34 @@ mod tests {
     assert_eq!(result.num_clusters, 3);
     assert_eq!(result.max_gap, 4900);
     assert_eq!(result.gaps, vec![4800, 4900]);
-    let expected_score = 2.0 * 25.0 + (4900.0 / 1000.0) * 0.01;
+    let expected_base = 2.0 * 25.0 + (4900.0 / 1000.0) * 0.01;
+    let expected_score = expected_base * 1.0;
     assert_score(result.score, expected_score);
   }
 
   #[test]
   fn test_cluster_gaps_exactly_at_threshold() {
-    let config = make_cg_config(true, 1000);
+    let config = make_cg_config(true, 1000, 1.0);
     let snp_clusters = make_snp_clusters(vec![(0, 100, 5), (1100, 1200, 4)]);
     let result = strategy_cluster_gaps(Some(&snp_clusters), &config);
     assert!(result.is_some());
     let result = result.unwrap();
     assert_eq!(result.num_clusters, 2);
     assert_eq!(result.max_gap, 1000);
-    let expected_score = 1.0 * 25.0 + (1000.0 / 1000.0) * 0.01;
+    let expected_base = 1.0 * 25.0 + (1000.0 / 1000.0) * 0.01;
+    let expected_score = expected_base * 1.0;
+    assert_score(result.score, expected_score);
+  }
+
+  #[test]
+  fn test_cluster_gaps_weight_applied() {
+    let config = make_cg_config(true, 1000, 2.0);
+    let snp_clusters = make_snp_clusters(vec![(100, 200, 5), (5000, 5100, 4)]);
+    let result = strategy_cluster_gaps(Some(&snp_clusters), &config);
+    assert!(result.is_some());
+    let result = result.unwrap();
+    let expected_base = 1.0 * 25.0 + (4800.0 / 1000.0) * 0.01;
+    let expected_score = expected_base * 2.0;
     assert_score(result.score, expected_score);
   }
 }

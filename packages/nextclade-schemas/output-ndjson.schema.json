@@ -1927,16 +1927,6 @@
           "format": "uint",
           "minimum": 0.0
         },
-        "weightedThreshold": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/RecombResultWeightedThreshold"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
         "spatialUniformity": {
           "anyOf": [
             {
@@ -1976,34 +1966,6 @@
               "type": "null"
             }
           ]
-        }
-      }
-    },
-    "RecombResultWeightedThreshold": {
-      "type": "object",
-      "required": [
-        "excess",
-        "score",
-        "threshold",
-        "weightedCount"
-      ],
-      "properties": {
-        "weightedCount": {
-          "type": "number",
-          "format": "double"
-        },
-        "threshold": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "excess": {
-          "type": "number",
-          "format": "double"
-        },
-        "score": {
-          "type": "number",
-          "format": "double"
         }
       }
     },

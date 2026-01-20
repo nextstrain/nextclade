@@ -90,7 +90,8 @@
         "enabled": true,
         "minGapSize": 1000,
         "weightPerGap": 25.0,
-        "weightGapSize": 0.01
+        "weightGapSize": 0.01,
+        "weight": 50.0
       }
     },
     "snpClusters": {

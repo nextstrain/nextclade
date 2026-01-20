@@ -1117,16 +1117,6 @@
           "type": "number",
           "format": "double"
         },
-        "weightedThreshold": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/QcRecombConfigWeightedThreshold"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
         "spatialUniformity": {
           "anyOf": [
             {
@@ -1166,60 +1156,6 @@
               "type": "null"
             }
           ]
-        },
-        "mutationsThreshold": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
-        }
-      }
-    },
-    "QcRecombConfigWeightedThreshold": {
-      "description": "Configuration for recombinant detection strategy: weighted mutation threshold",
-      "examples": [
-        {
-          "enabled": true,
-          "weight": 1.0,
-          "threshold": 20,
-          "weightUnlabeled": 1.0,
-          "weightLabeled": 1.0,
-          "weightReversion": 2.0
-        }
-      ],
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "default": false,
-          "type": "boolean"
-        },
-        "weight": {
-          "default": 0.0,
-          "type": "number",
-          "format": "double"
-        },
-        "threshold": {
-          "default": 0,
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "weightUnlabeled": {
-          "default": 0.0,
-          "type": "number",
-          "format": "double"
-        },
-        "weightLabeled": {
-          "default": 0.0,
-          "type": "number",
-          "format": "double"
-        },
-        "weightReversion": {
-          "default": 0.0,
-          "type": "number",
-          "format": "double"
         }
       }
     },
@@ -1264,7 +1200,8 @@
           "enabled": false,
           "minGapSize": 1000,
           "weightPerGap": 25.0,
-          "weightGapSize": 0.01
+          "weightGapSize": 0.01,
+          "weight": 50.0
         }
       ],
       "type": "object",
@@ -1286,6 +1223,11 @@
         },
         "weightGapSize": {
           "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "weight": {
+          "default": 50.0,
           "type": "number",
           "format": "double"
         }
