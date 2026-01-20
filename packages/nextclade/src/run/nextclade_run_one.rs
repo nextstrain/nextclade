@@ -437,6 +437,7 @@ pub fn nextclade_run_one(
         total_missing,
         &translation,
         &frame_shifts,
+        ref_seq.len(),
         qc_config,
       )
     })
