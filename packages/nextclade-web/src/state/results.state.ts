@@ -139,6 +139,14 @@ export const analysisResultsAtom = jotaiAtom(
   (get, set, results: NextcladeResult[]) => {
     const seqIndices = get(seqIndicesAtom)
 
+    // Clear duplicate mappings for all old sequence names before resetting
+    seqIndices.forEach((index) => {
+      const oldResult = get(analysisResultInternalAtom(index))
+      if (oldResult?.seqName) {
+        set(seqNameDuplicatesAtom(oldResult.seqName), [])
+      }
+    })
+
     // Remove all results - reset to empty arrays
     seqIndices.forEach((index) => {
       set(analysisResultInternalAtom(index), {} as NextcladeResult)
