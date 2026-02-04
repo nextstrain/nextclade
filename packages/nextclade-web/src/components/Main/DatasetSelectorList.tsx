@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useMemo, useRef } from 'react'
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ListGroup } from 'reactstrap'
 import styled from 'styled-components'
 import { areDatasetsEqual, attrStrMaybe, Dataset } from 'src/types'
@@ -23,7 +23,7 @@ export function DatasetSelectorList({
 }: DatasetSelectorListProps) {
   const onItemClick = useCallback((dataset: Dataset) => () => onDatasetHighlighted?.(dataset), [onDatasetHighlighted])
 
-  const listItemsRef = useScrollListToDataset(datasetHighlighted)
+  const listItemsRef = useScrollListToDataset(datasetHighlighted, searchTerm)
 
   const searchResult = useMemo(() => {
     if (searchTerm.trim().length === 0) {
@@ -80,8 +80,9 @@ function nodeRefSetOrDelete<T extends HTMLElement>(map: Map<string, T>, key: str
   }
 }
 
-function useScrollListToDataset(datasetHighlighted?: Dataset) {
+function useScrollListToDataset(datasetHighlighted: Dataset | undefined, searchTerm: string) {
   const itemsRef = useRef<Map<string, HTMLLIElement>>(new Map())
+  const prevDatasetPathRef = useRef<string | undefined>(undefined)
 
   const scrollToId = useCallback((itemId: string) => {
     const node = itemsRef.current.get(itemId)
@@ -92,9 +93,18 @@ function useScrollListToDataset(datasetHighlighted?: Dataset) {
     })
   }, [])
 
-  if (datasetHighlighted) {
-    scrollToId(datasetHighlighted.path)
-  }
+  useEffect(() => {
+    const currentPath = datasetHighlighted?.path
+    const hasSearchTerm = searchTerm.trim().length > 0
+
+    // Only scroll when dataset changes (user clicked a different dataset),
+    // not when search term changes. Skip scrolling when user is actively searching.
+    if (currentPath && currentPath !== prevDatasetPathRef.current && !hasSearchTerm) {
+      scrollToId(currentPath)
+    }
+
+    prevDatasetPathRef.current = currentPath
+  }, [datasetHighlighted?.path, scrollToId, searchTerm])
 
   return itemsRef
 }
