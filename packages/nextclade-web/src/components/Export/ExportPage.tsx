@@ -1,17 +1,18 @@
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { Row, Col } from 'reactstrap'
+import { ExportPageNoDataset } from 'src/components/Export/ExportPageNoDataset'
 import { ExportPageUnknownDataset } from 'src/components/Export/ExportPageUnknownDataset'
 import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
 import { formatDatasetInfo } from 'src/components/Main/datasetInfoHelpers'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { findDatasetByPath } from 'src/helpers/sortDatasetVersions'
 import styled from 'styled-components'
 import { ViewedDatasetExportHelp } from 'src/components/Help/ViewedDatasetExportHelp'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import {
   datasetsAtom,
+  datasetsForAnalysisAtom,
   hasMultipleDatasetsForAnalysisAtom,
   isViewedDatasetUnknownAtom,
   viewedDatasetNameAtom,
@@ -77,11 +78,26 @@ function MainContent() {
   const { t } = useTranslationSafe()
   const isViewedDatasetUnknown = useRecoilValue(isViewedDatasetUnknownAtom)
   const datasetPath = useRecoilValue(viewedDatasetNameAtom)
+  const datasetsForAnalysis = useRecoilValue(datasetsForAnalysisAtom)
   const datasets = useRecoilValue(datasetsAtom)
 
   const { asPath } = useRouter()
   const [activeTabId, setActiveTabId] = useState(asPath.split('#')[1] ?? 'files')
 
+  // Fallback to first available dataset if viewedDatasetName is undefined
+  const effectiveDatasetPath = useMemo(
+    () => datasetPath ?? datasetsForAnalysis?.[0]?.path,
+    [datasetPath, datasetsForAnalysis],
+  )
+
+  const dataset = useMemo(
+    () => (effectiveDatasetPath ? findDatasetByPath(datasets, effectiveDatasetPath) : undefined),
+    [datasets, effectiveDatasetPath],
+  )
+
+  const datasetName = useMemo(() => (dataset ? formatDatasetInfo(dataset, t).datasetName : undefined), [dataset, t])
+
+  // Handle unclassified sequences view
   if (isViewedDatasetUnknown) {
     return (
       <MainContentInner>
@@ -96,11 +112,20 @@ function MainContent() {
     )
   }
 
-  const dataset = findDatasetByPath(datasets, datasetPath)
+  // No datasets available - show recovery UI
   if (!dataset) {
-    throw new ErrorInternal(`Dataset not found: '${datasetPath}'`)
+    return (
+      <MainContentInner>
+        <Header>
+          <h4 className="mx-auto">{t('Export')}</h4>
+        </Header>
+
+        <Main>
+          <ExportPageNoDataset />
+        </Main>
+      </MainContentInner>
+    )
   }
-  const { datasetName } = formatDatasetInfo(dataset, t)
 
   return (
     <MainContentInner>
