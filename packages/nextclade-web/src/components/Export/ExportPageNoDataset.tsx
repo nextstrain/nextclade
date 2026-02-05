@@ -10,7 +10,7 @@ export function ExportPageNoDataset() {
     <Container>
       <Message>{t('No analysis results available.')}</Message>
       <LinkWrapper>
-        <Link href="/">{t('Return to the start page to run analysis')}</Link>
+        <Link href="/">{t('Return to the start page')}</Link>
       </LinkWrapper>
     </Container>
   )
