@@ -21,7 +21,8 @@ sanitize_subdomain() {
   echo "$input" \
     | tr '[:upper:]' '[:lower:]' \
     | sed -E 's/[^a-z0-9-]/-/g; s/^-+//; s/-+$//' \
-    | cut -c1-63
+    | cut -c1-63 \
+    | sed -E 's/-+$//'
 }
 
 export names=()
