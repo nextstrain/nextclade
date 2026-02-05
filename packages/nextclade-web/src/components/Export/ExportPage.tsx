@@ -6,13 +6,11 @@ import { ExportPageNoDataset } from 'src/components/Export/ExportPageNoDataset'
 import { ExportPageUnknownDataset } from 'src/components/Export/ExportPageUnknownDataset'
 import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
 import { formatDatasetInfo } from 'src/components/Main/datasetInfoHelpers'
-import { findDatasetByPath } from 'src/helpers/sortDatasetVersions'
+import { useEffectiveDataset } from 'src/hooks/useEffectiveDataset'
 import styled from 'styled-components'
 import { ViewedDatasetExportHelp } from 'src/components/Help/ViewedDatasetExportHelp'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import {
-  datasetsAtom,
-  datasetsForAnalysisAtom,
   hasMultipleDatasetsForAnalysisAtom,
   isViewedDatasetUnknownAtom,
   viewedDatasetNameAtom,
@@ -77,23 +75,10 @@ export function ExportPage() {
 function MainContent() {
   const { t } = useTranslationSafe()
   const isViewedDatasetUnknown = useRecoilValue(isViewedDatasetUnknownAtom)
-  const datasetPath = useRecoilValue(viewedDatasetNameAtom)
-  const datasetsForAnalysis = useRecoilValue(datasetsForAnalysisAtom)
-  const datasets = useRecoilValue(datasetsAtom)
+  const { dataset } = useEffectiveDataset()
 
   const { asPath } = useRouter()
   const [activeTabId, setActiveTabId] = useState(asPath.split('#')[1] ?? 'files')
-
-  // Fallback to first available dataset if viewedDatasetName is undefined
-  const effectiveDatasetPath = useMemo(
-    () => datasetPath ?? datasetsForAnalysis?.[0]?.path,
-    [datasetPath, datasetsForAnalysis],
-  )
-
-  const dataset = useMemo(
-    () => (effectiveDatasetPath ? findDatasetByPath(datasets, effectiveDatasetPath) : undefined),
-    [datasets, effectiveDatasetPath],
-  )
 
   const datasetName = useMemo(() => (dataset ? formatDatasetInfo(dataset, t).datasetName : undefined), [dataset, t])
 

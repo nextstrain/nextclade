@@ -5,14 +5,11 @@ import { ViewedDatasetResultsHelp } from 'src/components/Help/ViewedDatasetResul
 import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import { ResultsTableUnknownDataset } from 'src/components/Results/ResultsTableUnknownDataset'
-import { findDatasetByPath } from 'src/helpers/sortDatasetVersions'
+import { useEffectiveDataset } from 'src/hooks/useEffectiveDataset'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import {
-  datasetsAtom,
-  datasetsForAnalysisAtom,
   hasMultipleDatasetsForAnalysisAtom,
   isViewedDatasetUnknownAtom,
-  viewedDatasetNameAtom,
 } from 'src/state/dataset.state'
 import styled from 'styled-components'
 import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
@@ -57,20 +54,7 @@ const Footer = styled.footer`
 
 export function ResultsPage() {
   const isViewedDatasetUnknown = useRecoilValue(isViewedDatasetUnknownAtom)
-  const datasetPath = useRecoilValue(viewedDatasetNameAtom)
-  const datasetsForAnalysis = useRecoilValue(datasetsForAnalysisAtom)
-  const datasets = useRecoilValue(datasetsAtom)
-
-  // Fallback to first available dataset if viewedDatasetName is undefined
-  const effectiveDatasetPath = useMemo(
-    () => datasetPath ?? datasetsForAnalysis?.[0]?.path,
-    [datasetPath, datasetsForAnalysis],
-  )
-
-  const dataset = useMemo(
-    () => (effectiveDatasetPath ? findDatasetByPath(datasets, effectiveDatasetPath) : undefined),
-    [datasets, effectiveDatasetPath],
-  )
+  const { effectiveDatasetPath, dataset } = useEffectiveDataset()
 
   const totalWidth = useRecoilValue(resultsTableTotalWidthAtom({ datasetName: effectiveDatasetPath }))
 

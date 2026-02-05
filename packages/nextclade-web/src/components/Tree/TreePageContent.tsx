@@ -1,5 +1,5 @@
 import { isNil } from 'lodash'
-import React, { ReactNode, useLayoutEffect, useMemo, useState } from 'react'
+import React, { ReactNode, useLayoutEffect, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { Provider as ReactReduxProvider, useSelector } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
@@ -12,8 +12,8 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import { changeColorBy } from 'auspice/src/actions/colors'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
-import { datasetsAtom, datasetsForAnalysisAtom, isViewedDatasetUnknownAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
-import { findDatasetByPath } from 'src/helpers/sortDatasetVersions'
+import { useEffectiveDataset } from 'src/hooks/useEffectiveDataset'
+import { isViewedDatasetUnknownAtom } from 'src/state/dataset.state'
 import { treeAtom } from 'src/state/results.state'
 import { configureStore } from 'src/state/store'
 import i18nAuspice from 'src/i18n/i18n.auspice'
@@ -81,20 +81,7 @@ export default function TreePageContent({ tree: treeProp }: TreePageContentProps
   const { t } = useTranslationSafe()
 
   const isViewedDatasetUnknown = useRecoilValue(isViewedDatasetUnknownAtom)
-  const datasetPath = useRecoilValue(viewedDatasetNameAtom)
-  const datasetsForAnalysis = useRecoilValue(datasetsForAnalysisAtom)
-  const datasets = useRecoilValue(datasetsAtom)
-
-  // Fallback to first available dataset if viewedDatasetName is undefined
-  const effectiveDatasetPath = useMemo(
-    () => datasetPath ?? datasetsForAnalysis?.[0]?.path,
-    [datasetPath, datasetsForAnalysis],
-  )
-
-  const dataset = useMemo(
-    () => (effectiveDatasetPath ? findDatasetByPath(datasets, effectiveDatasetPath) : undefined),
-    [datasets, effectiveDatasetPath],
-  )
+  const { effectiveDatasetPath, dataset } = useEffectiveDataset()
 
   const treeFromState = useRecoilValue(treeAtom(effectiveDatasetPath))
   const tree = treeProp ?? treeFromState
