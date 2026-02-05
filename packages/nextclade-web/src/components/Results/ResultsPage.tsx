@@ -56,7 +56,7 @@ export function ResultsPage() {
   const isViewedDatasetUnknown = useRecoilValue(isViewedDatasetUnknownAtom)
   const { effectiveDatasetPath, dataset } = useEffectiveDataset()
 
-  const totalWidth = useRecoilValue(resultsTableTotalWidthAtom({ datasetName: effectiveDatasetPath }))
+  const totalWidth = useRecoilValue(resultsTableTotalWidthAtom({ datasetName: effectiveDatasetPath ?? '' }))
 
   const content = useMemo(() => {
     // Handle unclassified sequences view

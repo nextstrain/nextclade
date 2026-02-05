@@ -83,7 +83,7 @@ export default function TreePageContent({ tree: treeProp }: TreePageContentProps
   const isViewedDatasetUnknown = useRecoilValue(isViewedDatasetUnknownAtom)
   const { effectiveDatasetPath, dataset } = useEffectiveDataset()
 
-  const treeFromState = useRecoilValue(treeAtom(effectiveDatasetPath))
+  const treeFromState = useRecoilValue(treeAtom(effectiveDatasetPath ?? ''))
   const tree = treeProp ?? treeFromState
 
   const [store, setStore] = useState<Store<AuspiceState> | null>(null)
