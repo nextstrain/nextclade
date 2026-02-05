@@ -1,11 +1,15 @@
 import React, { Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
+import { Link } from 'src/components/Link/Link'
 import { ViewedDatasetResultsHelp } from 'src/components/Help/ViewedDatasetResultsHelp'
 import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import { ResultsTableUnknownDataset } from 'src/components/Results/ResultsTableUnknownDataset'
+import { findDatasetByPath } from 'src/helpers/sortDatasetVersions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import {
+  datasetsAtom,
+  datasetsForAnalysisAtom,
   hasMultipleDatasetsForAnalysisAtom,
   isViewedDatasetUnknownAtom,
   viewedDatasetNameAtom,
@@ -52,15 +56,37 @@ const Footer = styled.footer`
 `
 
 export function ResultsPage() {
-  const datasetName = useRecoilValue(viewedDatasetNameAtom)
-  const totalWidth = useRecoilValue(resultsTableTotalWidthAtom({ datasetName }))
-
   const isViewedDatasetUnknown = useRecoilValue(isViewedDatasetUnknownAtom)
+  const datasetPath = useRecoilValue(viewedDatasetNameAtom)
+  const datasetsForAnalysis = useRecoilValue(datasetsForAnalysisAtom)
+  const datasets = useRecoilValue(datasetsAtom)
 
-  const content = useMemo(
-    () => (isViewedDatasetUnknown ? <ResultsPageDatasetUnknown /> : <ResultsPageWithDataset />),
-    [isViewedDatasetUnknown],
+  // Fallback to first available dataset if viewedDatasetName is undefined
+  const effectiveDatasetPath = useMemo(
+    () => datasetPath ?? datasetsForAnalysis?.[0]?.path,
+    [datasetPath, datasetsForAnalysis],
   )
+
+  const dataset = useMemo(
+    () => (effectiveDatasetPath ? findDatasetByPath(datasets, effectiveDatasetPath) : undefined),
+    [datasets, effectiveDatasetPath],
+  )
+
+  const totalWidth = useRecoilValue(resultsTableTotalWidthAtom({ datasetName: effectiveDatasetPath }))
+
+  const content = useMemo(() => {
+    // Handle unclassified sequences view
+    if (isViewedDatasetUnknown) {
+      return <ResultsPageDatasetUnknown />
+    }
+
+    // No datasets available - show recovery UI
+    if (!dataset) {
+      return <ResultsPageNoDataset />
+    }
+
+    return <ResultsPageWithDataset />
+  }, [dataset, isViewedDatasetUnknown])
 
   return (
     <Layout>
@@ -73,6 +99,22 @@ export function ResultsPage() {
         </WrapperOuter>
       </Container>
     </Layout>
+  )
+}
+
+function ResultsPageNoDataset() {
+  const { t } = useTranslationSafe()
+
+  return (
+    <MainContent>
+      <NoDatasetContainer>
+        <h4>{t('No analysis results available')}</h4>
+        <p>{t('Run analysis to view results.')}</p>
+        <p>
+          <Link href="/">{t('Return to the start page')}</Link>
+        </p>
+      </NoDatasetContainer>
+    </MainContent>
   )
 }
 
@@ -134,4 +176,13 @@ const ViewedDatasetSelectorContainer = styled.div`
 
 const ViewedDatasetSelectorWrapper = styled.div`
   flex: 0 0 400px;
+`
+
+const NoDatasetContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
 `
