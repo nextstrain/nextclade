@@ -161,9 +161,9 @@ export function NavigationBar() {
         title: hasRan ? t('Show analysis results table') : t('Please run the analysis first'),
       },
       {
-        url: '/tree',
+        url: hasRan ? '/tree' : undefined,
         content: t('Tree'),
-        title: t('Show phylogenetic tree'),
+        title: hasRan ? t('Show phylogenetic tree') : t('Please run the analysis first'),
       },
       {
         url: canDownload ? '/export' : undefined,
