@@ -67,7 +67,12 @@ async function destroy() {
     return
   }
 
-  nextcladeWasm.free()
+  try {
+    nextcladeWasm.free()
+  } catch {
+    // Ignore errors during cleanup - WASM state may be corrupted after a panic.
+    // Logging the cleanup error would mask the original panic message.
+  }
   nextcladeWasm = undefined
 }
 
