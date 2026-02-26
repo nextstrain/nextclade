@@ -44,7 +44,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
   const { result, error } = useAtomValue(analysisResultAtom(seqIndex))
 
   if (error) {
-    return <ResultsTableRowError {...restProps} index={seqIndex} columnWidthsPx={columnWidthsPx} />
+    return <ResultsTableRowError {...restProps} rowIndex={index} seqIndex={seqIndex} columnWidthsPx={columnWidthsPx} />
   }
 
   if (result) {
@@ -65,5 +65,5 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
     )
   }
 
-  return <ResultsTableRowPending index={seqIndex} columnWidthsPx={columnWidthsPx} />
+  return <ResultsTableRowPending rowIndex={index} seqIndex={seqIndex} columnWidthsPx={columnWidthsPx} />
 }
