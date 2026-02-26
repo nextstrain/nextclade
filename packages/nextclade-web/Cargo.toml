@@ -21,7 +21,6 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 assert2 = { workspace = true }
 chrono = { workspace = true }
-console_error_panic_hook = { workspace = true }
 eyre = { workspace = true }
 getrandom = { workspace = true }
 itertools = { workspace = true }
