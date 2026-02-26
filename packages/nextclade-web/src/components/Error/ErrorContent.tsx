@@ -89,7 +89,7 @@ export function ErrorContent(props: { error?: unknown; errorInfo?: ErrorInfo; de
                       {t('{{symbol}} Additional information for developers (click to expand)', { symbol: '>' })}
                     </span>
                     <span className="my-auto ml-auto">
-                      <ButtonCopyToClipboard text={getErrorReportText(error)} />
+                      <ButtonCopyToClipboard text={`\`\`\`\n${getErrorReportText(error).trim()}\n\`\`\``} />
                     </span>
                   </Summary>
 
