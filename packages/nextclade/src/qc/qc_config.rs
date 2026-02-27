@@ -233,6 +233,184 @@ impl QcRulesConfigStopCodons {
   }
 }
 
+/// Configuration for recombinant detection strategy: weighted mutation threshold
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+#[schemars(example = "QcRecombConfigWeightedThreshold::example")]
+pub struct QcRecombConfigWeightedThreshold {
+  pub enabled: bool,
+  pub weight: OrderedFloat<f64>,
+  pub threshold: usize,
+  pub weight_unlabeled: OrderedFloat<f64>,
+  pub weight_labeled: OrderedFloat<f64>,
+  pub weight_reversion: OrderedFloat<f64>,
+}
+
+impl QcRecombConfigWeightedThreshold {
+  pub const fn example() -> Self {
+    Self {
+      enabled: true,
+      weight: OrderedFloat(1.0),
+      threshold: 20,
+      weight_unlabeled: OrderedFloat(1.0),
+      weight_labeled: OrderedFloat(1.0),
+      weight_reversion: OrderedFloat(2.0),
+    }
+  }
+}
+
+/// Configuration for recombinant detection strategy: spatial uniformity (coefficient of variation)
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+#[schemars(example = "QcRecombConfigSpatialUniformity::example")]
+pub struct QcRecombConfigSpatialUniformity {
+  pub enabled: bool,
+  pub weight: OrderedFloat<f64>,
+  pub num_segments: usize,
+  pub cv_threshold: OrderedFloat<f64>,
+}
+
+impl QcRecombConfigSpatialUniformity {
+  pub const fn example() -> Self {
+    Self {
+      enabled: false,
+      weight: OrderedFloat(50.0),
+      num_segments: 10,
+      cv_threshold: OrderedFloat(1.5),
+    }
+  }
+}
+
+/// Configuration for recombinant detection strategy: cluster gap analysis
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+#[schemars(example = "QcRecombConfigClusterGaps::example")]
+pub struct QcRecombConfigClusterGaps {
+  pub enabled: bool,
+  pub min_gap_size: usize,
+  pub weight_per_gap: OrderedFloat<f64>,
+  pub weight_gap_size: OrderedFloat<f64>,
+}
+
+impl QcRecombConfigClusterGaps {
+  pub const fn example() -> Self {
+    Self {
+      enabled: false,
+      min_gap_size: 1000,
+      weight_per_gap: OrderedFloat(25.0),
+      weight_gap_size: OrderedFloat(0.01),
+    }
+  }
+}
+
+/// Configuration for recombinant detection strategy: reversion clustering
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+#[schemars(example = "QcRecombConfigReversionClustering::example")]
+pub struct QcRecombConfigReversionClustering {
+  pub enabled: bool,
+  pub weight: OrderedFloat<f64>,
+  pub ratio_threshold: OrderedFloat<f64>,
+  pub cluster_window_size: usize,
+  pub min_cluster_size: usize,
+}
+
+impl QcRecombConfigReversionClustering {
+  pub const fn example() -> Self {
+    Self {
+      enabled: false,
+      weight: OrderedFloat(50.0),
+      ratio_threshold: OrderedFloat(0.3),
+      cluster_window_size: 500,
+      min_cluster_size: 3,
+    }
+  }
+}
+
+/// Configuration for recombinant detection strategy: label switching
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+#[schemars(example = "QcRecombConfigLabelSwitching::example")]
+pub struct QcRecombConfigLabelSwitching {
+  pub enabled: bool,
+  pub weight: OrderedFloat<f64>,
+  pub min_labels: usize,
+}
+
+impl QcRecombConfigLabelSwitching {
+  pub const fn example() -> Self {
+    Self {
+      enabled: false,
+      weight: OrderedFloat(50.0),
+      min_labels: 2,
+    }
+  }
+}
+
+/// Configuration for QC rule "recombinants"
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+#[schemars(example = "QcRulesConfigRecombinants::example")]
+pub struct QcRulesConfigRecombinants {
+  pub enabled: bool,
+  pub score_weight: OrderedFloat<f64>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub weighted_threshold: Option<QcRecombConfigWeightedThreshold>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub spatial_uniformity: Option<QcRecombConfigSpatialUniformity>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub cluster_gaps: Option<QcRecombConfigClusterGaps>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub reversion_clustering: Option<QcRecombConfigReversionClustering>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub label_switching: Option<QcRecombConfigLabelSwitching>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub mutations_threshold: Option<usize>,
+}
+
+impl QcRulesConfigRecombinants {
+  pub const fn example() -> Self {
+    Self {
+      enabled: true,
+      score_weight: OrderedFloat(100.0),
+      weighted_threshold: Some(QcRecombConfigWeightedThreshold::example()),
+      spatial_uniformity: None,
+      cluster_gaps: None,
+      reversion_clustering: None,
+      label_switching: None,
+      mutations_threshold: None,
+    }
+  }
+
+  pub fn get_weighted_threshold_config(&self) -> QcRecombConfigWeightedThreshold {
+    if let Some(config) = &self.weighted_threshold {
+      config.clone()
+    } else {
+      let threshold = self.mutations_threshold.unwrap_or(20);
+      QcRecombConfigWeightedThreshold {
+        enabled: true,
+        weight: OrderedFloat(1.0),
+        threshold,
+        weight_unlabeled: OrderedFloat(1.0),
+        weight_labeled: OrderedFloat(1.0),
+        weight_reversion: OrderedFloat(1.0),
+      }
+    }
+  }
+}
+
 /// Configuration for QC rules
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -245,6 +423,7 @@ pub struct QcConfig {
   pub snp_clusters: QcRulesConfigSnpClusters,
   pub frame_shifts: QcRulesConfigFrameShifts,
   pub stop_codons: QcRulesConfigStopCodons,
+  pub recombinants: QcRulesConfigRecombinants,
 }
 
 impl FromStr for QcConfig {
@@ -264,6 +443,7 @@ impl QcConfig {
       snp_clusters: QcRulesConfigSnpClusters::example(),
       frame_shifts: QcRulesConfigFrameShifts::example(),
       stop_codons: QcRulesConfigStopCodons::example(),
+      recombinants: QcRulesConfigRecombinants::example(),
     }
   }
 
