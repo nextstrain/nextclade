@@ -9,7 +9,7 @@ This section assumes basic knowledge about how Nextclade Web works as well as ab
 All URL parameters are optional. If all parameters are omitted, Nextclade Web behaves normally. Adding a parameter configures certain aspect of the application:
 
 | URL parameter       | Meaning                                                                                                                                                                                                                                                            |
-|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | input-fasta         | URL to a fasta file containing query sequences. If provided, the analysis will start automatically. Special value `example` will use example sequences provided in the dataset.                                                                                    |
 | input-ref           | URL to a fasta file containing reference (root) sequence.                                                                                                                                                                                                          |
 | input-annotation    | URL to a GFF3 file containing genome annotation.                                                                                                                                                                                                                   |
@@ -72,6 +72,10 @@ Local URLs should also work:
 https://clades.nextstrain.org?dataset-server=http://localhost:8080
 ```
 
+> ⚠️ **Chromium-based browsers (Chrome, Edge, Brave, etc.) block requests from HTTPS sites to localhost** due to [Private Network Access (PNA)](https://developer.chrome.com/blog/private-network-access-update) security restrictions. This affects local URLs when using Nextclade Web at `https://clades.nextstrain.org`. See [Using local files with Nextclade Web](#using-local-files-with-nextclade-web) below for solutions.
+
+> ℹ️ Firefox currently allows HTTPS-to-localhost requests but may adopt similar restrictions in the future.
+
 All mentioned parameters accept the usual full HTTP URLs
 
 ```
@@ -104,3 +108,14 @@ For GitHub shortcuts, if a branch name is not specified, the default branch name
 > ⚠️ The resulting URLs might get quite complex, so don't forget to [encode the special characters](https://en.wikipedia.org/wiki/Percent-encoding), to keep the URLs valid.
 
 > ⚠️️ Note that Nextclade does not have a programmatic server component and all the computation happens on the end-user machine in a WebAssembly module. There are currently no plans to provide an official REST API or similar services.
+
+## Using local files with Nextclade Web
+
+Chromium-based browsers (Chrome, Edge, Brave, etc.) block requests from `https://clades.nextstrain.org` to `localhost` due to [Private Network Access](https://developer.chrome.com/blog/private-network-access-update) security restrictions.
+
+**Workarounds:**
+
+1. **Drag and drop** files directly onto the Nextclade Web page instead of using URL parameters
+2. **Use [Nextclade CLI](../nextclade-cli/index.rst)** which has no browser restrictions
+3. **Host files on a public HTTPS server** (GitHub, cloud storage, etc.)
+4. **Disable Local Network Access in Chrome** (for development only): navigate to `chrome://flags/#local-network-access-check`, set to "Disabled", and relaunch the browser. This reduces security and should only be used temporarily for local development.
