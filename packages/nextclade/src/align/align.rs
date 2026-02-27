@@ -78,9 +78,26 @@ pub fn align_nuc(
     minimal_bandwidth,
   );
   if band_area > max_band_area {
-    return make_error!(
-      "Alignment matrix size {band_area} exceeds maximum value {max_band_area}. The threshold can be adjusted using CLI flag '--max-band-area' or using 'maxBandArea' field in the dataset's pathogen.json"
-    );
+    let length_ratio = qry_len as f64 / ref_len as f64;
+    let band_area_fmt = format_number_human(band_area);
+    let max_band_area_fmt = format_number_human(max_band_area);
+    let qry_len_fmt = format_number_human(qry_len as u64);
+    let ref_len_fmt = format_number_human(ref_len as u64);
+    return if length_ratio > 1.5 {
+      make_error!(
+        "Alignment band area ({band_area_fmt}) exceeds limit ({max_band_area_fmt}). \
+        Query sequence length ({qry_len_fmt} nt) is significantly larger than reference ({ref_len_fmt} nt). \
+        Possible reasons: concatenated sequences, assembly scaffolds, or wrong reference sequence. \
+        The threshold can be adjusted using '--max-band-area' CLI flag or 'maxBandArea' in pathogen.json."
+      )
+    } else {
+      make_error!(
+        "Alignment band area ({band_area_fmt}) exceeds limit ({max_band_area_fmt}). \
+        Sequence length ({qry_len_fmt} nt) is similar to reference ({ref_len_fmt} nt), but alignment requires excessive search space. \
+        Possible reasons: large structural rearrangements, recombination, or wrong reference sequence. \
+        The threshold can be adjusted using '--max-band-area' CLI flag or 'maxBandArea' in pathogen.json."
+      )
+    };
   }
 
   let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
@@ -146,6 +163,41 @@ pub fn align_aa(
   let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
   align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)
+}
+
+/// Formats a number for human readability:
+/// - < 1,000,000: with thousand separators (e.g., "179,151")
+/// - >= 1,000,000: in millions (e.g., "500M")
+/// - >= 1,000,000,000: in billions (e.g., "3.7B")
+fn format_number_human(n: u64) -> String {
+  const BILLION: u64 = 1_000_000_000;
+  const MILLION: u64 = 1_000_000;
+
+  if n >= BILLION {
+    let billions = n as f64 / BILLION as f64;
+    if billions >= 10.0 {
+      format!("{:.0}B", billions)
+    } else {
+      format!("{:.1}B", billions)
+    }
+  } else if n >= MILLION {
+    let millions = n as f64 / MILLION as f64;
+    if millions >= 10.0 {
+      format!("{:.0}M", millions)
+    } else {
+      format!("{:.1}M", millions)
+    }
+  } else {
+    let s = n.to_string();
+    let mut result = String::with_capacity(s.len() + s.len() / 3);
+    for (i, c) in s.chars().enumerate() {
+      if i > 0 && (s.len() - i) % 3 == 0 {
+        result.push(',');
+      }
+      result.push(c);
+    }
+    result
+  }
 }
 
 #[cfg(test)]
