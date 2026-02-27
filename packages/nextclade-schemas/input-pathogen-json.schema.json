@@ -83,6 +83,18 @@
             }
           ],
           "scoreWeight": 75.0
+        },
+        "recombinants": {
+          "enabled": true,
+          "scoreWeight": 100.0,
+          "weightedThreshold": {
+            "enabled": true,
+            "weight": 1.0,
+            "threshold": 20,
+            "weightUnlabeled": 1.0,
+            "weightLabeled": 1.0,
+            "weightReversion": 2.0
+          }
         }
       },
       "phenotypeData": [
@@ -444,6 +456,18 @@
               }
             ],
             "scoreWeight": 75.0
+          },
+          "recombinants": {
+            "enabled": true,
+            "scoreWeight": 100.0,
+            "weightedThreshold": {
+              "enabled": true,
+              "weight": 1.0,
+              "threshold": 20,
+              "weightUnlabeled": 1.0,
+              "weightLabeled": 1.0,
+              "weightReversion": 2.0
+            }
           }
         }
       ],
@@ -522,6 +546,17 @@
           "allOf": [
             {
               "$ref": "#/definitions/QcRulesConfigStopCodons"
+            }
+          ]
+        },
+        "recombinants": {
+          "default": {
+            "enabled": false,
+            "scoreWeight": 0.0
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/QcRulesConfigRecombinants"
             }
           ]
         }
@@ -814,6 +849,283 @@
           "type": "string"
         },
         "codon": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "QcRulesConfigRecombinants": {
+      "description": "Configuration for QC rule \"recombinants\"",
+      "examples": [
+        {
+          "enabled": true,
+          "scoreWeight": 100.0,
+          "weightedThreshold": {
+            "enabled": true,
+            "weight": 1.0,
+            "threshold": 20,
+            "weightUnlabeled": 1.0,
+            "weightLabeled": 1.0,
+            "weightReversion": 2.0
+          }
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "scoreWeight": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "weightedThreshold": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/QcRecombConfigWeightedThreshold"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "spatialUniformity": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/QcRecombConfigSpatialUniformity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "clusterGaps": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/QcRecombConfigClusterGaps"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reversionClustering": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/QcRecombConfigReversionClustering"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "multiAncestor": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/QcRecombConfigMultiAncestor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mutationsThreshold": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "QcRecombConfigWeightedThreshold": {
+      "description": "Configuration for recombinant detection strategy: weighted mutation threshold",
+      "examples": [
+        {
+          "enabled": true,
+          "weight": 1.0,
+          "threshold": 20,
+          "weightUnlabeled": 1.0,
+          "weightLabeled": 1.0,
+          "weightReversion": 2.0
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "weight": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "threshold": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "weightUnlabeled": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "weightLabeled": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "weightReversion": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "QcRecombConfigSpatialUniformity": {
+      "description": "Configuration for recombinant detection strategy: spatial uniformity (coefficient of variation)",
+      "examples": [
+        {
+          "enabled": false,
+          "weight": 50.0,
+          "numSegments": 10,
+          "cvThreshold": 1.5
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "weight": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "numSegments": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "cvThreshold": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "QcRecombConfigClusterGaps": {
+      "description": "Configuration for recombinant detection strategy: cluster gap analysis",
+      "examples": [
+        {
+          "enabled": false,
+          "minGapSize": 1000,
+          "weightPerGap": 25.0,
+          "weightGapSize": 0.01
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "minGapSize": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "weightPerGap": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "weightGapSize": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "QcRecombConfigReversionClustering": {
+      "description": "Configuration for recombinant detection strategy: reversion clustering",
+      "examples": [
+        {
+          "enabled": false,
+          "weight": 50.0,
+          "ratioThreshold": 0.3,
+          "clusterWindowSize": 500,
+          "minClusterSize": 3
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "weight": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "ratioThreshold": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "clusterWindowSize": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "minClusterSize": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "QcRecombConfigMultiAncestor": {
+      "description": "Configuration for recombinant detection strategy: multi-ancestor analysis",
+      "examples": [
+        {
+          "enabled": false,
+          "weight": 50.0,
+          "numSegments": 10,
+          "minSwitches": 2
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "weight": {
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
+        },
+        "numSegments": {
+          "default": 0,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "minSwitches": {
+          "default": 0,
           "type": "integer",
           "format": "uint",
           "minimum": 0.0

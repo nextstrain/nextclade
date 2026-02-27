@@ -257,7 +257,9 @@ const Tab = styled.button<{ $isActive: boolean }>`
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
   border-bottom: 2px solid ${(props) => (props.$isActive ? '#89b4fa' : 'transparent')};
 
   &:hover {
@@ -273,7 +275,9 @@ const ToggleButton = styled.button`
   color: #c0c0c0;
   font-size: 10px;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
   border-left: 1px solid #313244;
 
   &:hover {
@@ -294,7 +298,9 @@ const TableDevToolsPanelWrapper = styled.div`
   z-index: 99997;
   border-radius: 0;
   transform: translateY(100%);
-  transition: transform 0.3s ease, visibility 0s 0.3s;
+  transition:
+    transform 0.3s ease,
+    visibility 0s 0.3s;
   visibility: hidden;
   background-color: #1e1e2e;
   overflow: auto;
