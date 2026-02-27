@@ -138,7 +138,7 @@ fn calculate_dimensions(stripes: &[Stripe]) -> (usize, usize, Vec<usize>) {
   let mut n_cols = 0_usize;
   row_start_points[0] = 0;
   for (i, stripe) in stripes.iter().enumerate() {
-    row_start_points[i + 1] = row_start_points[i] + stripe.len();
+    row_start_points[i + 1] = row_start_points[i].saturating_add(stripe.len());
     n_cols = n_cols.max(stripe.end);
   }
   (n_rows, n_cols, row_start_points)
