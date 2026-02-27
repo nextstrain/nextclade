@@ -77,7 +77,7 @@ pub struct AlignPairwiseParams {
 
   /// Maximum area of the band in the alignment matrix. Alignments with large bands are slow to compute and require substantial memory. Alignment of sequences requiring bands with area larger than this value, will not be attempted and a warning will be emitted.
   #[clap(long)]
-  pub max_band_area: usize,
+  pub max_band_area: u64,
 
   /// Retry seed matching step with a reverse complement if the first attempt failed
   #[clap(long)]

@@ -90,7 +90,7 @@ pub fn create_alignment_band(
   terminal_bandwidth: isize,
   excess_bandwidth: isize,
   minimal_bandwidth: isize,
-) -> (Vec<Stripe>, usize) {
+) -> (Vec<Stripe>, u64) {
   // This function steps through the chained seeds and determines and appropriate band
   // defined via stripes in query coordinates. These bands will later be chopped to reachable ranges
 
@@ -192,7 +192,7 @@ struct TrapezoidDirectParams {
 
 /// Chop off unreachable parts of the stripes.
 /// Overhanging parts are pruned
-fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> (Vec<Stripe>, usize) {
+fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> (Vec<Stripe>, u64) {
   // assure stripe begin are non-decreasing -- such states would be unreachable in the alignment
   let stripes_len = stripes.len();
   stripes[0].begin = 0;
@@ -202,10 +202,10 @@ fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> (Vec<Stripe>,
 
   // analogously, assure that strip ends are non-decreasing. this needs to be done in reverse.
   stripes[stripes_len - 1].end = qry_len + 1;
-  let mut band_area = stripes[stripes_len - 1].end - stripes[stripes_len - 1].begin;
+  let mut band_area = (stripes[stripes_len - 1].end - stripes[stripes_len - 1].begin) as u64;
   for i in (0..(stripes_len - 1)).rev() {
     stripes[i].end = clamp(stripes[i].end, stripes[i].begin + 1, stripes[i + 1].end);
-    band_area = band_area.saturating_add(stripes[i].end - stripes[i].begin);
+    band_area += (stripes[i].end - stripes[i].begin) as u64;
   }
 
   (stripes, band_area)

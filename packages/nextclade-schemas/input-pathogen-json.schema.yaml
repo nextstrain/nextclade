@@ -623,7 +623,7 @@ definitions:
         type:
         - integer
         - 'null'
-        format: uint
+        format: uint64
         minimum: 0.0
       retryReverseComplement:
         description: Retry seed matching step with a reverse complement if the first attempt failed
