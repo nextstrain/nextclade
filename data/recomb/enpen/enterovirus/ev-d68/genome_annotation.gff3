@@ -1,0 +1,18 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+##sequence-region AY426531.2 1 7367
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=42789
+# seqname	source	feature	start	end	score	strand	frame	attribute
+AY426531.1	Genbank	region	1	7367	.	+	.	ID=AY426531.1:1..7367;Dbxref=taxon:42789;country=USA;gb-acronym=EV-D68;gbkey=Src;mol_type=genomic RNA;note=prototype strain of Enterovirus 68;old-name=Enterovirus 68;strain=Fermon
+AY426531.1	Genbank	CDS	733	939	.	+	.	Name=VP4;gbkey=Prot;product=VP4;ID=id-AAR98503.1:1..69
+AY426531.1	Genbank	CDS	940	1683	.	+	.	Name=VP2;gbkey=Prot;product=VP2;ID=id-AAR98503.1:70..317
+AY426531.1	Genbank	CDS	1684	2388	.	+	.	Name=VP3;gbkey=Prot;product=VP3;ID=id-AAR98503.1:318..552
+AY426531.1	Genbank	CDS	2389	3315	.	+	.	Name=VP1;gbkey=Prot;product=VP1;ID=id-AAR98503.1:553..861
+AY426531.1	Genbank	CDS	3316	3756	.	+	.	Name=2A;gbkey=Prot;product=2A;ID=id-AAR98503.1:862..1008
+AY426531.1	Genbank	CDS	3757	4053	.	+	.	Name=2B;gbkey=Prot;product=2B;ID=id-AAR98503.1:1009..1107
+AY426531.1	Genbank	CDS	4054	5043	.	+	.	Name=2C;gbkey=Prot;product=2C;ID=id-AAR98503.1:1108..1437
+AY426531.1	Genbank	CDS	5044	5310	.	+	.	Name=3A;gbkey=Prot;product=3A;ID=id-AAR98503.1:1438..1526
+AY426531.1	Genbank	CDS	5311	5376	.	+	.	Name=3B;gbkey=Prot;product=3B;ID=id-AAR98503.1:1527..1548
+AY426531.1	Genbank	CDS	5377	5925	.	+	.	Name=3C;gbkey=Prot;product=3C;ID=id-AAR98503.1:1549..1731
+AY426531.1	Genbank	CDS	5926	7296	.	+	.	Name=3D;gbkey=Prot;product=3D;ID=id-AAR98503.1:1732..2188

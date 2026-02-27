@@ -197,6 +197,12 @@ pub static CSV_COLUMN_CONFIG_MAP_DEFAULT: LazyLock<CsvColumnConfigMap> = LazyLoc
       o!("qc.stopCodons.totalStopCodons") => true,
       o!("qc.stopCodons.score") => true,
       o!("qc.stopCodons.status") => true,
+      o!("qc.recombinants.score") => true,
+      o!("qc.recombinants.status") => true,
+      o!("qc.recombinants.totalPrivateSubstitutions") => true,
+      o!("qc.recombinants.totalReversionSubstitutions") => true,
+      o!("qc.recombinants.totalLabeledSubstitutions") => true,
+      o!("qc.recombinants.totalUnlabeledSubstitutions") => true,
     },
     CsvColumnCategory::Primers => indexmap! {
       o!("totalPcrPrimerChanges") => true,

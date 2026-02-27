@@ -435,6 +435,38 @@ impl NextcladeResultsCsvRow {
       "qc.stopCodons.status",
       qc.stop_codons.as_ref().map(|sc| sc.status.to_string()),
     )?;
+    self.add_entry_maybe(
+      "qc.recombinants.score",
+      qc.recombinants.as_ref().map(|r| format_qc_score(r.score)),
+    )?;
+    self.add_entry_maybe(
+      "qc.recombinants.status",
+      qc.recombinants.as_ref().map(|r| r.status.to_string()),
+    )?;
+    self.add_entry_maybe(
+      "qc.recombinants.totalPrivateSubstitutions",
+      qc.recombinants
+        .as_ref()
+        .map(|r| r.total_private_substitutions.to_string()),
+    )?;
+    self.add_entry_maybe(
+      "qc.recombinants.totalReversionSubstitutions",
+      qc.recombinants
+        .as_ref()
+        .map(|r| r.total_reversion_substitutions.to_string()),
+    )?;
+    self.add_entry_maybe(
+      "qc.recombinants.totalLabeledSubstitutions",
+      qc.recombinants
+        .as_ref()
+        .map(|r| r.total_labeled_substitutions.to_string()),
+    )?;
+    self.add_entry_maybe(
+      "qc.recombinants.totalUnlabeledSubstitutions",
+      qc.recombinants
+        .as_ref()
+        .map(|r| r.total_unlabeled_substitutions.to_string()),
+    )?;
     self.add_entry("isReverseComplement", &is_reverse_complement.to_string())?;
     self.add_entry("failedCdses", &format_failed_cdses(missing_cdses, ARRAY_ITEM_DELIMITER))?;
     self.add_entry(

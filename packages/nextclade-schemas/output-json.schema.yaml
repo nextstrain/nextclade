@@ -1177,6 +1177,10 @@ definitions:
         anyOf:
         - $ref: '#/definitions/QcResultStopCodons'
         - type: 'null'
+      recombinants:
+        anyOf:
+        - $ref: '#/definitions/QcResultRecombinants'
+        - type: 'null'
       overallScore:
         type: number
         format: double
@@ -1390,6 +1394,163 @@ definitions:
         type: integer
         format: uint
         minimum: 0.0
+  QcResultRecombinants:
+    type: object
+    required:
+    - score
+    - status
+    - totalLabeledSubstitutions
+    - totalPrivateSubstitutions
+    - totalReversionSubstitutions
+    - totalUnlabeledSubstitutions
+    properties:
+      score:
+        type: number
+        format: double
+      status:
+        $ref: '#/definitions/QcStatus'
+      totalPrivateSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalReversionSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalLabeledSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      totalUnlabeledSubstitutions:
+        type: integer
+        format: uint
+        minimum: 0.0
+      spatialUniformity:
+        anyOf:
+        - $ref: '#/definitions/RecombResultSpatialUniformity'
+        - type: 'null'
+      clusterGaps:
+        anyOf:
+        - $ref: '#/definitions/RecombResultClusterGaps'
+        - type: 'null'
+      reversionClustering:
+        anyOf:
+        - $ref: '#/definitions/RecombResultReversionClustering'
+        - type: 'null'
+      labelSwitching:
+        anyOf:
+        - $ref: '#/definitions/RecombResultLabelSwitching'
+        - type: 'null'
+  RecombResultSpatialUniformity:
+    type: object
+    required:
+    - coefficientOfVariation
+    - numSegments
+    - score
+    - segmentCounts
+    properties:
+      coefficientOfVariation:
+        type: number
+        format: double
+      numSegments:
+        type: integer
+        format: uint
+        minimum: 0.0
+      segmentCounts:
+        type: array
+        items:
+          type: integer
+          format: uint
+          minimum: 0.0
+      score:
+        type: number
+        format: double
+  RecombResultClusterGaps:
+    type: object
+    required:
+    - gaps
+    - maxGap
+    - numClusters
+    - score
+    properties:
+      numClusters:
+        type: integer
+        format: uint
+        minimum: 0.0
+      maxGap:
+        type: integer
+        format: uint
+        minimum: 0.0
+      gaps:
+        type: array
+        items:
+          type: integer
+          format: uint
+          minimum: 0.0
+      score:
+        type: number
+        format: double
+  RecombResultReversionClustering:
+    type: object
+    required:
+    - reversionClusters
+    - reversionRatio
+    - score
+    properties:
+      reversionRatio:
+        type: number
+        format: double
+      reversionClusters:
+        type: array
+        items:
+          $ref: '#/definitions/PositionCluster'
+      score:
+        type: number
+        format: double
+  PositionCluster:
+    type: object
+    required:
+    - count
+    - end
+    - start
+    properties:
+      start:
+        type: integer
+        format: uint
+        minimum: 0.0
+      end:
+        type: integer
+        format: uint
+        minimum: 0.0
+      count:
+        type: integer
+        format: uint
+        minimum: 0.0
+  RecombResultLabelSwitching:
+    type: object
+    required:
+    - labelSegments
+    - numLabels
+    - numSwitches
+    - score
+    properties:
+      numLabels:
+        type: integer
+        format: uint
+        minimum: 0.0
+      labelSegments:
+        type: object
+        additionalProperties:
+          type: integer
+          format: uint
+          minimum: 0.0
+      numSwitches:
+        type: integer
+        format: uint
+        minimum: 0.0
+      score:
+        type: number
+        format: double
   PhenotypeValue:
     description: Result for a single phenotype value
     type: object
