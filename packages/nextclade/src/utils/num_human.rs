@@ -22,6 +22,7 @@ pub enum CompactStyle {
 
 /// Configuration for human-readable number formatting
 #[derive(Clone, Debug)]
+#[must_use]
 pub struct HumanFormat {
   separator: char,
   grouping: Grouping,
@@ -48,31 +49,31 @@ impl HumanFormat {
   }
 
   /// Set the thousands separator character (default: ',')
-  pub fn separator(mut self, sep: char) -> Self {
+  pub const fn separator(mut self, sep: char) -> Self {
     self.separator = sep;
     self
   }
 
   /// Set the digit grouping style (default: Standard)
-  pub fn grouping(mut self, grouping: Grouping) -> Self {
+  pub const fn grouping(mut self, grouping: Grouping) -> Self {
     self.grouping = grouping;
     self
   }
 
   /// Set the compact notation style (default: Short)
-  pub fn compact_style(mut self, style: CompactStyle) -> Self {
+  pub const fn compact_style(mut self, style: CompactStyle) -> Self {
     self.compact_style = style;
     self
   }
 
   /// Set the threshold above which compact notation is used (default: 1,000,000)
-  pub fn compact_threshold(mut self, threshold: u64) -> Self {
+  pub const fn compact_threshold(mut self, threshold: u64) -> Self {
     self.compact_threshold = threshold;
     self
   }
 
   /// Set decimal places for compact notation (default: 1)
-  pub fn compact_decimals(mut self, decimals: u8) -> Self {
+  pub const fn compact_decimals(mut self, decimals: u8) -> Self {
     self.compact_decimals = decimals;
     self
   }
