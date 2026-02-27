@@ -13,6 +13,7 @@ pub mod info;
 pub mod iter;
 pub mod map;
 pub mod num;
+pub mod num_human;
 pub mod option;
 pub mod stats;
 pub mod string;

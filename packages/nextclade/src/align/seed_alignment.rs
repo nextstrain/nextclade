@@ -292,7 +292,7 @@ mod tests {
     let qry_len = 30;
     let ref_len = 40;
 
-    let _band: (Vec<Stripe>, usize) = create_alignment_band(
+    let _band: (Vec<Stripe>, u64) = create_alignment_band(
       &seed_matches,
       qry_len,
       ref_len,
