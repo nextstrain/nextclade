@@ -205,7 +205,7 @@ fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> (Vec<Stripe>,
   let mut band_area = stripes[stripes_len - 1].end - stripes[stripes_len - 1].begin;
   for i in (0..(stripes_len - 1)).rev() {
     stripes[i].end = clamp(stripes[i].end, stripes[i].begin + 1, stripes[i + 1].end);
-    band_area += stripes[i].end - stripes[i].begin;
+    band_area = band_area.saturating_add(stripes[i].end - stripes[i].begin);
   }
 
   (stripes, band_area)
