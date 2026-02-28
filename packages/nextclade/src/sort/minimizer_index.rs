@@ -14,7 +14,7 @@ pub const MINIMIZER_INDEX_SCHEMA_VERSION_FROM: &str = "3.0.0";
 pub const MINIMIZER_INDEX_SCHEMA_VERSION_TO: &str = "3.0.0";
 pub const MINIMIZER_INDEX_ALGO_VERSION: &str = "1";
 
-pub type MinimizerMap = BTreeMap<u64, Vec<usize>>;
+pub type MinimizerMap = BTreeMap<u32, Vec<usize>>;
 
 /// Contains external configuration and data specific for a particular pathogen
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -60,7 +60,7 @@ pub fn serde_deserialize_minimizers<'de, D: Deserializer<'de>>(deserializer: D) 
 
   let res = map
     .into_iter()
-    .map(|(k, v)| Ok((u64::from_str(&k)?, v)))
+    .map(|(k, v)| Ok((u32::from_str(&k)?, v)))
     .collect::<Result<MinimizerMap, Report>>()
     .map_err(serde::de::Error::custom)?;
 
