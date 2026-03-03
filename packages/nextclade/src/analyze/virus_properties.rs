@@ -86,6 +86,47 @@ pub struct VirusProperties {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub compatibility: Option<DatasetCompatibility>,
 
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub enabled: Option<bool>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub deprecated: Option<bool>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub experimental: Option<bool>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub official: Option<bool>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub maintenance: Option<DatasetMaintenance>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+/// Contact and documentation URLs for dataset maintenance
+#[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetMaintenance {
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub website: Vec<String>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub documentation: Vec<String>,
+
+  #[serde(rename = "source code", default, skip_serializing_if = "Vec::is_empty")]
+  pub source_code: Vec<String>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub issues: Vec<String>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub organizations: Vec<String>,
+
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub authors: Vec<String>,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
@@ -318,6 +359,11 @@ impl VirusProperties {
       versions: vec![],
       version: None,
       compatibility: None,
+      enabled: None,
+      deprecated: None,
+      experimental: None,
+      official: None,
+      maintenance: None,
       other: serde_json::Value::Null,
     }
   }

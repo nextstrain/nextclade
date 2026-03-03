@@ -1,3 +1,4 @@
+use crate::analyze::virus_properties::DatasetMaintenance;
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
 use crate::utils::any::AnyType;
@@ -133,6 +134,12 @@ pub struct Dataset {
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub r#type: Option<DatasetType>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub enabled: Option<bool>,
+
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub maintenance: Option<DatasetMaintenance>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
