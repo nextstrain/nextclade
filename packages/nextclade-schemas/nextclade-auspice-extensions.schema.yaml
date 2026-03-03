@@ -343,6 +343,26 @@ definitions:
         anyOf:
         - $ref: '#/definitions/DatasetCompatibility'
         - type: 'null'
+      enabled:
+        type:
+        - boolean
+        - 'null'
+      deprecated:
+        type:
+        - boolean
+        - 'null'
+      experimental:
+        type:
+        - boolean
+        - 'null'
+      official:
+        type:
+        - boolean
+        - 'null'
+      maintenance:
+        anyOf:
+        - $ref: '#/definitions/DatasetMaintenance'
+        - type: 'null'
   DatasetMeta:
     type: object
     properties:
@@ -1087,3 +1107,31 @@ definitions:
         type: string
       web:
         type: string
+  DatasetMaintenance:
+    description: Contact and documentation URLs for dataset maintenance
+    type: object
+    properties:
+      website:
+        type: array
+        items:
+          type: string
+      documentation:
+        type: array
+        items:
+          type: string
+      source code:
+        type: array
+        items:
+          type: string
+      issues:
+        type: array
+        items:
+          type: string
+      organizations:
+        type: array
+        items:
+          type: string
+      authors:
+        type: array
+        items:
+          type: string

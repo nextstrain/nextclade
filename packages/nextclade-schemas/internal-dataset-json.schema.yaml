@@ -29,6 +29,14 @@ properties:
     anyOf:
     - $ref: '#/definitions/DatasetType'
     - type: 'null'
+  enabled:
+    type:
+    - boolean
+    - 'null'
+  maintenance:
+    anyOf:
+    - $ref: '#/definitions/DatasetMaintenance'
+    - type: 'null'
 definitions:
   DatasetMeta:
     type: object
@@ -131,3 +139,31 @@ definitions:
     - directory
     - auspiceJson
     - other
+  DatasetMaintenance:
+    description: Contact and documentation URLs for dataset maintenance
+    type: object
+    properties:
+      website:
+        type: array
+        items:
+          type: string
+      documentation:
+        type: array
+        items:
+          type: string
+      source code:
+        type: array
+        items:
+          type: string
+      issues:
+        type: array
+        items:
+          type: string
+      organizations:
+        type: array
+        items:
+          type: string
+      authors:
+        type: array
+        items:
+          type: string
