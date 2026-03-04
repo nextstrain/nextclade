@@ -67,9 +67,8 @@ version_old=$(sed -n 's|.*version = "\(.*\)".*|\1|p' "recipes/nextclade/meta.yam
 ## Add Nextstrain fork (https://github.com/nextstrain/bioconda-recipes) as a remote
 git remote add nextstrain "https://github.com/nextstrain/bioconda-recipes" >/dev/null
 
-# Update master branch of the fork
-git fetch upstream master:nextstrain/master
-git push nextstrain nextstrain/master:master
+# Sync fork's master with upstream (best-effort, PR submission doesn't require this)
+gh repo sync nextstrain/bioconda-recipes --branch master 2>/dev/null || true
 
 # Delete branch if already exists locally
 git branch --delete --force "bump/nextclade-${version}" || true
@@ -98,9 +97,9 @@ git add -A
 git reset --quiet --hard HEAD
 git clean --quiet -dfx
 
-home=$(tail -n +3 recipes/nextclade/meta.yaml | dasel -i yaml -o yaml 'about.home')
-summary=$(tail -n +3 recipes/nextclade/meta.yaml | dasel -i yaml -o yaml 'about.summary')
-maintainers_gh_handles=$(tail -n +3 recipes/nextclade/meta.yaml | dasel -i yaml -o json 'extra.recipe-maintainers' | jq -r '[ .[] | "@" + . ] | join(", ")')
+home=$(tail -n +3 recipes/nextclade/meta.yaml | sed 's/{{[^}]*}}/""/g' | dasel -i yaml -o yaml 'about.home')
+summary=$(tail -n +3 recipes/nextclade/meta.yaml | sed 's/{{[^}]*}}/""/g' | dasel -i yaml -o yaml 'about.summary')
+maintainers_gh_handles=$(tail -n +3 recipes/nextclade/meta.yaml | sed 's/{{[^}]*}}/""/g' | dasel -i yaml -o json 'extra["recipe-maintainers"]' | jq -r '[ .[] | "@" + . ] | join(", ")')
 
 # Create PR body. This is what goes to the first message.
 function pr_body() {
