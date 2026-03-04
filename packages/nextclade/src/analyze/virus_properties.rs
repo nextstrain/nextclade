@@ -96,9 +96,6 @@ pub struct VirusProperties {
   pub experimental: Option<bool>,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub official: Option<bool>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub maintenance: Option<DatasetMaintenance>,
 
   #[serde(flatten)]
@@ -362,7 +359,6 @@ impl VirusProperties {
       enabled: None,
       deprecated: None,
       experimental: None,
-      official: None,
       maintenance: None,
       other: serde_json::Value::Null,
     }

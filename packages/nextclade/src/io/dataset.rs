@@ -204,8 +204,8 @@ impl Dataset {
       .unwrap_or(false)
   }
 
-  pub fn official(&self) -> bool {
-    self.path.starts_with("nextstrain/")
+  pub fn is_community(&self) -> bool {
+    self.path.starts_with("community/")
   }
 
   pub fn tag_latest(&self) -> &str {

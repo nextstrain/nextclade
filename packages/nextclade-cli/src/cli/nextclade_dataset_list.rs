@@ -55,7 +55,7 @@ pub fn nextclade_dataset_list(
       } else {
         let is_not_deprecated = include_deprecated || !dataset.deprecated();
         let is_not_experimental = !no_experimental || !dataset.experimental();
-        let is_not_community = !no_community || dataset.official();
+        let is_not_community = !no_community || !dataset.is_community();
         is_not_deprecated && is_not_experimental && is_not_community
       }
     })

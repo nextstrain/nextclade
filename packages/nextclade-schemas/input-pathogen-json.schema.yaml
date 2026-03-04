@@ -178,10 +178,6 @@ properties:
     type:
     - boolean
     - 'null'
-  official:
-    type:
-    - boolean
-    - 'null'
   maintenance:
     anyOf:
     - $ref: '#/definitions/DatasetMaintenance'

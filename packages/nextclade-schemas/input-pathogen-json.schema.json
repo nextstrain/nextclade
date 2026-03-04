@@ -298,12 +298,6 @@
         "null"
       ]
     },
-    "official": {
-      "type": [
-        "boolean",
-        "null"
-      ]
-    },
     "maintenance": {
       "anyOf": [
         {
