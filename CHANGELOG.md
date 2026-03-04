@@ -1,3 +1,61 @@
+## 3.19.0
+
+### Update Auspice tree visualization to 2.67.0
+
+Auspice tree visualization package has been updated from 2.59.1 to 2.67.0. See Auspice changelog [here](https://github.com/nextstrain/auspice/releases).
+
+### Nextclade Web: fix tree page stuck at loading screen
+
+The tree visualization page could get stuck showing a loading spinner indefinitely after analysis completed. This has been fixed. See [#1721](https://github.com/nextstrain/nextclade/pull/1721) for details.
+
+### Nextclade Web: fix duplicate sequence warnings
+
+The results table could show false "duplicate sequence" warnings during and after analysis due to duplicate-name tracking data being appended repeatedly on each incremental result update. Additionally, stale tracking data from a previous analysis run was not cleared when starting a new run. See [#1734](https://github.com/nextstrain/nextclade/pull/1734), [#1744](https://github.com/nextstrain/nextclade/pull/1744) for details.
+
+### Nextclade Web: fix auto-scroll hiding dataset search results
+
+In the dataset selector, typing a search term caused the list to auto-scroll to the previously highlighted dataset, pushing filtered search results out of view. Auto-scroll now only triggers when the user explicitly selects a different dataset and no search term is active. See [#1746](https://github.com/nextstrain/nextclade/issues/1746), [#1747](https://github.com/nextstrain/nextclade/pull/1747) for details.
+
+### Nextclade Web: handle undefined dataset gracefully
+
+When a stale or invalid dataset was stored in the browser's local storage, navigating to the results, tree, or export pages could crash with an "Internal Error: Dataset not found" message. These pages now show a recovery UI with a link to return to the start page. The tree navigation link is also disabled until analysis has run. See [#1745](https://github.com/nextstrain/nextclade/issues/1745), [#1748](https://github.com/nextstrain/nextclade/pull/1748) for details.
+
+### Nextclade Web: show actual WASM panic messages
+
+When the Rust code running inside WebAssembly encounters an internal error (panic), Nextclade Web now displays the actual error message with file location instead of the generic "null pointer passed to rust" message. The "copy error" button formats the error in a code block for direct pasting into GitHub issues. See [#1749](https://github.com/nextstrain/nextclade/issues/1749), [#1750](https://github.com/nextstrain/nextclade/pull/1750) for details.
+
+### Nextclade Web: fix missing row index on error and pending rows
+
+Error and pending rows in the results table were missing the row index column, causing them to appear visually misaligned with successful result rows. See [#1751](https://github.com/nextstrain/nextclade/pull/1751) for details.
+
+### Nextclade Web: document Chrome Private Network Access restrictions
+
+Starting with v141, Chromium-based browsers (Chrome, Edge, Brave, Opera) block requests from HTTPS origins (like `https://clades.nextstrain.org`) to localhost URLs due to [Local Network Access](https://developer.chrome.com/blog/local-network-access) security restrictions. This affects loading local files via URL parameters (e.g., `?dataset-server=http://localhost:3001`). The documentation now explains the restriction and provides workarounds. See [#1753](https://github.com/nextstrain/nextclade/pull/1753) for details.
+
+### Fix integer overflow in alignment band area calculation
+
+Fixed an integer overflow in the alignment band area calculation that could occur on 32-bit platforms (including WebAssembly in browsers) when aligning very long or highly divergent sequences. The band area now uses 64-bit integers, and additional overflow checks have been added to band dimension calculations. See [#1749](https://github.com/nextstrain/nextclade/issues/1749) for details.
+
+### Improve error message when alignment band area is exceeded
+
+When the alignment band area limit is exceeded, Nextclade now displays a more informative error message. Large numbers are formatted for readability (e.g., "3.7B" instead of "3704350009"), and the message differentiates between likely causes based on the query-to-reference length ratio: concatenated sequences or assembly scaffolds when the query is much longer than the reference, or structural rearrangements or wrong reference when lengths are similar. See [#1752](https://github.com/nextstrain/nextclade/pull/1752) for details.
+
+### Nextclade CLI: automatic retry for network requests
+
+Nextclade CLI now automatically retries transient network failures when downloading datasets. This improves reliability on flaky connections. Retryable conditions include network errors, 5xx server errors, 429 rate limiting, and 408 timeouts. The retry budget is scoped per host with a maximum of 3 retries per request. See [#1723](https://github.com/nextstrain/nextclade/pull/1723) for details.
+
+### Nextclade CLI: Mozilla CA certificates fallback for minimal containers
+
+Nextclade CLI now bundles Mozilla's root CA certificates as a fallback for environments where system certificates are not installed (e.g., minimal Docker containers like `debian:stable` or `ubuntu:22.04` without the `ca-certificates` package). Previously, Nextclade CLI would fail with a "No CA certificates were loaded from the system" error in such environments. System certificates and user-provided certificates via `--extra-ca-certs` are still loaded when available and combined with the bundled Mozilla roots. See [#726](https://github.com/nextstrain/nextclade/issues/726), [#1723](https://github.com/nextstrain/nextclade/pull/1723) for details.
+
+### Nextclade CLI: zstd compression for HTTP transfers
+
+Nextclade CLI now accepts zstd content encoding for HTTP responses when downloading datasets. Zstd was already supported for file decompression; this extends it to the HTTP transfer layer, where it joins gzip, brotli, and deflate. See [#1723](https://github.com/nextstrain/nextclade/pull/1723) for details.
+
+### Major dependency upgrades
+
+Nextclade has been upgraded to Rust 2024 edition, along with updates to the Rust and WebAssembly toolchains, Node.js, React, Next.js, and many other dependencies. See [#1716](https://github.com/nextstrain/nextclade/pull/1716), [#1719](https://github.com/nextstrain/nextclade/pull/1719) for details.
+
 ## 3.18.1
 
 ### Fix: allow `--output-annotation-gff` and `--output-annotation-tbl` as sole output arguments
