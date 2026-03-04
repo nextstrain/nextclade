@@ -251,7 +251,7 @@ These annotations can serve as a starting point for submissions to genetic datab
 
 Nextclade supports 2 formats for output annotations:
 
-- Genbank’s 5-column tab-delimited feature table (TBL) format ([spec](https://www.ncbi.nlm.nih.gov/genbank/feature_table/))
+- Genbank's 5-column tab-delimited feature table (TBL) format ([spec](https://www.ncbi.nlm.nih.gov/genbank/feature_table/))
 
 - Generic Feature Format Version 3 (GFF3) ([spec](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md))
 
@@ -714,7 +714,7 @@ Please read the [Phylogenetic placement](https://docs.nextstrain.org/projects/ne
 
 #### Don't count mutations to ambiguous nucleotides as reversions
 
-We no longer treat mutations to ambiguous nucleotides as reversions, i.e. if the attachment node has a mutation mutated with respect to reference and the query sequence is ambiguous we previously counted this as a reversion. This change only affects “private mutation” QC score and the classification of private mutations into “reversion substitution” and “unlabeled substitution”.
+We no longer treat mutations to ambiguous nucleotides as reversions, i.e. if the attachment node has a mutation mutated with respect to reference and the query sequence is ambiguous we previously counted this as a reversion. This change only affects "private mutation" QC score and the classification of private mutations into "reversion substitution" and "unlabeled substitution".
 
 ---
 
