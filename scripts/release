@@ -73,13 +73,8 @@ fi
 printf "✅\n"
 
 printf "Pre-check: bun.lock is in sync with package.json... "
-pushd packages/nextclade-web >/dev/null 2>&1
-{
-  bun install --frozen-lockfile --dry-run >/dev/null 2>&1
-}
-popd >/dev/null 2>&1
-if [ -n "$(git status --porcelain packages/nextclade-web/bun.lock)" ]; then
-  printf "\nERROR: bun.lock is out of sync with package.json. Run 'bun install' and commit the result before releasing.\n" >&2
+if ! err=$(cd packages/nextclade-web && bun install --frozen-lockfile --dry-run 2>&1 >/dev/null); then
+  printf "\nERROR: bun.lock is out of sync with package.json: %s\nRun 'bun install' and commit the result before releasing.\n" "${err}" >&2
   exit 1
 fi
 printf "✅\n"
