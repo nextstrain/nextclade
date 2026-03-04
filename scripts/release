@@ -55,9 +55,12 @@ else
 fi
 
 printf "Pre-check: Cargo.lock is in sync with Cargo.toml... "
-cargo metadata --quiet >/dev/null
+if ! err=$(cargo metadata --quiet 2>&1 >/dev/null); then
+  printf "\nERROR: \`cargo metadata\` failed: %s\n" "${err}" >&2
+  exit 1
+fi
 if [ -n "$(git status --porcelain Cargo.lock)" ]; then
-  printf "\nERROR: Cargo.lock is out of sync with Cargo.toml. Run 'cargo metadata' or 'cargo build' and commit the result before releasing.\n" >&2
+  printf "\nERROR: Cargo.lock is out of sync with Cargo.toml. Run \`cargo metadata\` or \`cargo build\` and commit the result before releasing.\n" >&2
   exit 1
 fi
 printf "✅\n"
@@ -74,56 +77,48 @@ printf "✅\n"
 
 printf "Pre-check: bun.lock is in sync with package.json... "
 if ! err=$(cd packages/nextclade-web && bun install --frozen-lockfile --dry-run 2>&1 >/dev/null); then
-  printf "\nERROR: bun.lock is out of sync with package.json: %s\nRun 'bun install' and commit the result before releasing.\n" "${err}" >&2
+  printf "\nERROR: bun lockfile check failed: %s\nIf bun.lock is out of sync, run \`bun install\` and commit the result before releasing.\n" "${err}" >&2
   exit 1
 fi
 printf "✅\n"
 
 printf "Pre-check: changelog contains \`## Unreleased\` section... "
-if ! grep -q "^## Unreleased" CHANGELOG.md 2>/dev/null; then
+if ! grep -q "^## Unreleased" CHANGELOG.md; then
   printf "\nERROR: CHANGELOG.md does not contain \`## Unreleased\` section. Create a new section for the upcoming release, commit it and retry.\n" >&2
   exit 1
 fi
 printf "✅\n"
 
-printf "Bump Cargo.toml version..."
-cargo set-version --workspace --bump="${BUMP_TYPE}" 2>&1 | awk '!/^\s*Upgrading / && !/^\s*$/'
+printf "Bump Cargo.toml version... "
+if ! err=$(cargo set-version --workspace --bump="${BUMP_TYPE}" 2>&1); then
+  printf "\nERROR: \`cargo set-version\` failed: %s\n" "${err}" >&2
+  exit 1
+fi
 VERSION=$(dasel -i toml -o yaml 'workspace.package.version' < Cargo.toml)
 if [ "${VERSION}" == "${CARGO_VERSION}" ]; then
-  echo "ERROR: Version did not change after cargo set-version." >&2
+  echo "ERROR: Version did not change after \`cargo set-version\`." >&2
   exit 1
 fi
 printf "✅\n"
 
 printf "Releasing %s (up from %s) ✅\n" "$VERSION" "$CARGO_VERSION"
 
-printf "Check if the version was set correctly... "
-if [ "$VERSION" == "$CARGO_VERSION" ]; then
-  echo "ERROR: Failed to set version in Cargo.toml." >&2
-  exit 1
-fi
-printf "✅\n"
-
 printf "Bump package.json version to %s... " "$VERSION"
 jq --arg v "$VERSION" '.version = $v' "packages/nextclade-web/package.json" >"packages/nextclade-web/package.json.tmp"
 mv "packages/nextclade-web/package.json.tmp" "packages/nextclade-web/package.json"
-if [ $? -ne 0 ]; then
-  echo "ERROR: Failed to update package.json version." >&2
-  exit 1
-fi
 printf "✅\n"
 
 printf "Updating CHANGELOG.md... "
-if ! grep -q '^## Unreleased' CHANGELOG.md 2>/dev/null; then
+if ! grep -q '^## Unreleased' CHANGELOG.md; then
   echo "ERROR: '## Unreleased' not found in CHANGELOG.md. No replacement occurred." >&2
   exit 1
 fi
-if ! sed -i'' "s/^## Unreleased/## ${VERSION}/" CHANGELOG.md 2>/dev/null; then
-  echo "ERROR: sed failed to run." >&2
+if ! sed -i'' "s/^## Unreleased/## ${VERSION}/" CHANGELOG.md; then
+  echo "ERROR: \`sed\` failed to run." >&2
   exit 1
 fi
-if ! grep -q "^## ${VERSION}" CHANGELOG.md 2>/dev/null; then
-  echo "ERROR: Replacement failed: '## ${VERSION}' not found in CHANGELOG.md after sed." >&2
+if ! grep -q "^## ${VERSION}" CHANGELOG.md; then
+  echo "ERROR: Replacement failed: '## ${VERSION}' not found in CHANGELOG.md after \`sed\`." >&2
   exit 1
 fi
 printf "✅\n"
