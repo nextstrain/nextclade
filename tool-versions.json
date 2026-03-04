@@ -11,7 +11,7 @@
     "wasm-pack": "0.13.1"
   },
   "devDependencies": {
-    "cargo-edit": "0.13.8",
+    "cargo-edit": "0.13.9",
     "cargo-nextest": "0.9.120",
     "cargo-watch": "8.5.3",
     "nodemon": { "path": "packages/nextclade-web/package.json", "format": "json", "key": "devDependencies.nodemon", "value_type": "NpmVersionReq" },

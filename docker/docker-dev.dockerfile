@@ -261,6 +261,11 @@ RUN set -euxo pipefail >/dev/null \
 && curl -fsSL "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-${CARGO_NEXTEST_VERSION}/cargo-nextest-${CARGO_NEXTEST_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-nextest" \
 && chmod +x "${CARGO_HOME}/bin/cargo-nextest"
 
+RUN set -euxo pipefail >/dev/null \
+&& CARGO_EDIT_VERSION="$(get-version -f /tool-versions.json cargo-edit)" \
+&& curl -fsSL "https://github.com/binarylandia/build_cargo-edit/releases/download/${CARGO_EDIT_VERSION}/cargo-edit-${CARGO_EDIT_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=2 -xz \
+&& chmod +x "${CARGO_HOME}/bin/cargo-add" "${CARGO_HOME}/bin/cargo-rm" "${CARGO_HOME}/bin/cargo-upgrade" "${CARGO_HOME}/bin/cargo-set-version"
+
 
 RUN set -euxo pipefail >/dev/null \
 && curl -fsSL "https://ftp.ncbi.nlm.nih.gov/asn1-converters/by_program/table2asn/linux64.table2asn.gz" | gzip -d > "${CARGO_HOME}/bin/table2asn" && chmod +x "${CARGO_HOME}/bin/table2asn"
