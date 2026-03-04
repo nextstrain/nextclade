@@ -39,8 +39,8 @@ fi
 printf "✅\n"
 
 printf "Pre-check: working directory is not dirty... "
-if [ -n "$(git status -s)" ]; then
-  printf "\nWorking directory is dirty.\nUncommitted changes detected. Refusing to proceed.\nStash or commit the changes and retry.\n" >&2
+if [ -n "$(git status --porcelain | grep -v '^.. CHANGELOG\.md$')" ]; then
+  printf "\nWorking directory is dirty.\nUncommitted changes to files other than CHANGELOG.md detected. Refusing to proceed.\nStash or commit the changes and retry.\n" >&2
   exit 1
 fi
 printf "✅\n"
