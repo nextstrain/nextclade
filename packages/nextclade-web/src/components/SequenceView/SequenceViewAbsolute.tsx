@@ -13,7 +13,7 @@ import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
-import { SequenceViewSVG } from './SequenceViewStyles'
+import { SequenceViewCoverageWrapper, SequenceViewCoverageText, SequenceViewSVG } from './SequenceViewStyles'
 
 export interface SequenceViewAbsoluteProps {
   sequence: AnalysisResult
@@ -117,16 +117,29 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
     mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length + insertionViews.length
   if (totalMarkers > maxNucMarkers) {
     return (
-      <p
-        title={t(
-          "Markers are the colored rectangles which represent mutations, deletions etc. There is a technical limit of how many of those can be displayed at a time, depending on how fast your computer is. You can tune the threshold in the 'Settings' dialog, accessible with the button on the top panel.",
-        )}
-      >
-        {t(
-          'Too many markers to display ({{totalMarkers}}). The threshold ({{maxNucMarkers}}) can be increased in "Settings" dialog',
-          { totalMarkers, maxNucMarkers },
-        )}
-      </p>
+      <SequenceViewCoverageWrapper>
+        <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
+          <SequenceMarkerUnsequencedStart
+            index={index}
+            seqName={seqName}
+            alignmentStart={alignmentRange.begin}
+            pixelsPerBase={pixelsPerBase}
+          />
+          <SequenceMarkerUnsequencedEnd
+            index={index}
+            seqName={seqName}
+            genomeSize={genomeSize}
+            alignmentEnd={alignmentRange.end}
+            pixelsPerBase={pixelsPerBase}
+          />
+        </SequenceViewSVG>
+        <SequenceViewCoverageText>
+          {t(
+            'Too many markers to display ({{totalMarkers}}). The threshold ({{maxNucMarkers}}) can be increased in "Settings" dialog',
+            { totalMarkers, maxNucMarkers },
+          )}
+        </SequenceViewCoverageText>
+      </SequenceViewCoverageWrapper>
     )
   }
 
