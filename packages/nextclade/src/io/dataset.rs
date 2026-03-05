@@ -327,11 +327,12 @@ impl Dataset {
       schema: Self::default_schema(),
       path: o!("nextstrain/rsv/a/EPI_ISL_412866"),
       shortcuts: vec_of_owned!["rsv_a", "nextstrain/rsv/a"],
-      attributes: BTreeMap::from([
-        (o!("name"), AnyType::String(o!("RSV-A"))),
-        (o!("reference accession"), AnyType::String(o!("EPI_ISL_412866"))),
-        (o!("reference name"), AnyType::String(o!("hRSV/A/England/397/2017"))),
-      ]),
+      attributes: DatasetAttributes {
+        name: Some(o!("RSV-A")),
+        reference_name: Some(o!("hRSV/A/England/397/2017")),
+        reference_accession: Some(o!("EPI_ISL_412866")),
+        ..DatasetAttributes::default()
+      },
       meta: DatasetMeta::default(),
       files: DatasetFiles::example(),
       capabilities: DatasetCapabilities::default(),
