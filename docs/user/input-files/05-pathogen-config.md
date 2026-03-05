@@ -92,14 +92,14 @@ Example configuration for SARS-CoV-2:
       "enabled": true,
       "ignoredFrameShifts": [
         {
-          "geneName": "ORF3a",
+          "cdsName": "ORF3a",
           "codonRange": {
             "begin": 256,
             "end": 276
           }
         },
         {
-          "geneName": "ORF3a",
+          "cdsName": "ORF3a",
           "codonRange": {
             "begin": 258,
             "end": 276
@@ -111,11 +111,11 @@ Example configuration for SARS-CoV-2:
       "enabled": true,
       "ignoredStopCodons": [
         {
-          "geneName": "ORF8",
+          "cdsName": "ORF8",
           "codon": 26
         },
         {
-          "geneName": "ORF8",
+          "cdsName": "ORF8",
           "codon": 67
         }
       ]
@@ -166,7 +166,6 @@ Optional `dict`. Parameters for the tree building algorithm. These are identical
 - `withoutGreedyTreeBuilder`: If you don't want to use the greedy tree builder, set this to `true`. Default: `false`.
 - `maskedMutsWeight`: Parsimony weight for masked mutations. Default: `0.05`.
 
-
 #### Calculate phenotypic scores from mutations (`phenotypeData`)
 
 Nextclade can calculate numerical scores derived from mutations in a query sequence relative to the reference sequence.
@@ -174,6 +173,7 @@ Such scores could for example be used to calculate predicted ACE2 binding for SA
 
 Each such score is based on exactly one CDS and each amino acid mutation can be assigned a specific contribution to the score.
 In addition, a "default" value can be specified for amino acid mutations that are not explicitly listed.
+
 ```json
 {
   "phenotypeData": [
@@ -211,6 +211,7 @@ In addition, a "default" value can be specified for amino acid mutations that ar
   ]
 }
 ```
+
 If the score is only relevant for specific clades, you can specify which clades are to be ignored.
 
 #### Amino acid motif detection (`aaMotifs`)
@@ -220,6 +221,7 @@ To use this feature, you need to add a `aaMotifs` field to the `pathogen.json`.
 
 Amino acid motifs can be specified using regular expressions and the parts of the genome in which Nextclade searches for the motifs is specified by listing the CDS and (optional) ranges within these CDSs (e.g.~to restrict to the exposed part of a protein).
 An example of a full configuration (for glycosylation in influenza HA) is shown below.
+
 ```json
   "aaMotifs": [
     {
@@ -243,6 +245,7 @@ An example of a full configuration (for glycosylation in influenza HA) is shown 
     }
   ]
 ```
+
 In the web interface, motifs are reported as shown in the screenshot below:
 ![aaMotifs](../assets/web_aaMotifs.png)
 
@@ -253,6 +256,7 @@ To do so, you can specify mutations as "labeled" using the `mutLabels` field in 
 Labeled mutations are only searched among the "private" mutations, i.e. mutations in query sequences that are not found in the part of the reference tree the query sequence attaches to.
 
 The json specification looks as follows
+
 ```json
 {
   "mutLabels": {
@@ -264,11 +268,11 @@ The json specification looks as follows
   }
 }
 ```
+
 Labeled "private" mutations are shown in the tool-tip of the mutation column when mutations "relative to parent" are shown (private mutations) and exported into the tabular output.
 
 TODO: add amino acid mutations once released.
 
 > ⚠️ Note that the specification of these mutations breaks with the convention of zero-indexing. Instead, these labeled mutations are one-indexed and directly correspond to the mutations displayed in the UI or in the tables.
-
 
 > 💡 Nextclade CLI supports file compression and reading from standard input. See section [Compression, stdin](./compression.md) for more details.
