@@ -11,8 +11,7 @@ properties:
     items:
       type: string
   attributes:
-    type: object
-    additionalProperties: true
+    $ref: '#/definitions/DatasetAttributes'
   meta:
     $ref: '#/definitions/DatasetMeta'
   files:
@@ -34,6 +33,36 @@ properties:
     - $ref: '#/definitions/DatasetMaintenance'
     - type: 'null'
 definitions:
+  DatasetAttributes:
+    description: Dataset metadata attributes with recognized keys and extensibility
+    type: object
+    properties:
+      name:
+        description: Human-readable dataset name
+        type:
+        - string
+        - 'null'
+      reference name:
+        description: Name of the reference sequence
+        type:
+        - string
+        - 'null'
+      reference accession:
+        description: Accession number of the reference sequence
+        type:
+        - string
+        - 'null'
+      deprecated:
+        description: If true, dataset is deprecated and excluded from listings by default. Authors mark a dataset as deprecated to indicate it will no longer be updated or supported. Use `--include-deprecated` CLI flag to show deprecated datasets.
+        type:
+        - boolean
+        - 'null'
+      experimental:
+        description: If true, dataset is experimental and excluded with `--no-experimental` CLI flag. Authors mark a dataset as experimental when development is still in progress, or if the dataset is incomplete or of lower quality than usual. Use at own risk.
+        type:
+        - boolean
+        - 'null'
+    additionalProperties: true
   DatasetMeta:
     type: object
     properties:

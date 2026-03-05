@@ -5,8 +5,8 @@ examples:
 - schemaVersion: 3.0.0
   attributes:
     name: Influenza A H3N2 HA
-    reference accession: CY163680
     reference name: A/Wisconsin/67/2005-egg
+    reference accession: CY163680
     segment: ha
   shortcuts:
   - flu_h3n2_ha_broad
@@ -102,8 +102,7 @@ properties:
   schemaVersion:
     type: string
   attributes:
-    type: object
-    additionalProperties: true
+    $ref: '#/definitions/PathogenAttributes'
   shortcuts:
     type: array
     items:
@@ -171,6 +170,26 @@ properties:
     - $ref: '#/definitions/DatasetMaintenance'
     - type: 'null'
 definitions:
+  PathogenAttributes:
+    description: Pathogen metadata attributes with recognized keys and extensibility
+    type: object
+    properties:
+      name:
+        description: Human-readable dataset name
+        type:
+        - string
+        - 'null'
+      reference name:
+        description: Name of the reference sequence
+        type:
+        - string
+        - 'null'
+      reference accession:
+        description: Accession number of the reference sequence
+        type:
+        - string
+        - 'null'
+    additionalProperties: true
   DatasetMeta:
     type: object
     properties:
