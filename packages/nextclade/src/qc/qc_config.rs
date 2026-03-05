@@ -17,7 +17,9 @@ use validator::Validate;
 #[schemars(example = "QcRulesConfigMissingData::example")]
 pub struct QcRulesConfigMissingData {
   pub enabled: bool,
+  /// Number of N characters above scoreBias at which the score reaches 100. Score is linear: (totalMissing - scoreBias) * 100 / missingDataThreshold.
   pub missing_data_threshold: OrderedFloat<f64>,
+  /// Number of N characters tolerated before the score starts increasing
   pub score_bias: OrderedFloat<f64>,
 }
 
@@ -31,13 +33,14 @@ impl QcRulesConfigMissingData {
   }
 }
 
-// Configuration for QC rule "mixed sites"
+/// Configuration for QC rule "mixed sites"
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 #[schemars(example = "QcRulesConfigMixedSites::example")]
 pub struct QcRulesConfigMixedSites {
   pub enabled: bool,
+  /// Number of ambiguous (non-ACGTN) nucleotide positions at which the score reaches 100
   pub mixed_sites_threshold: usize,
 }
 
@@ -58,25 +61,33 @@ impl QcRulesConfigMixedSites {
 pub struct QcRulesConfigPrivateMutations {
   pub enabled: bool,
 
+  /// Weight multiplier for reversion substitutions in the weighted total
   #[serde(default = "one")]
   pub weight_reversion_substitutions: OrderedFloat<f64>,
 
+  /// Weight multiplier for reversion deletions in the weighted total
   #[serde(default = "one")]
   pub weight_reversion_deletions: OrderedFloat<f64>,
 
+  /// Weight multiplier for labeled substitutions (known phylogenetic markers) in the weighted total
   #[serde(default = "one")]
   pub weight_labeled_substitutions: OrderedFloat<f64>,
 
+  /// Weight multiplier for labeled deletions in the weighted total
   #[serde(default = "one")]
   pub weight_labeled_deletions: OrderedFloat<f64>,
 
+  /// Weight multiplier for unlabeled substitutions in the weighted total
   #[serde(default = "one")]
   pub weight_unlabeled_substitutions: OrderedFloat<f64>,
 
+  /// Weight multiplier for unlabeled deletions in the weighted total
   #[serde(default = "one")]
   pub weight_unlabeled_deletions: OrderedFloat<f64>,
 
+  /// Expected number of weighted private mutations for a typical sequence. Excess above this value is penalized.
   pub typical: OrderedFloat<f64>,
+  /// Excess above `typical` at which the score reaches 100
   pub cutoff: OrderedFloat<f64>,
 }
 
@@ -107,8 +118,11 @@ const fn one() -> OrderedFloat<f64> {
 #[schemars(example = "QcRulesConfigSnpClusters::example")]
 pub struct QcRulesConfigSnpClusters {
   pub enabled: bool,
+  /// Size of the sliding window (in nucleotides) used to count private mutations
   pub window_size: usize,
+  /// Number of private mutations within a window above which the window is flagged as a cluster
   pub cluster_cut_off: usize,
+  /// QC score added per detected cluster
   pub score_weight: OrderedFloat<f64>,
 }
 
@@ -129,7 +143,9 @@ impl QcRulesConfigSnpClusters {
 #[serde(default)]
 #[schemars(example = "FrameShiftLocation::example")]
 pub struct FrameShiftLocation {
+  /// Name of the coding sequence (CDS) containing the frame shift
   pub cds_name: String,
+  /// Codon range affected by the frame shift (0-indexed, half-open)
   pub codon_range: AaRefRange,
 }
 
@@ -149,8 +165,10 @@ impl FrameShiftLocation {
 #[schemars(example = "QcRulesConfigFrameShifts::example")]
 pub struct QcRulesConfigFrameShifts {
   pub enabled: bool,
+  /// Frame shifts at these locations are known and not penalized
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ignored_frame_shifts: Vec<FrameShiftLocation>,
+  /// QC score added per detected frame shift (excluding ignored ones)
   pub score_weight: OrderedFloat<f64>,
 }
 
@@ -179,7 +197,9 @@ impl QcRulesConfigFrameShifts {
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "StopCodonLocation::example")]
 pub struct StopCodonLocation {
+  /// Name of the coding sequence (CDS) containing the stop codon
   pub cds_name: String,
+  /// 0-indexed codon position of the stop codon within the CDS
   pub codon: usize,
 }
 
@@ -199,8 +219,10 @@ impl StopCodonLocation {
 #[schemars(example = "QcRulesConfigStopCodons::example")]
 pub struct QcRulesConfigStopCodons {
   pub enabled: bool,
+  /// Premature stop codons at these locations are known and not penalized
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ignored_stop_codons: Vec<StopCodonLocation>,
+  /// QC score added per premature stop codon (excluding ignored ones)
   pub score_weight: OrderedFloat<f64>,
 }
 
@@ -239,11 +261,17 @@ impl QcRulesConfigStopCodons {
 #[serde(default)]
 #[schemars(example = "QcConfig::example")]
 pub struct QcConfig {
+  /// Configuration for the "missing data" (N) rule
   pub missing_data: QcRulesConfigMissingData,
+  /// Configuration for the "mixed sites" (M) rule
   pub mixed_sites: QcRulesConfigMixedSites,
+  /// Configuration for the "private mutations" (P) rule
   pub private_mutations: QcRulesConfigPrivateMutations,
+  /// Configuration for the "SNP clusters" (C) rule
   pub snp_clusters: QcRulesConfigSnpClusters,
+  /// Configuration for the "frame shifts" (F) rule
   pub frame_shifts: QcRulesConfigFrameShifts,
+  /// Configuration for the "stop codons" (S) rule
   pub stop_codons: QcRulesConfigStopCodons,
 }
 
