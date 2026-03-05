@@ -132,14 +132,15 @@ Properties:
   - `search[].name`: required unique identifier of the search entry
   - `search[].displayName`, `search.description`: optional friendly name and description to be displayed in the UI (dropdown)
   - `search[].criteria`: array of objects, optional. One or multiple search criteria. Criteria should be described such that during search run only one criterion matches a pair of query and node. If there are multiple matches, then one (unspecified) match is taken and a warning is emitted.
-    - `search[].criteria[].qry`: object, optional, describing properties of query samples to select for this search
-      - `search[].criteria[].qry.clade`: array of strings, optional. Query names to consider for this search. At least one match is necessary for sample to match.
-      - `search[].criteria[].qry.cladeNodeAttrs`: optional mapping from name of the clade-like attr to a list of searched values for this attr. At least one match is necessary for sample to match.
-    - `search[].criteria[].node`: object, optional, describing properties of ref node to search, as well as search algorithm. All of the properties should match.
-      - `search[].criteria[].node.name`: array of strings, optional. Searched node names. At least one match.
-      - `search[].criteria[].node.clade`: array of strings, optional. Searched node clades. At least one match is necessary for node to match.
-      - `search[].criteria[].node.cladeNodeAttrs`: optional mapping from name of the clade-like attr to a list of searched values for this attr. At least one match is necessary for node to match.
-      - `search[].criteria[].node.searchAlgo`: string, optional. Search algorithm to use
+    - `search[].criteria[].qry`: array of objects, optional. Each object describes properties of query samples to select for this search.
+      - `search[].criteria[].qry[].name`: array of strings, optional. Query sequence names to consider for this search. At least one match is necessary for sample to match.
+      - `search[].criteria[].qry[].clade`: array of strings, optional. Query clades to consider for this search. At least one match is necessary for sample to match.
+      - `search[].criteria[].qry[].cladeNodeAttrs`: optional mapping from name of the clade-like attr to a list of searched values for this attr. At least one match is necessary for sample to match.
+    - `search[].criteria[].node`: array of objects, optional. Each object describes properties of ref node to search, as well as search algorithm. All of the properties should match.
+      - `search[].criteria[].node[].name`: array of strings, optional. Searched node names. At least one match.
+      - `search[].criteria[].node[].clade`: array of strings, optional. Searched node clades. At least one match is necessary for node to match.
+      - `search[].criteria[].node[].cladeNodeAttrs`: optional mapping from name of the clade-like attr to a list of searched values for this attr. At least one match is necessary for node to match.
+      - `search[].criteria[].node[].searchAlgo`: string, optional. Search algorithm to use
         - `full` (default): simple loop over all nodes until first match is found
         - `ancestor-earliest`: start with the current sample and traverse the graph against edge directions, looking for matching nodes, until it reaches root node. The result is the last encountered matching node.
         - `ancestor-nearest`: start with the current sample and traverse the graph against edge directions, looking for matching nodes. The first match is the result.
