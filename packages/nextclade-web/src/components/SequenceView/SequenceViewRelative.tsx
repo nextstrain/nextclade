@@ -14,7 +14,7 @@ import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
-import { SequenceViewSVG } from './SequenceViewStyles'
+import { SequenceViewCoverageWrapper, SequenceViewCoverageText, SequenceViewSVG } from './SequenceViewStyles'
 
 export interface SequenceViewRelativeProps {
   sequence: AnalysisResult
@@ -108,16 +108,29 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
 
   if (totalMarkers > maxNucMarkers) {
     return (
-      <p
-        title={t(
-          "Markers are the colored rectangles which represent mutations, deletions etc. There is a technical limit of how many of those can be displayed at a time, depending on how fast your computer is. You can tune the threshold in the 'Settings' dialog, accessible with the button on the top panel.",
-        )}
-      >
-        {t(
-          'Too many markers to display ({{totalMarkers}}). The threshold ({{maxNucMarkers}}) can be increased in "Settings" dialog',
-          { totalMarkers, maxNucMarkers },
-        )}
-      </p>
+      <SequenceViewCoverageWrapper>
+        <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
+          <SequenceMarkerUnsequencedStart
+            index={index}
+            seqName={seqName}
+            alignmentStart={alignmentRange.begin}
+            pixelsPerBase={pixelsPerBase}
+          />
+          <SequenceMarkerUnsequencedEnd
+            index={index}
+            seqName={seqName}
+            genomeSize={genomeSize}
+            alignmentEnd={alignmentRange.end}
+            pixelsPerBase={pixelsPerBase}
+          />
+        </SequenceViewSVG>
+        <SequenceViewCoverageText>
+          {t(
+            'Too many markers to display ({{totalMarkers}}). The threshold ({{maxNucMarkers}}) can be increased in "Settings" dialog',
+            { totalMarkers, maxNucMarkers },
+          )}
+        </SequenceViewCoverageText>
+      </SequenceViewCoverageWrapper>
     )
   }
 
