@@ -12,6 +12,61 @@ use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::ops::{Deref, DerefMut};
 
+/// Dataset metadata attributes with recognized keys and extensibility
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct DatasetAttributes {
+  /// Human-readable dataset name
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub name: Option<String>,
+
+  /// Name of the reference sequence
+  #[serde(rename = "reference name", default, skip_serializing_if = "Option::is_none")]
+  pub reference_name: Option<String>,
+
+  /// Accession number of the reference sequence
+  #[serde(rename = "reference accession", default, skip_serializing_if = "Option::is_none")]
+  pub reference_accession: Option<String>,
+
+  /// If true, dataset is deprecated and excluded from listings by default.
+  /// Authors mark a dataset as deprecated to indicate it will no longer be updated or supported.
+  /// Use `--include-deprecated` CLI flag to show deprecated datasets.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub deprecated: Option<bool>,
+
+  /// If true, dataset is experimental and excluded with `--no-experimental` CLI flag.
+  /// Authors mark a dataset as experimental when development is still in progress,
+  /// or if the dataset is incomplete or of lower quality than usual. Use at own risk.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub experimental: Option<bool>,
+
+  /// Additional custom attributes
+  #[serde(flatten)]
+  pub other: BTreeMap<String, AnyType>,
+}
+
+impl DatasetAttributes {
+  pub fn is_default(&self) -> bool {
+    self == &Self::default()
+  }
+
+  /// Iterate over all attributes as (key, value) pairs for display
+  pub fn iter(&self) -> impl Iterator<Item = (&str, String)> {
+    let typed = [
+      self.name.as_ref().map(|v| ("name", v.clone())),
+      self.reference_name.as_ref().map(|v| ("reference name", v.clone())),
+      self.reference_accession.as_ref().map(|v| ("reference accession", v.clone())),
+      self.deprecated.map(|v| ("deprecated", v.to_string())),
+      self.experimental.map(|v| ("experimental", v.to_string())),
+    ]
+    .into_iter()
+    .flatten();
+
+    let other = self.other.iter().map(|(k, v)| (k.as_str(), v.to_string()));
+
+    chain!(typed, other)
+  }
+}
+
 const INDEX_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
 const INDEX_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 
@@ -114,8 +169,8 @@ pub struct Dataset {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub shortcuts: Vec<String>,
 
-  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-  pub attributes: BTreeMap<String, AnyType>,
+  #[serde(default, skip_serializing_if = "DatasetAttributes::is_default")]
+  pub attributes: DatasetAttributes,
 
   #[serde(default, skip_serializing_if = "DatasetMeta::is_default")]
   pub meta: DatasetMeta,
@@ -148,7 +203,7 @@ impl Dataset {
   }
 
   pub fn name(&self) -> Option<&str> {
-    self.attributes.get("name").and_then(AnyType::as_str_maybe)
+    self.attributes.name.as_deref()
   }
 
   pub fn shortcuts(&self) -> impl Iterator<Item = &str> {
@@ -175,30 +230,19 @@ impl Dataset {
   }
 
   pub fn ref_name(&self) -> Option<&str> {
-    self.attributes.get("reference name").and_then(AnyType::as_str_maybe)
+    self.attributes.reference_name.as_deref()
   }
 
   pub fn ref_accession(&self) -> Option<&str> {
-    self
-      .attributes
-      .get("reference accession")
-      .and_then(AnyType::as_str_maybe)
+    self.attributes.reference_accession.as_deref()
   }
 
   pub fn deprecated(&self) -> bool {
-    self
-      .attributes
-      .get("deprecated")
-      .and_then(AnyType::as_bool_maybe)
-      .unwrap_or(false)
+    self.attributes.deprecated.unwrap_or(false)
   }
 
   pub fn experimental(&self) -> bool {
-    self
-      .attributes
-      .get("experimental")
-      .and_then(AnyType::as_bool_maybe)
-      .unwrap_or(false)
+    self.attributes.experimental.unwrap_or(false)
   }
 
   pub fn is_community(&self) -> bool {

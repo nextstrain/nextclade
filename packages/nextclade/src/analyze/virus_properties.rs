@@ -29,6 +29,32 @@ use validator::Validate;
 const PATHOGEN_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
 const PATHOGEN_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 
+/// Pathogen metadata attributes with recognized keys and extensibility
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+pub struct PathogenAttributes {
+  /// Human-readable dataset name
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub name: Option<String>,
+
+  /// Name of the reference sequence
+  #[serde(rename = "reference name", default, skip_serializing_if = "Option::is_none")]
+  pub reference_name: Option<String>,
+
+  /// Accession number of the reference sequence
+  #[serde(rename = "reference accession", default, skip_serializing_if = "Option::is_none")]
+  pub reference_accession: Option<String>,
+
+  /// Additional custom attributes
+  #[serde(flatten)]
+  pub other: BTreeMap<String, AnyType>,
+}
+
+impl PathogenAttributes {
+  pub fn is_default(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
 /// pathogen.json dataset file. Contains external configuration and data specific for a particular pathogen.
 #[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -36,8 +62,8 @@ const PATHOGEN_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 pub struct VirusProperties {
   pub schema_version: String,
 
-  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-  pub attributes: BTreeMap<String, AnyType>,
+  #[serde(default, skip_serializing_if = "PathogenAttributes::is_default")]
+  pub attributes: PathogenAttributes,
 
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub shortcuts: Vec<String>,
@@ -325,11 +351,13 @@ impl VirusProperties {
   pub fn example() -> Self {
     Self {
       schema_version: o!("3.0.0"),
-      attributes: btreemap! {
-        o!("name") => AnyType::String(o!("Influenza A H3N2 HA")),
-        o!("segment") => AnyType::String(o!("ha")),
-        o!("reference accession") => AnyType::String(o!("CY163680")),
-        o!("reference name") => AnyType::String(o!("A/Wisconsin/67/2005-egg")),
+      attributes: PathogenAttributes {
+        name: Some(o!("Influenza A H3N2 HA")),
+        reference_name: Some(o!("A/Wisconsin/67/2005-egg")),
+        reference_accession: Some(o!("CY163680")),
+        other: btreemap! {
+          o!("segment") => AnyType::String(o!("ha")),
+        },
       },
       shortcuts: vec_of_owned!["flu_h3n2_ha_broad", "nextstrain/flu/h3n2/ha/wisconsin-67-2005"],
       meta: DatasetMeta::default(),

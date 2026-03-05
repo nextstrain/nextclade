@@ -21,7 +21,6 @@ use crate::tree::tree::{AuspiceGraph, AuspiceRefNodesDesc, AuspiceTree, CladeNod
 use crate::tree::tree_builder::graph_attach_new_nodes_in_place;
 use crate::tree::tree_preprocess::graph_preprocess_in_place;
 use crate::types::outputs::NextcladeOutputs;
-use crate::utils::any::AnyType;
 use crate::utils::option::{OptionMapRefFallible, find_some};
 use eyre::{Report, WrapErr, eyre};
 use itertools::Itertools;
@@ -67,14 +66,9 @@ impl NextcladeParams {
       } else {
         let ref_name = virus_properties
           .attributes
-          .get("reference name")
-          .cloned()
-          .unwrap_or_else(|| AnyType::String("reference".to_owned()))
-          .as_str()
-          .wrap_err(
-            "When reading Auspice JSON v2 `.meta.extensions.nextclade.pathogen.attributes[\"reference name\"]`",
-          )?
-          .to_owned();
+          .reference_name
+          .clone()
+          .unwrap_or_else(|| "reference".to_owned());
 
         let ref_seq = auspice_json.root_sequence.as_ref().and_then(|root_sequence| root_sequence.get("nuc"))
           .ok_or_else(|| eyre!("Auspice JSON v2 is used as input dataset, but does not contain required reference sequence field (.root_sequence.nuc) and a reference sequence is not provided any other way."))?.to_owned();

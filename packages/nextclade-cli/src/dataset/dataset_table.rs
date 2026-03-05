@@ -35,13 +35,7 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
 
     let attrs = attributes
       .iter()
-      .map(|(key, val)| {
-        format!(
-          "{}={}",
-          surround_with_quotes(key),
-          surround_with_quotes(val.to_string())
-        )
-      })
+      .map(|(key, val)| format!("{}={}", surround_with_quotes(key), surround_with_quotes(val)))
       .join("\n");
 
     let versions = dataset.versions.iter().map(|ver| &ver.tag).join("\n");
