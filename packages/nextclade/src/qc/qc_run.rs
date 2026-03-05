@@ -5,6 +5,7 @@ use crate::qc::qc_rule_frame_shifts::{QcResultFrameShifts, rule_frame_shifts};
 use crate::qc::qc_rule_missing_data::{QcResultMissingData, rule_missing_data};
 use crate::qc::qc_rule_mixed_sites::{QcResultMixedSites, rule_mixed_sites};
 use crate::qc::qc_rule_private_mutations::{QcResultPrivateMutations, rule_private_mutations};
+use crate::qc::qc_rule_recombinants::{QcResultRecombinants, rule_recombinants};
 use crate::qc::qc_rule_snp_clusters::{QcResultSnpClusters, rule_snp_clusters};
 use crate::qc::qc_rule_stop_codons::{QcResultStopCodons, rule_stop_codons};
 use crate::translate::frame_shifts_translate::FrameShift;
@@ -54,6 +55,7 @@ pub struct QcResult {
   pub snp_clusters: Option<QcResultSnpClusters>,
   pub frame_shifts: Option<QcResultFrameShifts>,
   pub stop_codons: Option<QcResultStopCodons>,
+  pub recombinants: Option<QcResultRecombinants>,
   pub overall_score: f64,
   pub overall_status: QcStatus,
 }
@@ -68,13 +70,22 @@ pub fn qc_run(
   total_missing: usize,
   translation: &Translation,
   frame_shifts: &[FrameShift],
+  genome_length: usize,
   config: &QcConfig,
 ) -> QcResult {
+  let snp_clusters = rule_snp_clusters(private_nuc_mutations, &config.snp_clusters);
+
   let mut result = QcResult {
     missing_data: rule_missing_data(total_missing, &config.missing_data),
     mixed_sites: rule_mixed_sites(nucleotide_composition, &config.mixed_sites),
     private_mutations: rule_private_mutations(private_nuc_mutations, &config.private_mutations),
-    snp_clusters: rule_snp_clusters(private_nuc_mutations, &config.snp_clusters),
+    recombinants: rule_recombinants(
+      private_nuc_mutations,
+      snp_clusters.as_ref(),
+      genome_length,
+      &config.recombinants,
+    ),
+    snp_clusters,
     frame_shifts: rule_frame_shifts(frame_shifts, &config.frame_shifts),
     stop_codons: rule_stop_codons(translation, &config.stop_codons),
     overall_score: 0.0,
@@ -87,6 +98,7 @@ pub fn qc_run(
   result.overall_score += add_score(result.snp_clusters.as_ref());
   result.overall_score += add_score(result.frame_shifts.as_ref());
   result.overall_score += add_score(result.stop_codons.as_ref());
+  result.overall_score += add_score(result.recombinants.as_ref());
 
   result.overall_status = QcStatus::from_score(result.overall_score);
 
