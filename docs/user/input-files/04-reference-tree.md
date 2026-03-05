@@ -68,7 +68,7 @@ As a dataset author, in order to add clade-like attributes to your reference tre
 
    Fields:
    - `name` - (required) machine-readable identifier of the attribute. Should match the attribute on the tree nodes. Will be used to name fields/columns in JSON and TSV output files.
-   - `displayName` - (optional) human-friendly name of the attribute. Will be shown in Nextclade Web.
+   - `displayName` - (required) human-friendly name of the attribute. Will be shown in Nextclade Web.
    - `description` - (optional) human-friendly description of the attribute. Will be shown in Nextclade Web.
    - `hideInWeb` - (optional) set this to `true` to hide attribute's column from Nextclade Web
    - `skipAsReference` - (optional) - set this to `true` to no use the attribute for calculating clade founder nodes and relative mutations.
