@@ -12,7 +12,7 @@ The phylogenetic reference tree which serves as a target for phylogenetic placem
 
 ### Requirements
 
-1. The tree **should** be rooted at the sample that matches the [reference sequence](02-reference-sequence.md). Otherwise the results of the analysis will be incorrect. It's user's or dataset author's responsibility that this assumption holds. Nextclade can sometimes detect a mismatch in certain cases, but not always. 
+1. The tree **should** be rooted at the sample that matches the [reference sequence](02-reference-sequence.md). Otherwise the results of the analysis will be incorrect. It's user's or dataset author's responsibility that this assumption holds. Nextclade can sometimes detect a mismatch in certain cases, but not always.
 
    > ⚠️ A workaround in case one does not want the tree to be rooted on the reference is to attach the mutational differences between the tree root and the reference on the branch leading to the root node.
    > This can be accomplished by passing the reference sequence to `augur ancestral`'s `--root-sequence` argument (see the [`augur ancestral` docs](https://docs.nextstrain.org/projects/augur/en/stable/usage/cli/ancestral.html#inputs)).
@@ -33,39 +33,38 @@ Each declared attribute will result in a new column in the results table in Next
 
 Additionally, each of the attributes, unless excluded, participates in [founder node search](../algorithm/05-mutation-calling.md). For each attribute, Nextclade Web will display in the "Relative to" dropdown an additional entry named "'<attribute.displayName>' founder", and a set of columns/fields `founderMuts` will be added to the [outputs](../output-files/04-results-tsv.md).
 
-
 As a dataset author, in order to add clade-like attributes to your reference tree, modify the reference tree file as follows:
 
 1. Add field `.meta.extensions.nextclade.clade_node_attrs` of array type, and declare the clade-like attributes you want to add.
 
    Example (for latest examples see [nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data)):
 
-    ```json
-    {
-      "meta": {
-        "extensions": {
-          "nextclade": {
-            "clade_node_attrs": [
-              {
-                "name": "other-clade",
-                "displayName": "Other clade",
-                "description": "This long text goes into the tooltip. Explain what the clades are, who and where defined them.",
-                "hideInWeb": false,
-                "skipAsReference": true
-              },
-              {
-                "name": "my-lineage",
-                "displayName": "My lineage",
-                "description": "This long text goes into the tooltip. Explain what the lineages are, who and where defined them.",
-                "hideInWeb": false,
-                "skipAsReference": true
-              }
-            ]
-          }
-        }
-      }
-    }
-    ```
+   ```json
+   {
+     "meta": {
+       "extensions": {
+         "nextclade": {
+           "clade_node_attrs": [
+             {
+               "name": "other-clade",
+               "displayName": "Other clade",
+               "description": "This long text goes into the tooltip. Explain what the clades are, who and where defined them.",
+               "hideInWeb": false,
+               "skipAsReference": true
+             },
+             {
+               "name": "my-lineage",
+               "displayName": "My lineage",
+               "description": "This long text goes into the tooltip. Explain what the lineages are, who and where defined them.",
+               "hideInWeb": false,
+               "skipAsReference": true
+             }
+           ]
+         }
+       }
+     }
+   }
+   ```
 
    Fields:
    - `name` - (required) machine-readable identifier of the attribute. Should match the attribute on the tree nodes. Will be used to name fields/columns in JSON and TSV output files.
@@ -76,15 +75,15 @@ As a dataset author, in order to add clade-like attributes to your reference tre
 
 2. For each node in the tree, add node attribute with the same name as the `name` field in the attribute's description and with the value corresponding to the value of the clade, lineage etc. of this node:
 
-    ```json
-    {
-      "node_attrs": {
-        "clade_membership": {"value": "A1"},
-        "other-clade": {"value": "Lambda"},
-        "my-lineage": {"value": "A.1.2.3.4"}
-      }
-    }
-    ```
+   ```json
+   {
+     "node_attrs": {
+       "clade_membership": { "value": "A1" },
+       "other-clade": { "value": "Lambda" },
+       "my-lineage": { "value": "A.1.2.3.4" }
+     }
+   }
+   ```
 
    Note that `clade_membership` attribute is treated separately (if present) and it does not need to be declared in `clade_node_attrs`.
 
@@ -143,5 +142,4 @@ Properties:
       - `search[].criteria[].node.searchAlgo`: string, optional. Search algorithm to use
         - `full` (default): simple loop over all nodes until first match is found
         - `ancestor-earliest`: start with the current sample and traverse the graph against edge directions, looking for matching nodes, until it reaches root node. The result is the last encountered matching node.
-        - `ancestor-latest`: start with the current sample and traverse the graph against edge directions, looking for matching nodes. The first match is the result.
-
+        - `ancestor-nearest`: start with the current sample and traverse the graph against edge directions, looking for matching nodes. The first match is the result.
