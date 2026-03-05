@@ -280,18 +280,6 @@
         }
       ]
     },
-    "deprecated": {
-      "type": [
-        "boolean",
-        "null"
-      ]
-    },
-    "experimental": {
-      "type": [
-        "boolean",
-        "null"
-      ]
-    },
     "maintenance": {
       "anyOf": [
         {
