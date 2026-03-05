@@ -75,8 +75,10 @@ pub struct AuspiceGraphMeta {
 
 pub type AuspiceGraph = Graph<AuspiceGraphNodePayload, AuspiceGraphEdgePayload, AuspiceGraphMeta>;
 
+/// String-valued node attribute in Auspice JSON tree format. Wraps a string value with optional extra properties.
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttr {
+  /// Attribute value
   pub value: String,
 
   #[serde(flatten)]
@@ -92,8 +94,10 @@ impl TreeNodeAttr {
   }
 }
 
+/// Float-valued node attribute in Auspice JSON tree format. Wraps a numeric value with optional extra properties.
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttrF64 {
+  /// Attribute value
   pub value: f64,
 
   #[serde(flatten)]
@@ -109,11 +113,14 @@ impl TreeNodeAttrF64 {
   }
 }
 
+/// Labels displayed on tree branches in Auspice visualization.
 #[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeBranchAttrsLabels {
+  /// Amino acid mutation label text
   #[serde(skip_serializing_if = "Option::is_none")]
   pub aa: Option<String>,
 
+  /// Clade assignment label text
   #[serde(skip_serializing_if = "Option::is_none")]
   pub clade: Option<String>,
 
@@ -121,10 +128,13 @@ pub struct TreeBranchAttrsLabels {
   pub other: serde_json::Value,
 }
 
+/// Attributes on the branch leading to a tree node, including mutations and display labels.
 #[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeBranchAttrs {
+  /// Mutations on this branch, keyed by gene name (or "nuc" for nucleotide mutations). Values are mutation strings in `<ref><pos><alt>` format.
   pub mutations: BTreeMap<String, Vec<String>>,
 
+  /// Display labels for this branch (clade assignment, amino acid changes)
   #[serde(skip_serializing_if = "Option::is_none")]
   pub labels: Option<TreeBranchAttrsLabels>,
 
@@ -139,58 +149,74 @@ impl TreeBranchAttrs {
   }
 }
 
+/// Attributes associated with a node in the Auspice phylogenetic tree.
 #[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct TreeNodeAttrs {
+  /// Divergence from the root node (number of substitutions or substitutions per site)
   #[serde(skip_serializing_if = "Option::is_none")]
   pub div: Option<f64>,
 
+  /// Clade assignment for this node
   #[serde(skip_serializing_if = "Option::is_none")]
   pub clade_membership: Option<TreeNodeAttr>,
 
+  /// Whether the node is "New" (placed by Nextclade) or from the reference tree
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Node type")]
   pub node_type: Option<TreeNodeAttr>,
 
+  /// Geographic region of the sample
   #[serde(skip_serializing_if = "Option::is_none")]
   pub region: Option<TreeNodeAttr>,
 
+  /// Country of the sample
   #[serde(skip_serializing_if = "Option::is_none")]
   pub country: Option<TreeNodeAttr>,
 
+  /// Administrative division within a country
   #[serde(skip_serializing_if = "Option::is_none")]
   pub division: Option<TreeNodeAttr>,
 
+  /// Log-likelihood prior for phylogenetic placement at this node
   #[serde(skip_serializing_if = "Option::is_none")]
   pub placement_prior: Option<TreeNodeAttrF64>,
 
+  /// Alignment range summary for placed sequences
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Alignment")]
   pub alignment: Option<TreeNodeAttr>,
 
+  /// Summary of missing (N) positions for placed sequences
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Missing")]
   pub missing: Option<TreeNodeAttr>,
 
+  /// Summary of gap (deletion) positions for placed sequences
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Gaps")]
   pub gaps: Option<TreeNodeAttr>,
 
+  /// Summary of non-ACGTN nucleotide positions for placed sequences
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Non-ACGTNs")]
   pub non_acgtns: Option<TreeNodeAttr>,
 
+  /// Whether any PCR primer binding sites have mutations
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Has PCR primer changes")]
   pub has_pcr_primer_changes: Option<TreeNodeAttr>,
 
+  /// Details of mutations in PCR primer binding sites
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "PCR primer changes")]
   pub pcr_primer_changes: Option<TreeNodeAttr>,
 
+  /// Overall quality control status for placed sequences
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "QC Status")]
   pub qc_status: Option<TreeNodeAttr>,
 
+  /// Coding sequences (CDSes) not found in the query sequence
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Missing genes")]
   pub missing_cdses: Option<TreeNodeAttr>,
@@ -211,13 +237,17 @@ pub struct TreeNodeTempData {
   pub aa_mutations: BTreeMap<String, BTreeMap<AaRefPosition, Aa>>,
 }
 
+/// Data payload for a node in the phylogenetic reference tree graph.
 #[derive(Clone, Default, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceGraphNodePayload {
+  /// Node name (internal node identifier or sequence accession)
   pub name: String,
 
+  /// Mutations and labels on the branch leading to this node
   #[serde(default, skip_serializing_if = "TreeBranchAttrs::is_default")]
   pub branch_attrs: TreeBranchAttrs,
 
+  /// Attributes associated with this node (clade, divergence, geographic info, QC)
   pub node_attrs: TreeNodeAttrs,
 
   #[serde(skip)]
@@ -350,33 +380,45 @@ impl AuspiceTreeNode {
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CladeNodeAttrKeyDesc {
+  /// Machine-readable identifier, must match the key used in node_attrs on tree nodes
   pub name: String,
+  /// Human-readable label displayed in the UI
   pub display_name: String,
+  /// Tooltip text describing the attribute
   #[serde(skip_serializing_if = "Option::is_none")]
   pub description: Option<String>,
+  /// Exclude this attribute's column from Nextclade Web results table
   #[serde(default)]
   pub hide_in_web: bool,
+  /// Exclude this attribute from clade founder node search and relative mutation calculation
   #[serde(default)]
   pub skip_as_reference: bool,
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
 
+/// Algorithm for searching reference tree nodes in the "Relative to" feature.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, Copy, Eq, PartialEq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum AuspiceNodeSearchAlgo {
+  /// Traverse from the query node toward the root, return the first (nearest) match
   AncestorNearest,
+  /// Traverse from the query node toward the root, return the last (earliest/deepest) match
   AncestorEarliest,
+  /// Linear search over all tree nodes until the first match
   #[default]
   Full,
 }
 
+/// Criterion for matching a reference tree node, with a specified search algorithm.
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodeCriterion {
+  /// Search algorithm to use when traversing the tree
   #[serde(default)]
   pub search_algo: AuspiceNodeSearchAlgo,
 
+  /// Node matching conditions (name, clade, clade-like attributes)
   #[serde(flatten)]
   pub criterion: AuspiceNodeCriterion,
 }
@@ -387,15 +429,19 @@ impl AuspiceRefNodeCriterion {
   }
 }
 
+/// Conditions for matching a tree node by name, clade, or clade-like attributes.
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceNodeCriterion {
+  /// Node names to match (at least one must match)
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub name: Vec<String>,
 
+  /// Clade values to match (at least one must match)
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub clade: Vec<String>,
 
+  /// Clade-like attribute values to match, keyed by attribute name. Each key requires at least one value match.
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub clade_node_attrs: BTreeMap<String, Vec<String>>,
 
@@ -409,12 +455,15 @@ impl AuspiceNodeCriterion {
   }
 }
 
+/// Search criteria pairing query sequence conditions with reference node conditions.
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodeSearchCriteria {
+  /// Conditions the query sequence must satisfy for this criterion to apply
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub qry: Vec<AuspiceNodeCriterion>,
 
+  /// Conditions and search algorithm for finding the matching reference node
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub node: Vec<AuspiceRefNodeCriterion>,
 
@@ -422,18 +471,22 @@ pub struct AuspiceRefNodeSearchCriteria {
   pub other: serde_json::Value,
 }
 
-/// Describes a criteria for selecting a reference node for "Relative to" feature
+/// Describes criteria for selecting a reference node for the "Relative to" feature.
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodeSearchDesc {
+  /// Unique identifier for this search entry
   pub name: String,
 
+  /// Human-readable label for the UI dropdown
   #[serde(skip_serializing_if = "Option::is_none")]
   pub display_name: Option<String>,
 
+  /// Tooltip text describing when this reference node applies
   #[serde(skip_serializing_if = "Option::is_none")]
   pub description: Option<String>,
 
+  /// Match criteria (OR logic between elements). Each criterion pairs query conditions with node conditions.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub criteria: Vec<AuspiceRefNodeSearchCriteria>,
 
@@ -441,28 +494,33 @@ pub struct AuspiceRefNodeSearchDesc {
   pub other: serde_json::Value,
 }
 
-/// Configuration for built-in reference node types display names and descriptions
+/// Display name and description overrides for a built-in reference node type.
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodeBuiltinConfig {
+  /// Override display name for this built-in reference node type
   #[serde(skip_serializing_if = "Option::is_none")]
   pub display_name: Option<String>,
 
+  /// Override description for this built-in reference node type
   #[serde(skip_serializing_if = "Option::is_none")]
   pub description: Option<String>,
 }
 
-/// Configuration for all built-in reference node types
+/// Display name and description overrides for all built-in reference node types.
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 pub struct AuspiceRefNodeBuiltinsConfig {
+  /// Config for the root reference node (reference sequence)
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "__root__")]
   pub root: Option<AuspiceRefNodeBuiltinConfig>,
 
+  /// Config for the parent (nearest) reference node
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "__parent__")]
   pub parent: Option<AuspiceRefNodeBuiltinConfig>,
 
+  /// Config for the clade founder reference node
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "__clade_founder__")]
   pub clade_founder: Option<AuspiceRefNodeBuiltinConfig>,
@@ -481,12 +539,15 @@ impl AuspiceRefNodeSearchDesc {
 #[derive(Clone, Default, Serialize, Deserialize, Eq, PartialEq, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuspiceRefNodesDesc {
+  /// Name of the default reference node to display. One of the `search[].name` values or a built-in: "__root__", "__parent__", "__clade_founder__".
   #[serde(skip_serializing_if = "Option::is_none")]
   pub default: Option<String>,
 
+  /// Custom reference node search descriptions, each corresponding to an entry in the "Relative to" dropdown
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub search: Vec<AuspiceRefNodeSearchDesc>,
 
+  /// Display name and description overrides for built-in reference node types (root, parent, clade founder)
   #[serde(skip_serializing_if = "Option::is_none")]
   pub builtins: Option<AuspiceRefNodeBuiltinsConfig>,
 
@@ -500,19 +561,23 @@ impl AuspiceRefNodesDesc {
   }
 }
 
-/// Nextclade extensions to Auspice JSON format
+/// Nextclade extensions to Auspice JSON format.
 /// See also: https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json
 #[derive(Clone, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
+  /// Descriptions of clade-like node attributes (lineages, variants, etc.) present on tree nodes
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub clade_node_attrs: Vec<CladeNodeAttrKeyDesc>,
 
+  /// Genomic ranges excluded from phylogenetic placement scoring
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub placement_mask_ranges: Vec<NucRefGlobalRange>,
 
+  /// Configuration for the "Relative to" reference node search feature
   #[serde(default, skip_serializing_if = "AuspiceRefNodesDesc::is_empty")]
   pub ref_nodes: AuspiceRefNodesDesc,
 
+  /// Embedded pathogen configuration (pathogen.json content)
   #[serde(skip_serializing_if = "Option::is_none")]
   pub pathogen: Option<VirusProperties>,
 
