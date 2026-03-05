@@ -5,15 +5,21 @@ use crate::coord::range::AaRefRange;
 use itertools::{Itertools, MinMaxResult};
 use serde::{Deserialize, Serialize};
 
-/// Represents a group of adjacent amino acid changes along with nucleotide changes nearby.
+/// Group of adjacent amino acid changes within a CDS, together with their underlying nucleotide-level changes.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaChangesGroup {
+  /// Name of the coding sequence containing this group
   pub name: String,
+  /// Codon range spanning all amino acid changes in this group
   pub range: AaRefRange,
+  /// Amino acid changes with nucleotide-level codon context
   pub changes: Vec<AaChangeWithContext>,
+  /// Nucleotide substitutions within the codon ranges of this group
   pub nuc_subs: Vec<NucSub>,
+  /// Nucleotide deletions within the codon ranges of this group
   pub nuc_dels: Vec<NucDel>,
+  /// Nucleotide deletions grouped into contiguous ranges
   pub nuc_del_ranges: Vec<NucDelRange>,
 }
 

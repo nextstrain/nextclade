@@ -13,24 +13,33 @@ use crate::translate::complement::reverse_complement_in_place;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
+/// Amino acid change with nucleotide-level context, including the reference and query codon triplets and their genomic coordinates.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaChangeWithContext {
+  /// Name of the coding sequence containing this change
   pub cds_name: String,
+  /// 0-based codon position within the CDS
   pub pos: AaRefPosition,
+  /// Amino acid in the reference at this position
   pub ref_aa: Aa,
+  /// Amino acid in the query at this position
   pub qry_aa: Aa,
+  /// 0-based nucleotide position of the first base of this codon in reference coordinates
   pub nuc_pos: NucRefGlobalPosition,
 
+  /// Reference codon nucleotides (typically 3 bases, more for split codons)
   #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub ref_triplet: Vec<Nuc>,
 
+  /// Query codon nucleotides at the same positions
   #[schemars(with = "String")]
   #[serde(serialize_with = "serde_serialize_seq")]
   #[serde(deserialize_with = "serde_deserialize_seq")]
   pub qry_triplet: Vec<Nuc>,
+  /// Genomic coordinate ranges of the codon bases (multiple ranges for split codons in segmented CDS)
   pub nuc_ranges: Vec<NucRefGlobalRange>,
 }
 

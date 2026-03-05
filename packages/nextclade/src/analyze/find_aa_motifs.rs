@@ -11,13 +11,17 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::hash::{Hash, Hasher};
 
-/// Result of amino acid motif search in a translated CDS
+/// Single regex match of a named amino acid motif in a translated CDS (e.g. glycosylation site, cleavage site).
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct AaMotif {
+  /// Motif type name as defined in `aaMotifs` configuration
   pub name: String,
+  /// Name of the coding sequence where this motif was found
   pub cds: String,
+  /// 0-based codon position of the motif match start
   pub position: AaRefPosition,
+  /// Matched amino acid sequence string
   pub seq: String,
 }
 
@@ -138,7 +142,7 @@ fn process_one_motif(
     .collect_vec()
 }
 
-// Wrapper for `struct AaMotif` which disregards `.seq` during comparison.
+/// Wrapper for `AaMotif` that excludes the `seq` field from equality and hashing, for position-only set comparisons.
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, PartialOrd)]
 pub struct AaMotifWithoutSeq(pub AaMotif);
 

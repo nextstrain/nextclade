@@ -9,19 +9,26 @@ use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+/// Amino acid mutations relative to a reference ancestor node found by an ancestral search.
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RelativeAaMutations {
+  /// The ancestral node search configuration and match result
   pub search: AncestralSearchResult,
+  /// Amino acid mutations relative to the matched ancestor, absent if no ancestor was found
   #[serde(skip_serializing_if = "Option::is_none")]
   pub result: Option<RelativeAaMutationsResult>,
 }
 
+/// Amino acid mutations computed relative to a matched ancestor node, keyed by CDS name.
 #[derive(Clone, Serialize, Deserialize, schemars::JsonSchema, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RelativeAaMutationsResult {
+  /// The search criterion that matched this ancestor
   pub criterion: AuspiceRefNodeSearchCriteria,
+  /// The matched ancestor node
   pub r#match: AncestralSearchMatch,
+  /// Private amino acid mutations relative to the ancestor, keyed by CDS name
   pub muts: BTreeMap<String, PrivateAaMutations>,
 }
 

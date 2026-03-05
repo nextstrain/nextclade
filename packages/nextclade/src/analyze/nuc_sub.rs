@@ -13,12 +13,15 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use std::sync::LazyLock;
 
-/// A nucleotide substitution
+/// Single-position nucleotide change from reference to query. Display format: `<ref><1-based-pos><qry>`, e.g. `A2147G`.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct NucSub {
+  /// 0-based position in the reference sequence
   pub pos: NucRefGlobalPosition,
+  /// Nucleotide in the reference at this position
   pub ref_nuc: Nuc,
+  /// Nucleotide in the query at this position
   pub qry_nuc: Nuc,
 }
 
@@ -125,9 +128,12 @@ impl From<&NucDel> for NucSub {
   }
 }
 
+/// Nucleotide substitution paired with clade-associated labels from the `mutLabels` map in pathogen.json.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NucSubLabeled {
+  /// The nucleotide substitution
   pub substitution: NucSub,
+  /// Clade or lineage labels associated with this mutation
   pub labels: Vec<String>,
 }

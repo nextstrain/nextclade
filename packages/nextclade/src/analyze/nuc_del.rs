@@ -7,7 +7,7 @@ use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
-/// A nucleotide deletion range
+/// Contiguous range of nucleotide deletions, grouped from individual `NucDel` entries.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct NucDelRange {
@@ -43,10 +43,13 @@ impl NucDelRange {
   }
 }
 
+/// Single-position nucleotide deletion where the query has a gap at a position present in the reference.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct NucDel {
+  /// 0-based position in the reference sequence
   pub pos: NucRefGlobalPosition,
+  /// Nucleotide in the reference at this position
   pub ref_nuc: Nuc,
 }
 

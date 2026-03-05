@@ -24,22 +24,31 @@ use maplit::btreemap;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
-/// A collection of private amino acid mutations for a CDS
+/// Private amino acid mutations for one CDS, split into reversions, labeled, and unlabeled categories.
+/// Private mutations are differences between the query sequence and its nearest node on the reference tree.
 #[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PrivateAaMutations {
+  /// Name of the coding sequence
   pub cds_name: String,
+  /// All private amino acid substitutions (reversions + non-reversions combined)
   pub private_substitutions: Vec<AaSub>,
+  /// All private amino acid deletions
   pub private_deletions: Vec<AaDel>,
+  /// Private deletions grouped into contiguous ranges
   pub private_deletion_ranges: Vec<AaDelRange>,
+  /// Substitutions that revert a position back to the reference state
   pub reversion_substitutions: Vec<AaSub>,
+  /// Non-reversion substitutions that match a known clade-specific genotype in the `mutLabels` map
   pub labeled_substitutions: Vec<AaSubLabeled>,
+  /// Non-reversion substitutions with no matching label
   pub unlabeled_substitutions: Vec<AaSub>,
   pub total_private_substitutions: usize,
   pub total_private_deletions: usize,
   pub total_reversion_substitutions: usize,
   pub total_labeled_substitutions: usize,
   pub total_unlabeled_substitutions: usize,
+  /// Adjacent private mutations grouped into contiguous change blocks with nucleotide context
   pub aa_changes_groups: Vec<AaChangesGroup>,
 }
 

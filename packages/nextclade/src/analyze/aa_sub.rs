@@ -13,11 +13,16 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use std::sync::LazyLock;
 
+/// CDS name, codon position, and optional query amino acid. Used for matching against the `mutLabels` map.
+/// When `qry` is absent, matches any amino acid at this position.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaGenotype {
+  /// Name of the coding sequence
   pub cds_name: String,
+  /// 0-based codon position within the CDS
   pub pos: AaRefPosition,
+  /// Query amino acid at this position, or absent to match any
   pub qry: Option<Aa>,
 }
 
@@ -83,21 +88,27 @@ impl FromStr for AaGenotype {
   }
 }
 
-/// Labeled aminoacid substitution
+/// Amino acid substitution paired with clade-associated labels from the `mutLabels` map in pathogen.json.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaSubLabeled {
+  /// The amino acid substitution
   pub substitution: AaSub,
+  /// Clade or lineage labels associated with this mutation
   pub labels: Vec<String>,
 }
 
-/// Represents aminoacid substitution
+/// Single-position amino acid change in a named CDS. Display format: `<cds>:<ref><1-based-pos><qry>`, e.g. `S:D614G`.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaSub {
+  /// Name of the coding sequence containing this substitution
   pub cds_name: String,
+  /// 0-based codon position within the CDS
   pub pos: AaRefPosition,
+  /// Amino acid in the reference at this position
   pub ref_aa: Aa,
+  /// Amino acid in the query at this position
   pub qry_aa: Aa,
 }
 impl AbstractMutation<AaRefPosition, Aa> for AaSub {}

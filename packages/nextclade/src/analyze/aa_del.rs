@@ -7,12 +7,15 @@ use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
-/// An aminoacid deletion
+/// Single-position amino acid deletion in a named CDS where the query has a gap at a position present in the reference.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaDel {
+  /// Name of the coding sequence containing this deletion
   pub cds_name: String,
+  /// 0-based codon position within the CDS
   pub pos: AaRefPosition,
+  /// Amino acid in the reference at this position
   pub ref_aa: Aa,
 }
 
@@ -73,9 +76,11 @@ impl Display for AaDel {
   }
 }
 
+/// Contiguous range of amino acid deletions, grouped from individual `AaDel` entries.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, schemars::JsonSchema, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct AaDelRange {
+  /// Half-open range of deleted codon positions
   pub range: AaRefRange,
 }
 

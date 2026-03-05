@@ -15,23 +15,35 @@ use std::ops::Deref;
 pub type AaMotifsMap = BTreeMap<String, Vec<AaMotif>>;
 pub type AaMotifsChangesMap = BTreeMap<String, AaMotifChanges>;
 
+/// Diff of amino acid motif matches between reference and query for one named motif type (e.g. glycosylation sites).
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AaMotifChanges {
+  /// Motif matches present in both reference and query
   pub preserved: Vec<AaMotifMutation>,
+  /// Motif matches present in query but absent in reference
   pub gained: Vec<AaMotifMutation>,
+  /// Motif matches present in reference but absent in query
   pub lost: Vec<AaMotifMutation>,
+  /// Motif matches present in reference where the query has unresolved amino acids (X)
   pub ambiguous: Vec<AaMotifMutation>,
+  /// Total count of gained plus preserved motifs
   pub total: usize,
 }
 
+/// A motif change record with both reference and query amino acid sequence fragments at the same position.
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema, Ord, PartialOrd, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct AaMotifMutation {
+  /// Motif type name as defined in `aaMotifs` configuration
   pub name: String,
+  /// Name of the coding sequence where this motif occurs
   pub cds: String,
+  /// 0-based codon position of the motif match start
   pub position: AaRefPosition,
+  /// Amino acid sequence at this position in the reference
   pub ref_seq: String,
+  /// Amino acid sequence at this position in the query
   pub qry_seq: String,
 }
 
