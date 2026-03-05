@@ -1590,6 +1590,16 @@
             }
           ]
         },
+        "recombinants": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/QcResultRecombinants"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "overallScore": {
           "type": "number",
           "format": "double"
@@ -1876,6 +1886,127 @@
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
+        }
+      }
+    },
+    "QcResultRecombinants": {
+      "type": "object",
+      "required": [
+        "score",
+        "status",
+        "totalLabeledSubstitutions",
+        "totalPrivateSubstitutions",
+        "totalReversionSubstitutions",
+        "totalUnlabeledSubstitutions"
+      ],
+      "properties": {
+        "score": {
+          "type": "number",
+          "format": "double"
+        },
+        "status": {
+          "$ref": "#/definitions/QcStatus"
+        },
+        "totalPrivateSubstitutions": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "totalReversionSubstitutions": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "totalLabeledSubstitutions": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "totalUnlabeledSubstitutions": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "weightedThreshold": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RecombResultWeightedThreshold"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "clusterGaps": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RecombResultClusterGaps"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "RecombResultWeightedThreshold": {
+      "type": "object",
+      "required": [
+        "excess",
+        "score",
+        "threshold",
+        "weightedCount"
+      ],
+      "properties": {
+        "weightedCount": {
+          "type": "number",
+          "format": "double"
+        },
+        "threshold": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "excess": {
+          "type": "number",
+          "format": "double"
+        },
+        "score": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "RecombResultClusterGaps": {
+      "type": "object",
+      "required": [
+        "gaps",
+        "maxGap",
+        "numClusters",
+        "score"
+      ],
+      "properties": {
+        "numClusters": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "maxGap": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint",
+            "minimum": 0.0
+          }
+        },
+        "score": {
+          "type": "number",
+          "format": "double"
         }
       }
     },
