@@ -83,10 +83,6 @@ definitions:
         anyOf:
         - $ref: '#/definitions/DatasetType'
         - type: 'null'
-      enabled:
-        type:
-        - boolean
-        - 'null'
       maintenance:
         anyOf:
         - $ref: '#/definitions/DatasetMaintenance'

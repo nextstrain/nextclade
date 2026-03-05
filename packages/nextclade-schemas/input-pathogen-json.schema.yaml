@@ -166,10 +166,6 @@ properties:
     anyOf:
     - $ref: '#/definitions/DatasetCompatibility'
     - type: 'null'
-  enabled:
-    type:
-    - boolean
-    - 'null'
   deprecated:
     type:
     - boolean

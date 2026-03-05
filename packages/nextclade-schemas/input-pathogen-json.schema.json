@@ -280,12 +280,6 @@
         }
       ]
     },
-    "enabled": {
-      "type": [
-        "boolean",
-        "null"
-      ]
-    },
     "deprecated": {
       "type": [
         "boolean",

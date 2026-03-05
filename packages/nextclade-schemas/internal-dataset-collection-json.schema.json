@@ -127,12 +127,6 @@
             }
           ]
         },
-        "enabled": {
-          "type": [
-            "boolean",
-            "null"
-          ]
-        },
         "maintenance": {
           "anyOf": [
             {

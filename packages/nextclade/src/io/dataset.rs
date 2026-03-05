@@ -136,9 +136,6 @@ pub struct Dataset {
   pub r#type: Option<DatasetType>,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub enabled: Option<bool>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub maintenance: Option<DatasetMaintenance>,
 
   #[serde(flatten)]
