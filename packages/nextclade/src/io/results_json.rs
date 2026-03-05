@@ -19,23 +19,32 @@ pub struct ResultsJson {
   #[schemars(skip)]
   pub schema: String,
 
+  /// Version of the output JSON schema format
   pub schema_version: String,
 
+  /// Nextclade algorithm library version that produced this output
   pub nextclade_algo_version: String,
 
+  /// Nextclade Web version, if output was produced via the web application
   #[serde(skip_serializing_if = "Option::is_none")]
   pub nextclade_web_version: Option<String>,
 
+  /// ISO 8601 timestamp of when the output was generated
   pub created_at: String,
 
+  /// Descriptions of clade-like node attributes defined in the reference tree
   pub clade_node_attr_keys: Vec<CladeNodeAttrKeyDesc>,
 
+  /// Descriptions of phenotype score attributes defined in the dataset
   pub phenotype_attr_keys: Vec<PhenotypeAttrDesc>,
 
+  /// Reference node search criteria defined in the dataset
   pub ref_nodes: AuspiceRefNodesDesc,
 
+  /// Per-sequence analysis results for sequences that were processed
   pub results: Vec<NextcladeOutputs>,
 
+  /// Per-sequence error records for sequences that failed processing
   pub errors: Vec<NextcladeErrorOutputs>,
 }
 
