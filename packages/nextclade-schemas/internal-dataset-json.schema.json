@@ -1,42 +1,114 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Dataset",
+  "description": "A single Nextclade dataset providing reference data and configuration for one pathogen.",
+  "examples": [
+    {
+      "$schema": "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/internal-dataset-json.schema.json",
+      "path": "nextstrain/rsv/a/EPI_ISL_412866",
+      "shortcuts": [
+        "rsv_a",
+        "nextstrain/rsv/a"
+      ],
+      "attributes": {
+        "name": "RSV-A",
+        "reference name": "hRSV/A/England/397/2017",
+        "reference accession": "EPI_ISL_412866"
+      },
+      "files": {
+        "reference": "reference.fasta",
+        "pathogenJson": "pathogen.json",
+        "genomeAnnotation": "genome_annotation.gff3",
+        "treeJson": "tree.json",
+        "examples": "sequences.fasta",
+        "readme": "README.md",
+        "changelog": "CHANGELOG.md"
+      },
+      "versions": [
+        {
+          "tag": "2026-01-06--14-59-32Z",
+          "updatedAt": "2026-01-06T14:59:32Z",
+          "compatibility": {
+            "cli": "3.0.0",
+            "web": "3.0.0"
+          }
+        }
+      ],
+      "version": {
+        "tag": "2026-01-06--14-59-32Z",
+        "updatedAt": "2026-01-06T14:59:32Z",
+        "compatibility": {
+          "cli": "3.0.0",
+          "web": "3.0.0"
+        }
+      }
+    }
+  ],
   "type": "object",
   "required": [
     "path"
   ],
   "properties": {
     "path": {
+      "description": "Unique path-like identifier (e.g. \"nextstrain/sars-cov-2/wuhan-hu-1/orfs\")",
       "type": "string"
     },
     "shortcuts": {
+      "description": "Short alias names for this dataset (e.g. \"sars-cov-2\", \"rsv_a\")",
       "type": "array",
       "items": {
         "type": "string"
       }
     },
     "attributes": {
-      "$ref": "#/definitions/DatasetAttributes"
+      "description": "Dataset attributes: name, reference info, status flags",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DatasetAttributes"
+        }
+      ]
     },
     "meta": {
-      "$ref": "#/definitions/DatasetMeta"
+      "description": "Dataset-level metadata: source code URL, bug tracker, authors",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DatasetMeta"
+        }
+      ]
     },
     "files": {
-      "$ref": "#/definitions/DatasetFiles"
+      "description": "Filenames of dataset components (reference, annotation, tree, etc.)",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DatasetFiles"
+        }
+      ]
     },
     "capabilities": {
-      "$ref": "#/definitions/DatasetCapabilities"
+      "description": "Advertised analysis capabilities: clade counts, QC rules, primer support",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DatasetCapabilities"
+        }
+      ]
     },
     "versions": {
+      "description": "All available tagged releases, ordered newest-first",
       "type": "array",
       "items": {
         "$ref": "#/definitions/DatasetVersion"
       }
     },
     "version": {
-      "$ref": "#/definitions/DatasetVersion"
+      "description": "The latest (default) version of this dataset",
+      "allOf": [
+        {
+          "$ref": "#/definitions/DatasetVersion"
+        }
+      ]
     },
     "type": {
+      "description": "Whether the dataset is a directory-based dataset or an Auspice JSON",
       "anyOf": [
         {
           "$ref": "#/definitions/DatasetType"
@@ -47,6 +119,7 @@
       ]
     },
     "maintenance": {
+      "description": "Maintainer and support information for this dataset",
       "anyOf": [
         {
           "$ref": "#/definitions/DatasetMaintenance"
@@ -101,21 +174,25 @@
       "additionalProperties": true
     },
     "DatasetMeta": {
+      "description": "Dataset-level metadata: authorship and project links.",
       "type": "object",
       "properties": {
         "source code": {
+          "description": "URL to the dataset source code repository",
           "type": [
             "string",
             "null"
           ]
         },
         "bugs": {
+          "description": "URL to the bug tracker or issue page",
           "type": [
             "string",
             "null"
           ]
         },
         "authors": {
+          "description": "List of dataset authors or maintainers",
           "type": "array",
           "items": {
             "type": "string"
@@ -124,45 +201,64 @@
       }
     },
     "DatasetFiles": {
+      "description": "Filenames of dataset components, relative to the dataset version directory.",
+      "examples": [
+        {
+          "reference": "reference.fasta",
+          "pathogenJson": "pathogen.json",
+          "genomeAnnotation": "genome_annotation.gff3",
+          "treeJson": "tree.json",
+          "examples": "sequences.fasta",
+          "readme": "README.md",
+          "changelog": "CHANGELOG.md"
+        }
+      ],
       "type": "object",
       "properties": {
         "reference": {
+          "description": "Reference sequence FASTA file (e.g. \"reference.fasta\")",
           "type": [
             "string",
             "null"
           ]
         },
         "pathogenJson": {
+          "description": "Pathogen configuration file (e.g. \"pathogen.json\")",
           "type": [
             "string",
             "null"
           ]
         },
         "genomeAnnotation": {
+          "description": "Genome annotation in GFF3 format (e.g. \"genome_annotation.gff3\")",
           "type": [
             "string",
             "null"
           ]
         },
         "treeJson": {
+          "description": "Reference phylogenetic tree in Auspice JSON format (e.g. \"tree.json\")",
           "type": [
             "string",
             "null"
           ]
         },
         "examples": {
+          "description": "Example query sequences for testing (e.g. \"sequences.fasta\")",
           "type": [
             "string",
             "null"
           ]
         },
         "readme": {
+          "description": "Dataset README documentation file",
           "type": [
             "string",
             "null"
           ]
         },
         "changelog": {
+          "description": "Dataset changelog file",
           "type": [
             "string",
             "null"
@@ -171,9 +267,11 @@
       }
     },
     "DatasetCapabilities": {
+      "description": "Analysis features supported by a dataset, used for UI display and filtering.",
       "type": "object",
       "properties": {
         "clades": {
+          "description": "Number of distinct clade values defined in the reference tree",
           "type": [
             "integer",
             "null"
@@ -182,6 +280,7 @@
           "minimum": 0.0
         },
         "customClades": {
+          "description": "Additional clade classification systems and their value counts (e.g. \"Nextclade_pango\": 4731)",
           "type": "object",
           "additionalProperties": {
             "type": "integer",
@@ -190,18 +289,21 @@
           }
         },
         "qc": {
+          "description": "QC rule names enabled for this dataset (e.g. \"missingData\", \"privateMutations\")",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "primers": {
+          "description": "Whether PCR primer mutation detection is available",
           "type": [
             "boolean",
             "null"
           ]
         },
         "other": {
+          "description": "Other capabilities not covered above (e.g. \"phenotypeData\", \"mutLabels\")",
           "type": "array",
           "items": {
             "type": "string"
@@ -210,21 +312,35 @@
       }
     },
     "DatasetVersion": {
+      "description": "A tagged release of a dataset, identified by a timestamp tag.",
+      "examples": [
+        {
+          "tag": "2026-01-06--14-59-32Z",
+          "updatedAt": "2026-01-06T14:59:32Z",
+          "compatibility": {
+            "cli": "3.0.0",
+            "web": "3.0.0"
+          }
+        }
+      ],
       "type": "object",
       "required": [
         "tag"
       ],
       "properties": {
         "tag": {
+          "description": "Version identifier in timestamp format (e.g. \"2026-01-06--14-59-32Z\")",
           "type": "string"
         },
         "updatedAt": {
+          "description": "ISO 8601 timestamp of when this version was published",
           "type": [
             "string",
             "null"
           ]
         },
         "compatibility": {
+          "description": "Minimum CLI/web versions required to use this dataset version",
           "anyOf": [
             {
               "$ref": "#/definitions/DatasetCompatibility"
@@ -237,22 +353,43 @@
       }
     },
     "DatasetCompatibility": {
+      "description": "Minimum application versions required to use a dataset version.",
       "type": "object",
       "properties": {
         "cli": {
+          "description": "Minimum Nextclade CLI semver version (e.g. \"3.0.0-alpha.0\")",
           "type": "string"
         },
         "web": {
+          "description": "Minimum Nextclade Web semver version (e.g. \"3.0.0-alpha.0\")",
           "type": "string"
         }
       }
     },
     "DatasetType": {
-      "type": "string",
-      "enum": [
-        "directory",
-        "auspiceJson",
-        "other"
+      "description": "How dataset content is structured.",
+      "oneOf": [
+        {
+          "description": "Standard dataset with individual files in a directory",
+          "type": "string",
+          "enum": [
+            "directory"
+          ]
+        },
+        {
+          "description": "Single Auspice JSON file used as both tree and dataset",
+          "type": "string",
+          "enum": [
+            "auspiceJson"
+          ]
+        },
+        {
+          "description": "Other dataset format",
+          "type": "string",
+          "enum": [
+            "other"
+          ]
+        }
       ]
     },
     "DatasetMaintenance": {
@@ -260,36 +397,42 @@
       "type": "object",
       "properties": {
         "website": {
+          "description": "URLs for the project or organization website.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "documentation": {
+          "description": "URLs for dataset documentation and usage guides.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "source code": {
+          "description": "URLs for the source code repositories used to build the dataset.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "issues": {
+          "description": "URLs for reporting bugs and requesting features related to the dataset.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "organizations": {
+          "description": "Names of organizations responsible for maintaining the dataset.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "authors": {
+          "description": "Names and contact information of dataset authors.",
           "type": "array",
           "items": {
             "type": "string"

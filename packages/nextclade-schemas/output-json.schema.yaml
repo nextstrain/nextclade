@@ -13,30 +13,40 @@ required:
 - schemaVersion
 properties:
   schemaVersion:
+    description: Version of the output JSON schema format
     type: string
   nextcladeAlgoVersion:
+    description: Nextclade algorithm library version that produced this output
     type: string
   nextcladeWebVersion:
+    description: Nextclade Web version, if output was produced via the web application
     type:
     - string
     - 'null'
   createdAt:
+    description: ISO 8601 timestamp of when the output was generated
     type: string
   cladeNodeAttrKeys:
+    description: Descriptions of clade-like node attributes defined in the reference tree
     type: array
     items:
       $ref: '#/definitions/CladeNodeAttrKeyDesc'
   phenotypeAttrKeys:
+    description: Descriptions of phenotype score attributes defined in the dataset
     type: array
     items:
       $ref: '#/definitions/PhenotypeAttrDesc'
   refNodes:
-    $ref: '#/definitions/AuspiceRefNodesDesc'
+    description: Reference node search criteria defined in the dataset
+    allOf:
+    - $ref: '#/definitions/AuspiceRefNodesDesc'
   results:
+    description: Per-sequence analysis results for sequences that were processed
     type: array
     items:
       $ref: '#/definitions/NextcladeOutputs'
   errors:
+    description: Per-sequence error records for sequences that failed processing
     type: array
     items:
       $ref: '#/definitions/NextcladeErrorOutputs'
@@ -49,17 +59,22 @@ definitions:
     - name
     properties:
       name:
+        description: Machine-readable identifier, must match the key used in node_attrs on tree nodes
         type: string
       displayName:
+        description: Human-readable label displayed in the UI
         type: string
       description:
+        description: Tooltip text describing the attribute
         type:
         - string
         - 'null'
       hideInWeb:
+        description: Exclude this attribute's column from Nextclade Web results table
         default: false
         type: boolean
       skipAsReference:
+        description: Exclude this attribute from clade founder node search and relative mutation calculation
         default: false
         type: boolean
   PhenotypeAttrDesc:
@@ -71,127 +86,163 @@ definitions:
     - nameFriendly
     properties:
       name:
+        description: Machine-readable identifier for this phenotype attribute.
         type: string
       nameFriendly:
+        description: Human-readable display name shown in the UI.
         type: string
       description:
+        description: Free-text description of this phenotype attribute.
         type: string
   AuspiceRefNodesDesc:
     description: Describes search criteria in the reference tree nodes. This is used for "Relative to" feature where you can switch mutation calling source node between "reference", "parent", "clade founder" and custom nodes described using this format.
     type: object
     properties:
       default:
+        description: 'Name of the default reference node to display. One of the `search[].name` values or a built-in: "__root__", "__parent__", "__clade_founder__".'
         type:
         - string
         - 'null'
       search:
+        description: Custom reference node search descriptions, each corresponding to an entry in the "Relative to" dropdown
         type: array
         items:
           $ref: '#/definitions/AuspiceRefNodeSearchDesc'
       builtins:
+        description: Display name and description overrides for built-in reference node types (root, parent, clade founder)
         anyOf:
         - $ref: '#/definitions/AuspiceRefNodeBuiltinsConfig'
         - type: 'null'
   AuspiceRefNodeSearchDesc:
-    description: Describes a criteria for selecting a reference node for "Relative to" feature
+    description: Describes criteria for selecting a reference node for the "Relative to" feature.
     type: object
     required:
     - name
     properties:
       name:
+        description: Unique identifier for this search entry
         type: string
       displayName:
+        description: Human-readable label for the UI dropdown
         type:
         - string
         - 'null'
       description:
+        description: Tooltip text describing when this reference node applies
         type:
         - string
         - 'null'
       criteria:
+        description: Match criteria (OR logic between elements). Each criterion pairs query conditions with node conditions.
         type: array
         items:
           $ref: '#/definitions/AuspiceRefNodeSearchCriteria'
   AuspiceRefNodeSearchCriteria:
+    description: Search criteria pairing query sequence conditions with reference node conditions.
     type: object
     properties:
       qry:
+        description: Conditions the query sequence must satisfy for this criterion to apply
         type: array
         items:
           $ref: '#/definitions/AuspiceNodeCriterion'
       node:
+        description: Conditions and search algorithm for finding the matching reference node
         type: array
         items:
           $ref: '#/definitions/AuspiceRefNodeCriterion'
   AuspiceNodeCriterion:
+    description: Conditions for matching a tree node by name, clade, or clade-like attributes.
     type: object
     properties:
       name:
+        description: Node names to match (at least one must match)
         type: array
         items:
           type: string
       clade:
+        description: Clade values to match (at least one must match)
         type: array
         items:
           type: string
       cladeNodeAttrs:
+        description: Clade-like attribute values to match, keyed by attribute name. Each key requires at least one value match.
         type: object
         additionalProperties:
           type: array
           items:
             type: string
   AuspiceRefNodeCriterion:
+    description: Criterion for matching a reference tree node, with a specified search algorithm.
     type: object
     properties:
       searchAlgo:
+        description: Search algorithm to use when traversing the tree
         default: full
         allOf:
         - $ref: '#/definitions/AuspiceNodeSearchAlgo'
       name:
+        description: Node names to match (at least one must match)
         type: array
         items:
           type: string
       clade:
+        description: Clade values to match (at least one must match)
         type: array
         items:
           type: string
       cladeNodeAttrs:
+        description: Clade-like attribute values to match, keyed by attribute name. Each key requires at least one value match.
         type: object
         additionalProperties:
           type: array
           items:
             type: string
   AuspiceNodeSearchAlgo:
-    type: string
-    enum:
-    - ancestor-nearest
-    - ancestor-earliest
-    - full
+    description: Algorithm for searching reference tree nodes in the "Relative to" feature.
+    oneOf:
+    - description: Traverse from the query node toward the root, return the first (nearest) match
+      type: string
+      enum:
+      - ancestor-nearest
+    - description: Traverse from the query node toward the root, return the last (earliest/deepest) match
+      type: string
+      enum:
+      - ancestor-earliest
+    - description: Linear search over all tree nodes until the first match
+      type: string
+      enum:
+      - full
   AuspiceRefNodeBuiltinsConfig:
-    description: Configuration for all built-in reference node types
+    description: Display name and description overrides for all built-in reference node types.
     type: object
     properties:
       __root__:
+        description: Config for the root reference node (reference sequence)
         anyOf:
         - $ref: '#/definitions/AuspiceRefNodeBuiltinConfig'
         - type: 'null'
       __parent__:
+        description: Config for the parent (nearest) reference node
         anyOf:
         - $ref: '#/definitions/AuspiceRefNodeBuiltinConfig'
         - type: 'null'
       __clade_founder__:
+        description: Config for the clade founder reference node
         anyOf:
         - $ref: '#/definitions/AuspiceRefNodeBuiltinConfig'
         - type: 'null'
   AuspiceRefNodeBuiltinConfig:
-    description: Configuration for built-in reference node types display names and descriptions
+    description: Display name and description overrides for a built-in reference node type.
     type: object
     properties:
       displayName:
+        description: Override display name for this built-in reference node type
         type:
         - string
         - 'null'
       description:
+        description: Override description for this built-in reference node type
         type:
         - string
         - 'null'
@@ -259,234 +310,300 @@ definitions:
     - warnings
     properties:
       index:
+        description: Zero-based position of this sequence in the input
         type: integer
         format: uint
         minimum: 0.0
       seqName:
+        description: Full sequence name from the FASTA header
         type: string
       seqId:
+        description: Sequence identifier, first whitespace-delimited token of the FASTA header
         type: string
       seqDesc:
+        description: Description portion of the FASTA header after the identifier
         type: string
       lenUnaligned:
+        description: Length of the original query sequence before alignment
         type: integer
         format: uint
         minimum: 0.0
       lenAligned:
+        description: Length of the query sequence after alignment, in alignment coordinates
         type: integer
         format: uint
         minimum: 0.0
       lenStripped:
+        description: Length of the query sequence after stripping insertions relative to the reference
         type: integer
         format: uint
         minimum: 0.0
       refName:
+        description: Name of the reference sequence used for alignment
         type: string
       datasetName:
+        description: Name of the dataset used for analysis
         type: string
       substitutions:
+        description: Nucleotide substitutions relative to the reference
         type: array
         items:
           $ref: '#/definitions/NucSub'
       totalSubstitutions:
+        description: Total count of nucleotide substitutions
         type: integer
         format: uint
         minimum: 0.0
       deletions:
+        description: Nucleotide deletion ranges relative to the reference
         type: array
         items:
           $ref: '#/definitions/NucDelRange'
       totalDeletions:
+        description: Total count of deleted nucleotide positions
         type: integer
         format: uint
         minimum: 0.0
       insertions:
+        description: Nucleotide insertions stripped from the alignment
         type: array
         items:
           $ref: '#/definitions/Insertion_for_Nuc'
       totalInsertions:
+        description: Total count of inserted nucleotide positions
         type: integer
         format: uint
         minimum: 0.0
       missing:
+        description: Ranges of missing (N) nucleotides in the aligned sequence
         type: array
         items:
           $ref: '#/definitions/LetterRange_for_Nuc_and_Position'
       totalMissing:
+        description: Total count of missing (N) nucleotides
         type: integer
         format: uint
         minimum: 0.0
       nonACGTNs:
+        description: Ranges of ambiguous nucleotides (not A, C, G, T, or N)
         type: array
         items:
           $ref: '#/definitions/LetterRange_for_Nuc_and_Position'
       totalNonACGTNs:
+        description: Total count of ambiguous nucleotides
         type: integer
         format: uint
         minimum: 0.0
       nucleotideComposition:
+        description: Per-character nucleotide counts in the aligned sequence
         type: object
         additionalProperties:
           type: integer
           format: uint
           minimum: 0.0
       frameShifts:
+        description: Frame-shifting insertions or deletions detected in CDS regions
         type: array
         items:
           $ref: '#/definitions/FrameShift'
       totalFrameShifts:
+        description: Total count of detected frame shifts
         type: integer
         format: uint
         minimum: 0.0
       aaSubstitutions:
+        description: Amino acid substitutions relative to reference peptides
         type: array
         items:
           $ref: '#/definitions/AaSub'
       totalAminoacidSubstitutions:
+        description: Total count of amino acid substitutions
         type: integer
         format: uint
         minimum: 0.0
       aaDeletions:
+        description: Amino acid deletions relative to reference peptides
         type: array
         items:
           $ref: '#/definitions/AaDel'
       totalAminoacidDeletions:
+        description: Total count of amino acid deletions
         type: integer
         format: uint
         minimum: 0.0
       aaInsertions:
+        description: Amino acid insertions relative to reference peptides
         type: array
         items:
           $ref: '#/definitions/AaIns'
       totalAminoacidInsertions:
+        description: Total count of amino acid insertions
         type: integer
         format: uint
         minimum: 0.0
       unknownAaRanges:
+        description: Ranges of unknown (X) amino acids per CDS
         type: array
         items:
           $ref: '#/definitions/CdsAaRange'
       totalUnknownAa:
+        description: Total count of unknown (X) amino acids
         type: integer
         format: uint
         minimum: 0.0
       aaChangesGroups:
+        description: Groups of adjacent amino acid changes with surrounding nucleotide context
         type: array
         items:
           $ref: '#/definitions/AaChangesGroup'
       nucToAaMuts:
+        description: Amino acid substitutions caused by each nucleotide mutation, keyed by CDS name
         type: object
         additionalProperties:
           type: array
           items:
             $ref: '#/definitions/AaSub'
       alignmentRange:
-        $ref: '#/definitions/Range_for_Position'
+        description: Reference coordinate range of the aligned region
+        allOf:
+        - $ref: '#/definitions/Range_for_Position'
       alignmentScore:
+        description: Smith-Waterman alignment score
         type: integer
         format: int32
       aaAlignmentRanges:
+        description: Per-CDS aligned amino acid ranges in reference coordinates
         type: object
         additionalProperties:
           type: array
           items:
             $ref: '#/definitions/Range_for_Position'
       aaUnsequencedRanges:
+        description: Per-CDS unsequenced amino acid ranges (outside the alignment)
         type: object
         additionalProperties:
           type: array
           items:
             $ref: '#/definitions/Range_for_Position'
       pcrPrimerChanges:
+        description: Mutations falling within PCR primer binding regions
         type: array
         items:
           $ref: '#/definitions/PcrPrimerChange'
       totalPcrPrimerChanges:
+        description: Total count of mutations in PCR primer regions
         type: integer
         format: uint
         minimum: 0.0
       clade:
+        description: Assigned clade label from the nearest reference tree node
         type:
         - string
         - 'null'
       privateNucMutations:
-        $ref: '#/definitions/PrivateNucMutations'
+        description: Nucleotide mutations not shared with the nearest reference tree node, subdivided into reversions, labeled, and unlabeled
+        allOf:
+        - $ref: '#/definitions/PrivateNucMutations'
       privateAaMutations:
+        description: Per-CDS amino acid mutations not shared with the nearest reference tree node
         type: object
         additionalProperties:
           $ref: '#/definitions/PrivateAaMutations'
       cladeFounderInfo:
+        description: Mutations relative to the clade founder node
         anyOf:
         - $ref: '#/definitions/CladeNodeAttrFounderInfo'
         - type: 'null'
       cladeNodeAttrFounderInfo:
+        description: Per-attribute mutations relative to founder nodes, keyed by attribute name
         type: object
         additionalProperties:
           $ref: '#/definitions/CladeNodeAttrFounderInfo'
       refNodes:
-        $ref: '#/definitions/AuspiceRefNodesDesc'
+        description: Reference node search criteria defined in the dataset
+        allOf:
+        - $ref: '#/definitions/AuspiceRefNodesDesc'
       refNodeSearchResults:
+        description: Results of dataset-defined ancestral node searches
         type: array
         items:
           $ref: '#/definitions/AncestralSearchResult'
       relativeNucMutations:
+        description: Nucleotide mutations relative to matched reference nodes of interest
         type: array
         items:
           $ref: '#/definitions/RelativeNucMutations'
       relativeAaMutations:
+        description: Amino acid mutations relative to matched reference nodes of interest
         type: array
         items:
           $ref: '#/definitions/RelativeAaMutations'
       warnings:
+        description: Non-fatal warnings encountered during analysis
         type: array
         items:
           $ref: '#/definitions/PeptideWarning'
       missingCdses:
+        description: CDS names that failed translation
         type: array
         items:
           type: string
       divergence:
+        description: Evolutionary divergence from the root of the reference tree
         type: number
         format: double
       coverage:
+        description: Fraction of reference positions covered by the query sequence (0.0 to 1.0)
         type: number
         format: double
       cdsCoverage:
+        description: Per-CDS fraction of amino acid positions covered, keyed by CDS name
         type: object
         additionalProperties:
           type: number
           format: double
       qc:
-        $ref: '#/definitions/QcResult'
+        description: Quality control results including overall score, status, and per-rule results
+        allOf:
+        - $ref: '#/definitions/QcResult'
       customNodeAttributes:
+        description: Clade-like attributes from the nearest tree node, keyed by attribute name
         type: object
         additionalProperties:
           type: string
       nearestNodeId:
-        $ref: '#/definitions/GraphNodeKey'
+        description: Internal graph key of the nearest reference tree node
+        allOf:
+        - $ref: '#/definitions/GraphNodeKey'
       nearestNodeName:
+        description: Name of the nearest reference tree node
         type: string
       nearestNodes:
+        description: Names of equidistant nearest tree nodes when multiple candidates exist
         type:
         - array
         - 'null'
         items:
           type: string
       isReverseComplement:
+        description: Whether the sequence was reverse-complemented before analysis
         type: boolean
       phenotypeValues:
+        description: Computed phenotype scores as defined in the dataset configuration
         type:
         - array
         - 'null'
         items:
           $ref: '#/definitions/PhenotypeValue'
       aaMotifs:
+        description: Amino acid motifs detected in the query sequence, keyed by motif name
         type: object
         additionalProperties:
           type: array
           items:
             $ref: '#/definitions/AaMotif'
       aaMotifsChanges:
+        description: Changes in amino acid motifs relative to the reference, keyed by motif name
         type: object
         additionalProperties:
           $ref: '#/definitions/AaMotifChanges'
@@ -495,7 +612,7 @@ definitions:
         allOf:
         - $ref: '#/definitions/GeneMap'
   NucSub:
-    description: A nucleotide substitution
+    description: 'Single-position nucleotide change from reference to query. Display format: `<ref><1-based-pos><qry>`, e.g. `A2147G`.'
     type: object
     required:
     - pos
@@ -503,11 +620,17 @@ definitions:
     - refNuc
     properties:
       pos:
-        $ref: '#/definitions/Position'
+        description: 0-based position in the reference sequence
+        allOf:
+        - $ref: '#/definitions/Position'
       refNuc:
-        $ref: '#/definitions/Nuc'
+        description: Nucleotide in the reference at this position
+        allOf:
+        - $ref: '#/definitions/Nuc'
       qryNuc:
-        $ref: '#/definitions/Nuc'
+        description: Nucleotide in the query at this position
+        allOf:
+        - $ref: '#/definitions/Nuc'
   Position:
     type: integer
     format: int
@@ -532,7 +655,7 @@ definitions:
     - N
     - '-'
   NucDelRange:
-    description: A nucleotide deletion range
+    description: Contiguous range of nucleotide deletions, grouped from individual `NucDel` entries.
     type: object
     required:
     - range
@@ -601,7 +724,7 @@ definitions:
       gapsTrailing:
         $ref: '#/definitions/Range_for_Position'
   AaSub:
-    description: Represents aminoacid substitution
+    description: 'Single-position amino acid change in a named CDS. Display format: `<cds>:<ref><1-based-pos><qry>`, e.g. `S:D614G`.'
     type: object
     required:
     - cdsName
@@ -610,13 +733,20 @@ definitions:
     - refAa
     properties:
       cdsName:
+        description: Name of the coding sequence containing this substitution
         type: string
       pos:
-        $ref: '#/definitions/Position'
+        description: 0-based codon position within the CDS
+        allOf:
+        - $ref: '#/definitions/Position'
       refAa:
-        $ref: '#/definitions/Aa'
+        description: Amino acid in the reference at this position
+        allOf:
+        - $ref: '#/definitions/Aa'
       qryAa:
-        $ref: '#/definitions/Aa'
+        description: Amino acid in the query at this position
+        allOf:
+        - $ref: '#/definitions/Aa'
   Aa:
     type: string
     enum:
@@ -649,7 +779,7 @@ definitions:
     - '*'
     - '-'
   AaDel:
-    description: An aminoacid deletion
+    description: Single-position amino acid deletion in a named CDS where the query has a gap at a position present in the reference.
     type: object
     required:
     - cdsName
@@ -657,11 +787,16 @@ definitions:
     - refAa
     properties:
       cdsName:
+        description: Name of the coding sequence containing this deletion
         type: string
       pos:
-        $ref: '#/definitions/Position'
+        description: 0-based codon position within the CDS
+        allOf:
+        - $ref: '#/definitions/Position'
       refAa:
-        $ref: '#/definitions/Aa'
+        description: Amino acid in the reference at this position
+        allOf:
+        - $ref: '#/definitions/Aa'
   AaIns:
     description: An amino acid insertion
     type: object
@@ -709,7 +844,7 @@ definitions:
       character:
         $ref: '#/definitions/Aa'
   AaChangesGroup:
-    description: Represents a group of adjacent amino acid changes along with nucleotide changes nearby.
+    description: Group of adjacent amino acid changes within a CDS, together with their underlying nucleotide-level changes.
     type: object
     required:
     - changes
@@ -720,26 +855,34 @@ definitions:
     - range
     properties:
       name:
+        description: Name of the coding sequence containing this group
         type: string
       range:
-        $ref: '#/definitions/Range_for_Position'
+        description: Codon range spanning all amino acid changes in this group
+        allOf:
+        - $ref: '#/definitions/Range_for_Position'
       changes:
+        description: Amino acid changes with nucleotide-level codon context
         type: array
         items:
           $ref: '#/definitions/AaChangeWithContext'
       nucSubs:
+        description: Nucleotide substitutions within the codon ranges of this group
         type: array
         items:
           $ref: '#/definitions/NucSub'
       nucDels:
+        description: Nucleotide deletions within the codon ranges of this group
         type: array
         items:
           $ref: '#/definitions/NucDel'
       nucDelRanges:
+        description: Nucleotide deletions grouped into contiguous ranges
         type: array
         items:
           $ref: '#/definitions/NucDelRange'
   AaChangeWithContext:
+    description: Amino acid change with nucleotide-level context, including the reference and query codon triplets and their genomic coordinates.
     type: object
     required:
     - cdsName
@@ -752,33 +895,50 @@ definitions:
     - refTriplet
     properties:
       cdsName:
+        description: Name of the coding sequence containing this change
         type: string
       pos:
-        $ref: '#/definitions/Position'
+        description: 0-based codon position within the CDS
+        allOf:
+        - $ref: '#/definitions/Position'
       refAa:
-        $ref: '#/definitions/Aa'
+        description: Amino acid in the reference at this position
+        allOf:
+        - $ref: '#/definitions/Aa'
       qryAa:
-        $ref: '#/definitions/Aa'
+        description: Amino acid in the query at this position
+        allOf:
+        - $ref: '#/definitions/Aa'
       nucPos:
-        $ref: '#/definitions/Position'
+        description: 0-based nucleotide position of the first base of this codon in reference coordinates
+        allOf:
+        - $ref: '#/definitions/Position'
       refTriplet:
+        description: Reference codon nucleotides (typically 3 bases, more for split codons)
         type: string
       qryTriplet:
+        description: Query codon nucleotides at the same positions
         type: string
       nucRanges:
+        description: Genomic coordinate ranges of the codon bases (multiple ranges for split codons in segmented CDS)
         type: array
         items:
           $ref: '#/definitions/Range_for_Position'
   NucDel:
+    description: Single-position nucleotide deletion where the query has a gap at a position present in the reference.
     type: object
     required:
     - pos
     - refNuc
     properties:
       pos:
-        $ref: '#/definitions/Position'
+        description: 0-based position in the reference sequence
+        allOf:
+        - $ref: '#/definitions/Position'
       refNuc:
-        $ref: '#/definitions/Nuc'
+        description: Nucleotide in the reference at this position
+        allOf:
+        - $ref: '#/definitions/Nuc'
   PcrPrimerChange:
     description: A change in a PCR primer due to mutations
     type: object
@@ -820,16 +980,20 @@ definitions:
         items:
           $ref: '#/definitions/Genotype_for_Nuc'
   Genotype_for_Nuc:
-    description: Represents a mutation without reference character known
+    description: 'A genotype at a single position: the query character without the reference character. Serialized as a compact string like "245A" (1-based position followed by the query character).'
     type: object
     required:
     - pos
     - qry
     properties:
       pos:
-        $ref: '#/definitions/Position'
+        description: 0-based position on the reference sequence.
+        allOf:
+        - $ref: '#/definitions/Position'
       qry:
-        $ref: '#/definitions/Nuc'
+        description: Query character (nucleotide or amino acid) at this position.
+        allOf:
+        - $ref: '#/definitions/Nuc'
   PrivateNucMutations:
     description: A collection of private nucleotide mutations
     type: object
@@ -897,19 +1061,23 @@ definitions:
         format: uint
         minimum: 0.0
   NucSubLabeled:
+    description: Nucleotide substitution paired with clade-associated labels from the `mutLabels` map in pathogen.json.
     type: object
     required:
     - labels
     - substitution
     properties:
       substitution:
-        $ref: '#/definitions/NucSub'
+        description: The nucleotide substitution
+        allOf:
+        - $ref: '#/definitions/NucSub'
       labels:
+        description: Clade or lineage labels associated with this mutation
         type: array
         items:
           type: string
   PrivateAaMutations:
-    description: A collection of private amino acid mutations for a CDS
+    description: Private amino acid mutations for one CDS, split into reversions, labeled, and unlabeled categories. Private mutations are differences between the query sequence and its nearest node on the reference tree.
     type: object
     required:
     - aaChangesGroups
@@ -927,28 +1095,35 @@ definitions:
     - unlabeledSubstitutions
     properties:
       cdsName:
+        description: Name of the coding sequence
         type: string
       privateSubstitutions:
+        description: All private amino acid substitutions (reversions + non-reversions combined)
         type: array
         items:
           $ref: '#/definitions/AaSub'
       privateDeletions:
+        description: All private amino acid deletions
         type: array
         items:
           $ref: '#/definitions/AaDel'
       privateDeletionRanges:
+        description: Private deletions grouped into contiguous ranges
         type: array
         items:
           $ref: '#/definitions/AaDelRange'
       reversionSubstitutions:
+        description: Substitutions that revert a position back to the reference state
         type: array
         items:
           $ref: '#/definitions/AaSub'
       labeledSubstitutions:
+        description: Non-reversion substitutions that match a known clade-specific genotype in the `mutLabels` map
         type: array
         items:
           $ref: '#/definitions/AaSubLabeled'
       unlabeledSubstitutions:
+        description: Non-reversion substitutions with no matching label
         type: array
         items:
           $ref: '#/definitions/AaSub'
@@ -973,26 +1148,33 @@ definitions:
         format: uint
         minimum: 0.0
       aaChangesGroups:
+        description: Adjacent private mutations grouped into contiguous change blocks with nucleotide context
         type: array
         items:
           $ref: '#/definitions/AaChangesGroup'
   AaDelRange:
+    description: Contiguous range of amino acid deletions, grouped from individual `AaDel` entries.
     type: object
     required:
     - range
     properties:
       range:
-        $ref: '#/definitions/Range_for_Position'
+        description: Half-open range of deleted codon positions
+        allOf:
+        - $ref: '#/definitions/Range_for_Position'
   AaSubLabeled:
-    description: Labeled aminoacid substitution
+    description: Amino acid substitution paired with clade-associated labels from the `mutLabels` map in pathogen.json.
     type: object
     required:
     - labels
     - substitution
     properties:
       substitution:
-        $ref: '#/definitions/AaSub'
+        description: The amino acid substitution
+        allOf:
+        - $ref: '#/definitions/AaSub'
       labels:
+        description: Clade or lineage labels associated with this mutation
         type: array
         items:
           type: string
@@ -1111,17 +1293,22 @@ definitions:
       muts:
         $ref: '#/definitions/PrivateNucMutations'
   RelativeAaMutations:
+    description: Amino acid mutations relative to a reference ancestor node found by an ancestral search.
     type: object
     required:
     - search
     properties:
       search:
-        $ref: '#/definitions/AncestralSearchResult'
+        description: The ancestral node search configuration and match result
+        allOf:
+        - $ref: '#/definitions/AncestralSearchResult'
       result:
+        description: Amino acid mutations relative to the matched ancestor, absent if no ancestor was found
         anyOf:
         - $ref: '#/definitions/RelativeAaMutationsResult'
         - type: 'null'
   RelativeAaMutationsResult:
+    description: Amino acid mutations computed relative to a matched ancestor node, keyed by CDS name.
     type: object
     required:
     - criterion
@@ -1129,10 +1316,15 @@ definitions:
     - muts
     properties:
       criterion:
-        $ref: '#/definitions/AuspiceRefNodeSearchCriteria'
+        description: The search criterion that matched this ancestor
+        allOf:
+        - $ref: '#/definitions/AuspiceRefNodeSearchCriteria'
       match:
-        $ref: '#/definitions/AncestralSearchMatch'
+        description: The matched ancestor node
+        allOf:
+        - $ref: '#/definitions/AncestralSearchMatch'
       muts:
+        description: Private amino acid mutations relative to the ancestor, keyed by CDS name
         type: object
         additionalProperties:
           $ref: '#/definitions/PrivateAaMutations'
@@ -1144,45 +1336,64 @@ definitions:
     - warning
     properties:
       cdsName:
+        description: Name of the CDS that produced the warning
         type: string
       warning:
+        description: Warning message text
         type: string
   QcResult:
+    description: |-
+      Aggregated quality control results for a single query sequence.
+
+      Each individual rule is `None` when disabled in the dataset configuration. The overall score is a quadratic sum of individual rule scores: S = sum(Si^2 / 100).
     type: object
     required:
     - overallScore
     - overallStatus
     properties:
       missingData:
+        description: Result of the missing data (N) rule
         anyOf:
         - $ref: '#/definitions/QcResultMissingData'
         - type: 'null'
       mixedSites:
+        description: Result of the mixed (ambiguous) sites (M) rule
         anyOf:
         - $ref: '#/definitions/QcResultMixedSites'
         - type: 'null'
       privateMutations:
+        description: Result of the private mutations (P) rule
         anyOf:
         - $ref: '#/definitions/QcResultPrivateMutations'
         - type: 'null'
       snpClusters:
+        description: Result of the SNP clusters (C) rule
         anyOf:
         - $ref: '#/definitions/QcResultSnpClusters'
         - type: 'null'
       frameShifts:
+        description: Result of the frame shifts (F) rule
         anyOf:
         - $ref: '#/definitions/QcResultFrameShifts'
         - type: 'null'
       stopCodons:
+        description: Result of the premature stop codons (S) rule
         anyOf:
         - $ref: '#/definitions/QcResultStopCodons'
         - type: 'null'
       overallScore:
+        description: Quadratic aggregate of all individual rule scores
         type: number
         format: double
       overallStatus:
-        $ref: '#/definitions/QcStatus'
+        description: Quality category derived from the overall score
+        allOf:
+        - $ref: '#/definitions/QcStatus'
   QcResultMissingData:
+    description: |-
+      Result of the missing data QC rule.
+
+      Penalizes sequences with excessive N (missing) characters. Score increases linearly from 0 to 100 as the number of missing sites goes from `scoreBias` to `scoreBias + missingDataThreshold`.
     type: object
     required:
     - missingDataThreshold
@@ -1191,24 +1402,45 @@ definitions:
     - totalMissing
     properties:
       score:
+        description: Numeric QC score for this rule (0-100+)
         type: number
         format: double
       status:
-        $ref: '#/definitions/QcStatus'
+        description: Quality category derived from the score
+        allOf:
+        - $ref: '#/definitions/QcStatus'
       totalMissing:
+        description: Total number of N (missing) characters in the query sequence
         type: integer
         format: uint
         minimum: 0.0
       missingDataThreshold:
+        description: Effective threshold above which the score reaches 100 (scoreBias + missingDataThreshold from config)
         type: number
         format: double
   QcStatus:
-    type: string
-    enum:
-    - good
-    - mediocre
-    - bad
+    description: |-
+      Overall quality category derived from a numeric QC score.
+
+      Thresholds: 0-29 = Good, 30-99 = Mediocre, 100+ = Bad.
+    oneOf:
+    - description: Score below 30, no quality concerns
+      type: string
+      enum:
+      - good
+    - description: Score 30-99, warrants closer examination
+      type: string
+      enum:
+      - mediocre
+    - description: Score 100 or above, likely problematic
+      type: string
+      enum:
+      - bad
   QcResultMixedSites:
+    description: |-
+      Result of the mixed sites QC rule.
+
+      Penalizes sequences with ambiguous nucleotides (non-ACGTN, non-gap characters such as R, Y, S). These are often indicative of contamination or co-infection. Score reaches 100 when the count equals `mixedSitesThreshold`.
     type: object
     required:
     - mixedSitesThreshold
@@ -1217,19 +1449,28 @@ definitions:
     - totalMixedSites
     properties:
       score:
+        description: Numeric QC score for this rule (0-100+)
         type: number
         format: double
       status:
-        $ref: '#/definitions/QcStatus'
+        description: Quality category derived from the score
+        allOf:
+        - $ref: '#/definitions/QcStatus'
       totalMixedSites:
+        description: Total number of ambiguous (non-ACGTN, non-gap) nucleotide positions
         type: integer
         format: uint
         minimum: 0.0
       mixedSitesThreshold:
+        description: Threshold from the dataset configuration at which the score reaches 100
         type: integer
         format: uint
         minimum: 0.0
   QcResultPrivateMutations:
+    description: |-
+      Result of the private mutations QC rule.
+
+      Private mutations are mutations present in the query sequence but absent from the nearest reference tree node. Excessive private mutations indicate sequencing errors or contamination. Different mutation categories carry different weights. Score reaches 100 when the weighted excess above `typical` equals `cutoff`.
     type: object
     required:
     - cutoff
@@ -1243,36 +1484,50 @@ definitions:
     - weightedTotal
     properties:
       score:
+        description: Numeric QC score for this rule (0-100+)
         type: number
         format: double
       status:
-        $ref: '#/definitions/QcStatus'
+        description: Quality category derived from the score
+        allOf:
+        - $ref: '#/definitions/QcStatus'
       numReversionSubstitutions:
+        description: Number of reversion substitutions (back to reference state, weighted separately)
         type: integer
         format: uint
         minimum: 0.0
       numLabeledSubstitutions:
+        description: Number of labeled substitutions (known phylogenetically, weighted separately)
         type: integer
         format: uint
         minimum: 0.0
       numUnlabeledSubstitutions:
+        description: Number of unlabeled substitutions (unknown, weighted at full penalty)
         type: integer
         format: uint
         minimum: 0.0
       totalDeletionRanges:
+        description: Number of contiguous deletion ranges (adjacent deletions counted as one range)
         type: integer
         format: uint
         minimum: 0.0
       weightedTotal:
+        description: Weighted sum of all private mutation categories
         type: number
         format: double
       excess:
+        description: Excess above the typical number of private mutations (weightedTotal - typical)
         type: number
         format: double
       cutoff:
+        description: Cutoff from the dataset configuration at which the score reaches 100
         type: number
         format: double
   QcResultSnpClusters:
+    description: |-
+      Result of the SNP clusters QC rule.
+
+      Detects clusters of private substitutions within a sliding window. If more than `clusterCutOff` substitutions fall within a `windowSize`-nucleotide window, it counts as one cluster. Score equals the number of clusters times `scoreWeight`.
     type: object
     required:
     - clusteredSNPs
@@ -1281,19 +1536,28 @@ definitions:
     - totalSNPs
     properties:
       score:
+        description: Numeric QC score for this rule (0-100+)
         type: number
         format: double
       status:
-        $ref: '#/definitions/QcStatus'
+        description: Quality category derived from the score
+        allOf:
+        - $ref: '#/definitions/QcStatus'
       totalSNPs:
+        description: Total number of substitutions across all clusters
         type: integer
         format: uint
         minimum: 0.0
       clusteredSNPs:
+        description: List of detected substitution clusters
         type: array
         items:
           $ref: '#/definitions/ClusteredSnp'
   ClusteredSnp:
+    description: |-
+      A cluster of private nucleotide substitutions within a genomic window.
+
+      Clusters indicate localized quality problems, such as contamination or sequencing artifacts in a narrow region of the genome.
     type: object
     required:
     - end
@@ -1301,18 +1565,25 @@ definitions:
     - start
     properties:
       start:
+        description: 0-based position of the first substitution in the cluster
         type: integer
         format: uint
         minimum: 0.0
       end:
+        description: 0-based position of the last substitution in the cluster
         type: integer
         format: uint
         minimum: 0.0
       numberOfSnps:
+        description: Number of substitutions in this cluster
         type: integer
         format: uint
         minimum: 0.0
   QcResultFrameShifts:
+    description: |-
+      Result of the frame shifts QC rule.
+
+      Frame-shifting insertions or deletions disrupt translation and produce garbled proteins or premature stop codons. Known frame shifts listed in `ignoredFrameShifts` in the dataset configuration are excluded from scoring. Score equals the number of non-ignored frame shifts times `scoreWeight`.
     type: object
     required:
     - frameShifts
@@ -1323,27 +1594,38 @@ definitions:
     - totalFrameShiftsIgnored
     properties:
       score:
+        description: Numeric QC score for this rule (0-100+)
         type: number
         format: double
       status:
-        $ref: '#/definitions/QcStatus'
+        description: Quality category derived from the score
+        allOf:
+        - $ref: '#/definitions/QcStatus'
       frameShifts:
+        description: Frame shifts not in the ignored list (penalized)
         type: array
         items:
           $ref: '#/definitions/FrameShift'
       totalFrameShifts:
+        description: Number of penalized frame shifts
         type: integer
         format: uint
         minimum: 0.0
       frameShiftsIgnored:
+        description: Frame shifts matching the ignored list in dataset configuration (not penalized)
         type: array
         items:
           $ref: '#/definitions/FrameShift'
       totalFrameShiftsIgnored:
+        description: Number of ignored frame shifts
         type: integer
         format: uint
         minimum: 0.0
   QcResultStopCodons:
+    description: |-
+      Result of the premature stop codons QC rule.
+
+      Premature stop codons in coding sequences indicate sequencing errors or assembly artifacts, since replicating viruses cannot have stops in essential genes. Known stop codons listed in `ignoredStopCodons` in the dataset configuration are excluded from scoring. Score equals the number of non-ignored premature stops times `scoreWeight`.
     type: object
     required:
     - score
@@ -1354,23 +1636,30 @@ definitions:
     - totalStopCodonsIgnored
     properties:
       score:
+        description: Numeric QC score for this rule (0-100+)
         type: number
         format: double
       status:
-        $ref: '#/definitions/QcStatus'
+        description: Quality category derived from the score
+        allOf:
+        - $ref: '#/definitions/QcStatus'
       stopCodons:
+        description: Premature stop codons not in the ignored list (penalized)
         type: array
         items:
           $ref: '#/definitions/StopCodonLocation'
       totalStopCodons:
+        description: Number of penalized premature stop codons
         type: integer
         format: uint
         minimum: 0.0
       stopCodonsIgnored:
+        description: Premature stop codons matching the ignored list in dataset configuration (not penalized)
         type: array
         items:
           $ref: '#/definitions/StopCodonLocation'
       totalStopCodonsIgnored:
+        description: Number of ignored premature stop codons
         type: integer
         format: uint
         minimum: 0.0
@@ -1385,8 +1674,10 @@ definitions:
     - codon
     properties:
       cdsName:
+        description: Name of the coding sequence (CDS) containing the stop codon
         type: string
       codon:
+        description: 0-indexed codon position of the stop codon within the CDS
         type: integer
         format: uint
         minimum: 0.0
@@ -1399,14 +1690,17 @@ definitions:
     - value
     properties:
       name:
+        description: Phenotype name as defined in the dataset configuration
         type: string
       cds:
+        description: CDS used for phenotype score calculation
         type: string
       value:
+        description: Computed phenotype score
         type: number
         format: double
   AaMotif:
-    description: Result of amino acid motif search in a translated CDS
+    description: Single regex match of a named amino acid motif in a translated CDS (e.g. glycosylation site, cleavage site).
     type: object
     required:
     - cds
@@ -1415,14 +1709,20 @@ definitions:
     - seq
     properties:
       name:
+        description: Motif type name as defined in `aaMotifs` configuration
         type: string
       cds:
+        description: Name of the coding sequence where this motif was found
         type: string
       position:
-        $ref: '#/definitions/Position'
+        description: 0-based codon position of the motif match start
+        allOf:
+        - $ref: '#/definitions/Position'
       seq:
+        description: Matched amino acid sequence string
         type: string
   AaMotifChanges:
+    description: Diff of amino acid motif matches between reference and query for one named motif type (e.g. glycosylation sites).
     type: object
     required:
     - ambiguous
@@ -1432,26 +1732,32 @@ definitions:
     - total
     properties:
       preserved:
+        description: Motif matches present in both reference and query
         type: array
         items:
           $ref: '#/definitions/AaMotifMutation'
       gained:
+        description: Motif matches present in query but absent in reference
         type: array
         items:
           $ref: '#/definitions/AaMotifMutation'
       lost:
+        description: Motif matches present in reference but absent in query
         type: array
         items:
           $ref: '#/definitions/AaMotifMutation'
       ambiguous:
+        description: Motif matches present in reference where the query has unresolved amino acids (X)
         type: array
         items:
           $ref: '#/definitions/AaMotifMutation'
       total:
+        description: Total count of gained plus preserved motifs
         type: integer
         format: uint
         minimum: 0.0
   AaMotifMutation:
+    description: A motif change record with both reference and query amino acid sequence fragments at the same position.
     type: object
     required:
     - cds
@@ -1461,26 +1767,34 @@ definitions:
     - refSeq
     properties:
       name:
+        description: Motif type name as defined in `aaMotifs` configuration
         type: string
       cds:
+        description: Name of the coding sequence where this motif occurs
         type: string
       position:
-        $ref: '#/definitions/Position'
+        description: 0-based codon position of the motif match start
+        allOf:
+        - $ref: '#/definitions/Position'
       refSeq:
+        description: Amino acid sequence at this position in the reference
         type: string
       qrySeq:
+        description: Amino acid sequence at this position in the query
         type: string
   GeneMap:
-    description: Genome annotation
+    description: Genome annotation describing all genes and their coding sequences (CDSes) for a pathogen. Parsed from GFF3, Auspice JSON, or internal JSON/YAML format.
     type: object
     required:
     - genes
     properties:
       genes:
+        description: Genes in the annotation, each containing one or more CDSes.
         type: array
         items:
           $ref: '#/definitions/Gene'
   Gene:
+    description: A gene in the genome annotation, containing one or more coding sequences (CDSes).
     type: object
     required:
     - attributes
@@ -1493,48 +1807,62 @@ definitions:
     - range
     properties:
       index:
+        description: Ordinal index of this gene in the annotation.
         type: integer
         format: uint
         minimum: 0.0
       id:
+        description: Unique identifier from the GFF3 ID attribute.
         type: string
       name:
+        description: Display name from the GFF3 Name attribute.
         type: string
       range:
-        $ref: '#/definitions/Range_for_Position'
+        description: Nucleotide range on the reference sequence spanned by this gene.
+        allOf:
+        - $ref: '#/definitions/Range_for_Position'
       cdses:
+        description: Coding sequences contained within this gene.
         type: array
         items:
           $ref: '#/definitions/Cds'
       exceptions:
+        description: GFF3 exception qualifiers (e.g. ribosomal slippage, RNA editing).
         type: array
         items:
           type: string
       attributes:
+        description: Additional GFF3 attributes as key-value pairs.
         type: object
         additionalProperties:
           type: array
           items:
             type: string
       compatIsCds:
+        description: True when this gene was synthesized from a CDS record that had no parent gene.
         type: boolean
       color:
+        description: Display color for the genome annotation viewer.
         type:
         - string
         - 'null'
       gffSeqid:
+        description: GFF3 seqid column value (reference sequence identifier).
         type:
         - string
         - 'null'
       gffSource:
+        description: GFF3 source column value (annotation provenance, e.g. "GenBank").
         type:
         - string
         - 'null'
       gffFeatureType:
+        description: GFF3 type column value (feature type, e.g. "gene").
         type:
         - string
         - 'null'
   Cds:
+    description: A coding sequence (CDS) that is translated into a protein. May consist of multiple segments (e.g. for programmed ribosomal slippage or spliced genes).
     type: object
     required:
     - attributes
@@ -1547,36 +1875,46 @@ definitions:
     - segments
     properties:
       id:
+        description: Unique identifier from the GFF3 ID attribute.
         type: string
       name:
+        description: Display name from the GFF3 Name attribute.
         type: string
       product:
+        description: Protein product name from the GFF3 product attribute.
         type: string
       segments:
+        description: Ordered segments that compose this CDS. Multiple segments represent spliced or slippage features.
         type: array
         items:
           $ref: '#/definitions/CdsSegment'
       proteins:
+        description: Mature protein regions within this CDS (e.g. cleaved polyprotein products).
         type: array
         items:
           $ref: '#/definitions/Protein'
       exceptions:
+        description: GFF3 exception qualifiers (e.g. ribosomal slippage, RNA editing).
         type: array
         items:
           type: string
       attributes:
+        description: Additional GFF3 attributes as key-value pairs, merged from all segments.
         type: object
         additionalProperties:
           type: array
           items:
             type: string
       compatIsGene:
+        description: True when this CDS was synthesized from a gene record that had no child CDS.
         type: boolean
       color:
+        description: Display color for the genome annotation viewer.
         type:
         - string
         - 'null'
   CdsSegment:
+    description: One contiguous fragment of a coding sequence (CDS). A CDS with programmed ribosomal slippage, splicing, or circular genome wraparound consists of multiple segments.
     type: object
     required:
     - attributes
@@ -1594,56 +1932,81 @@ definitions:
     - wrappingPart
     properties:
       index:
+        description: Ordinal index of this segment within the parent CDS.
         type: integer
         format: uint
         minimum: 0.0
       id:
+        description: Unique identifier from the GFF3 ID attribute.
         type: string
       name:
+        description: Display name from the GFF3 Name attribute.
         type: string
       range:
-        $ref: '#/definitions/Range_for_Position'
+        description: Nucleotide range on the reference sequence (global coordinates).
+        allOf:
+        - $ref: '#/definitions/Range_for_Position'
       rangeLocal:
-        $ref: '#/definitions/Range_for_Position'
+        description: Nucleotide range within the concatenated CDS (local coordinates, 0-based).
+        allOf:
+        - $ref: '#/definitions/Range_for_Position'
       landmark:
+        description: Circular genome landmark that this segment belongs to, if any.
         anyOf:
         - $ref: '#/definitions/Landmark'
         - type: 'null'
       wrappingPart:
-        $ref: '#/definitions/WrappingPart'
+        description: Position of this segment within a circular genome wraparound.
+        allOf:
+        - $ref: '#/definitions/WrappingPart'
       strand:
-        $ref: '#/definitions/GeneStrand'
+        description: Strand direction (forward or reverse).
+        allOf:
+        - $ref: '#/definitions/GeneStrand'
       frame:
-        $ref: '#/definitions/Frame'
+        description: Reading frame (0, 1, or 2) determined by the segment's global start position modulo 3.
+        allOf:
+        - $ref: '#/definitions/Frame'
       phase:
-        $ref: '#/definitions/Phase'
+        description: 'GFF3 phase (0, 1, or 2): number of bases to skip before the first complete codon.'
+        allOf:
+        - $ref: '#/definitions/Phase'
       truncation:
-        $ref: '#/definitions/Truncation'
+        description: Whether this segment is truncated at the 5' or 3' end.
+        allOf:
+        - $ref: '#/definitions/Truncation'
       exceptions:
+        description: GFF3 exception qualifiers (e.g. ribosomal slippage, RNA editing).
         type: array
         items:
           type: string
       attributes:
+        description: Additional GFF3 attributes as key-value pairs.
         type: object
         additionalProperties:
           type: array
           items:
             type: string
       compatIsGene:
+        description: True when this segment was synthesized from a gene record that had no child CDS.
         type: boolean
       color:
+        description: Display color for the genome annotation viewer.
         type:
         - string
         - 'null'
       gffSeqid:
+        description: GFF3 seqid column value (reference sequence identifier).
         type:
         - string
         - 'null'
       gffSource:
+        description: GFF3 source column value (annotation provenance, e.g. "GenBank").
         type:
         - string
         - 'null'
       gffFeatureType:
+        description: GFF3 type column value (feature type, e.g. "CDS").
         type:
         - string
         - 'null'
@@ -1672,21 +2035,32 @@ definitions:
       isCircular:
         type: boolean
   GeneStrand:
-    type: string
-    enum:
-    - +
-    - '-'
+    description: Strand direction of a genomic feature relative to the reference sequence.
+    oneOf:
+    - description: Forward (sense) strand, read 5' to 3'.
+      type: string
+      enum:
+      - +
+    - description: Reverse (antisense) strand, read 3' to 5'.
+      type: string
+      enum:
+      - '-'
   WrappingPart:
     description: |-
-      Marks the parts of circular, wrapping segments
+      Marks the position of a CDS segment within a circular genome wraparound.
 
-      Example: WrappingStart      : |....<-----| WrappingCentral(1) : |----------| WrappingCentral(2) : |----------| WrappingEnd(3)     : |---->     |
+      When a CDS crosses the origin of a circular genome, it is split into linear parts: WrappingStart      : |....<-----| WrappingCentral(1) : |----------| WrappingCentral(2) : |----------| WrappingEnd(3)     : |---->     |
     oneOf:
-    - type: string
+    - description: Segment does not cross the circular genome origin.
+      type: string
       enum:
       - non-wrapping
+    - description: First part of a wrapping segment, before the origin crossing.
+      type: string
+      enum:
       - wrapping-start
-    - type: object
+    - description: Intermediate part after wrapping, with its 1-based index within the wrapping group.
+      type: object
       required:
       - wrapping-central
       properties:
@@ -1695,7 +2069,8 @@ definitions:
           format: uint
           minimum: 0.0
       additionalProperties: false
-    - type: object
+    - description: Last part of a wrapping segment, with its 1-based index within the wrapping group.
+      type: object
       required:
       - wrapping-end
       properties:
@@ -1711,11 +2086,14 @@ definitions:
     type: integer
     format: int8
   Truncation:
+    description: Whether a CDS segment is truncated (incomplete) and by how many nucleotides.
     oneOf:
-    - type: string
+    - description: No truncation, CDS segment is complete.
+      type: string
       enum:
       - none
-    - type: object
+    - description: Truncated at the 5' end by the given number of nucleotides.
+      type: object
       required:
       - fivePrime
       properties:
@@ -1724,7 +2102,8 @@ definitions:
           format: uint
           minimum: 0.0
       additionalProperties: false
-    - type: object
+    - description: Truncated at the 3' end by the given number of nucleotides.
+      type: object
       required:
       - threePrime
       properties:
@@ -1733,7 +2112,8 @@ definitions:
           format: uint
           minimum: 0.0
       additionalProperties: false
-    - type: object
+    - description: Truncated at both ends (5' truncation, 3' truncation).
+      type: object
       required:
       - both
       properties:
@@ -1750,6 +2130,7 @@ definitions:
           minItems: 2
       additionalProperties: false
   Protein:
+    description: A mature protein region within a CDS (e.g. a cleaved polyprotein product like nsp1, nsp2).
     type: object
     required:
     - id
@@ -1758,20 +2139,26 @@ definitions:
     - segments
     properties:
       id:
+        description: Unique identifier from the GFF3 ID attribute.
         type: string
       name:
+        description: Display name from the GFF3 Name attribute.
         type: string
       product:
+        description: Protein product name from the GFF3 product attribute.
         type: string
       segments:
+        description: Segments composing this protein region.
         type: array
         items:
           $ref: '#/definitions/ProteinSegment'
       color:
+        description: Display color for the genome annotation viewer.
         type:
         - string
         - 'null'
   ProteinSegment:
+    description: One contiguous fragment of a mature protein region.
     type: object
     required:
     - attributes
@@ -1783,43 +2170,56 @@ definitions:
     - range
     properties:
       id:
+        description: Unique identifier from the GFF3 ID attribute.
         type: string
       name:
+        description: Display name from the GFF3 Name attribute.
         type: string
       range:
-        $ref: '#/definitions/Range_for_Position'
+        description: Nucleotide range on the reference sequence.
+        allOf:
+        - $ref: '#/definitions/Range_for_Position'
       exceptions:
+        description: GFF3 exception qualifiers.
         type: array
         items:
           type: string
       attributes:
+        description: Additional GFF3 attributes as key-value pairs.
         type: object
         additionalProperties:
           type: array
           items:
             type: string
       compatIsCds:
+        description: True when synthesized from a CDS record that had no parent gene.
         type: boolean
       compatIsGene:
+        description: True when synthesized from a gene record that had no child CDS.
         type: boolean
       color:
+        description: Display color for the genome annotation viewer.
         type:
         - string
         - 'null'
       gffSeqid:
+        description: GFF3 seqid column value (reference sequence identifier).
         type:
         - string
         - 'null'
       gffSource:
+        description: GFF3 source column value (annotation provenance, e.g. "GenBank").
         type:
         - string
         - 'null'
       gffFeatureType:
+        description: GFF3 type column value (feature type).
         type:
         - string
         - 'null'
   NextcladeErrorOutputs:
     title: ResultJsonError
+    description: Analysis result for a sequence that failed processing entirely
     type: object
     required:
     - errors
@@ -1827,12 +2227,15 @@ definitions:
     - seqName
     properties:
       index:
+        description: Zero-based position of this sequence in the input
         type: integer
         format: uint
         minimum: 0.0
       seqName:
+        description: Sequence name from the FASTA header
         type: string
       errors:
+        description: Error messages describing why processing failed
         type: array
         items:
           type: string

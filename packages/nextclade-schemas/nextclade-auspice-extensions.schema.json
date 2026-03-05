@@ -1,25 +1,33 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "AuspiceMetaExtensionsNextclade",
-  "description": "Nextclade extensions to Auspice JSON format See also: https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json",
+  "description": "Nextclade extensions to Auspice JSON format. See also: https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json",
   "type": "object",
   "properties": {
     "clade_node_attrs": {
+      "description": "Descriptions of clade-like node attributes (lineages, variants, etc.) present on tree nodes",
       "type": "array",
       "items": {
         "$ref": "#/definitions/CladeNodeAttrKeyDesc"
       }
     },
     "placement_mask_ranges": {
+      "description": "Genomic ranges excluded from phylogenetic placement scoring",
       "type": "array",
       "items": {
         "$ref": "#/definitions/Range_for_Position"
       }
     },
     "ref_nodes": {
-      "$ref": "#/definitions/AuspiceRefNodesDesc"
+      "description": "Configuration for the \"Relative to\" reference node search feature",
+      "allOf": [
+        {
+          "$ref": "#/definitions/AuspiceRefNodesDesc"
+        }
+      ]
     },
     "pathogen": {
+      "description": "Embedded pathogen configuration (pathogen.json content)",
       "anyOf": [
         {
           "$ref": "#/definitions/VirusProperties"
@@ -40,22 +48,27 @@
       ],
       "properties": {
         "name": {
+          "description": "Machine-readable identifier, must match the key used in node_attrs on tree nodes",
           "type": "string"
         },
         "displayName": {
+          "description": "Human-readable label displayed in the UI",
           "type": "string"
         },
         "description": {
+          "description": "Tooltip text describing the attribute",
           "type": [
             "string",
             "null"
           ]
         },
         "hideInWeb": {
+          "description": "Exclude this attribute's column from Nextclade Web results table",
           "default": false,
           "type": "boolean"
         },
         "skipAsReference": {
+          "description": "Exclude this attribute from clade founder node search and relative mutation calculation",
           "default": false,
           "type": "boolean"
         }
@@ -86,18 +99,21 @@
       "type": "object",
       "properties": {
         "default": {
+          "description": "Name of the default reference node to display. One of the `search[].name` values or a built-in: \"__root__\", \"__parent__\", \"__clade_founder__\".",
           "type": [
             "string",
             "null"
           ]
         },
         "search": {
+          "description": "Custom reference node search descriptions, each corresponding to an entry in the \"Relative to\" dropdown",
           "type": "array",
           "items": {
             "$ref": "#/definitions/AuspiceRefNodeSearchDesc"
           }
         },
         "builtins": {
+          "description": "Display name and description overrides for built-in reference node types (root, parent, clade founder)",
           "anyOf": [
             {
               "$ref": "#/definitions/AuspiceRefNodeBuiltinsConfig"
@@ -110,28 +126,32 @@
       }
     },
     "AuspiceRefNodeSearchDesc": {
-      "description": "Describes a criteria for selecting a reference node for \"Relative to\" feature",
+      "description": "Describes criteria for selecting a reference node for the \"Relative to\" feature.",
       "type": "object",
       "required": [
         "name"
       ],
       "properties": {
         "name": {
+          "description": "Unique identifier for this search entry",
           "type": "string"
         },
         "displayName": {
+          "description": "Human-readable label for the UI dropdown",
           "type": [
             "string",
             "null"
           ]
         },
         "description": {
+          "description": "Tooltip text describing when this reference node applies",
           "type": [
             "string",
             "null"
           ]
         },
         "criteria": {
+          "description": "Match criteria (OR logic between elements). Each criterion pairs query conditions with node conditions.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/AuspiceRefNodeSearchCriteria"
@@ -140,15 +160,18 @@
       }
     },
     "AuspiceRefNodeSearchCriteria": {
+      "description": "Search criteria pairing query sequence conditions with reference node conditions.",
       "type": "object",
       "properties": {
         "qry": {
+          "description": "Conditions the query sequence must satisfy for this criterion to apply",
           "type": "array",
           "items": {
             "$ref": "#/definitions/AuspiceNodeCriterion"
           }
         },
         "node": {
+          "description": "Conditions and search algorithm for finding the matching reference node",
           "type": "array",
           "items": {
             "$ref": "#/definitions/AuspiceRefNodeCriterion"
@@ -157,21 +180,25 @@
       }
     },
     "AuspiceNodeCriterion": {
+      "description": "Conditions for matching a tree node by name, clade, or clade-like attributes.",
       "type": "object",
       "properties": {
         "name": {
+          "description": "Node names to match (at least one must match)",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "clade": {
+          "description": "Clade values to match (at least one must match)",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "cladeNodeAttrs": {
+          "description": "Clade-like attribute values to match, keyed by attribute name. Each key requires at least one value match.",
           "type": "object",
           "additionalProperties": {
             "type": "array",
@@ -183,9 +210,11 @@
       }
     },
     "AuspiceRefNodeCriterion": {
+      "description": "Criterion for matching a reference tree node, with a specified search algorithm.",
       "type": "object",
       "properties": {
         "searchAlgo": {
+          "description": "Search algorithm to use when traversing the tree",
           "default": "full",
           "allOf": [
             {
@@ -194,18 +223,21 @@
           ]
         },
         "name": {
+          "description": "Node names to match (at least one must match)",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "clade": {
+          "description": "Clade values to match (at least one must match)",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "cladeNodeAttrs": {
+          "description": "Clade-like attribute values to match, keyed by attribute name. Each key requires at least one value match.",
           "type": "object",
           "additionalProperties": {
             "type": "array",
@@ -217,18 +249,37 @@
       }
     },
     "AuspiceNodeSearchAlgo": {
-      "type": "string",
-      "enum": [
-        "ancestor-nearest",
-        "ancestor-earliest",
-        "full"
+      "description": "Algorithm for searching reference tree nodes in the \"Relative to\" feature.",
+      "oneOf": [
+        {
+          "description": "Traverse from the query node toward the root, return the first (nearest) match",
+          "type": "string",
+          "enum": [
+            "ancestor-nearest"
+          ]
+        },
+        {
+          "description": "Traverse from the query node toward the root, return the last (earliest/deepest) match",
+          "type": "string",
+          "enum": [
+            "ancestor-earliest"
+          ]
+        },
+        {
+          "description": "Linear search over all tree nodes until the first match",
+          "type": "string",
+          "enum": [
+            "full"
+          ]
+        }
       ]
     },
     "AuspiceRefNodeBuiltinsConfig": {
-      "description": "Configuration for all built-in reference node types",
+      "description": "Display name and description overrides for all built-in reference node types.",
       "type": "object",
       "properties": {
         "__root__": {
+          "description": "Config for the root reference node (reference sequence)",
           "anyOf": [
             {
               "$ref": "#/definitions/AuspiceRefNodeBuiltinConfig"
@@ -239,6 +290,7 @@
           ]
         },
         "__parent__": {
+          "description": "Config for the parent (nearest) reference node",
           "anyOf": [
             {
               "$ref": "#/definitions/AuspiceRefNodeBuiltinConfig"
@@ -249,6 +301,7 @@
           ]
         },
         "__clade_founder__": {
+          "description": "Config for the clade founder reference node",
           "anyOf": [
             {
               "$ref": "#/definitions/AuspiceRefNodeBuiltinConfig"
@@ -261,16 +314,18 @@
       }
     },
     "AuspiceRefNodeBuiltinConfig": {
-      "description": "Configuration for built-in reference node types display names and descriptions",
+      "description": "Display name and description overrides for a built-in reference node type.",
       "type": "object",
       "properties": {
         "displayName": {
+          "description": "Override display name for this built-in reference node type",
           "type": [
             "string",
             "null"
           ]
         },
         "description": {
+          "description": "Override description for this built-in reference node type",
           "type": [
             "string",
             "null"
@@ -430,36 +485,56 @@
       ],
       "properties": {
         "schemaVersion": {
+          "description": "Schema version for this pathogen.json file. Currently \"3.0.0\".",
           "type": "string"
         },
         "attributes": {
-          "$ref": "#/definitions/PathogenAttributes"
+          "description": "Dataset attributes: name, reference info, status flags (deprecated, experimental)",
+          "allOf": [
+            {
+              "$ref": "#/definitions/PathogenAttributes"
+            }
+          ]
         },
         "shortcuts": {
+          "description": "Short aliases for the dataset name, used in CLI and URL parameters (e.g. \"sars-cov-2\", \"rsv_a\").",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "meta": {
-          "$ref": "#/definitions/DatasetMeta"
+          "description": "Dataset metadata such as official name, creation timestamp, and update history.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/DatasetMeta"
+            }
+          ]
         },
         "files": {
-          "$ref": "#/definitions/DatasetFiles"
+          "description": "Filenames of other dataset input files (reference FASTA, genome annotation, tree, examples).",
+          "allOf": [
+            {
+              "$ref": "#/definitions/DatasetFiles"
+            }
+          ]
         },
         "defaultCds": {
+          "description": "CDS shown by default in the Nextclade Web sequence view (e.g. \"S\", \"HA1\").",
           "type": [
             "string",
             "null"
           ]
         },
         "cdsOrderPreference": {
+          "description": "Preferred display order of CDS names in the Nextclade Web dropdown.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "mutLabels": {
+          "description": "Mapping from nucleotide and amino acid mutations to human-readable labels (e.g. clade-defining mutations).",
           "default": {},
           "allOf": [
             {
@@ -468,6 +543,7 @@
           ]
         },
         "qc": {
+          "description": "Quality control rule configuration. If absent, no QC checks are performed.",
           "anyOf": [
             {
               "$ref": "#/definitions/QcConfig"
@@ -478,6 +554,7 @@
           ]
         },
         "generalParams": {
+          "description": "General analysis parameters (e.g. includeReference, inOrder, replaceUnknown).",
           "anyOf": [
             {
               "$ref": "#/definitions/NextcladeGeneralParamsOptional"
@@ -488,6 +565,7 @@
           ]
         },
         "alignmentParams": {
+          "description": "Pairwise alignment algorithm parameters (gap penalties, seed matching, band width).",
           "anyOf": [
             {
               "$ref": "#/definitions/AlignPairwiseParamsOptional"
@@ -498,6 +576,7 @@
           ]
         },
         "treeBuilderParams": {
+          "description": "Phylogenetic tree builder parameters (greedy refinement, masked mutation weight).",
           "anyOf": [
             {
               "$ref": "#/definitions/TreeBuilderParamsOptional"
@@ -508,6 +587,7 @@
           ]
         },
         "aaChangesParams": {
+          "description": "Parameters for amino acid change detection and grouping.",
           "anyOf": [
             {
               "$ref": "#/definitions/AaChangesParamsOptional"
@@ -518,6 +598,7 @@
           ]
         },
         "phenotypeData": {
+          "description": "Phenotype scoring configuration (e.g. ACE2 binding, immune escape) with per-position coefficients.",
           "type": [
             "array",
             "null"
@@ -527,18 +608,21 @@
           }
         },
         "aaMotifs": {
+          "description": "Amino acid motif detection rules (e.g. glycosylation sites, cleavage sites).",
           "type": "array",
           "items": {
             "$ref": "#/definitions/AaMotifsDesc"
           }
         },
         "versions": {
+          "description": "Available dataset versions. Populated from the dataset index, not from pathogen.json directly.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/DatasetVersion"
           }
         },
         "version": {
+          "description": "Current version of this dataset.",
           "anyOf": [
             {
               "$ref": "#/definitions/DatasetVersion"
@@ -549,6 +633,7 @@
           ]
         },
         "compatibility": {
+          "description": "Minimum Nextclade CLI and Web versions required to use this dataset.",
           "anyOf": [
             {
               "$ref": "#/definitions/DatasetCompatibility"
@@ -559,6 +644,7 @@
           ]
         },
         "maintenance": {
+          "description": "Contact and documentation URLs for dataset maintainers.",
           "anyOf": [
             {
               "$ref": "#/definitions/DatasetMaintenance"
@@ -599,21 +685,25 @@
       "additionalProperties": true
     },
     "DatasetMeta": {
+      "description": "Dataset-level metadata: authorship and project links.",
       "type": "object",
       "properties": {
         "source code": {
+          "description": "URL to the dataset source code repository",
           "type": [
             "string",
             "null"
           ]
         },
         "bugs": {
+          "description": "URL to the bug tracker or issue page",
           "type": [
             "string",
             "null"
           ]
         },
         "authors": {
+          "description": "List of dataset authors or maintainers",
           "type": "array",
           "items": {
             "type": "string"
@@ -622,45 +712,64 @@
       }
     },
     "DatasetFiles": {
+      "description": "Filenames of dataset components, relative to the dataset version directory.",
+      "examples": [
+        {
+          "reference": "reference.fasta",
+          "pathogenJson": "pathogen.json",
+          "genomeAnnotation": "genome_annotation.gff3",
+          "treeJson": "tree.json",
+          "examples": "sequences.fasta",
+          "readme": "README.md",
+          "changelog": "CHANGELOG.md"
+        }
+      ],
       "type": "object",
       "properties": {
         "reference": {
+          "description": "Reference sequence FASTA file (e.g. \"reference.fasta\")",
           "type": [
             "string",
             "null"
           ]
         },
         "pathogenJson": {
+          "description": "Pathogen configuration file (e.g. \"pathogen.json\")",
           "type": [
             "string",
             "null"
           ]
         },
         "genomeAnnotation": {
+          "description": "Genome annotation in GFF3 format (e.g. \"genome_annotation.gff3\")",
           "type": [
             "string",
             "null"
           ]
         },
         "treeJson": {
+          "description": "Reference phylogenetic tree in Auspice JSON format (e.g. \"tree.json\")",
           "type": [
             "string",
             "null"
           ]
         },
         "examples": {
+          "description": "Example query sequences for testing (e.g. \"sequences.fasta\")",
           "type": [
             "string",
             "null"
           ]
         },
         "readme": {
+          "description": "Dataset README documentation file",
           "type": [
             "string",
             "null"
           ]
         },
         "changelog": {
+          "description": "Dataset changelog file",
           "type": [
             "string",
             "null"
@@ -669,7 +778,7 @@
       }
     },
     "LabelledMutationsConfig": {
-      "description": "Information about  mutations and their labels",
+      "description": "Mapping from specific mutations to human-readable labels (e.g. clade-defining or drug-resistance mutations).",
       "examples": [
         {
           "nucMutLabelMap": {
@@ -685,6 +794,7 @@
       "type": "object",
       "properties": {
         "nucMutLabelMap": {
+          "description": "Nucleotide mutation labels: maps each nucleotide genotype (position + query nucleotide) to a list of label strings.",
           "type": "object",
           "additionalProperties": {
             "type": "array",
@@ -694,6 +804,7 @@
           }
         },
         "aaMutLabelMap": {
+          "description": "Amino acid mutation labels: maps each amino acid genotype (CDS + position + query amino acid) to a list of label strings.",
           "type": "object",
           "additionalProperties": {
             "type": "array",
@@ -766,6 +877,7 @@
       "type": "object",
       "properties": {
         "missingData": {
+          "description": "Configuration for the \"missing data\" (N) rule",
           "default": {
             "enabled": false,
             "missingDataThreshold": 0.0,
@@ -778,6 +890,7 @@
           ]
         },
         "mixedSites": {
+          "description": "Configuration for the \"mixed sites\" (M) rule",
           "default": {
             "enabled": false,
             "mixedSitesThreshold": 0
@@ -789,6 +902,7 @@
           ]
         },
         "privateMutations": {
+          "description": "Configuration for the \"private mutations\" (P) rule",
           "default": {
             "enabled": false,
             "weightReversionSubstitutions": 0.0,
@@ -807,6 +921,7 @@
           ]
         },
         "snpClusters": {
+          "description": "Configuration for the \"SNP clusters\" (C) rule",
           "default": {
             "enabled": false,
             "windowSize": 0,
@@ -820,6 +935,7 @@
           ]
         },
         "frameShifts": {
+          "description": "Configuration for the \"frame shifts\" (F) rule",
           "default": {
             "enabled": true,
             "scoreWeight": 75.0
@@ -831,6 +947,7 @@
           ]
         },
         "stopCodons": {
+          "description": "Configuration for the \"stop codons\" (S) rule",
           "default": {
             "enabled": true,
             "scoreWeight": 75.0
@@ -859,11 +976,13 @@
           "type": "boolean"
         },
         "missingDataThreshold": {
+          "description": "Number of N characters above scoreBias at which the score reaches 100. Score is linear: (totalMissing - scoreBias) * 100 / missingDataThreshold.",
           "default": 0.0,
           "type": "number",
           "format": "double"
         },
         "scoreBias": {
+          "description": "Number of N characters tolerated before the score starts increasing",
           "default": 0.0,
           "type": "number",
           "format": "double"
@@ -871,6 +990,7 @@
       }
     },
     "QcRulesConfigMixedSites": {
+      "description": "Configuration for QC rule \"mixed sites\"",
       "examples": [
         {
           "enabled": true,
@@ -884,6 +1004,7 @@
           "type": "boolean"
         },
         "mixedSitesThreshold": {
+          "description": "Number of ambiguous (non-ACGTN) nucleotide positions at which the score reaches 100",
           "default": 0,
           "type": "integer",
           "format": "uint",
@@ -913,41 +1034,49 @@
           "type": "boolean"
         },
         "weightReversionSubstitutions": {
+          "description": "Weight multiplier for reversion substitutions in the weighted total",
           "default": 1.0,
           "type": "number",
           "format": "double"
         },
         "weightReversionDeletions": {
+          "description": "Weight multiplier for reversion deletions in the weighted total",
           "default": 1.0,
           "type": "number",
           "format": "double"
         },
         "weightLabeledSubstitutions": {
+          "description": "Weight multiplier for labeled substitutions (known phylogenetic markers) in the weighted total",
           "default": 1.0,
           "type": "number",
           "format": "double"
         },
         "weightLabeledDeletions": {
+          "description": "Weight multiplier for labeled deletions in the weighted total",
           "default": 1.0,
           "type": "number",
           "format": "double"
         },
         "weightUnlabeledSubstitutions": {
+          "description": "Weight multiplier for unlabeled substitutions in the weighted total",
           "default": 1.0,
           "type": "number",
           "format": "double"
         },
         "weightUnlabeledDeletions": {
+          "description": "Weight multiplier for unlabeled deletions in the weighted total",
           "default": 1.0,
           "type": "number",
           "format": "double"
         },
         "typical": {
+          "description": "Expected number of weighted private mutations for a typical sequence. Excess above this value is penalized.",
           "default": 0.0,
           "type": "number",
           "format": "double"
         },
         "cutoff": {
+          "description": "Excess above `typical` at which the score reaches 100",
           "default": 0.0,
           "type": "number",
           "format": "double"
@@ -971,18 +1100,21 @@
           "type": "boolean"
         },
         "windowSize": {
+          "description": "Size of the sliding window (in nucleotides) used to count private mutations",
           "default": 0,
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
         },
         "clusterCutOff": {
+          "description": "Number of private mutations within a window above which the window is flagged as a cluster",
           "default": 0,
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
         },
         "scoreWeight": {
+          "description": "QC score added per detected cluster",
           "default": 0.0,
           "type": "number",
           "format": "double"
@@ -1013,12 +1145,14 @@
           "type": "boolean"
         },
         "ignoredFrameShifts": {
+          "description": "Frame shifts at these locations are known and not penalized",
           "type": "array",
           "items": {
             "$ref": "#/definitions/FrameShiftLocation"
           }
         },
         "scoreWeight": {
+          "description": "QC score added per detected frame shift (excluding ignored ones)",
           "default": 75.0,
           "type": "number",
           "format": "double"
@@ -1039,10 +1173,12 @@
       "type": "object",
       "properties": {
         "cdsName": {
+          "description": "Name of the coding sequence (CDS) containing the frame shift",
           "default": "",
           "type": "string"
         },
         "codonRange": {
+          "description": "Codon range affected by the frame shift (0-indexed, half-open)",
           "default": {
             "begin": 0,
             "end": 0
@@ -1080,12 +1216,14 @@
           "type": "boolean"
         },
         "ignoredStopCodons": {
+          "description": "Premature stop codons at these locations are known and not penalized",
           "type": "array",
           "items": {
             "$ref": "#/definitions/StopCodonLocation"
           }
         },
         "scoreWeight": {
+          "description": "QC score added per premature stop codon (excluding ignored ones)",
           "default": 75.0,
           "type": "number",
           "format": "double"
@@ -1107,9 +1245,11 @@
       ],
       "properties": {
         "cdsName": {
+          "description": "Name of the coding sequence (CDS) containing the stop codon",
           "type": "string"
         },
         "codon": {
+          "description": "0-indexed codon position of the stop codon within the CDS",
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
@@ -1150,6 +1290,7 @@
       }
     },
     "AlignPairwiseParamsOptional": {
+      "description": "Parameters controlling pairwise sequence alignment against a reference. Configurable via CLI arguments, pathogen.json, or alignment presets. Precedence: CLI arguments > pathogen.json > preset defaults.",
       "type": "object",
       "properties": {
         "alignmentPreset": {
@@ -1365,18 +1506,48 @@
       }
     },
     "AlignmentPreset": {
-      "type": "string",
-      "enum": [
-        "default",
-        "high-diversity",
-        "short-sequences"
+      "description": "Pre-defined alignment parameter presets that adjust penalties, seed matching, and band width for different sequence characteristics. Experimental feature subject to adjustments.",
+      "oneOf": [
+        {
+          "description": "Suitable for very similar sequences (this is the default).",
+          "type": "string",
+          "enum": [
+            "default"
+          ]
+        },
+        {
+          "description": "Suitable for more diverse viruses. Uses wider alignment bands, shorter k-mers, and higher gap penalties.",
+          "type": "string",
+          "enum": [
+            "high-diversity"
+          ]
+        },
+        {
+          "description": "Suitable for short and partial sequences. Reduces minimum sequence length and uses shorter k-mers with tighter seed spacing.",
+          "type": "string",
+          "enum": [
+            "short-sequences"
+          ]
+        }
       ]
     },
     "GapAlignmentSide": {
-      "type": "string",
-      "enum": [
-        "left",
-        "right"
+      "description": "Controls which side ambiguous gaps are placed on when alignment is equally parsimonious in either direction.",
+      "oneOf": [
+        {
+          "description": "Place ambiguous gaps on the left (5') side. This is the default.",
+          "type": "string",
+          "enum": [
+            "left"
+          ]
+        },
+        {
+          "description": "Place ambiguous gaps on the right (3') side.",
+          "type": "string",
+          "enum": [
+            "right"
+          ]
+        }
       ]
     },
     "TreeBuilderParamsOptional": {
@@ -1465,21 +1636,31 @@
       ],
       "properties": {
         "name": {
+          "description": "Machine-readable identifier for this phenotype (e.g. \"ace2_binding\", \"immune_escape\").",
           "type": "string"
         },
         "nameFriendly": {
+          "description": "Human-readable display name (e.g. \"ACE2 Binding\", \"Immune Escape\").",
           "type": "string"
         },
         "description": {
+          "description": "Free-text description of what this phenotype measures.",
           "type": "string"
         },
         "cds": {
+          "description": "CDS on which this phenotype is evaluated (e.g. \"S\", \"HA1\").",
           "type": "string"
         },
         "aaRange": {
-          "$ref": "#/definitions/Range_for_Position"
+          "description": "Amino acid range within the CDS where phenotype-relevant mutations are considered.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Range_for_Position"
+            }
+          ]
         },
         "ignore": {
+          "description": "Clades to exclude from phenotype scoring.",
           "default": {
             "clades": []
           },
@@ -1490,6 +1671,7 @@
           ]
         },
         "data": {
+          "description": "Per-position coefficient tables for computing the phenotype score.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/PhenotypeDataEntry"
@@ -1498,9 +1680,11 @@
       }
     },
     "PhenotypeDataIgnore": {
+      "description": "Clades to exclude from phenotype scoring (e.g. outgroup clades with unreliable mutation calls).",
       "type": "object",
       "properties": {
         "clades": {
+          "description": "List of clade names to ignore when computing phenotype scores.",
           "default": [],
           "type": "array",
           "items": {
@@ -1534,13 +1718,16 @@
       ],
       "properties": {
         "name": {
+          "description": "Identifier for this data entry (e.g. \"binding\", \"escape\").",
           "type": "string"
         },
         "weight": {
+          "description": "Relative weight of this entry when combining multiple entries into a final phenotype score.",
           "type": "number",
           "format": "double"
         },
         "locations": {
+          "description": "Per-position coefficients mapping amino acid reference positions to their contribution to the score.",
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/PhenotypeCoeff"
@@ -1601,24 +1788,30 @@
       ],
       "properties": {
         "name": {
+          "description": "Machine-readable identifier for this motif type (e.g. \"glycosylation\").",
           "type": "string"
         },
         "nameShort": {
+          "description": "Abbreviated name for compact display (e.g. \"Glyc.\").",
           "type": "string"
         },
         "nameFriendly": {
+          "description": "Human-readable display name (e.g. \"Glycosylation\").",
           "type": "string"
         },
         "description": {
+          "description": "Free-text description of what the motif represents.",
           "type": "string"
         },
         "motifs": {
+          "description": "Regular expressions defining the amino acid motifs to detect (e.g. \"N[^P][ST]\" for N-linked glycosylation).",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "includeCdses": {
+          "description": "CDS regions in which to search for motifs. If empty, all CDSes are searched.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/CountAaMotifsCdsDesc"
@@ -1634,9 +1827,11 @@
       ],
       "properties": {
         "cds": {
+          "description": "Name of the CDS to search for motifs (e.g. \"HA1\", \"HA2\").",
           "type": "string"
         },
         "ranges": {
+          "description": "Amino acid ranges within the CDS to restrict the search. If empty, the entire CDS is searched.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/Range_for_Position"
@@ -1645,21 +1840,35 @@
       }
     },
     "DatasetVersion": {
+      "description": "A tagged release of a dataset, identified by a timestamp tag.",
+      "examples": [
+        {
+          "tag": "2026-01-06--14-59-32Z",
+          "updatedAt": "2026-01-06T14:59:32Z",
+          "compatibility": {
+            "cli": "3.0.0",
+            "web": "3.0.0"
+          }
+        }
+      ],
       "type": "object",
       "required": [
         "tag"
       ],
       "properties": {
         "tag": {
+          "description": "Version identifier in timestamp format (e.g. \"2026-01-06--14-59-32Z\")",
           "type": "string"
         },
         "updatedAt": {
+          "description": "ISO 8601 timestamp of when this version was published",
           "type": [
             "string",
             "null"
           ]
         },
         "compatibility": {
+          "description": "Minimum CLI/web versions required to use this dataset version",
           "anyOf": [
             {
               "$ref": "#/definitions/DatasetCompatibility"
@@ -1672,12 +1881,15 @@
       }
     },
     "DatasetCompatibility": {
+      "description": "Minimum application versions required to use a dataset version.",
       "type": "object",
       "properties": {
         "cli": {
+          "description": "Minimum Nextclade CLI semver version (e.g. \"3.0.0-alpha.0\")",
           "type": "string"
         },
         "web": {
+          "description": "Minimum Nextclade Web semver version (e.g. \"3.0.0-alpha.0\")",
           "type": "string"
         }
       }
@@ -1687,36 +1899,42 @@
       "type": "object",
       "properties": {
         "website": {
+          "description": "URLs for the project or organization website.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "documentation": {
+          "description": "URLs for dataset documentation and usage guides.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "source code": {
+          "description": "URLs for the source code repositories used to build the dataset.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "issues": {
+          "description": "URLs for reporting bugs and requesting features related to the dataset.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "organizations": {
+          "description": "Names of organizations responsible for maintaining the dataset.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "authors": {
+          "description": "Names and contact information of dataset authors.",
           "type": "array",
           "items": {
             "type": "string"
