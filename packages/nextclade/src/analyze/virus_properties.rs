@@ -87,12 +87,6 @@ pub struct VirusProperties {
   pub compatibility: Option<DatasetCompatibility>,
 
   #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub deprecated: Option<bool>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub experimental: Option<bool>,
-
-  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub maintenance: Option<DatasetMaintenance>,
 
   #[serde(flatten)]
@@ -353,8 +347,6 @@ impl VirusProperties {
       versions: vec![],
       version: None,
       compatibility: None,
-      deprecated: None,
-      experimental: None,
       maintenance: None,
       other: serde_json::Value::Null,
     }
