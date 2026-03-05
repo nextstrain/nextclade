@@ -2,7 +2,7 @@ use crate::analyze::virus_properties::DatasetMaintenance;
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
 use crate::utils::any::AnyType;
-use crate::{make_internal_error, o};
+use crate::{make_internal_error, o, vec_of_owned};
 use eyre::Report;
 use itertools::{Itertools, chain};
 use schemars::JsonSchema;
@@ -70,6 +70,7 @@ impl DatasetAttributes {
 const INDEX_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
 const INDEX_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
 
+/// Top-level dataset index file (index.json). Contains all dataset collections served by a dataset server.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetsIndexJson {
@@ -77,10 +78,13 @@ pub struct DatasetsIndexJson {
   #[schemars(skip)]
   pub schema: String,
 
+  /// Dataset collections available on this server
   pub collections: Vec<DatasetCollection>,
 
+  /// Schema version for this index file format
   pub schema_version: String,
 
+  /// Minimizer index versions available for dataset auto-detection
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub minimizer_index: Vec<MinimizerIndexVersion>,
 
@@ -106,6 +110,7 @@ impl DatasetsIndexJson {
   }
 }
 
+/// A named group of datasets from a single maintainer (e.g. "nextstrain", "community").
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCollection {
@@ -113,8 +118,10 @@ pub struct DatasetCollection {
   #[schemars(skip)]
   pub schema: String,
 
+  /// Collection metadata: identifier, display name, maintainer contact information
   pub meta: DatasetCollectionMeta,
 
+  /// Datasets belonging to this collection
   pub datasets: Vec<Dataset>,
 
   #[serde(flatten)]
@@ -127,6 +134,7 @@ impl DatasetCollection {
   }
 }
 
+/// Flat list of datasets returned by the `dataset list` CLI command.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[schemars(title = "DatasetList")]
 pub struct DatasetListJson(pub Vec<Dataset>);
@@ -157,39 +165,51 @@ impl FromIterator<Dataset> for DatasetListJson {
   }
 }
 
+/// A single Nextclade dataset providing reference data and configuration for one pathogen.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[schemars(example = "Dataset::example")]
 #[serde(rename_all = "camelCase")]
 pub struct Dataset {
   #[serde(rename = "$schema", default = "Dataset::default_schema")]
   #[schemars(skip)]
   pub schema: String,
 
+  /// Unique path-like identifier (e.g. "nextstrain/sars-cov-2/wuhan-hu-1/orfs")
   pub path: String,
 
+  /// Short alias names for this dataset (e.g. "sars-cov-2", "rsv_a")
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub shortcuts: Vec<String>,
 
+  /// Dataset attributes: name, reference info, status flags
   #[serde(default, skip_serializing_if = "DatasetAttributes::is_default")]
   pub attributes: DatasetAttributes,
 
+  /// Dataset-level metadata: source code URL, bug tracker, authors
   #[serde(default, skip_serializing_if = "DatasetMeta::is_default")]
   pub meta: DatasetMeta,
 
+  /// Filenames of dataset components (reference, annotation, tree, etc.)
   #[serde(default, skip_serializing_if = "DatasetFiles::is_default")]
   pub files: DatasetFiles,
 
+  /// Advertised analysis capabilities: clade counts, QC rules, primer support
   #[serde(default, skip_serializing_if = "DatasetCapabilities::is_default")]
   pub capabilities: DatasetCapabilities,
 
+  /// All available tagged releases, ordered newest-first
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub versions: Vec<DatasetVersion>,
 
+  /// The latest (default) version of this dataset
   #[serde(default, skip_serializing_if = "DatasetVersion::is_empty")]
   pub version: DatasetVersion,
 
+  /// Whether the dataset is a directory-based dataset or an Auspice JSON
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub r#type: Option<DatasetType>,
 
+  /// Maintainer and support information for this dataset
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub maintenance: Option<DatasetMaintenance>,
 
@@ -301,16 +321,42 @@ impl Dataset {
         || (version.tag == "latest" && tag == "unreleased")
     })
   }
+
+  pub fn example() -> Self {
+    Self {
+      schema: Self::default_schema(),
+      path: o!("nextstrain/rsv/a/EPI_ISL_412866"),
+      shortcuts: vec_of_owned!["rsv_a", "nextstrain/rsv/a"],
+      attributes: BTreeMap::from([
+        (o!("name"), AnyType::String(o!("RSV-A"))),
+        (o!("reference accession"), AnyType::String(o!("EPI_ISL_412866"))),
+        (o!("reference name"), AnyType::String(o!("hRSV/A/England/397/2017"))),
+      ]),
+      meta: DatasetMeta::default(),
+      files: DatasetFiles::example(),
+      capabilities: DatasetCapabilities::default(),
+      versions: vec![DatasetVersion::example()],
+      version: DatasetVersion::example(),
+      r#type: None,
+      maintenance: None,
+      other: serde_json::Value::default(),
+    }
+  }
 }
 
+/// A tagged release of a dataset, identified by a timestamp tag.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[schemars(example = "DatasetVersion::example")]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetVersion {
+  /// Version identifier in timestamp format (e.g. "2026-01-06--14-59-32Z")
   pub tag: String,
 
+  /// ISO 8601 timestamp of when this version was published
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub updated_at: Option<String>,
 
+  /// Minimum CLI/web versions required to use this dataset version
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub compatibility: Option<DatasetCompatibility>,
 }
@@ -339,6 +385,17 @@ impl DatasetVersion {
   pub fn is_empty(&self) -> bool {
     self == &Self::default()
   }
+
+  pub fn example() -> Self {
+    Self {
+      tag: o!("2026-01-06--14-59-32Z"),
+      updated_at: Some(o!("2026-01-06T14:59:32Z")),
+      compatibility: Some(DatasetCompatibility {
+        cli: Some(Version::new(3, 0, 0)),
+        web: Some(Version::new(3, 0, 0)),
+      }),
+    }
+  }
 }
 
 impl Default for DatasetVersion {
@@ -351,13 +408,16 @@ impl Default for DatasetVersion {
   }
 }
 
+/// Minimum application versions required to use a dataset version.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCompatibility {
+  /// Minimum Nextclade CLI semver version (e.g. "3.0.0-alpha.0")
   #[serde(default, skip_serializing_if = "Option::is_none")]
   #[schemars(with = "String")]
   pub cli: Option<Version>,
 
+  /// Minimum Nextclade Web semver version (e.g. "3.0.0-alpha.0")
   #[serde(default, skip_serializing_if = "Option::is_none")]
   #[schemars(with = "String")]
   pub web: Option<Version>,
@@ -372,26 +432,34 @@ impl DatasetCompatibility {
   }
 }
 
+/// Metadata describing a dataset collection: identity, branding, and maintainer information.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCollectionMeta {
+  /// Unique identifier for this collection (e.g. "nextstrain")
   pub id: String,
 
+  /// Human-readable display name (e.g. "Nextstrain")
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub title: Option<String>,
 
+  /// Short description of the collection and its maintainer
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub description: Option<String>,
 
+  /// Brand color for UI display (CSS hex, e.g. "#9067b5")
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub color: Option<String>,
 
+  /// Path to the collection icon image
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub icon: Option<String>,
 
+  /// People or organizations maintaining this collection
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub maintainers: Vec<DatasetCollectionUrl>,
 
+  /// Related URLs: source repository, contact page, documentation
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub urls: Vec<DatasetCollectionUrl>,
 
@@ -399,22 +467,28 @@ pub struct DatasetCollectionMeta {
   pub other: serde_json::Value,
 }
 
+/// Analysis features supported by a dataset, used for UI display and filtering.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCapabilities {
+  /// Number of distinct clade values defined in the reference tree
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub clades: Option<usize>,
 
+  /// Additional clade classification systems and their value counts (e.g. "Nextclade_pango": 4731)
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub custom_clades: BTreeMap<String, usize>,
 
+  /// QC rule names enabled for this dataset (e.g. "missingData", "privateMutations")
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub qc: Vec<String>,
 
+  /// Whether PCR primer mutation detection is available
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub primers: Option<bool>,
 
+  /// Other capabilities not covered above (e.g. "phenotypeData", "mutLabels")
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub other: Vec<String>,
 
@@ -429,15 +503,19 @@ impl DatasetCapabilities {
   }
 }
 
+/// Dataset-level metadata: authorship and project links.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetMeta {
+  /// URL to the dataset source code repository
   #[serde(rename = "source code", default, skip_serializing_if = "Option::is_none")]
   pub source_code: Option<String>,
 
+  /// URL to the bug tracker or issue page
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub bugs: Option<String>,
 
+  /// List of dataset authors or maintainers
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub authors: Vec<String>,
 
@@ -452,30 +530,40 @@ impl DatasetMeta {
   }
 }
 
+/// Filenames of dataset components, relative to the dataset version directory.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[schemars(example = "DatasetFiles::example")]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetFiles {
+  /// Reference sequence FASTA file (e.g. "reference.fasta")
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub reference: Option<String>,
 
+  /// Pathogen configuration file (e.g. "pathogen.json")
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub pathogen_json: Option<String>,
 
+  /// Genome annotation in GFF3 format (e.g. "genome_annotation.gff3")
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub genome_annotation: Option<String>,
 
+  /// Reference phylogenetic tree in Auspice JSON format (e.g. "tree.json")
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub tree_json: Option<String>,
 
+  /// Example query sequences for testing (e.g. "sequences.fasta")
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub examples: Option<String>,
 
+  /// Dataset README documentation file
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub readme: Option<String>,
 
+  /// Dataset changelog file
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub changelog: Option<String>,
 
+  /// Additional dataset-specific files not covered by named fields
   #[serde(flatten, default, skip_serializing_if = "BTreeMap::is_empty")]
   pub rest_files: BTreeMap<String, String>,
 
@@ -488,32 +576,58 @@ impl DatasetFiles {
   pub fn is_default(&self) -> bool {
     self == &Self::default()
   }
+
+  pub fn example() -> Self {
+    Self {
+      reference: Some(o!("reference.fasta")),
+      pathogen_json: Some(o!("pathogen.json")),
+      genome_annotation: Some(o!("genome_annotation.gff3")),
+      tree_json: Some(o!("tree.json")),
+      examples: Some(o!("sequences.fasta")),
+      readme: Some(o!("README.md")),
+      changelog: Some(o!("CHANGELOG.md")),
+      rest_files: BTreeMap::new(),
+      other: serde_json::Value::default(),
+    }
+  }
 }
 
+/// A named URL entry used for maintainer contacts and related links.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetCollectionUrl {
+  /// Label describing this URL (e.g. "source", "contact")
   pub name: String,
 
+  /// The URL
   pub url: String,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
 
+/// A versioned minimizer index used for automatic dataset detection from query sequences.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct MinimizerIndexVersion {
+  /// Minimizer index format version
   pub version: String,
+
+  /// Path to the minimizer index file relative to the server root
   pub path: String,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
 
+/// How dataset content is structured.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum DatasetType {
+  /// Standard dataset with individual files in a directory
   Directory,
+  /// Single Auspice JSON file used as both tree and dataset
   AuspiceJson,
+  /// Other dataset format
   Other,
 }
