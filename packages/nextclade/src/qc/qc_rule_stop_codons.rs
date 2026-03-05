@@ -3,14 +3,26 @@ use crate::qc::qc_run::{QcRule, QcStatus};
 use crate::translate::translate_genes::{CdsTranslation, Translation};
 use serde::{Deserialize, Serialize};
 
+/// Result of the premature stop codons QC rule.
+///
+/// Premature stop codons in coding sequences indicate sequencing errors or assembly artifacts,
+/// since replicating viruses cannot have stops in essential genes. Known stop codons listed in
+/// `ignoredStopCodons` in the dataset configuration are excluded from scoring. Score equals the
+/// number of non-ignored premature stops times `scoreWeight`.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultStopCodons {
+  /// Numeric QC score for this rule (0-100+)
   pub score: f64,
+  /// Quality category derived from the score
   pub status: QcStatus,
+  /// Premature stop codons not in the ignored list (penalized)
   pub stop_codons: Vec<StopCodonLocation>,
+  /// Number of penalized premature stop codons
   pub total_stop_codons: usize,
+  /// Premature stop codons matching the ignored list in dataset configuration (not penalized)
   pub stop_codons_ignored: Vec<StopCodonLocation>,
+  /// Number of ignored premature stop codons
   pub total_stop_codons_ignored: usize,
 }
 

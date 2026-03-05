@@ -3,12 +3,20 @@ use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
 
+/// Result of the missing data QC rule.
+///
+/// Penalizes sequences with excessive N (missing) characters. Score increases linearly from 0 to
+/// 100 as the number of missing sites goes from `scoreBias` to `scoreBias + missingDataThreshold`.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultMissingData {
+  /// Numeric QC score for this rule (0-100+)
   pub score: f64,
+  /// Quality category derived from the score
   pub status: QcStatus,
+  /// Total number of N (missing) characters in the query sequence
   pub total_missing: usize,
+  /// Effective threshold above which the score reaches 100 (scoreBias + missingDataThreshold from config)
   pub missing_data_threshold: f64,
 }
 

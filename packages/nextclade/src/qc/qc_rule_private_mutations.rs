@@ -9,17 +9,32 @@ use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
 
+/// Result of the private mutations QC rule.
+///
+/// Private mutations are mutations present in the query sequence but absent from the nearest
+/// reference tree node. Excessive private mutations indicate sequencing errors or contamination.
+/// Different mutation categories carry different weights. Score reaches 100 when the weighted
+/// excess above `typical` equals `cutoff`.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultPrivateMutations {
+  /// Numeric QC score for this rule (0-100+)
   pub score: f64,
+  /// Quality category derived from the score
   pub status: QcStatus,
+  /// Number of reversion substitutions (back to reference state, weighted separately)
   pub num_reversion_substitutions: usize,
+  /// Number of labeled substitutions (known phylogenetically, weighted separately)
   pub num_labeled_substitutions: usize,
+  /// Number of unlabeled substitutions (unknown, weighted at full penalty)
   pub num_unlabeled_substitutions: usize,
+  /// Number of contiguous deletion ranges (adjacent deletions counted as one range)
   pub total_deletion_ranges: usize,
+  /// Weighted sum of all private mutation categories
   pub weighted_total: f64,
+  /// Excess above the typical number of private mutations (weightedTotal - typical)
   pub excess: f64,
+  /// Cutoff from the dataset configuration at which the score reaches 100
   pub cutoff: f64,
 }
 

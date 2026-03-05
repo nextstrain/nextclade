@@ -8,22 +8,38 @@ use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
+/// A cluster of private nucleotide substitutions within a genomic window.
+///
+/// Clusters indicate localized quality problems, such as contamination or sequencing artifacts
+/// in a narrow region of the genome.
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteredSnp {
+  /// 0-based position of the first substitution in the cluster
   pub start: usize,
+  /// 0-based position of the last substitution in the cluster
   pub end: usize,
+  /// Number of substitutions in this cluster
   pub number_of_snps: usize,
 }
 
+/// Result of the SNP clusters QC rule.
+///
+/// Detects clusters of private substitutions within a sliding window. If more than `clusterCutOff`
+/// substitutions fall within a `windowSize`-nucleotide window, it counts as one cluster. Score
+/// equals the number of clusters times `scoreWeight`.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct QcResultSnpClusters {
+  /// Numeric QC score for this rule (0-100+)
   pub score: f64,
+  /// Quality category derived from the score
   pub status: QcStatus,
 
+  /// Total number of substitutions across all clusters
   #[serde(rename = "totalSNPs")]
   pub total_snps: usize,
 
+  /// List of detected substitution clusters
   #[serde(rename = "clusteredSNPs")]
   pub clustered_snps: Vec<ClusteredSnp>,
 }

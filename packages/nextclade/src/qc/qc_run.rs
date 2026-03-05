@@ -13,13 +13,19 @@ use num::traits::Pow;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+/// Overall quality category derived from a numeric QC score.
+///
+/// Thresholds: 0-29 = Good, 30-99 = Mediocre, 100+ = Bad.
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 #[derive(Default)]
 pub enum QcStatus {
+  /// Score below 30, no quality concerns
   #[default]
   Good,
+  /// Score 30-99, warrants closer examination
   Mediocre,
+  /// Score 100 or above, likely problematic
   Bad,
 }
 
@@ -45,16 +51,28 @@ impl QcStatus {
   }
 }
 
+/// Aggregated quality control results for a single query sequence.
+///
+/// Each individual rule is `None` when disabled in the dataset configuration. The overall score
+/// is a quadratic sum of individual rule scores: S = sum(Si^2 / 100).
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResult {
+  /// Result of the missing data (N) rule
   pub missing_data: Option<QcResultMissingData>,
+  /// Result of the mixed (ambiguous) sites (M) rule
   pub mixed_sites: Option<QcResultMixedSites>,
+  /// Result of the private mutations (P) rule
   pub private_mutations: Option<QcResultPrivateMutations>,
+  /// Result of the SNP clusters (C) rule
   pub snp_clusters: Option<QcResultSnpClusters>,
+  /// Result of the frame shifts (F) rule
   pub frame_shifts: Option<QcResultFrameShifts>,
+  /// Result of the premature stop codons (S) rule
   pub stop_codons: Option<QcResultStopCodons>,
+  /// Quadratic aggregate of all individual rule scores
   pub overall_score: f64,
+  /// Quality category derived from the overall score
   pub overall_status: QcStatus,
 }
 

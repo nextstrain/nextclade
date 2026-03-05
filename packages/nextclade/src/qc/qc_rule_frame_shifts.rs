@@ -12,14 +12,26 @@ pub fn is_frame_shift_ignored(frame_shift: &FrameShift, config: &QcRulesConfigFr
     .any(|ignored| ignored.cds_name == frame_shift.cds_name && ignored.codon_range == frame_shift.codon)
 }
 
+/// Result of the frame shifts QC rule.
+///
+/// Frame-shifting insertions or deletions disrupt translation and produce garbled proteins or
+/// premature stop codons. Known frame shifts listed in `ignoredFrameShifts` in the dataset
+/// configuration are excluded from scoring. Score equals the number of non-ignored frame shifts
+/// times `scoreWeight`.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultFrameShifts {
+  /// Numeric QC score for this rule (0-100+)
   pub score: f64,
+  /// Quality category derived from the score
   pub status: QcStatus,
+  /// Frame shifts not in the ignored list (penalized)
   pub frame_shifts: Vec<FrameShift>,
+  /// Number of penalized frame shifts
   pub total_frame_shifts: usize,
+  /// Frame shifts matching the ignored list in dataset configuration (not penalized)
   pub frame_shifts_ignored: Vec<FrameShift>,
+  /// Number of ignored frame shifts
   pub total_frame_shifts_ignored: usize,
 }
 

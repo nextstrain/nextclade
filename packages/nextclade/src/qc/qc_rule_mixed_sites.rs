@@ -6,12 +6,21 @@ use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+/// Result of the mixed sites QC rule.
+///
+/// Penalizes sequences with ambiguous nucleotides (non-ACGTN, non-gap characters such as R, Y, S).
+/// These are often indicative of contamination or co-infection. Score reaches 100 when the count
+/// equals `mixedSitesThreshold`.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultMixedSites {
+  /// Numeric QC score for this rule (0-100+)
   pub score: f64,
+  /// Quality category derived from the score
   pub status: QcStatus,
+  /// Total number of ambiguous (non-ACGTN, non-gap) nucleotide positions
   pub total_mixed_sites: usize,
+  /// Threshold from the dataset configuration at which the score reaches 100
   pub mixed_sites_threshold: usize,
 }
 
