@@ -16,7 +16,7 @@ Required. Currently `3.0.0`.
 
 #### `files`
 
-Required. Tells Nextclade what the file names of other dataset input files are. Only `reference` and `pathogenJson` are required.
+Required for datasets (not enforced by the JSON schema). Tells Nextclade what the file names of other dataset input files are. Only `reference` and `pathogenJson` are required.
 
 Example:
 
@@ -71,7 +71,10 @@ Example configuration for SARS-CoV-2:
       "cutoff": 24,
       "weightLabeledSubstitutions": 4,
       "weightReversionSubstitutions": 6,
-      "weightUnlabeledSubstitutions": 1
+      "weightUnlabeledSubstitutions": 1,
+      "weightLabeledDeletions": 1,
+      "weightReversionDeletions": 1,
+      "weightUnlabeledDeletions": 1
     },
     "missingData": {
       "enabled": true,
@@ -154,10 +157,13 @@ Optional `dict[str,bool]`. General flags that affect the analysis and output. Th
 - `includeReference`: Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.
 - `inOrder`: Emit output sequences in-order. With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors). By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1 or is omitted. Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag.
 - `replaceUnknown`: Replace unknown nucleotide characters with 'N'. By default, the sequences containing unknown nucleotide characters are skipped with a warning - they are not analyzed and not included into results. If this flag is provided, then before the alignment, all unknown characters are replaced with 'N'. This replacement allows to analyze these sequences which otherwise result in an error. The following characters are considered known: '-', 'A', 'B', 'C', 'D', 'G', 'H', 'K', 'M', 'N', 'R', 'S', 'T', 'V', 'W', 'Y'.
+- `includeNearestNodeInfo`: Whether to include nearest node information in the output.
 
 #### `alignmentParams`
 
-Optional `dict`. Parameters for the alignment algorithm. These are identical to the corresponding CLI arguments (though here _camelCase_ needs to be used. If not provided, default values are used.
+Optional `dict`. Parameters for the alignment algorithm. These are identical to the corresponding CLI arguments (though here _camelCase_ needs to be used). If not provided, default values are used.
+
+An `alignmentPreset` field can be used as a shorthand for common parameter combinations: `"default"`, `"high-diversity"`, or `"short-sequences"`. Individual parameters override the preset values.
 
 #### `treeBuilderParams`
 
