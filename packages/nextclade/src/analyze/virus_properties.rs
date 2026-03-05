@@ -60,58 +60,77 @@ impl PathogenAttributes {
 #[serde(rename_all = "camelCase")]
 #[schemars(title = "PathogenJson", example = "VirusProperties::example")]
 pub struct VirusProperties {
+  /// Schema version for this pathogen.json file. Currently "3.0.0".
   pub schema_version: String,
 
+  /// Dataset attributes: name, reference info, status flags (deprecated, experimental)
   #[serde(default, skip_serializing_if = "PathogenAttributes::is_default")]
   pub attributes: PathogenAttributes,
 
+  /// Short aliases for the dataset name, used in CLI and URL parameters (e.g. "sars-cov-2", "rsv_a").
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub shortcuts: Vec<String>,
 
+  /// Dataset metadata such as official name, creation timestamp, and update history.
   #[serde(default, skip_serializing_if = "DatasetMeta::is_default")]
   pub meta: DatasetMeta,
 
+  /// Filenames of other dataset input files (reference FASTA, genome annotation, tree, examples).
   #[serde(default, skip_serializing_if = "DatasetFiles::is_default")]
   pub files: DatasetFiles,
 
+  /// CDS shown by default in the Nextclade Web sequence view (e.g. "S", "HA1").
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub default_cds: Option<String>,
 
+  /// Preferred display order of CDS names in the Nextclade Web dropdown.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub cds_order_preference: Vec<String>,
 
+  /// Mapping from nucleotide and amino acid mutations to human-readable labels (e.g. clade-defining mutations).
   #[serde(default)]
   pub mut_labels: LabelledMutationsConfig,
 
+  /// Quality control rule configuration. If absent, no QC checks are performed.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub qc: Option<QcConfig>,
 
+  /// General analysis parameters (e.g. includeReference, inOrder, replaceUnknown).
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub general_params: Option<NextcladeGeneralParamsOptional>,
 
+  /// Pairwise alignment algorithm parameters (gap penalties, seed matching, band width).
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub alignment_params: Option<AlignPairwiseParamsOptional>,
 
+  /// Phylogenetic tree builder parameters (greedy refinement, masked mutation weight).
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub tree_builder_params: Option<TreeBuilderParamsOptional>,
 
+  /// Parameters for amino acid change detection and grouping.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub aa_changes_params: Option<AaChangesParamsOptional>,
 
+  /// Phenotype scoring configuration (e.g. ACE2 binding, immune escape) with per-position coefficients.
   pub phenotype_data: Option<Vec<PhenotypeData>>,
 
+  /// Amino acid motif detection rules (e.g. glycosylation sites, cleavage sites).
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub aa_motifs: Vec<AaMotifsDesc>,
 
+  /// Available dataset versions. Populated from the dataset index, not from pathogen.json directly.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub versions: Vec<DatasetVersion>,
 
+  /// Current version of this dataset.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub version: Option<DatasetVersion>,
 
+  /// Minimum Nextclade CLI and Web versions required to use this dataset.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub compatibility: Option<DatasetCompatibility>,
 
+  /// Contact and documentation URLs for dataset maintainers.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub maintenance: Option<DatasetMaintenance>,
 
@@ -123,21 +142,27 @@ pub struct VirusProperties {
 #[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetMaintenance {
+  /// URLs for the project or organization website.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub website: Vec<String>,
 
+  /// URLs for dataset documentation and usage guides.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub documentation: Vec<String>,
 
+  /// URLs for the source code repositories used to build the dataset.
   #[serde(rename = "source code", default, skip_serializing_if = "Vec::is_empty")]
   pub source_code: Vec<String>,
 
+  /// URLs for reporting bugs and requesting features related to the dataset.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub issues: Vec<String>,
 
+  /// Names of organizations responsible for maintaining the dataset.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub organizations: Vec<String>,
 
+  /// Names and contact information of dataset authors.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub authors: Vec<String>,
 
@@ -154,13 +179,15 @@ pub type NucLabelMap = LabelMap<Nuc>;
 /// Associates an AA genotype (cds, pos, aa) to a list of labels
 pub type AaLabelMap = BTreeMap<AaGenotype, Vec<String>>;
 
-/// Information about  mutations and their labels
+/// Mapping from specific mutations to human-readable labels (e.g. clade-defining or drug-resistance mutations).
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "LabelledMutationsConfig::example")]
 pub struct LabelledMutationsConfig {
+  /// Nucleotide mutation labels: maps each nucleotide genotype (position + query nucleotide) to a list of label strings.
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub nuc_mut_label_map: BTreeMap<Genotype<Nuc>, Vec<String>>,
+  /// Amino acid mutation labels: maps each amino acid genotype (CDS + position + query amino acid) to a list of label strings.
   #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
   pub aa_mut_label_map: AaLabelMap,
   #[serde(flatten)]
@@ -194,9 +221,11 @@ impl LabelledMutationsConfig {
   }
 }
 
+/// Clades to exclude from phenotype scoring (e.g. outgroup clades with unreliable mutation calls).
 #[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeDataIgnore {
+  /// List of clade names to ignore when computing phenotype scores.
   #[serde(default)]
   pub clades: Vec<String>,
 }
@@ -233,8 +262,11 @@ impl PhenotypeCoeff {
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "PhenotypeDataEntry::example")]
 pub struct PhenotypeDataEntry {
+  /// Identifier for this data entry (e.g. "binding", "escape").
   pub name: String,
+  /// Relative weight of this entry when combining multiple entries into a final phenotype score.
   pub weight: OrderedFloat<f64>,
+  /// Per-position coefficients mapping amino acid reference positions to their contribution to the score.
   pub locations: BTreeMap<AaRefPosition, PhenotypeCoeff>,
 }
 
@@ -265,13 +297,20 @@ impl PhenotypeDataEntry {
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "PhenotypeData::example")]
 pub struct PhenotypeData {
+  /// Machine-readable identifier for this phenotype (e.g. "ace2_binding", "immune_escape").
   pub name: String,
+  /// Human-readable display name (e.g. "ACE2 Binding", "Immune Escape").
   pub name_friendly: String,
+  /// Free-text description of what this phenotype measures.
   pub description: String,
+  /// CDS on which this phenotype is evaluated (e.g. "S", "HA1").
   pub cds: String,
+  /// Amino acid range within the CDS where phenotype-relevant mutations are considered.
   pub aa_range: AaRefRange,
+  /// Clades to exclude from phenotype scoring.
   #[serde(default)]
   pub ignore: PhenotypeDataIgnore,
+  /// Per-position coefficient tables for computing the phenotype score.
   pub data: Vec<PhenotypeDataEntry>,
 }
 
@@ -295,8 +334,11 @@ impl PhenotypeData {
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PhenotypeAttrDesc {
+  /// Machine-readable identifier for this phenotype attribute.
   pub name: String,
+  /// Human-readable display name shown in the UI.
   pub name_friendly: String,
+  /// Free-text description of this phenotype attribute.
   pub description: String,
 }
 
@@ -305,12 +347,18 @@ pub struct PhenotypeAttrDesc {
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "AaMotifsDesc::example")]
 pub struct AaMotifsDesc {
+  /// Machine-readable identifier for this motif type (e.g. "glycosylation").
   pub name: String,
+  /// Abbreviated name for compact display (e.g. "Glyc.").
   pub name_short: String,
+  /// Human-readable display name (e.g. "Glycosylation").
   pub name_friendly: String,
+  /// Free-text description of what the motif represents.
   pub description: String,
+  /// Regular expressions defining the amino acid motifs to detect (e.g. "N[^P][ST]" for N-linked glycosylation).
   pub motifs: Vec<String>,
 
+  /// CDS regions in which to search for motifs. If empty, all CDSes are searched.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub include_cdses: Vec<CountAaMotifsCdsDesc>,
 }
@@ -341,8 +389,10 @@ impl AaMotifsDesc {
 #[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CountAaMotifsCdsDesc {
+  /// Name of the CDS to search for motifs (e.g. "HA1", "HA2").
   pub cds: String,
 
+  /// Amino acid ranges within the CDS to restrict the search. If empty, the entire CDS is searched.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub ranges: Vec<AaRefRange>,
 }
