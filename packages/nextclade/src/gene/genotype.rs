@@ -14,11 +14,14 @@ use std::sync::LazyLock;
 
 const GENOTYPE_REGEX: &str = r"((?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
 
-/// Represents a mutation without reference character known
+/// A genotype at a single position: the query character without the reference character.
+/// Serialized as a compact string like "245A" (1-based position followed by the query character).
 #[derive(Clone, Debug, Default, Eq, PartialEq, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Genotype<L: Letter<L>> {
+  /// 0-based position on the reference sequence.
   pub pos: NucRefGlobalPosition,
+  /// Query character (nucleotide or amino acid) at this position.
   pub qry: L,
 }
 
@@ -87,10 +90,12 @@ impl<L: Letter<L>> PartialOrd for Genotype<L> {
   }
 }
 
-/// Maps a list of labels to a mutation
+/// A genotype annotated with labels from the dataset configuration (e.g. clade-defining mutations).
 #[derive(Debug, Default, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GenotypeLabeled<L: Letter<L>> {
+  /// The genotype (position and query character).
   pub genotype: Genotype<L>,
+  /// Labels assigned to this genotype in the dataset configuration.
   pub labels: Vec<String>,
 }

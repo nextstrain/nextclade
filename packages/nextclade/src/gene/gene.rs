@@ -11,12 +11,15 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
+/// Strand direction of a genomic feature relative to the reference sequence.
 #[must_use]
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, Eq, PartialEq, Hash, Ord, PartialOrd, JsonSchema, Default)]
 pub enum GeneStrand {
+  /// Forward (sense) strand, read 5' to 3'.
   #[serde(rename = "+")]
   #[default]
   Forward,
+  /// Reverse (antisense) strand, read 3' to 5'.
   #[serde(rename = "-")]
   Reverse,
 }
@@ -46,22 +49,35 @@ impl From<bio_types::strand::Strand> for GeneStrand {
   }
 }
 
+/// A gene in the genome annotation, containing one or more coding sequences (CDSes).
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Gene {
+  /// Ordinal index of this gene in the annotation.
   pub index: usize,
+  /// Unique identifier from the GFF3 ID attribute.
   pub id: String,
+  /// Display name from the GFF3 Name attribute.
   pub name: String,
+  /// Nucleotide range on the reference sequence spanned by this gene.
   pub range: NucRefGlobalRange,
+  /// Coding sequences contained within this gene.
   pub cdses: Vec<Cds>,
+  /// GFF3 exception qualifiers (e.g. ribosomal slippage, RNA editing).
   pub exceptions: Vec<String>,
+  /// Additional GFF3 attributes as key-value pairs.
   pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
+  /// True when this gene was synthesized from a CDS record that had no parent gene.
   pub compat_is_cds: bool,
+  /// Display color for the genome annotation viewer.
   pub color: Option<String>,
+  /// GFF3 seqid column value (reference sequence identifier).
   pub gff_seqid: Option<String>,
+  /// GFF3 source column value (annotation provenance, e.g. "GenBank").
   pub gff_source: Option<String>,
+  /// GFF3 type column value (feature type, e.g. "gene").
   pub gff_feature_type: Option<String>,
 }
 

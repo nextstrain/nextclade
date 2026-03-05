@@ -16,17 +16,28 @@ use num_traits::clamp_max;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+/// A coding sequence (CDS) that is translated into a protein. May consist of multiple segments
+/// (e.g. for programmed ribosomal slippage or spliced genes).
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Cds {
+  /// Unique identifier from the GFF3 ID attribute.
   pub id: String,
+  /// Display name from the GFF3 Name attribute.
   pub name: String,
+  /// Protein product name from the GFF3 product attribute.
   pub product: String,
+  /// Ordered segments that compose this CDS. Multiple segments represent spliced or slippage features.
   pub segments: Vec<CdsSegment>,
+  /// Mature protein regions within this CDS (e.g. cleaved polyprotein products).
   pub proteins: Vec<Protein>,
+  /// GFF3 exception qualifiers (e.g. ribosomal slippage, RNA editing).
   pub exceptions: Vec<String>,
+  /// Additional GFF3 attributes as key-value pairs, merged from all segments.
   pub attributes: IndexMap<String, Vec<String>>,
+  /// True when this CDS was synthesized from a gene record that had no child CDS.
   pub compat_is_gene: bool,
+  /// Display color for the genome annotation viewer.
   pub color: Option<String>,
 }
 

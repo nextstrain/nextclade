@@ -21,10 +21,12 @@ use std::path::Path;
 
 type GeneMapParserFn = Box<dyn Fn(&str) -> Result<GeneMap, Report>>;
 
-/// Genome annotation
+/// Genome annotation describing all genes and their coding sequences (CDSes) for a pathogen.
+/// Parsed from GFF3, Auspice JSON, or internal JSON/YAML format.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema)]
 #[must_use]
 pub struct GeneMap {
+  /// Genes in the annotation, each containing one or more CDSes.
   pub genes: Vec<Gene>,
 }
 

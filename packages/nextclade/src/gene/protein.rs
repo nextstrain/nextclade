@@ -6,13 +6,19 @@ use indexmap::IndexMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+/// A mature protein region within a CDS (e.g. a cleaved polyprotein product like nsp1, nsp2).
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Protein {
+  /// Unique identifier from the GFF3 ID attribute.
   pub id: String,
+  /// Display name from the GFF3 Name attribute.
   pub name: String,
+  /// Protein product name from the GFF3 product attribute.
   pub product: String,
+  /// Segments composing this protein region.
   pub segments: Vec<ProteinSegment>,
+  /// Display color for the genome annotation viewer.
   pub color: Option<String>,
 }
 
@@ -62,21 +68,33 @@ impl Protein {
   }
 }
 
+/// One contiguous fragment of a mature protein region.
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ProteinSegment {
+  /// Unique identifier from the GFF3 ID attribute.
   pub id: String,
+  /// Display name from the GFF3 Name attribute.
   pub name: String,
+  /// Nucleotide range on the reference sequence.
   pub range: NucRefGlobalRange,
+  /// GFF3 exception qualifiers.
   pub exceptions: Vec<String>,
+  /// Additional GFF3 attributes as key-value pairs.
   pub attributes: IndexMap<String, Vec<String>>,
   #[serde(skip)]
   pub source_record: Option<String>,
+  /// True when synthesized from a CDS record that had no parent gene.
   pub compat_is_cds: bool,
+  /// True when synthesized from a gene record that had no child CDS.
   pub compat_is_gene: bool,
+  /// Display color for the genome annotation viewer.
   pub color: Option<String>,
+  /// GFF3 seqid column value (reference sequence identifier).
   pub gff_seqid: Option<String>,
+  /// GFF3 source column value (annotation provenance, e.g. "GenBank").
   pub gff_source: Option<String>,
+  /// GFF3 type column value (feature type).
   pub gff_feature_type: Option<String>,
 }
 
