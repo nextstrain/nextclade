@@ -8,26 +8,33 @@ use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+/// Controls which side ambiguous gaps are placed on when alignment is equally parsimonious in either direction.
 #[derive(ValueEnum, Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[derive(Default)]
 pub enum GapAlignmentSide {
+  /// Place ambiguous gaps on the left (5') side. This is the default.
   #[default]
   Left,
+  /// Place ambiguous gaps on the right (3') side.
   Right,
 }
 
+/// Pre-defined alignment parameter presets that adjust penalties, seed matching, and band width for different sequence characteristics. Experimental feature subject to adjustments.
 #[derive(ValueEnum, Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[derive(Default)]
 pub enum AlignmentPreset {
+  /// Suitable for very similar sequences (this is the default).
   #[clap(help = "Suitable for very similar sequences (this is the default)")]
   #[default]
   Default,
 
+  /// Suitable for more diverse viruses. Uses wider alignment bands, shorter k-mers, and higher gap penalties.
   #[clap(help = "Suitable for more diverse viruses")]
   HighDiversity,
 
+  /// Suitable for short and partial sequences. Reduces minimum sequence length and uses shorter k-mers with tighter seed spacing.
   #[clap(help = "Suitable for short and partial sequences")]
   ShortSequences,
 }
@@ -36,6 +43,7 @@ pub enum AlignmentPreset {
 // as well as adds a method `.merge_opt(&opt)` to the original struct, which merges values from the optional counterpart
 // into self (mutably).
 
+/// Parameters controlling pairwise sequence alignment against a reference. Configurable via CLI arguments, pathogen.json, or alignment presets. Precedence: CLI arguments > pathogen.json > preset defaults.
 #[allow(clippy::struct_excessive_bools)]
 #[optfield(pub AlignPairwiseParamsOptional, attrs, doc, field_attrs, field_doc, merge_fn = pub)]
 #[derive(Parser, Debug, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
