@@ -1,3 +1,45 @@
+## 3.20.0
+
+### Nextclade Web: show genome coverage outline behind "too many markers" message
+
+When viewing dense regions with many mutations, the sequence view shows a "too many markers" message. The genome coverage outline is now visible behind this message, providing context about sequence coverage even when individual markers cannot be displayed. See [#1759](https://github.com/nextstrain/nextclade/issues/1759), [#1760](https://github.com/nextstrain/nextclade/pull/1760) for details.
+
+### Nextclade schemas: typed dataset attributes field
+
+Dataset attributes (`attributes` field in `pathogen.json` and dataset index) have been refactored from free-form key-value pairs to typed structs with explicit fields. The new structure provides better validation and documentation for dataset metadata fields like `name`, `reference name`, `reference accession`, and `clade`. The previous free-form `attributes` map is no longer supported.
+
+### Nextclade schemas: cleanup
+
+Several deprecated and unused fields have been removed from the dataset schema:
+
+- Removed `enabled` field from datasets (was unused)
+- Removed `official` field from datasets (community datasets are now detected by path prefix)
+- Removed deprecated and experimental fields from `VirusProperties`: `compatibility`, `shortcuts`, `files`, `defaultCds`, `cdsOrderPreference`
+
+These changes simplify the schema and remove legacy fields that were no longer used. Dataset authors should remove these fields from their `pathogen.json` files.
+
+### Nextclade schemas: documentation improvements
+
+Added doc comments and examples to JSON schema types, improving auto-completion and inline documentation in editors that support JSON Schema. Types with new documentation include:
+
+- Dataset index types (`DatasetIndexJson`, `DatasetCollection`, `Dataset`, `DatasetVersion`)
+- Output types (`NextcladeOutputs`, `ResultsJson`, `NextcladeErrorOutputs`)
+- QC config and result types
+- Tree and Auspice extension types
+- Gene and annotation types
+- Mutation and alignment types
+- Pathogen config and phenotype types
+- Alignment parameter types
+
+### Nextclade documentation
+
+- Fixed `ref_nodes` field types and added missing `qry[].name` field
+- Added missing fields to pathogen config documentation
+- Marked `clade_node_attrs.displayName` as required per schema
+- Corrected `searchAlgo` enum value from `ancestor-latest` to `ancestor-nearest`
+- Documented `aaMutLabelMap` (previously a TODO placeholder)
+- Fixed QC examples to use `cdsName` instead of `geneName`
+
 ## 3.19.0
 
 ### Update Auspice tree visualization to 2.67.0
