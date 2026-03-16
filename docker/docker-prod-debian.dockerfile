@@ -7,7 +7,8 @@ COPY ".out/nextclade-x86_64-unknown-linux-gnu" "/nextclade"
 FROM scratch AS bin-arm64
 COPY ".out/nextclade-aarch64-unknown-linux-gnu" "/nextclade"
 
-FROM debian:11
+ARG BASE_VERSION="13"
+FROM debian:${BASE_VERSION}
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 ARG TARGETARCH

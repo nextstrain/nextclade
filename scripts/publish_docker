@@ -2,6 +2,18 @@
 #
 # Builds and optionally pushes multi-platform (amd64 + arm64) production docker images.
 #
+# Builds multiple base image versions per distro, configured in docker/docker-prod.json:
+#   - Alpine: 6 latest releases (~3 years)
+#   - Debian: 3 latest releases (~4-6 years)
+#   - scratch: single (no versioning)
+#
+# To update base image versions, run: ./scripts/docker-prod-update
+#
+# Tag scheme (example for nextclade 3.20.0, alpine 3.23 as latest):
+#   nextstrain/nextclade:3.20.0-alpine3.23   (versioned)
+#   nextstrain/nextclade:3.20.0-alpine       (unversioned, points to latest alpine)
+#   nextstrain/nextclade:latest-alpine3.18   (older base version)
+#
 # Usage:
 #   ./scripts/publish_docker          # build both platforms locally (requires --load support)
 #   ./scripts/publish_docker --push   # build and push multi-arch manifests to Docker Hub
@@ -11,6 +23,7 @@
 #  - docker engine 29+ with buildx plugin
 #  - QEMU user-mode emulation (builds arm64 images on amd64 hosts)
 #  - dasel (reads version from Cargo.toml)
+#  - jq (reads docker/docker-prod.json)
 #  - pre-built binaries in .out/ for all platforms (amd64 gnu+musl, arm64 gnu+musl)
 #
 # In CI, QEMU and buildx are set up by GitHub Actions (see .github/workflows/cli.yml).
@@ -63,12 +76,6 @@ declare -a PROJECT_NAMES=(
   "nextalign"
 )
 
-declare -a BASE_IMAGES=(
-  "alpine"
-  "scratch"
-  "debian"
-)
-
 DOCKER_PLATFORMS="linux/amd64,linux/arm64"
 
 BUILDX_ARGS=(--platform "${DOCKER_PLATFORMS}")
@@ -76,72 +83,134 @@ if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
   BUILDX_ARGS+=(--push)
 fi
 
+# Read base image versions from docker/docker-prod.json.
+# Update versions by running: ./scripts/docker-prod-update
+DOCKER_PROD_CONFIG="${THIS_DIR}/../docker/docker-prod.json"
+
+read -ra alpine_versions <<< "$(jq -r '.bases.alpine | join(" ")' "${DOCKER_PROD_CONFIG}")"
+read -ra debian_versions <<< "$(jq -r '.bases.debian | join(" ")' "${DOCKER_PROD_CONFIG}")"
+
+printf "Alpine versions: %s\n" "${alpine_versions[*]}"
+printf "Debian versions: %s\n" "${debian_versions[*]}"
+
 version=$(dasel -i toml -o yaml 'workspace.package.version' < Cargo.toml)
 version_major=$("${THIS_DIR}/semver" get major "${version}")
 release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
 release_type=${release_type:=latest}
 
+# Generate tags for a given suffix (e.g., "alpine3.23", "alpine", "debian13").
+# Uses globals: DOCKER_ORG, project_name, release_type, version, version_major.
+generate_tags() {
+  local suffix="${1}"
+  local tags=""
+
+  tags="${DOCKER_ORG}/${project_name}:${release_type}-${suffix}"
+  tags="${tags} ${DOCKER_ORG}/${project_name}:${version}-${suffix}"
+
+  if [[ "${release_type}" == "latest" ]]; then
+    tags="${tags} ${DOCKER_ORG}/${project_name}:${suffix}"
+    tags="${tags} ${DOCKER_ORG}/${project_name}:${release_type}-${version_major}-${suffix}"
+    tags="${tags} ${DOCKER_ORG}/${project_name}:${version_major}-${suffix}"
+  else
+    tags="${tags} ${DOCKER_ORG}/${project_name}:prerelease-${suffix}"
+    tags="${tags} ${DOCKER_ORG}/${project_name}:prerelease-${version_major}-${suffix}"
+  fi
+
+  printf "%s" "${tags}"
+}
+
+# Generate bare tags (no base suffix), for the overall default image.
+# Uses globals: DOCKER_ORG, project_name, release_type, version, version_major.
+generate_bare_tags() {
+  local tags=""
+
+  tags="${DOCKER_ORG}/${project_name}:${release_type}"
+  tags="${tags} ${DOCKER_ORG}/${project_name}:${version}"
+
+  if [[ "${release_type}" == "latest" ]]; then
+    tags="${tags} ${DOCKER_ORG}/${project_name}:${version_major}"
+  else
+    tags="${tags} ${DOCKER_ORG}/${project_name}:prerelease"
+    tags="${tags} ${DOCKER_ORG}/${project_name}:prerelease-${version_major}"
+  fi
+
+  printf "%s" "${tags}"
+}
+
+export DOCKER_BUILDKIT=1
+export BUILDKIT_PROGRESS=plain
+export PROGRESS_NO_TRUNC=1
+
+declare -a BASE_IMAGES=(
+  "alpine"
+  "scratch"
+  "debian"
+)
+
 for base_image in "${BASE_IMAGES[@]}"; do
-  for project_name in "${PROJECT_NAMES[@]}"; do
-    echo "Building docker image '${DOCKER_ORG}/${project_name}:${version}-${base_image}'"
 
-    export DOCKER_BUILDKIT=1
-    export BUILDKIT_PROGRESS=plain
-    export PROGRESS_NO_TRUNC=1
+  # Determine versions for each base image type
+  # shellcheck disable=SC2034
+  case "${base_image}" in
+    "alpine")  base_versions=("${alpine_versions[@]}") ;;
+    "debian")  base_versions=("${debian_versions[@]}") ;;
+    "scratch") base_versions=("") ;;
+  esac
 
-    TAGS=" \
-      ${DOCKER_ORG}/${project_name}:${release_type}-${base_image} \
-      ${DOCKER_ORG}/${project_name}:${version}-${base_image} \
-      "
+  for base_version in "${base_versions[@]}"; do
 
-    if [ "${release_type}" == "latest" ]; then
-      TAGS="${TAGS:-} \
-        ${DOCKER_ORG}/${project_name}:${base_image}
-        ${DOCKER_ORG}/${project_name}:${release_type}-${version_major}-${base_image} \
-        ${DOCKER_ORG}/${project_name}:${version_major}-${base_image} \
-      "
-    else
-      TAGS="${TAGS:-} \
-        ${DOCKER_ORG}/${project_name}:prerelease-${base_image}
-        ${DOCKER_ORG}/${project_name}:prerelease-${version_major}-${base_image} \
-      "
+    # Build --build-arg for the Dockerfile's BASE_VERSION ARG
+    build_args=()
+    if [[ -n "${base_version}" ]]; then
+      build_args=(--build-arg "BASE_VERSION=${base_version}")
     fi
 
-    if [ "${base_image}" == "debian" ]; then
-      if [ "${release_type}" == "latest" ]; then
-        TAGS="${TAGS:-} \
-          ${DOCKER_ORG}/${project_name}:${version_major} \
-          "
-      else
-        TAGS="${TAGS:-} \
-          ${DOCKER_ORG}/${project_name}:prerelease
-          ${DOCKER_ORG}/${project_name}:prerelease-${version_major} \
-        "
+    # Determine if this is the latest (default) version for this base
+    is_latest_version=false
+    if [[ -z "${base_version}" || "${base_version}" == "${base_versions[0]}" ]]; then
+      is_latest_version=true
+    fi
+
+    for project_name in "${PROJECT_NAMES[@]}"; do
+
+      # Versioned tags (e.g., latest-alpine3.23, 3.20.0-alpine3.23)
+      TAGS=""
+      if [[ -n "${base_version}" ]]; then
+        TAGS="$(generate_tags "${base_image}${base_version}")"
       fi
 
-      TAGS="${TAGS:-} \
-        ${DOCKER_ORG}/${project_name}:${release_type} \
-        ${DOCKER_ORG}/${project_name}:${version} \
-        "
-    fi
+      # Unversioned base tags (e.g., latest-alpine, 3.20.0-alpine) for the latest version
+      if ${is_latest_version}; then
+        TAGS="${TAGS} $(generate_tags "${base_image}")"
+      fi
 
-    # Make a string containing of tags for `docker buildx build` command
-    TAGS_FOR_DOCKER_BUILD=""
-    for tag in ${TAGS}; do
-      TAGS_FOR_DOCKER_BUILD="${TAGS_FOR_DOCKER_BUILD} -t ${tag}"
+      # Bare tags (e.g., latest, 3.20.0) for the overall default (latest debian)
+      if ${is_latest_version} && [[ "${base_image}" == "debian" ]]; then
+        TAGS="${TAGS} $(generate_bare_tags)"
+      fi
+
+      # Format tags as -t flags for docker buildx build
+      TAGS_FOR_DOCKER_BUILD=""
+      for tag in ${TAGS}; do
+        TAGS_FOR_DOCKER_BUILD="${TAGS_FOR_DOCKER_BUILD} -t ${tag}"
+      done
+
+      image_label="${base_image}${base_version:+${base_version}}"
+      printf "Building '%s/%s:%s-%s'\n" "${DOCKER_ORG}" "${project_name}" "${version}" "${image_label}"
+
+      set -x
+      # shellcheck disable=SC2086
+      docker buildx build -q \
+        "${BUILDX_ARGS[@]}" \
+        "${build_args[@]}" \
+        --file="docker/docker-prod-${base_image}.dockerfile" \
+        ${TAGS_FOR_DOCKER_BUILD} \
+        . \
+        >/dev/null
+      { set +x; } 2>/dev/null
+
+      echo ""
+
     done
-
-    set -x
-    # shellcheck disable=SC2086
-    docker buildx build -q \
-      "${BUILDX_ARGS[@]}" \
-      --file="docker/docker-prod-${base_image}.dockerfile" \
-      ${TAGS_FOR_DOCKER_BUILD} \
-      . \
-      >/dev/null
-    { set +x; } 2>/dev/null
-
-    echo ""
-
   done
 done

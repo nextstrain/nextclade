@@ -7,7 +7,8 @@ COPY ".out/nextclade-x86_64-unknown-linux-musl" "/nextclade"
 FROM scratch AS bin-arm64
 COPY ".out/nextclade-aarch64-unknown-linux-musl" "/nextclade"
 
-FROM alpine:3
+ARG BASE_VERSION="3"
+FROM alpine:${BASE_VERSION}
 SHELL ["/bin/sh", "-euxo", "pipefail", "-c"]
 
 ARG TARGETARCH
