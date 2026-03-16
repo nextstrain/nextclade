@@ -83,6 +83,13 @@ if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
   BUILDX_ARGS+=(--push)
 fi
 
+# Create symlinks mapping Docker's TARGETARCH names (amd64/arm64) to Rust target triples (x86_64/aarch64).
+# Dockerfiles use TARGETARCH in COPY paths: .out/nextclade-${TARGETARCH}-linux-{gnu,musl}
+ln -sf "nextclade-x86_64-unknown-linux-gnu" ".out/nextclade-amd64-linux-gnu"
+ln -sf "nextclade-aarch64-unknown-linux-gnu" ".out/nextclade-arm64-linux-gnu"
+ln -sf "nextclade-x86_64-unknown-linux-musl" ".out/nextclade-amd64-linux-musl"
+ln -sf "nextclade-aarch64-unknown-linux-musl" ".out/nextclade-arm64-linux-musl"
+
 # Read base image versions from docker/docker-prod.json.
 # Update versions by running: ./scripts/docker-prod-update
 DOCKER_PROD_CONFIG="${THIS_DIR}/../docker/docker-prod.json"
