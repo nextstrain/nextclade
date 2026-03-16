@@ -15,8 +15,10 @@
 #   nextstrain/nextclade:latest-alpine3.18   (older base version)
 #
 # Usage:
-#   ./scripts/publish_docker          # build both platforms locally (requires --load support)
-#   ./scripts/publish_docker --push   # build and push multi-arch manifests to Docker Hub
+#   ./scripts/publish_docker                  # build and load both platforms locally
+#   ./scripts/publish_docker --push           # build and push multi-arch manifests to Docker Hub
+#   ./scripts/publish_docker --run            # build, load, and run "nextclade --help" on each platform
+#   ./scripts/publish_docker --push --run     # build, load, test, then push (verify before publish)
 #
 # Dependencies:
 #
@@ -61,13 +63,17 @@ THIS_DIR="$(
 )"
 
 DOCKER_IMAGE_PUSH=0
+DOCKER_IMAGE_RUN=0
 
-case "${1:-}" in
-"--push" | "-p")
-  shift
-  DOCKER_IMAGE_PUSH=1
-  ;;
-esac
+# shfmt:off
+while (( $# > 0 )); do
+  case "${1}" in
+    --push|-p) DOCKER_IMAGE_PUSH=1; shift ;;
+    --run) DOCKER_IMAGE_RUN=1; shift ;;
+    *) printf "Unknown option: %s\n" "${1}" >&2; exit 1 ;;
+  esac
+done
+# shfmt:on
 
 DOCKER_ORG="nextstrain"
 
@@ -78,10 +84,7 @@ declare -a PROJECT_NAMES=(
 
 DOCKER_PLATFORMS="linux/amd64,linux/arm64"
 
-BUILDX_ARGS=(--platform "${DOCKER_PLATFORMS}")
-if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
-  BUILDX_ARGS+=(--push)
-fi
+BUILDX_ARGS_BASE=(--platform "${DOCKER_PLATFORMS}")
 
 # Create symlinks mapping Docker's TARGETARCH names (amd64/arm64) to Rust target triples (x86_64/aarch64).
 # Dockerfiles use TARGETARCH in COPY paths: .out/nextclade-${TARGETARCH}-linux-{gnu,musl}
@@ -154,70 +157,117 @@ declare -a BASE_IMAGES=(
   "debian"
 )
 
-for base_image in "${BASE_IMAGES[@]}"; do
+# Smoke test queue: tags collected during build, tested after all builds complete
+declare -a RUN_QUEUE=()
 
-  # Determine versions for each base image type
-  # shellcheck disable=SC2034
-  case "${base_image}" in
-    "alpine")  base_versions=("${alpine_versions[@]}") ;;
-    "debian")  base_versions=("${debian_versions[@]}") ;;
-    "scratch") base_versions=("") ;;
-  esac
+# Build all images with the given buildx output mode (--load or --push).
+# Populates RUN_QUEUE with one tag per (base_image, base_version) for smoke testing.
+build_all() {
+  local buildx_output="${1}"
+  local -a buildx_args=("${BUILDX_ARGS_BASE[@]}" "${buildx_output}")
 
-  for base_version in "${base_versions[@]}"; do
+  for base_image in "${BASE_IMAGES[@]}"; do
 
-    # Build --build-arg for the Dockerfile's BASE_VERSION ARG
-    build_args=()
-    if [[ -n "${base_version}" ]]; then
-      build_args=(--build-arg "BASE_VERSION=${base_version}")
-    fi
+    # Determine versions for each base image type
+    # shellcheck disable=SC2034
+    case "${base_image}" in
+      "alpine")  base_versions=("${alpine_versions[@]}") ;;
+      "debian")  base_versions=("${debian_versions[@]}") ;;
+      "scratch") base_versions=("") ;;
+    esac
 
-    # Determine if this is the latest (default) version for this base
-    is_latest_version=false
-    if [[ -z "${base_version}" || "${base_version}" == "${base_versions[0]}" ]]; then
-      is_latest_version=true
-    fi
+    for base_version in "${base_versions[@]}"; do
 
-    for project_name in "${PROJECT_NAMES[@]}"; do
-
-      # Versioned tags (e.g., latest-alpine3.23, 3.20.0-alpine3.23)
-      TAGS=""
+      # Build --build-arg for the Dockerfile's BASE_VERSION ARG
+      build_args=()
       if [[ -n "${base_version}" ]]; then
-        TAGS="$(generate_tags "${base_image}${base_version}")"
+        build_args=(--build-arg "BASE_VERSION=${base_version}")
       fi
 
-      # Unversioned base tags (e.g., latest-alpine, 3.20.0-alpine) for the latest version
-      if ${is_latest_version}; then
-        TAGS="${TAGS} $(generate_tags "${base_image}")"
+      # Determine if this is the latest (default) version for this base
+      is_latest_version=false
+      if [[ -z "${base_version}" || "${base_version}" == "${base_versions[0]}" ]]; then
+        is_latest_version=true
       fi
 
-      # Bare tags (e.g., latest, 3.20.0) for the overall default (latest debian)
-      if ${is_latest_version} && [[ "${base_image}" == "debian" ]]; then
-        TAGS="${TAGS} $(generate_bare_tags)"
-      fi
+      for project_name in "${PROJECT_NAMES[@]}"; do
 
-      # Format tags as -t flags for docker buildx build
-      TAGS_FOR_DOCKER_BUILD=""
-      for tag in ${TAGS}; do
-        TAGS_FOR_DOCKER_BUILD="${TAGS_FOR_DOCKER_BUILD} -t ${tag}"
+        # Versioned tags (e.g., latest-alpine3.23, 3.20.0-alpine3.23)
+        TAGS=""
+        if [[ -n "${base_version}" ]]; then
+          TAGS="$(generate_tags "${base_image}${base_version}")"
+        fi
+
+        # Unversioned base tags (e.g., latest-alpine, 3.20.0-alpine) for the latest version
+        if ${is_latest_version}; then
+          TAGS="${TAGS} $(generate_tags "${base_image}")"
+        fi
+
+        # Bare tags (e.g., latest, 3.20.0) for the overall default (latest debian)
+        if ${is_latest_version} && [[ "${base_image}" == "debian" ]]; then
+          TAGS="${TAGS} $(generate_bare_tags)"
+        fi
+
+        # Format tags as -t flags for docker buildx build
+        TAGS_FOR_DOCKER_BUILD=""
+        for tag in ${TAGS}; do
+          TAGS_FOR_DOCKER_BUILD="${TAGS_FOR_DOCKER_BUILD} -t ${tag}"
+        done
+
+        image_label="${base_image}${base_version:+${base_version}}"
+        printf "Building '%s/%s:%s-%s'\n" "${DOCKER_ORG}" "${project_name}" "${version}" "${image_label}"
+
+        set -x
+        # shellcheck disable=SC2086
+        docker buildx build -q \
+          "${buildx_args[@]}" \
+          "${build_args[@]}" \
+          --file="docker/docker-prod-${base_image}.dockerfile" \
+          ${TAGS_FOR_DOCKER_BUILD} \
+          . \
+          >/dev/null
+        { set +x; } 2>/dev/null
+
+        # Collect one tag per image for smoke testing (nextclade only, same binary as nextalign)
+        if [[ "${buildx_output}" == "--load" ]] && [[ "${project_name}" == "nextclade" ]]; then
+          for tag in ${TAGS}; do RUN_QUEUE+=("${tag}"); break; done
+        fi
+
+        echo ""
+
       done
-
-      image_label="${base_image}${base_version:+${base_version}}"
-      printf "Building '%s/%s:%s-%s'\n" "${DOCKER_ORG}" "${project_name}" "${version}" "${image_label}"
-
-      set -x
-      # shellcheck disable=SC2086
-      docker buildx build -q \
-        "${BUILDX_ARGS[@]}" \
-        "${build_args[@]}" \
-        --file="docker/docker-prod-${base_image}.dockerfile" \
-        ${TAGS_FOR_DOCKER_BUILD} \
-        . \
-        >/dev/null
-      { set +x; } 2>/dev/null
-
-      echo ""
-
     done
   done
-done
+}
+
+# Run "nextclade --help" on each platform for every image in RUN_QUEUE.
+run_smoke_tests() {
+  IFS=',' read -ra platforms <<< "${DOCKER_PLATFORMS}"
+  for tag in "${RUN_QUEUE[@]}"; do
+    for platform in "${platforms[@]}"; do
+      printf "Running '%s' on %s\n" "${tag}" "${platform}"
+      set -x
+      docker run --rm --platform "${platform}" "${tag}" nextclade --help
+      { set +x; } 2>/dev/null
+    done
+  done
+}
+
+# Execution phases:
+#   (none):       build + load
+#   --push:       build + push
+#   --run:        build + load, smoke test
+#   --push --run: build + load, smoke test, push (test before publish)
+if [ "${DOCKER_IMAGE_RUN}" == "1" ]; then
+  build_all --load
+  run_smoke_tests
+  if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
+    build_all --push
+  fi
+else
+  if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
+    build_all --push
+  else
+    build_all --load
+  fi
+fi
