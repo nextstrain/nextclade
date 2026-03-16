@@ -461,6 +461,12 @@ jobs:
           username: nextstrainbot
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: "Set up QEMU"
+        uses: docker/setup-qemu-action@v3
+
+      - name: "Set up Docker Buildx"
+        uses: docker/setup-buildx-action@v3
+
       - name: "Build and publish Docker container images to Docker Hub"
         run: |
           export PATH="${PATH}:${HOME}/bin"

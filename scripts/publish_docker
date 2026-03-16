@@ -1,14 +1,42 @@
 #!/usr/bin/env bash
 #
-# Builds and optionally pushes production docker images
+# Builds and optionally pushes multi-platform (amd64 + arm64) production docker images.
+#
+# Usage:
+#   ./scripts/publish_docker          # build both platforms locally (requires --load support)
+#   ./scripts/publish_docker --push   # build and push multi-arch manifests to Docker Hub
 #
 # Dependencies:
 #
-#  - docker (https://docs.docker.com/get-docker/)
-#  - dasel
-#     mkdir -p "${HOME}/bin"
-#     export PATH="${HOME}/bin:${PATH}"
-#     curl -fsSL "https://github.com/TomWright/dasel/releases/download/v2.5.0/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+#  - docker engine 29+ with buildx plugin
+#  - QEMU user-mode emulation (builds arm64 images on amd64 hosts)
+#  - dasel (reads version from Cargo.toml)
+#  - pre-built binaries in .out/ for all platforms (amd64 gnu+musl, arm64 gnu+musl)
+#
+# In CI, QEMU and buildx are set up by GitHub Actions (see .github/workflows/cli.yml).
+# Locally, you need to install them yourself (see below).
+#
+# Local setup:
+#
+#  1. QEMU (arm64 emulation):
+#     Install: sudo apt-get install qemu-user-static
+#     Verify:  cat /proc/sys/fs/binfmt_misc/qemu-aarch64
+#
+#  2. Containerd image store (multi-platform --load, only needed without --push):
+#     Without --push, buildx loads multi-platform images into the local daemon.
+#     This only works with the containerd image store, not the legacy overlay2 driver.
+#     Verify:  docker info --format '{{ .Driver }}'
+#     Want:    "overlayfs" (containerd snapshotter)
+#     Problem: "overlay2" (legacy driver, cannot --load multi-platform)
+#     Fix:     sudo systemctl stop docker docker.socket containerd
+#              sudo rm -rf /var/lib/docker /var/lib/containerd
+#              sudo systemctl start docker
+#              Engine 29+ defaults to containerd on fresh data directories.
+#
+#  3. dasel:
+#     mkdir -p "${HOME}/bin" && export PATH="${HOME}/bin:${PATH}"
+#     curl -fsSL "https://github.com/TomWright/dasel/releases/download/v3.3.1/dasel_linux_amd64" \
+#       -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
 
 set -euo pipefail
 trap "exit" INT
@@ -40,6 +68,13 @@ declare -a BASE_IMAGES=(
   "scratch"
   "debian"
 )
+
+DOCKER_PLATFORMS="linux/amd64,linux/arm64"
+
+BUILDX_ARGS=(--platform "${DOCKER_PLATFORMS}")
+if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
+  BUILDX_ARGS+=(--push)
+fi
 
 version=$(dasel -i toml -o yaml 'workspace.package.version' < Cargo.toml)
 version_major=$("${THIS_DIR}/semver" get major "${version}")
@@ -90,29 +125,23 @@ for base_image in "${BASE_IMAGES[@]}"; do
         "
     fi
 
-    # Make a string containing of tags for `docker build` command
+    # Make a string containing of tags for `docker buildx build` command
     TAGS_FOR_DOCKER_BUILD=""
     for tag in ${TAGS}; do
       TAGS_FOR_DOCKER_BUILD="${TAGS_FOR_DOCKER_BUILD} -t ${tag}"
     done
 
+    set -x
     # shellcheck disable=SC2086
-    docker build -q \
+    docker buildx build -q \
+      "${BUILDX_ARGS[@]}" \
       --file="docker/docker-prod-${base_image}.dockerfile" \
       ${TAGS_FOR_DOCKER_BUILD} \
       . \
       >/dev/null
+    { set +x; } 2>/dev/null
 
     echo ""
-
-    if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
-      # Push each tag separately (`docker push` does not support pushing multiple)
-      for tag in ${TAGS}; do
-        echo "Pushing  docker image '${tag}'"
-        docker push -q "${tag}"
-      done
-      echo ""
-    fi
 
   done
 done
