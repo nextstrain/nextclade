@@ -154,9 +154,9 @@ export DOCKER_ORG DOCKER_PLATFORMS version version_major release_type
 export -f generate_tags generate_bare_tags
 
 declare -a BASE_IMAGES=(
+  "debian"
   "alpine"
   "scratch"
-  "debian"
 )
 
 # Build both project images (nextclade + nextalign) for a single build spec.
