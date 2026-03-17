@@ -1,3 +1,18 @@
+## 3.21.0
+
+### Docker: arm64 multi-platform images
+
+Docker images are now built for both amd64 and arm64 architectures. Pulling any Nextclade Docker image on an ARM64 host (Apple Silicon, AWS Graviton, Raspberry Pi) now gets a native image instead of requiring emulation. See [#1761](https://github.com/nextstrain/nextclade/issues/1761), [#1762](https://github.com/nextstrain/nextclade/pull/1762).
+
+### Docker: multiple base image versions
+
+Docker images are now published for multiple base image versions: 6 Alpine releases and 3 Debian releases, covering approximately 3 and 5 years respectively. Users can pin to a specific base version using tags like `:alpine3.18` or `:debian11`. Unversioned tags (`:alpine`, `:debian`) point to the latest base version. See the full list of available tags and platforms on [Docker Hub](https://hub.docker.com/r/nextstrain/nextclade/tags).
+
+### Docker: breaking changes
+
+- Default Debian base image changed from Debian 11 (Bullseye) to Debian 13 (Trixie). Users depending on Debian 11 can pin to `:debian11`.
+- Scratch image: binary moved from `/nextclade` to `/usr/bin/nextclade`. Using `nextclade` without a path still works. Users referencing the absolute path `/nextclade` should update to `/usr/bin/nextclade`.
+
 ## 3.20.0
 
 ### Nextclade Web: show genome coverage outline behind "too many markers" message
