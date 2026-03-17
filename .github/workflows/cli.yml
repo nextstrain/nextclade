@@ -431,7 +431,6 @@ jobs:
   docker-dry-run:
     name: "Docker images (dry run)"
     needs: [ build-cli ]
-    if: "!endsWith(github.ref, '/release')"
     runs-on: ubuntu-22.04
 
     steps:
@@ -468,7 +467,7 @@ jobs:
 
   publish-to-docker-hub:
     name: "Publish to Docker Hub"
-    needs: [ build-cli, run-unit-tests, run-lints, run-smoke-tests, run-linux-distros-test, check-cli-docs ]
+    needs: [ build-cli, run-unit-tests, run-lints, run-smoke-tests, run-linux-distros-test, check-cli-docs, docker-dry-run ]
     if: endsWith(github.ref, '/release')
     runs-on: ubuntu-22.04
 

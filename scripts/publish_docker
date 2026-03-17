@@ -17,7 +17,7 @@
 # Usage:
 #   ./scripts/publish_docker                  # build and load both platforms locally
 #   ./scripts/publish_docker --push           # build and push multi-arch manifests to Docker Hub
-#   ./scripts/publish_docker --run            # build, load, and run "nextclade --help" on each platform
+#   ./scripts/publish_docker --run            # build, load, and run "nextclade --version" on each platform
 #   ./scripts/publish_docker --push --run     # build, load, test, then push (verify before publish)
 #
 # Dependencies:
@@ -83,8 +83,6 @@ declare -a PROJECT_NAMES=(
 )
 
 DOCKER_PLATFORMS="linux/amd64,linux/arm64"
-
-BUILDX_ARGS_BASE=(--platform "${DOCKER_PLATFORMS}")
 
 # Create symlinks mapping Docker's TARGETARCH names (amd64/arm64) to Rust target triples (x86_64/aarch64).
 # Dockerfiles use TARGETARCH in COPY paths: .out/nextclade-${TARGETARCH}-linux-{gnu,musl}
@@ -162,7 +160,7 @@ declare -a BASE_IMAGES=(
 )
 
 # Build both project images (nextclade + nextalign) for a single build spec.
-# Called by GNU parallel with --colsep '\t': build_one <base_image> <base_version> <is_latest> <buildx_output>
+# Called by GNU parallel with --colsep '\t': build_one <base_image> <base_version> <is_latest> <buildx_output> <platform>
 build_one() {
   set -euo pipefail
 
@@ -170,8 +168,9 @@ build_one() {
   local base_version="${2}"
   local is_latest="${3}"
   local buildx_output="${4}"
+  local platform="${5}"
 
-  local -a buildx_args=(--platform "${DOCKER_PLATFORMS}" "${buildx_output}")
+  local -a buildx_args=(--platform "${platform}" "${buildx_output}")
   local -a build_args=()
   if [[ -n "${base_version}" ]]; then
     build_args=(--build-arg "BASE_VERSION=${base_version}")
@@ -236,10 +235,9 @@ compute_specs() {
   done
 }
 
-# Generate smoke test specs: "tag\tplatform" for each (variant, platform) pair.
-compute_run_specs() {
+# Generate smoke test tags: first nextclade tag per variant.
+compute_run_tags() {
   local project_name="nextclade"
-  IFS=',' read -ra platforms <<< "${DOCKER_PLATFORMS}"
 
   local base_image
   for base_image in "${BASE_IMAGES[@]}"; do
@@ -253,28 +251,25 @@ compute_run_specs() {
 
     local base_version
     for base_version in "${base_versions[@]}"; do
-      local tag
       if [[ -n "${base_version}" ]]; then
-        tag="${DOCKER_ORG}/${project_name}:${release_type}-${base_image}${base_version}"
+        printf "%s\n" "${DOCKER_ORG}/${project_name}:${release_type}-${base_image}${base_version}"
       else
-        tag="${DOCKER_ORG}/${project_name}:${release_type}-${base_image}"
+        printf "%s\n" "${DOCKER_ORG}/${project_name}:${release_type}-${base_image}"
       fi
-
-      local platform
-      for platform in "${platforms[@]}"; do
-        printf "%s\t%s\n" "${tag}" "${platform}"
-      done
     done
   done
 }
 
-# Build all images in parallel with the given buildx output mode (--load or --push).
+# Build all images in parallel.
+# --push: both platforms in one buildx command.
+# --load <platform>: single platform per call (docker-container driver cannot --load multi-platform manifests).
 build_all() {
   local buildx_output="${1}"
+  local platform="${2:-${DOCKER_PLATFORMS}}"
   local -a specs=()
   mapfile -t specs < <(compute_specs)
 
-  printf "Building %d image variants (%s)\n" "${#specs[@]}" "${buildx_output}"
+  printf "Building %d image variants (%s, %s)\n" "${#specs[@]}" "${buildx_output}" "${platform}"
 
   # shellcheck disable=SC2016
   parallel \
@@ -282,46 +277,50 @@ build_all() {
     --line-buffer \
     --colsep '\t' \
     --tag --tagstring '{1}{2}' \
-    build_one {1} {2} {3} "${buildx_output}" \
+    build_one {1} {2} {3} "${buildx_output}" "${platform}" \
     ::: "${specs[@]}"
 }
 
-# Run "nextclade --version" on a single (tag, platform) pair.
+# Run "nextclade --version" on a single image tag.
+# No --platform flag: tag has only one platform loaded (the current pass).
 run_one() {
   set -euo pipefail
   local tag="${1}"
-  local platform="${2}"
 
-  printf "Running '%s' on %s\n" "${tag}" "${platform}"
-  docker run --rm --platform "${platform}" "${tag}" nextclade --version
+  printf "Running '%s'\n" "${tag}"
+  docker run --rm "${tag}" nextclade --version
 }
 export -f run_one
 
-# Run smoke tests for every image variant on each platform, in parallel.
+# Run smoke tests for every image variant, in parallel.
+# Tags have only one platform loaded (the current pass).
 run_smoke_tests() {
-  local -a run_specs=()
-  mapfile -t run_specs < <(compute_run_specs)
+  local platform="${1}"
+  local -a run_tags=()
+  mapfile -t run_tags < <(compute_run_tags)
 
-  printf "Running smoke tests: %d checks\n" "${#run_specs[@]}"
+  printf "Running smoke tests: %d images (%s)\n" "${#run_tags[@]}" "${platform}"
 
   # shellcheck disable=SC2016
   parallel \
     --halt soon,fail=1 \
     --line-buffer \
-    --colsep '\t' \
-    --tag --tagstring '{= s|.*/||; s|\tlinux/| |; =}' \
-    run_one {1} {2} \
-    ::: "${run_specs[@]}"
+    --tag --tagstring '{= s|.*/|| =}' \
+    run_one {} \
+    ::: "${run_tags[@]}"
 }
 
 # Execution phases:
-#   (none):       build + load
-#   --push:       build + push
-#   --run:        build + load, smoke test
-#   --push --run: build + load, smoke test, push (test before publish)
+#   (none):       load each platform separately
+#   --push:       multi-platform push
+#   --run:        load + test each platform, then next platform
+#   --push --run: load + test each platform, then multi-platform push
 if [ "${DOCKER_IMAGE_RUN}" == "1" ]; then
-  build_all --load
-  run_smoke_tests
+  IFS=',' read -ra platforms <<< "${DOCKER_PLATFORMS}"
+  for platform in "${platforms[@]}"; do
+    build_all --load "${platform}"
+    run_smoke_tests "${platform}"
+  done
   if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
     build_all --push
   fi
