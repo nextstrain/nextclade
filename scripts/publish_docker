@@ -162,13 +162,14 @@ declare -a BASE_IMAGES=(
 )
 
 # Build both project images (nextclade + nextalign) for a single build spec.
-# Called by GNU parallel. Spec format: "base_image:base_version:is_latest"
+# Called by GNU parallel with --colsep '\t': build_one <base_image> <base_version> <is_latest> <buildx_output>
 build_one() {
   set -euo pipefail
 
-  local base_image base_version is_latest
-  IFS=':' read -r base_image base_version is_latest <<< "${1}"
-  local buildx_output="${2}"
+  local base_image="${1}"
+  local base_version="${2}"
+  local is_latest="${3}"
+  local buildx_output="${4}"
 
   local -a buildx_args=(--platform "${DOCKER_PLATFORMS}" "${buildx_output}")
   local -a build_args=()
@@ -230,14 +231,16 @@ compute_specs() {
         is_latest=true
         first=false
       fi
-      printf "%s:%s:%s\n" "${base_image}" "${base_version}" "${is_latest}"
+      printf "%s\t%s\t%s\n" "${base_image}" "${base_version}" "${is_latest}"
     done
   done
 }
 
-# Generate smoke test tags: first nextclade tag for each spec.
-compute_run_queue() {
+# Generate smoke test specs: "tag\tplatform" for each (variant, platform) pair.
+compute_run_specs() {
   local project_name="nextclade"
+  IFS=',' read -ra platforms <<< "${DOCKER_PLATFORMS}"
+
   local base_image
   for base_image in "${BASE_IMAGES[@]}"; do
     local -a base_versions
@@ -250,11 +253,17 @@ compute_run_queue() {
 
     local base_version
     for base_version in "${base_versions[@]}"; do
+      local tag
       if [[ -n "${base_version}" ]]; then
-        printf "%s\n" "${DOCKER_ORG}/${project_name}:${release_type}-${base_image}${base_version}"
+        tag="${DOCKER_ORG}/${project_name}:${release_type}-${base_image}${base_version}"
       else
-        printf "%s\n" "${DOCKER_ORG}/${project_name}:${release_type}-${base_image}"
+        tag="${DOCKER_ORG}/${project_name}:${release_type}-${base_image}"
       fi
+
+      local platform
+      for platform in "${platforms[@]}"; do
+        printf "%s\t%s\n" "${tag}" "${platform}"
+      done
     done
   done
 }
@@ -271,18 +280,17 @@ build_all() {
   parallel \
     --halt soon,fail=1 \
     --line-buffer \
-    --tag --tagstring '{= my @p = split /:/; $_ = sprintf("%-15s", $p[0] . ($p[1] // "")) =}' \
-    build_one {} "${buildx_output}" \
+    --colsep '\t' \
+    --tag --tagstring '{1}{2}' \
+    build_one {1} {2} {3} "${buildx_output}" \
     ::: "${specs[@]}"
 }
 
 # Run "nextclade --version" on a single (tag, platform) pair.
-# Called by GNU parallel. Spec format: "tag:platform"
 run_one() {
   set -euo pipefail
-
-  local tag platform
-  IFS=':' read -r tag platform <<< "${1}"
+  local tag="${1}"
+  local platform="${2}"
 
   printf "Running '%s' on %s\n" "${tag}" "${platform}"
   docker run --rm --platform "${platform}" "${tag}" nextclade --version
@@ -291,27 +299,18 @@ export -f run_one
 
 # Run smoke tests for every image variant on each platform, in parallel.
 run_smoke_tests() {
-  local -a queue=()
-  mapfile -t queue < <(compute_run_queue)
-
-  IFS=',' read -ra platforms <<< "${DOCKER_PLATFORMS}"
-  printf "Running smoke tests: %d images x %d platforms\n" "${#queue[@]}" "${#platforms[@]}"
-
   local -a run_specs=()
-  local tag
-  for tag in "${queue[@]}"; do
-    local platform
-    for platform in "${platforms[@]}"; do
-      run_specs+=("${tag}:${platform}")
-    done
-  done
+  mapfile -t run_specs < <(compute_run_specs)
+
+  printf "Running smoke tests: %d checks\n" "${#run_specs[@]}"
 
   # shellcheck disable=SC2016
   parallel \
     --halt soon,fail=1 \
     --line-buffer \
-    --tag --tagstring '{= s|.*/||; s|:linux/||; sprintf("%-30s", $_) =}' \
-    run_one {} \
+    --colsep '\t' \
+    --tag --tagstring '{= s|.*/||; s|\tlinux/| |; =}' \
+    run_one {1} {2} \
     ::: "${run_specs[@]}"
 }
 
