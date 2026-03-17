@@ -151,24 +151,70 @@ export DOCKER_BUILDKIT=1
 export BUILDKIT_PROGRESS=plain
 export PROGRESS_NO_TRUNC=1
 
+# Export variables and functions for GNU parallel subshells
+export DOCKER_ORG DOCKER_PLATFORMS version version_major release_type
+export -f generate_tags generate_bare_tags
+
 declare -a BASE_IMAGES=(
   "alpine"
   "scratch"
   "debian"
 )
 
-# Smoke test queue: tags collected during build, tested after all builds complete
-declare -a RUN_QUEUE=()
+# Build both project images (nextclade + nextalign) for a single build spec.
+# Called by GNU parallel. Spec format: "base_image:base_version:is_latest"
+build_one() {
+  set -euo pipefail
 
-# Build all images with the given buildx output mode (--load or --push).
-# Populates RUN_QUEUE with one tag per (base_image, base_version) for smoke testing.
-build_all() {
-  local buildx_output="${1}"
-  local -a buildx_args=("${BUILDX_ARGS_BASE[@]}" "${buildx_output}")
+  local base_image base_version is_latest
+  IFS=':' read -r base_image base_version is_latest <<< "${1}"
+  local buildx_output="${2}"
 
+  local -a buildx_args=(--platform "${DOCKER_PLATFORMS}" "${buildx_output}")
+  local -a build_args=()
+  if [[ -n "${base_version}" ]]; then
+    build_args=(--build-arg "BASE_VERSION=${base_version}")
+  fi
+
+  local project_name
+  for project_name in nextclade nextalign; do
+    local TAGS=""
+    if [[ -n "${base_version}" ]]; then
+      TAGS="$(generate_tags "${base_image}${base_version}")"
+    fi
+    if [[ "${is_latest}" == "true" ]]; then
+      TAGS="${TAGS} $(generate_tags "${base_image}")"
+    fi
+    if [[ "${is_latest}" == "true" ]] && [[ "${base_image}" == "debian" ]]; then
+      TAGS="${TAGS} $(generate_bare_tags)"
+    fi
+
+    local TAGS_FOR_DOCKER_BUILD=""
+    local tag
+    for tag in ${TAGS}; do
+      TAGS_FOR_DOCKER_BUILD="${TAGS_FOR_DOCKER_BUILD} -t ${tag}"
+    done
+
+    local image_label="${base_image}${base_version:+${base_version}}"
+    printf "Building '%s/%s:%s-%s'\n" "${DOCKER_ORG}" "${project_name}" "${version}" "${image_label}"
+
+    # shellcheck disable=SC2086
+    docker buildx build -q \
+      "${buildx_args[@]}" \
+      "${build_args[@]}" \
+      --file="docker/docker-prod-${base_image}.dockerfile" \
+      ${TAGS_FOR_DOCKER_BUILD} \
+      . \
+      >/dev/null
+  done
+}
+export -f build_one
+
+# Generate build specs: "base_image:base_version:is_latest" for each variant.
+compute_specs() {
+  local base_image
   for base_image in "${BASE_IMAGES[@]}"; do
-
-    # Determine versions for each base image type
+    local -a base_versions
     # shellcheck disable=SC2034
     case "${base_image}" in
       "alpine")  base_versions=("${alpine_versions[@]}") ;;
@@ -176,81 +222,97 @@ build_all() {
       "scratch") base_versions=("") ;;
     esac
 
+    local first=true
+    local base_version
     for base_version in "${base_versions[@]}"; do
-
-      # Build --build-arg for the Dockerfile's BASE_VERSION ARG
-      build_args=()
-      if [[ -n "${base_version}" ]]; then
-        build_args=(--build-arg "BASE_VERSION=${base_version}")
+      local is_latest=false
+      if [[ "${first}" == "true" || -z "${base_version}" ]]; then
+        is_latest=true
+        first=false
       fi
-
-      # Determine if this is the latest (default) version for this base
-      is_latest_version=false
-      if [[ -z "${base_version}" || "${base_version}" == "${base_versions[0]}" ]]; then
-        is_latest_version=true
-      fi
-
-      for project_name in "${PROJECT_NAMES[@]}"; do
-
-        # Versioned tags (e.g., latest-alpine3.23, 3.20.0-alpine3.23)
-        TAGS=""
-        if [[ -n "${base_version}" ]]; then
-          TAGS="$(generate_tags "${base_image}${base_version}")"
-        fi
-
-        # Unversioned base tags (e.g., latest-alpine, 3.20.0-alpine) for the latest version
-        if ${is_latest_version}; then
-          TAGS="${TAGS} $(generate_tags "${base_image}")"
-        fi
-
-        # Bare tags (e.g., latest, 3.20.0) for the overall default (latest debian)
-        if ${is_latest_version} && [[ "${base_image}" == "debian" ]]; then
-          TAGS="${TAGS} $(generate_bare_tags)"
-        fi
-
-        # Format tags as -t flags for docker buildx build
-        TAGS_FOR_DOCKER_BUILD=""
-        for tag in ${TAGS}; do
-          TAGS_FOR_DOCKER_BUILD="${TAGS_FOR_DOCKER_BUILD} -t ${tag}"
-        done
-
-        image_label="${base_image}${base_version:+${base_version}}"
-        printf "Building '%s/%s:%s-%s'\n" "${DOCKER_ORG}" "${project_name}" "${version}" "${image_label}"
-
-        set -x
-        # shellcheck disable=SC2086
-        docker buildx build -q \
-          "${buildx_args[@]}" \
-          "${build_args[@]}" \
-          --file="docker/docker-prod-${base_image}.dockerfile" \
-          ${TAGS_FOR_DOCKER_BUILD} \
-          . \
-          >/dev/null
-        { set +x; } 2>/dev/null
-
-        # Collect one tag per image for smoke testing (nextclade only, same binary as nextalign)
-        if [[ "${buildx_output}" == "--load" ]] && [[ "${project_name}" == "nextclade" ]]; then
-          for tag in ${TAGS}; do RUN_QUEUE+=("${tag}"); break; done
-        fi
-
-        echo ""
-
-      done
+      printf "%s:%s:%s\n" "${base_image}" "${base_version}" "${is_latest}"
     done
   done
 }
 
-# Run "nextclade --help" on each platform for every image in RUN_QUEUE.
-run_smoke_tests() {
-  IFS=',' read -ra platforms <<< "${DOCKER_PLATFORMS}"
-  for tag in "${RUN_QUEUE[@]}"; do
-    for platform in "${platforms[@]}"; do
-      printf "Running '%s' on %s\n" "${tag}" "${platform}"
-      set -x
-      docker run --rm --platform "${platform}" "${tag}" nextclade --help
-      { set +x; } 2>/dev/null
+# Generate smoke test tags: first nextclade tag for each spec.
+compute_run_queue() {
+  local project_name="nextclade"
+  local base_image
+  for base_image in "${BASE_IMAGES[@]}"; do
+    local -a base_versions
+    # shellcheck disable=SC2034
+    case "${base_image}" in
+      "alpine")  base_versions=("${alpine_versions[@]}") ;;
+      "debian")  base_versions=("${debian_versions[@]}") ;;
+      "scratch") base_versions=("") ;;
+    esac
+
+    local base_version
+    for base_version in "${base_versions[@]}"; do
+      if [[ -n "${base_version}" ]]; then
+        printf "%s\n" "${DOCKER_ORG}/${project_name}:${release_type}-${base_image}${base_version}"
+      else
+        printf "%s\n" "${DOCKER_ORG}/${project_name}:${release_type}-${base_image}"
+      fi
     done
   done
+}
+
+# Build all images in parallel with the given buildx output mode (--load or --push).
+build_all() {
+  local buildx_output="${1}"
+  local -a specs=()
+  mapfile -t specs < <(compute_specs)
+
+  printf "Building %d image variants (%s)\n" "${#specs[@]}" "${buildx_output}"
+
+  # shellcheck disable=SC2016
+  parallel \
+    --halt soon,fail=1 \
+    --line-buffer \
+    --tag --tagstring '{= my @p = split /:/; $_ = sprintf("%-15s", $p[0] . ($p[1] // "")) =}' \
+    build_one {} "${buildx_output}" \
+    ::: "${specs[@]}"
+}
+
+# Run "nextclade --version" on a single (tag, platform) pair.
+# Called by GNU parallel. Spec format: "tag:platform"
+run_one() {
+  set -euo pipefail
+
+  local tag platform
+  IFS=':' read -r tag platform <<< "${1}"
+
+  printf "Running '%s' on %s\n" "${tag}" "${platform}"
+  docker run --rm --platform "${platform}" "${tag}" nextclade --version
+}
+export -f run_one
+
+# Run smoke tests for every image variant on each platform, in parallel.
+run_smoke_tests() {
+  local -a queue=()
+  mapfile -t queue < <(compute_run_queue)
+
+  IFS=',' read -ra platforms <<< "${DOCKER_PLATFORMS}"
+  printf "Running smoke tests: %d images x %d platforms\n" "${#queue[@]}" "${#platforms[@]}"
+
+  local -a run_specs=()
+  local tag
+  for tag in "${queue[@]}"; do
+    local platform
+    for platform in "${platforms[@]}"; do
+      run_specs+=("${tag}:${platform}")
+    done
+  done
+
+  # shellcheck disable=SC2016
+  parallel \
+    --halt soon,fail=1 \
+    --line-buffer \
+    --tag --tagstring '{= s|.*/||; s|:linux/||; sprintf("%-30s", $_) =}' \
+    run_one {} \
+    ::: "${run_specs[@]}"
 }
 
 # Execution phases:
