@@ -9,7 +9,7 @@ use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use crate::graph::node::GraphNodeKey;
 use crate::make_error;
 use crate::translate::translate_genes::Translation;
-use crate::tree::tree::{AuspiceColoring, AuspiceGraph, AuspiceGraphNodePayload, AuspiceTreeMeta};
+use crate::tree::tree::{AuspiceColoring, AuspiceGraph, AuspiceGraphNodePayload, AuspiceTreeMeta, ScaleKey};
 use crate::utils::collections::concat_to_vec;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
@@ -247,8 +247,8 @@ fn map_aa_muts_for_one_cds(
   }
 }
 
-fn pair(key: &str, val: &str) -> [String; 2] {
-  [key.to_owned(), val.to_owned()]
+fn pair(key: &str, val: &str) -> (ScaleKey, String) {
+  (ScaleKey::Str(key.to_owned()), val.to_owned())
 }
 
 pub fn add_auspice_metadata_in_place(meta: &mut AuspiceTreeMeta, has_pcr_primers: bool) {

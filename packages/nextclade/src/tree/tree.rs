@@ -608,6 +608,13 @@ impl AuspiceMetaExtensions {
   }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(untagged)]
+pub enum ScaleKey {
+  Num(f64),
+  Str(String),
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema, Validate)]
 pub struct AuspiceColoring {
   #[serde(rename = "type")]
@@ -619,7 +626,7 @@ pub struct AuspiceColoring {
 
   #[serde(skip_serializing_if = "Vec::is_empty")]
   #[serde(default)]
-  pub scale: Vec<[String; 2]>,
+  pub scale: Vec<(ScaleKey, String)>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
