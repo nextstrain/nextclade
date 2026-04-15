@@ -103,6 +103,33 @@ by Nextstrain team
 </p>
 
 <p align="center">
+
+  <a href="packages/web/package.json">
+    <img
+      src="https://img.shields.io/github/package-json/v/nextstrain/nextclade/master/packages/nextclade-web?label=web&logo=npm"
+      alt="package.json version"
+    />
+  </a>
+
+  <a href="https://github.com/nextstrain/nextclade/releases">
+    <img src="https://img.shields.io/github/v/release/nextstrain/nextclade?logo=github&label=cli" alt="GitHub releases">
+  </a>
+
+  <a href="https://hub.docker.com/r/nextstrain/nextclade">
+      <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextclade">
+  </a>
+
+</p>
+
+<p align="center">
+
+  <a style="border-width:0" href="https://doi.org/10.21105/joss.03773">
+    <img src="https://joss.theoj.org/papers/10.21105/joss.03773/status.svg" alt="JOSS publication" >
+  </a>
+
+</p>
+
+<p align="center">
   <a href="https://hub.docker.com/r/nextstrain/nextclade">
     <img src="https://img.shields.io/docker/pulls/nextstrain/nextclade?logo=docker&label=docker%20pulls" alt="Docker pulls" />
   </a>
@@ -118,37 +145,6 @@ by Nextstrain team
   <a href="https://github.com/nextstrain/nextclade/stargazers">
     <img src="https://img.shields.io/github/stars/nextstrain/nextclade?style=flat&logo=github" alt="GitHub stars" />
   </a>
-</p>
-
-<p align="center">
-
-  <a href="packages/web/package.json">
-    <img
-      src="https://img.shields.io/github/package-json/v/nextstrain/nextclade/master/packages/nextclade-web?label=web&logo=npm"
-      alt="package.json version"
-    />
-  </a>
-
-  <a href="https://github.com/nextstrain/nextclade/releases">
-    <img src="https://img.shields.io/github/v/release/nextstrain/nextclade?logo=github&label=cli" alt="GitHub releases">
-  </a>
-
-  <a href="https://hub.docker.com/r/nextstrain/nextalign">
-      <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextalign">
-  </a>
-
-  <a href="https://hub.docker.com/r/nextstrain/nextclade">
-      <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextclade">
-  </a>
-
-</p>
-
-<p align="center">
-
-  <a style="border-width:0" href="https://doi.org/10.21105/joss.03773">
-    <img src="https://joss.theoj.org/papers/10.21105/joss.03773/status.svg" alt="JOSS publication" >
-  </a>
-
 </p>
 
 ---
