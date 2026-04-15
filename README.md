@@ -37,20 +37,12 @@ by Nextstrain team
 </p>
 
 <p align="center">
-  <a href="https://app.circleci.com/pipelines/github/nextstrain/nextclade?branch=master">
-    <img src="https://img.shields.io/circleci/build/github/nextstrain/nextclade/master?label=build%3Amaster" alt="CircleCI master branch">
+  <a href="https://github.com/nextstrain/nextclade/actions/workflows/cli.yml">
+    <img src="https://github.com/nextstrain/nextclade/actions/workflows/cli.yml/badge.svg" alt="CLI build">
   </a>
 
-  <a href="https://app.circleci.com/pipelines/github/nextstrain/nextclade?branch=staging">
-    <img src="https://img.shields.io/circleci/build/github/nextstrain/nextclade/staging?label=build%3Astaging" alt="CircleCI staging branch">
-  </a>
-
-  <a href="https://app.circleci.com/pipelines/github/nextstrain/nextclade?branch=release">
-    <img src="https://img.shields.io/circleci/build/github/nextstrain/nextclade/release?label=build%3Arelease" alt="CircleCI release branch">
-  </a>
-
-  <a href="https://app.circleci.com/pipelines/github/nextstrain/nextclade?branch=release-cli">
-    <img src="https://img.shields.io/circleci/build/github/nextstrain/nextclade/release-cli?label=build%3Arelease-cli" alt="CircleCI release-cli branch">
+  <a href="https://github.com/nextstrain/nextclade/actions/workflows/web.yml">
+    <img src="https://github.com/nextstrain/nextclade/actions/workflows/web.yml/badge.svg" alt="Web build">
   </a>
 
   <a href="https://observatory.mozilla.org/analyze/clades.nextstrain.org">
