@@ -17,7 +17,7 @@ by Nextstrain team
 </p>
 
 | <video controls autoplay loop muted src="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4" width="680"></video>                             |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Brief demonstration of Nextclade Web. Large version is <a target="_blank" href="https://github.com/nextstrain/nextclade/assets/9403403/9bf0bab5-b7ee-4161-96a6-23e76ddb56b4">here</a>. |
 
 <p align="center">
@@ -53,9 +53,6 @@ by Nextstrain team
     <img src="https://img.shields.io/circleci/build/github/nextstrain/nextclade/release-cli?label=build%3Arelease-cli" alt="CircleCI release-cli branch">
   </a>
 
-  <a href="https://securityheaders.com/?q=clades.nextstrain.org&followRedirects=on">
-    <img src="https://img.shields.io/security-headers?url=https%3A%2F%2Fclades.nextstrain.org" alt="Security Headers" />
-  </a>
   <a href="https://observatory.mozilla.org/analyze/clades.nextstrain.org">
     <img src="https://img.shields.io/mozilla-observatory/grade/clades.nextstrain.org" alt="Mozilla Observatory" />
   </a>
@@ -103,6 +100,24 @@ by Nextstrain team
     />
   </a>
 
+</p>
+
+<p align="center">
+  <a href="https://hub.docker.com/r/nextstrain/nextclade">
+    <img src="https://img.shields.io/docker/pulls/nextstrain/nextclade?logo=docker&label=docker%20pulls" alt="Docker pulls" />
+  </a>
+
+  <a href="https://github.com/nextstrain/nextclade/releases">
+    <img src="https://img.shields.io/github/downloads/nextstrain/nextclade/total?logo=github&label=github%20downloads" alt="GitHub downloads" />
+  </a>
+
+  <a href="https://anaconda.org/bioconda/nextclade">
+    <img src="https://img.shields.io/conda/dn/bioconda/nextclade?logo=anaconda&label=bioconda%20downloads" alt="Bioconda downloads" />
+  </a>
+
+  <a href="https://github.com/nextstrain/nextclade/stargazers">
+    <img src="https://img.shields.io/github/stars/nextstrain/nextclade?style=flat&logo=github" alt="GitHub stars" />
+  </a>
 </p>
 
 <p align="center">
@@ -184,24 +199,22 @@ by Nextstrain team
 
 If you use results obtained with Nextclade in a publication, please
 
- - cite our paper:
+- cite our paper:
 
-    > Aksamentov, I., Roemer, C., Hodcroft, E. B., & Neher, R. A., (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. Journal of Open Source Software, 6(67), 3773, https://doi.org/10.21105/joss.03773
+  > Aksamentov, I., Roemer, C., Hodcroft, E. B., & Neher, R. A., (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. Journal of Open Source Software, 6(67), 3773, https://doi.org/10.21105/joss.03773
 
-   ([bibtex](https://clades.nextstrain.org/citation.bib))
+  ([bibtex](https://clades.nextstrain.org/citation.bib))
 
- - where possible, provide a link to Nextclade Web:
+- where possible, provide a link to Nextclade Web:
 
-    > https://clades.nextstrain.org
-
+  > https://clades.nextstrain.org
 
 <h2 id="documentation" align="center">
 📗 Documentation
 </h2>
 
- - Documentation for Nextclade: https://docs.nextstrain.org/projects/nextclade
- - Documentation for the parent project, Nextstrain: https://docs.nextstrain.org
-
+- Documentation for Nextclade: https://docs.nextstrain.org/projects/nextclade
+- Documentation for the parent project, Nextstrain: https://docs.nextstrain.org
 
 <h2 id="documentation" align="center">
 🧑‍💻 Development
@@ -223,7 +236,6 @@ Nextclade is a part of
 <span> </span>
 <span>Nextstrain project</span>
 </a>.</p>
-
 
 It is maintained by:
 
@@ -286,7 +298,6 @@ It is maintained by:
 </tr>
 </table>
 </p>
-
 
 We are thankful to all our contributors, no matter how they contribute: in ideas, science, code, documentation or otherwise. Thanks goes to these people (<a target="_blank" rel="noopener noreferrer" href="https://allcontributors.org/docs/en/emoji-key">emoji key</a>):
 
