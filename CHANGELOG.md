@@ -1,3 +1,9 @@
+## 3.21.1
+
+### Fix: allow numeric keys in Auspice coloring scale
+
+Auspice JSON v2 allows both string and numeric values as the first element of coloring scale entries. Nextclade previously only accepted strings, causing deserialization failures when loading Auspice JSONs with continuous colorings (e.g. `nextstrain.org/rsv/a/genome/6y`). Numeric scale keys are now accepted. See [nextstrain/rsv#129](https://github.com/nextstrain/rsv/issues/129), [#1764](https://github.com/nextstrain/nextclade/pull/1764) by @victorlin.
+
 ## 3.21.0
 
 ### Docker: arm64 multi-platform images
