@@ -20,11 +20,13 @@ This is only useful if you know programming at least a little or is curious abou
 Nextclade uses a centralized version management system. All tool versions are tracked in [`tool-versions.json`](https://github.com/nextstrain/nextclade/blob/master/tool-versions.json) at the project root.
 
 The file contains three categories:
+
 - `dependencies` - required tools for building Nextclade
 - `devDependencies` - tools for development workflows
 - `optionalDependencies` - tools for specific tasks (benchmarking, data processing)
 
 Versions can be either:
+
 - Simple strings (e.g., `"bun": "1.3.5"`)
 - References to other files (e.g., Rust version from `rust-toolchain.toml`, Node.js from `.nvmrc`)
 
@@ -33,7 +35,7 @@ To look up a tool version, use the `scripts/get-version` script:
 ```bash
 # Get version of a tool
 ./scripts/get-version bun        # outputs: 1.3.5
-./scripts/get-version rust       # outputs: 1.92.0 (from rust-toolchain.toml)
+./scripts/get-version rust       # outputs: 1.95.0 (from rust-toolchain.toml)
 ./scripts/get-version node       # outputs: 22.16.0 (from .nvmrc)
 ```
 

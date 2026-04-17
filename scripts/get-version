@@ -18,7 +18,7 @@ Options:
 
 Examples:
   get-version bun                              # outputs: 1.3.5
-  get-version rust                             # outputs: 1.92.0 (from rust-toolchain.toml)
+  get-version rust                             # outputs: 1.95.0 (from rust-toolchain.toml)
   get-version node                             # outputs: 24.12.0 (from .nvmrc)
   get-version wasm-bindgen-cli                 # outputs: 0.2.106 (from Cargo.toml)
   get-version --versions-file ./versions.json bun
