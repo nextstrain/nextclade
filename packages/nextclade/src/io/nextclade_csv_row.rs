@@ -142,8 +142,8 @@ impl NextcladeResultsCsvRow {
           .as_ref()
           .map(|muts| {
             muts
-              .iter()
-              .flat_map(|(_, m)| &m.private_substitutions)
+              .values()
+              .flat_map(|m| &m.private_substitutions)
               .cloned()
               .collect_vec()
           })
@@ -151,13 +151,7 @@ impl NextcladeResultsCsvRow {
 
         let aa_dels = rel_aa_mut
           .as_ref()
-          .map(|muts| {
-            muts
-              .iter()
-              .flat_map(|(_, m)| &m.private_deletions)
-              .cloned()
-              .collect_vec()
-          })
+          .map(|muts| muts.values().flat_map(|m| &m.private_deletions).cloned().collect_vec())
           .map_or_else(|| na.clone(), |m| format_aa_deletions(&m, ARRAY_ITEM_DELIMITER));
 
         (aa_subs, aa_dels)

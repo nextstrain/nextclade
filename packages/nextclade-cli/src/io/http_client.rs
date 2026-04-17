@@ -59,7 +59,7 @@ impl HttpClient {
 
     let client = client_builder
       .connection_verbose(verbose)
-      .connect_timeout(Some(Duration::from_secs(60)))
+      .connect_timeout(Some(Duration::from_mins(1)))
       .user_agent(user_agent)
       .build()?;
 

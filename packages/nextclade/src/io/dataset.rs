@@ -54,7 +54,10 @@ impl DatasetAttributes {
     let typed = [
       self.name.as_ref().map(|v| ("name", v.clone())),
       self.reference_name.as_ref().map(|v| ("reference name", v.clone())),
-      self.reference_accession.as_ref().map(|v| ("reference accession", v.clone())),
+      self
+        .reference_accession
+        .as_ref()
+        .map(|v| ("reference accession", v.clone())),
       self.deprecated.map(|v| ("deprecated", v.to_string())),
       self.experimental.map(|v| ("experimental", v.to_string())),
     ]

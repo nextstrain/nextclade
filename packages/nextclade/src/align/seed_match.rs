@@ -363,7 +363,7 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
     });
   }
 
-  endpoints.sort_by(|a, b| a.qry_pos.cmp(&b.qry_pos));
+  endpoints.sort_by_key(|a| a.qry_pos);
 
   // Triplets contains the best possible chains, with decreasing ref_end
   // Small ref_end means more matches can still come after, hence for equal score, this is better
