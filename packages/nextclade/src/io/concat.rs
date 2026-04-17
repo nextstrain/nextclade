@@ -46,13 +46,7 @@ where
     let curr = iter.next();
     Concat { iter, curr, delimiter }
   }
-}
 
-impl<I> Concat<I>
-where
-  I: Iterator,
-  <I as Iterator>::Item: Read,
-{
   /// Returns a reference to the item last read, or None if the iterator has been exhausted.
   ///
   /// This is useful for error handling and reporting: if a read operation fails, the reference

@@ -12,7 +12,7 @@ use gcollections::ops::{Intersection, IsEmpty, Union};
 use interval::interval_set::{IntervalSet, ToIntervalSet};
 use itertools::Itertools;
 use std::borrow::Cow;
-use std::cmp::{max, min};
+use std::cmp::{Reverse, max, min};
 use std::collections::{BTreeMap, VecDeque};
 
 /// Copied from https://stackoverflow.com/a/75084739/7483211
@@ -413,7 +413,7 @@ fn chain_seeds(matches: &[SeedMatch2]) -> Vec<SeedMatch2> {
           };
           triplets.push(added_triplet);
           // Sort descending by ref_end
-          triplets.sort_by(|b, a| a.ref_end.cmp(&b.ref_end));
+          triplets.sort_by_key(|triplet| Reverse(triplet.ref_end));
           triplets.retain(|triplet| triplet.ref_end < added_triplet.ref_end || triplet.score >= added_triplet.score);
         }
       }
