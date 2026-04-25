@@ -175,6 +175,121 @@ You can create a new dataset by creating a directory with the required input fil
 
 For more details on how to create your own dataset, see [Nextclade dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide%2Emd).
 
+## Version tags are per-dataset
+
+Version tags are scoped to individual datasets, not to repository-level releases. A new version tag is created for a dataset only when its files have changed since the previous release. Datasets whose files did not change in a given release retain their previous version tag and do not receive the new one.
+
+For example, if a release `2026-04-14--11-55-23Z` updates flu/h3n2/ha but not flu/h1n1/pb2, then only flu/h3n2/ha receives the `2026-04-14--11-55-23Z` tag. flu/h1n1/pb2 keeps its earlier tag (e.g. `2026-01-14--08-53-00Z`). Requesting `--tag='2026-04-14--11-55-23Z'` for flu/h1n1/pb2 produces an error.
+
+This means a single release timestamp cannot be used uniformly across all datasets with `--tag`. Workflows that pin dataset versions should either omit `--tag` (to use the latest version) or query the latest tag per dataset.
+
+### Querying version tags
+
+#### Using Nextclade CLI (recommended)
+
+```bash
+# Latest tag for a single dataset
+nextclade dataset list --name 'nextstrain/flu/h3n2/ha/EPI1857216' --json | jq -r '.[0].version.tag'
+# 2026-04-14--11-55-23Z
+
+# All tags for a single dataset
+nextclade dataset list --name 'nextstrain/flu/h3n2/ha/EPI1857216' --json | jq '[.[0].versions[].tag]'
+# [
+#   "2026-04-14--11-55-23Z",
+#   "2026-01-14--19-24-43Z",
+#   "2026-01-14--08-53-00Z",
+#   "2025-11-04--15-46-13Z",
+#   "2025-10-22--18-11-36Z",
+#   ...
+# ]
+
+# Latest tag for all datasets
+nextclade dataset list --json | jq '[.[] | {path, tag: .version.tag}]'
+# [
+#   { "path": "nextstrain/sars-cov-2/wuhan-hu-1/orfs", "tag": "2026-04-21--09-39-50Z" },
+#   { "path": "nextstrain/flu/h1n1pdm/ha/MW626062",     "tag": "2026-04-14--11-55-23Z" },
+#   { "path": "nextstrain/flu/h3n2/ha/EPI1857216",      "tag": "2026-04-14--11-55-23Z" },
+#   ...
+# ]
+
+# All tags for all datasets
+nextclade dataset list --json | jq '[.[] | {path, tags: [.versions[].tag]}]'
+# [
+#   { "path": "nextstrain/sars-cov-2/wuhan-hu-1/orfs", "tags": ["2026-04-21--09-39-50Z", "2026-01-06--14-59-32Z", ...] },
+#   { "path": "nextstrain/flu/h1n1pdm/ha/MW626062",     "tags": ["2026-04-14--11-55-23Z", "2026-01-14--19-24-43Z", ...] },
+#   { "path": "nextstrain/flu/h3n2/ha/EPI1857216",      "tags": ["2026-04-14--11-55-23Z", "2026-01-14--19-24-43Z", ...] },
+#   ...
+# ]
+```
+
+#### Using the hosted index file
+
+> ⚠️ The index file format and URL structure are not stable and can change without notice. Prefer the Nextclade CLI for scripting.
+
+```bash
+# Latest tag for a single dataset
+curl -s 'https://data.clades.nextstrain.org/v3/index.json' \
+  | jq -r '.collections[].datasets[] | select(.path == "nextstrain/flu/h3n2/ha/EPI1857216") | .version.tag'
+# 2026-04-14--11-55-23Z
+
+# All tags for a single dataset
+curl -s 'https://data.clades.nextstrain.org/v3/index.json' \
+  | jq '[.collections[].datasets[] | select(.path == "nextstrain/flu/h3n2/ha/EPI1857216") | .versions[].tag]'
+# ["2026-04-14--11-55-23Z", "2026-01-14--19-24-43Z", "2026-01-14--08-53-00Z", ...]
+
+# Latest tag for all datasets
+curl -s 'https://data.clades.nextstrain.org/v3/index.json' \
+  | jq '[.collections[].datasets[] | {path, tag: .version.tag}]'
+# [
+#   { "path": "nextstrain/sars-cov-2/wuhan-hu-1/orfs", "tag": "2026-04-21--09-39-50Z" },
+#   ...
+# ]
+
+# All tags for all datasets
+curl -s 'https://data.clades.nextstrain.org/v3/index.json' \
+  | jq '[.collections[].datasets[] | {path, tags: [.versions[].tag]}]'
+# [
+#   { "path": "nextstrain/sars-cov-2/wuhan-hu-1/orfs", "tags": ["2026-04-21--09-39-50Z", "2026-01-06--14-59-32Z", ...] },
+#   ...
+# ]
+```
+
+#### Using the GitHub raw index (master branch)
+
+> ⚠️ The repository directory structure and index file format are not stable and can change without notice. Prefer the Nextclade CLI for scripting.
+
+Reads `index.json` directly from the `nextclade_data` repository on the `master` branch. Replace `master` in the URL to target a different branch or ref.
+
+```bash
+# Latest tag for a single dataset
+curl -s 'https://raw.githubusercontent.com/nextstrain/nextclade_data/refs/heads/master/data_output/index.json' \
+  | jq -r '.collections[].datasets[] | select(.path == "nextstrain/flu/h3n2/ha/EPI1857216") | .version.tag'
+# 2026-04-14--11-55-23Z
+
+# All tags for a single dataset
+curl -s 'https://raw.githubusercontent.com/nextstrain/nextclade_data/refs/heads/master/data_output/index.json' \
+  | jq '[.collections[].datasets[] | select(.path == "nextstrain/flu/h3n2/ha/EPI1857216") | .versions[].tag]'
+# ["2026-04-14--11-55-23Z", "2026-01-14--19-24-43Z", "2026-01-14--08-53-00Z", ...]
+
+# Latest tag for all datasets
+curl -s 'https://raw.githubusercontent.com/nextstrain/nextclade_data/refs/heads/master/data_output/index.json' \
+  | jq '[.collections[].datasets[] | {path, tag: .version.tag}]'
+# [
+#   { "path": "nextstrain/sars-cov-2/wuhan-hu-1/orfs", "tag": "2026-04-21--09-39-50Z" },
+#   ...
+# ]
+
+# All tags for all datasets
+curl -s 'https://raw.githubusercontent.com/nextstrain/nextclade_data/refs/heads/master/data_output/index.json' \
+  | jq '[.collections[].datasets[] | {path, tags: [.versions[].tag]}]'
+# [
+#   { "path": "nextstrain/sars-cov-2/wuhan-hu-1/orfs", "tags": ["2026-04-21--09-39-50Z", "2026-01-06--14-59-32Z", ...] },
+#   ...
+# ]
+```
+
+For details on how version tags are generated during the dataset build process, see the [Dataset curation guide](https://github.com/nextstrain/nextclade_data/blob/master/docs/dataset-curation-guide.md#version-tags-and-releases).
+
 ## Online dataset repository
 
 The Nextclade team hosts a public file server containing all the dataset files themselves as well as the index file that lists all the datasets, their versions and file URLs. This server is the source of datasets for Nextclade Web and Nextclade CLI.
