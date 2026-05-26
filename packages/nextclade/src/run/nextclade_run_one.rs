@@ -26,6 +26,7 @@ use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{
   CdsAaRange, NucRange, find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by,
 };
+use crate::analyze::mutation_patterns::analyze_mutation_patterns;
 use crate::analyze::nuc_alignment::NucAlignment;
 use crate::analyze::nuc_changes::{FindNucChangesOutput, find_nuc_changes};
 use crate::analyze::nuc_del::NucDelRange;
@@ -428,13 +429,21 @@ pub fn nextclade_run_one(
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;
   let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_translation, &translation)?;
 
+  let mutation_pattern_analysis = analyze_mutation_patterns(
+    &private_nuc_mutations,
+    ref_seq,
+    virus_properties.mutation_patterns.as_ref(),
+    virus_properties.qc.as_ref().map(|qc| &qc.snp_clusters),
+  )?;
+  let mutation_patterns = mutation_pattern_analysis.results;
+
   let qc = virus_properties
     .qc
     .as_ref()
     .map(|qc_config| {
       qc_run(
         &private_nuc_mutations,
-        &[],
+        &mutation_pattern_analysis.qc_clusters,
         &nucleotide_composition,
         total_missing,
         &translation,
@@ -512,6 +521,7 @@ pub fn nextclade_run_one(
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      mutation_patterns,
       clade_founder_info,
       clade_node_attr_founder_info,
       ref_nodes: ref_nodes.to_owned(),

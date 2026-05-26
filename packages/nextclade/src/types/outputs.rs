@@ -10,6 +10,7 @@ use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::find_relative_aa_mutations::RelativeAaMutations;
 use crate::analyze::find_relative_nuc_mutations::RelativeNucMutations;
 use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
+use crate::analyze::mutation_patterns::MutationPatternsResults;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
@@ -137,6 +138,8 @@ pub struct NextcladeOutputs {
   pub private_nuc_mutations: PrivateNucMutations,
   /// Per-CDS amino acid mutations not shared with the nearest reference tree node
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
+  /// Per-type mutation statistics, local reference context, and detected mutation clusters
+  pub mutation_patterns: MutationPatternsResults,
   /// Mutations relative to the clade founder node
   pub clade_founder_info: Option<CladeNodeAttrFounderInfo>,
   /// Per-attribute mutations relative to founder nodes, keyed by attribute name

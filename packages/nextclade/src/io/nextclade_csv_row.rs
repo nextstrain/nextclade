@@ -6,6 +6,9 @@ use crate::analyze::aa_sub::{AaSub, AaSubLabeled};
 use crate::analyze::find_aa_motifs::AaMotif;
 use crate::analyze::find_clade_founder::CladeNodeAttrFounderInfo;
 use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
+use crate::analyze::mutation_patterns::{
+  MutationPatternCluster, MutationPatternEventMatch, MutationPatternEventTypeCount, MutationPatternResults,
+};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
@@ -66,6 +69,7 @@ impl NextcladeResultsCsvRow {
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      mutation_patterns,
       missing_cdses,
       // divergence,
       coverage,
@@ -429,6 +433,50 @@ impl NextcladeResultsCsvRow {
       "qc.stopCodons.status",
       qc.stop_codons.as_ref().map(|sc| sc.status.to_string()),
     )?;
+    self.add_entry(
+      "mutationPatterns.id",
+      &format_mutation_patterns_field(&mutation_patterns.results, |p| p.id.clone()),
+    )?;
+    self.add_entry(
+      "mutationPatterns.name",
+      &format_mutation_patterns_field(&mutation_patterns.results, |p| p.name.clone()),
+    )?;
+    self.add_entry(
+      "mutationPatterns.description",
+      &format_mutation_patterns_field(&mutation_patterns.results, |p| {
+        p.description.as_deref().unwrap_or("").to_owned()
+      }),
+    )?;
+    self.add_entry(
+      "mutationPatterns.counts.matches",
+      &format_mutation_patterns_field(&mutation_patterns.results, |p| p.counts.matches.to_string()),
+    )?;
+    self.add_entry(
+      "mutationPatterns.counts.clustered",
+      &format_mutation_patterns_field(&mutation_patterns.results, |p| p.counts.clustered.to_string()),
+    )?;
+    self.add_entry(
+      "mutationPatterns.counts.clusters",
+      &format_mutation_patterns_field(&mutation_patterns.results, |p| p.counts.clusters.to_string()),
+    )?;
+    self.add_entry(
+      "mutationPatterns.eventTypeCounts",
+      &format_mutation_patterns_field(&mutation_patterns.results, |p| {
+        format_mutation_pattern_event_type_counts(&p.event_type_counts, ARRAY_ITEM_DELIMITER)
+      }),
+    )?;
+    self.add_entry(
+      "mutationPatterns.clusters",
+      &format_mutation_patterns_field(&mutation_patterns.results, |p| {
+        format_mutation_clusters_ranges(&p.clusters, ARRAY_ITEM_DELIMITER)
+      }),
+    )?;
+    self.add_entry(
+      "mutationPatterns.clusterEvents",
+      &format_mutation_patterns_field(&mutation_patterns.results, |p| {
+        format_mutation_clusters_events(&p.clusters, ARRAY_ITEM_DELIMITER)
+      }),
+    )?;
     self.add_entry("isReverseComplement", &is_reverse_complement.to_string())?;
     self.add_entry("failedCdses", &format_failed_cdses(missing_cdses, ARRAY_ITEM_DELIMITER))?;
     self.add_entry(
@@ -671,11 +719,71 @@ pub fn format_clustered_snps(snps: &[ClusteredSnp], delimiter: &str) -> String {
   snps
     .iter()
     .map(|snp| {
-      let range = NucRefGlobalRange::from_usize(snp.start, snp.end).to_string();
-      let number_of_snps = snp.number_of_snps;
-      format!("{range}:{number_of_snps}")
+      let range = NucRefGlobalRange::from_usize(snp.start, snp.end + 1).to_string();
+      let count = snp.number_of_snps;
+      format!("{range}:{count}")
     })
     .join(delimiter)
+}
+
+const PATTERN_DELIMITER: &str = "|";
+
+#[inline]
+fn format_mutation_patterns_field(
+  patterns: &[MutationPatternResults],
+  fmt: impl Fn(&MutationPatternResults) -> String,
+) -> String {
+  if patterns.len() <= 1 {
+    return patterns.first().map_or_else(String::new, &fmt);
+  }
+  patterns.iter().map(&fmt).join(PATTERN_DELIMITER)
+}
+
+#[inline]
+pub fn format_mutation_pattern_event_type_counts(counts: &[MutationPatternEventTypeCount], delimiter: &str) -> String {
+  counts
+    .iter()
+    .map(|c| match c {
+      MutationPatternEventTypeCount::NucSubstitution(c) => {
+        format!(
+          "nucSubstitution:{}>{}:{}",
+          from_nuc(c.ref_nuc),
+          from_nuc(c.qry_nuc),
+          c.count
+        )
+      }
+    })
+    .join(delimiter)
+}
+
+#[inline]
+pub fn format_mutation_clusters_ranges(clusters: &[MutationPatternCluster], delimiter: &str) -> String {
+  clusters
+    .iter()
+    .map(|c| {
+      let range = NucRefGlobalRange::from_usize(c.start, c.end + 1).to_string();
+      format!("{range}:{}", c.count)
+    })
+    .join(delimiter)
+}
+
+#[inline]
+pub fn format_mutation_clusters_events(clusters: &[MutationPatternCluster], delimiter: &str) -> String {
+  clusters
+    .iter()
+    .map(|c| {
+      let range = NucRefGlobalRange::from_usize(c.start, c.end + 1).to_string();
+      let events = c.events.iter().map(format_mutation_pattern_event).join(";");
+      format!("{range}:{events}")
+    })
+    .join(delimiter)
+}
+
+#[inline]
+fn format_mutation_pattern_event(event: &MutationPatternEventMatch) -> String {
+  match event {
+    MutationPatternEventMatch::NucSubstitution(event) => format!("nucSubstitution:{}", event.substitution.sub),
+  }
 }
 
 #[inline]

@@ -26,6 +26,7 @@ pub enum CsvColumnCategory {
   RelMuts,
   ErrsWarns,
   Qc,
+  MutPatterns,
   Primers,
   Dynamic,
 }
@@ -197,6 +198,17 @@ pub static CSV_COLUMN_CONFIG_MAP_DEFAULT: LazyLock<CsvColumnConfigMap> = LazyLoc
       o!("qc.stopCodons.totalStopCodons") => true,
       o!("qc.stopCodons.score") => true,
       o!("qc.stopCodons.status") => true,
+    },
+    CsvColumnCategory::MutPatterns => indexmap! {
+      o!("mutationPatterns.id") => true,
+      o!("mutationPatterns.name") => true,
+      o!("mutationPatterns.description") => true,
+      o!("mutationPatterns.counts.matches") => true,
+      o!("mutationPatterns.counts.clustered") => true,
+      o!("mutationPatterns.counts.clusters") => true,
+      o!("mutationPatterns.eventTypeCounts") => true,
+      o!("mutationPatterns.clusters") => true,
+      o!("mutationPatterns.clusterEvents") => true,
     },
     CsvColumnCategory::Primers => indexmap! {
       o!("totalPcrPrimerChanges") => true,
