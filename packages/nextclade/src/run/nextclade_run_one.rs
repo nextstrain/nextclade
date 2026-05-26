@@ -434,6 +434,7 @@ pub fn nextclade_run_one(
     .map(|qc_config| {
       qc_run(
         &private_nuc_mutations,
+        &[],
         &nucleotide_composition,
         total_missing,
         &translation,

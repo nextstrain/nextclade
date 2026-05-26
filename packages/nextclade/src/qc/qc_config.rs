@@ -118,21 +118,25 @@ const fn one() -> OrderedFloat<f64> {
 #[schemars(example = "QcRulesConfigSnpClusters::example")]
 pub struct QcRulesConfigSnpClusters {
   pub enabled: bool,
-  /// Size of the sliding window (in nucleotides) used to count private mutations
-  pub window_size: usize,
-  /// Number of private mutations within a window above which the window is flagged as a cluster
-  pub cluster_cut_off: usize,
   /// QC score added per detected cluster
   pub score_weight: OrderedFloat<f64>,
+
+  /// Size of the sliding nucleotide window for global SNP cluster detection
+  #[serde(default)]
+  pub window_size: usize,
+
+  /// Number of substitutions within a window required to count as a global SNP cluster
+  #[serde(default)]
+  pub cluster_cut_off: usize,
 }
 
 impl QcRulesConfigSnpClusters {
   pub const fn example() -> Self {
     Self {
       enabled: true,
+      score_weight: OrderedFloat(50.0),
       window_size: 100,
       cluster_cut_off: 5,
-      score_weight: OrderedFloat(50.0),
     }
   }
 }
