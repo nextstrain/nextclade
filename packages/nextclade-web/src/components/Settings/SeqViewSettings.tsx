@@ -12,6 +12,7 @@ import {
   SeqMarkerState,
   maxNucMarkersAtom,
   seqMarkerAmbiguousHeightStateAtom,
+  seqMarkerClusterHeightStateAtom,
   seqMarkerFrameShiftStateAtom,
   seqMarkerGapHeightStateAtom,
   seqMarkerHeightStateFromString,
@@ -76,6 +77,10 @@ export function SeqViewSettings() {
 
   const [seqMarkerUnsequencedHeightState, setSeqMarkerUnsequencedHeightState] = useSeqMarkerHeightState(
     seqMarkerUnsequencedHeightStateAtom,
+  )
+
+  const [seqMarkerClusterHeightState, setSeqMarkerClusterHeightState] = useSeqMarkerHeightState(
+    seqMarkerClusterHeightStateAtom,
   )
 
   const [seqMarkerInsertionState, setSeqMarkerInsertionState] = useSeqMarkerState(seqMarkerInsertionStateAtom)
@@ -170,6 +175,18 @@ export function SeqViewSettings() {
             labels={labels}
             currentValue={seqMarkerUnsequencedHeightState}
             onChange={setSeqMarkerUnsequencedHeightState}
+          />
+        </Label>
+      </FormGroup>
+
+      <FormGroup>
+        <Label className="pointer-events-none" title={t('Toggle height of markers for mutation clusters')}>
+          {t('Mutation clusters')}
+          <Multitoggle
+            values={SEQ_MARKER_HEIGHT_STATES}
+            labels={labels}
+            currentValue={seqMarkerClusterHeightState}
+            onChange={setSeqMarkerClusterHeightState}
           />
         </Label>
       </FormGroup>
