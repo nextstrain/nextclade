@@ -354,4 +354,123 @@ mod tests {
 
     assert_eq!(sorted, expected_order);
   }
+
+  #[test]
+  fn test_nextclade_csv_mut_pattern_cols_single() {
+    let cols = mut_pattern_cols("adar");
+    assert_eq!(
+      cols,
+      [
+        "mutationPatterns['adar'].counts.matches",
+        "mutationPatterns['adar'].counts.clustered",
+        "mutationPatterns['adar'].counts.clusters",
+        "mutationPatterns['adar'].eventTypeCounts",
+      ]
+    );
+  }
+
+  #[test]
+  fn test_nextclade_csv_mut_pattern_cols_special_chars() {
+    let cols = mut_pattern_cols("rna_editing");
+    assert_eq!(cols[0], "mutationPatterns['rna_editing'].counts.matches");
+  }
+
+  #[test]
+  fn test_nextclade_csv_prepare_headers_no_patterns() {
+    let column_config = CsvColumnConfig {
+      categories: indexmap! {
+        CsvColumnCategory::General => indexmap! {
+          o!("seqName") => true,
+          o!("clade") => true,
+        },
+      },
+      individual: vec![],
+      include_dynamic: false,
+      include_rel_muts: false,
+      include_clade_founder_muts: false,
+      include_mut_patterns: true,
+    };
+
+    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &[], &column_config);
+
+    assert!(!headers.iter().any(|h| h.contains("mutationPatterns")));
+  }
+
+  #[test]
+  fn test_nextclade_csv_prepare_headers_single_pattern() {
+    let column_config = CsvColumnConfig {
+      categories: indexmap! {
+        CsvColumnCategory::General => indexmap! {
+          o!("seqName") => true,
+          o!("clade") => true,
+        },
+      },
+      individual: vec![],
+      include_dynamic: false,
+      include_rel_muts: false,
+      include_clade_founder_muts: false,
+      include_mut_patterns: true,
+    };
+
+    let pattern_keys = vec![o!("adar")];
+    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &pattern_keys, &column_config);
+
+    let mut_cols: Vec<&str> = headers.iter().filter(|h| h.contains("mutationPatterns")).map(|s| s.as_str()).collect();
+    assert_eq!(
+      mut_cols,
+      vec![
+        "mutationPatterns['adar'].counts.matches",
+        "mutationPatterns['adar'].counts.clustered",
+        "mutationPatterns['adar'].counts.clusters",
+        "mutationPatterns['adar'].eventTypeCounts",
+      ]
+    );
+  }
+
+  #[test]
+  fn test_nextclade_csv_prepare_headers_two_patterns() {
+    let column_config = CsvColumnConfig {
+      categories: indexmap! {
+        CsvColumnCategory::General => indexmap! {
+          o!("seqName") => true,
+          o!("clade") => true,
+        },
+      },
+      individual: vec![],
+      include_dynamic: false,
+      include_rel_muts: false,
+      include_clade_founder_muts: false,
+      include_mut_patterns: true,
+    };
+
+    let pattern_keys = vec![o!("adar"), o!("apobec")];
+    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &pattern_keys, &column_config);
+
+    let mut_cols: Vec<&str> = headers.iter().filter(|h| h.contains("mutationPatterns")).map(|s| s.as_str()).collect();
+    assert_eq!(mut_cols.len(), 8);
+    assert_eq!(mut_cols[0], "mutationPatterns['adar'].counts.matches");
+    assert_eq!(mut_cols[4], "mutationPatterns['apobec'].counts.matches");
+  }
+
+  #[test]
+  fn test_nextclade_csv_prepare_headers_patterns_disabled() {
+    let column_config = CsvColumnConfig {
+      categories: indexmap! {
+        CsvColumnCategory::General => indexmap! {
+          o!("seqName") => true,
+          o!("clade") => true,
+        },
+      },
+      individual: vec![],
+      include_dynamic: false,
+      include_rel_muts: false,
+      include_clade_founder_muts: false,
+      include_mut_patterns: false,
+    };
+
+    let pattern_keys = vec![o!("adar")];
+    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &pattern_keys, &column_config);
+
+    assert!(!headers.iter().any(|h| h.contains("mutationPatterns")));
+  }
 }
