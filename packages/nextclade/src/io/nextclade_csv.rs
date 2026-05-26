@@ -413,9 +413,20 @@ mod tests {
     };
 
     let pattern_keys = vec![o!("adar")];
-    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &pattern_keys, &column_config);
+    let headers = prepare_headers(
+      &[],
+      &[],
+      &AuspiceRefNodesDesc::default(),
+      &[],
+      &pattern_keys,
+      &column_config,
+    );
 
-    let mut_cols: Vec<&str> = headers.iter().filter(|h| h.contains("mutationPatterns")).map(|s| s.as_str()).collect();
+    let mut_cols: Vec<&str> = headers
+      .iter()
+      .filter(|h| h.contains("mutationPatterns"))
+      .map(String::as_str)
+      .collect();
     assert_eq!(
       mut_cols,
       vec![
@@ -444,9 +455,20 @@ mod tests {
     };
 
     let pattern_keys = vec![o!("adar"), o!("apobec")];
-    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &pattern_keys, &column_config);
+    let headers = prepare_headers(
+      &[],
+      &[],
+      &AuspiceRefNodesDesc::default(),
+      &[],
+      &pattern_keys,
+      &column_config,
+    );
 
-    let mut_cols: Vec<&str> = headers.iter().filter(|h| h.contains("mutationPatterns")).map(|s| s.as_str()).collect();
+    let mut_cols: Vec<&str> = headers
+      .iter()
+      .filter(|h| h.contains("mutationPatterns"))
+      .map(String::as_str)
+      .collect();
     assert_eq!(mut_cols.len(), 8);
     assert_eq!(mut_cols[0], "mutationPatterns['adar'].counts.matches");
     assert_eq!(mut_cols[4], "mutationPatterns['apobec'].counts.matches");
@@ -469,7 +491,14 @@ mod tests {
     };
 
     let pattern_keys = vec![o!("adar")];
-    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &pattern_keys, &column_config);
+    let headers = prepare_headers(
+      &[],
+      &[],
+      &AuspiceRefNodesDesc::default(),
+      &[],
+      &pattern_keys,
+      &column_config,
+    );
 
     assert!(!headers.iter().any(|h| h.contains("mutationPatterns")));
   }

@@ -36,6 +36,7 @@ pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>
 // Configuration for enabling/disabling CSV columns or categories of them
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::struct_excessive_bools)]
 pub struct CsvColumnConfig {
   pub categories: CsvColumnConfigMap,
   pub individual: Vec<String>,
