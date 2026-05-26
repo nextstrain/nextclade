@@ -42,6 +42,7 @@ pub struct CsvColumnConfig {
   pub include_dynamic: bool,
   pub include_clade_founder_muts: bool,
   pub include_rel_muts: bool,
+  pub include_mut_patterns: bool,
 }
 
 impl CsvColumnConfig {
@@ -81,6 +82,8 @@ impl CsvColumnConfig {
 
       let include_clade_founder_muts = categories.contains(&CsvColumnCategory::CladeFounderMuts);
 
+      let include_mut_patterns = categories.contains(&CsvColumnCategory::MutPatterns);
+
       let categories = categories
         .into_iter()
         .filter_map(|category| {
@@ -95,6 +98,7 @@ impl CsvColumnConfig {
         include_dynamic,
         include_clade_founder_muts,
         include_rel_muts,
+        include_mut_patterns,
       })
     }
   }
@@ -108,6 +112,7 @@ impl Default for CsvColumnConfig {
       include_dynamic: true,
       include_clade_founder_muts: true,
       include_rel_muts: true,
+      include_mut_patterns: true,
     }
   }
 }
@@ -198,17 +203,6 @@ pub static CSV_COLUMN_CONFIG_MAP_DEFAULT: LazyLock<CsvColumnConfigMap> = LazyLoc
       o!("qc.stopCodons.totalStopCodons") => true,
       o!("qc.stopCodons.score") => true,
       o!("qc.stopCodons.status") => true,
-    },
-    CsvColumnCategory::MutPatterns => indexmap! {
-      o!("mutationPatterns.id") => true,
-      o!("mutationPatterns.name") => true,
-      o!("mutationPatterns.description") => true,
-      o!("mutationPatterns.counts.matches") => true,
-      o!("mutationPatterns.counts.clustered") => true,
-      o!("mutationPatterns.counts.clusters") => true,
-      o!("mutationPatterns.eventTypeCounts") => true,
-      o!("mutationPatterns.clusters") => true,
-      o!("mutationPatterns.clusterEvents") => true,
     },
     CsvColumnCategory::Primers => indexmap! {
       o!("totalPcrPrimerChanges") => true,

@@ -25,6 +25,7 @@ import {
   cdsesAtom,
   cladeNodeAttrDescsAtom,
   csvColumnConfigAtom,
+  mutationPatternKeysAtom,
   phenotypeAttrDescsAtom,
   refNodesAtom,
   treeAtom,
@@ -153,6 +154,7 @@ async function prepareCsvData(
   phenotypeAttrDescs: PhenotypeAttrDesc[] | undefined,
   refNodes: AuspiceRefNodesDesc | undefined,
   aaMotifsDescs: AaMotifsDesc[] | undefined,
+  mutationPatternKeys: string[],
   csvColumnConfig: CsvColumnConfig,
   delimiter: string,
   worker: ExportWorker,
@@ -164,6 +166,7 @@ async function prepareCsvData(
     phenotypeAttrDescs ?? [],
     refNodes ?? {},
     aaMotifsDescs ?? [],
+    mutationPatternKeys,
     delimiter,
     csvColumnConfig,
   )
@@ -363,6 +366,7 @@ async function prepareAllExportData(
   phenotypeAttrDescs: PhenotypeAttrDesc[] | undefined,
   refNodes: AuspiceRefNodesDesc | undefined,
   aaMotifsDescs: AaMotifsDesc[] | undefined,
+  mutationPatternKeys: string[],
   csvColumnConfig: CsvColumnConfig | undefined,
   worker: ExportWorker,
 ) {
@@ -381,6 +385,7 @@ async function prepareAllExportData(
       phenotypeAttrDescs ?? [],
       refNodes,
       aaMotifsDescs ?? [],
+      mutationPatternKeys,
       csvColumnConfig,
       ';',
       worker,
@@ -392,6 +397,7 @@ async function prepareAllExportData(
       phenotypeAttrDescs ?? [],
       refNodes,
       aaMotifsDescs ?? [],
+      mutationPatternKeys,
       csvColumnConfig,
       '\t',
       worker,
@@ -423,6 +429,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
   const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
   const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
+  const mutationPatternKeys = useRecoilValue(mutationPatternKeysAtom({ datasetName })) ?? []
   const csvColumnConfig = useRecoilValue(csvColumnConfigAtom)
   const tree = useRecoilValue(treeAtom(datasetName))
   const treeNwk = useRecoilValue(treeNwkAtom({ datasetName }))
@@ -436,6 +443,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
         phenotypeAttrDescs,
         refNodes,
         aaMotifsDescs,
+        mutationPatternKeys,
         csvColumnConfig,
         worker,
       )
@@ -475,6 +483,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
       phenotypeAttrDescs,
       refNodes,
       aaMotifsDescs,
+      mutationPatternKeys,
       csvColumnConfig,
       tree,
       treeNwk,
@@ -507,6 +516,7 @@ function createCsvExportHook(delimiter: string, mimeType: string) {
     const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
     const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
     const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
+    const mutationPatternKeys = useRecoilValue(mutationPatternKeysAtom({ datasetName })) ?? []
     const csvColumnConfig = useRecoilValue(csvColumnConfigAtom)
 
     const exportFn = useCallback(
@@ -525,13 +535,14 @@ function createCsvExportHook(delimiter: string, mimeType: string) {
           phenotypeAttrDescs,
           refNodes,
           aaMotifsDescs,
+          mutationPatternKeys,
           csvColumnConfig,
           delimiter,
           worker,
         )
         saveFile(csvStr, filename, mimeType)
       },
-      [analysisResults, datasetName, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, aaMotifsDescs, csvColumnConfig],
+      [analysisResults, datasetName, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, aaMotifsDescs, mutationPatternKeys, csvColumnConfig],
     )
 
     return useResultsExport(exportFn)

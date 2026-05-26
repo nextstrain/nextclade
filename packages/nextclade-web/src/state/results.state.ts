@@ -230,6 +230,10 @@ export const [aaMotifsDescsAtom, allAaMotifsDescsAtom] = multiAtom<AaMotifsDesc[
   key: 'aaMotifsDescsAtom',
 })
 
+export const [mutationPatternKeysAtom, allMutationPatternKeysAtom] = multiAtom<string[], { datasetName: string }>({
+  key: 'mutationPatternKeysAtom',
+})
+
 export const [initialDataAtom, allInitialDataAtom] = multiAtom<AnalysisInitialData, string>({
   key: 'initialDataAtom',
 })

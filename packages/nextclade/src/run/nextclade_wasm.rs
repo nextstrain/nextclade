@@ -246,6 +246,7 @@ pub struct AnalysisInitialData {
   pub ref_nodes: AuspiceRefNodesDesc,
   pub aa_motifs_descs: Vec<AaMotifsDesc>,
   pub aa_motif_keys: Vec<String>,
+  pub mutation_pattern_keys: Vec<String>,
   pub csv_column_config_default: CsvColumnConfig,
 }
 
@@ -430,6 +431,12 @@ impl Nextclade {
       ref_nodes: self.ref_nodes.clone(),
       aa_motifs_descs: self.aa_motifs_descs.clone(),
       aa_motif_keys: self.aa_motifs_keys.clone(),
+      mutation_pattern_keys: self
+        .virus_properties
+        .mutation_patterns
+        .as_ref()
+        .map(|mp| mp.patterns.iter().map(|p| p.id.clone()).collect())
+        .unwrap_or_default(),
       csv_column_config_default: CsvColumnConfig::default(),
     }
   }
