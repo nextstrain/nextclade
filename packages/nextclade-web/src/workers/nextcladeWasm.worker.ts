@@ -156,6 +156,7 @@ export async function serializeResultsCsv(
   phenotypeAttrsJson: PhenotypeAttrDesc[],
   refNodesJson: AuspiceRefNodesDesc,
   aaMotifsDescs: AaMotifsDesc[],
+  mutationPatternKeys: string[],
   delimiter: string,
   csvColumnConfig: CsvColumnConfig,
 ) {
@@ -166,6 +167,7 @@ export async function serializeResultsCsv(
     JSON.stringify(phenotypeAttrsJson),
     JSON.stringify(refNodesJson),
     JSON.stringify(aaMotifsDescs),
+    JSON.stringify(mutationPatternKeys),
     delimiter,
     JSON.stringify(csvColumnConfig),
   )
