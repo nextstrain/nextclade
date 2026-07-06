@@ -430,9 +430,9 @@ pub fn nextclade_run_one(
     NextcladeResultWithGraph::default()
   };
 
-  // Placement-masked positions are non-comparable for recombination (C2): a masked site that differs
-  // from the parent must not be scored as `Mut`, or it could manufacture a false recombinant call at
-  // a homoplasic site. `graph` is `None` for tree-less datasets, in which case this is an empty slice
+  // Placement-masked positions are non-comparable for recombination: a masked site that differs from
+  // the parent must not be scored as `Mut`, or it could manufacture a false recombinant call at a
+  // homoplasic site. `graph` is `None` for tree-less datasets, in which case this is an empty slice
   // and the recombination closure never runs (`recombination_params` is `None`).
   let masked_ranges: &[NucRefGlobalRange] = graph
     .as_ref()
