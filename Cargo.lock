@@ -2105,6 +2105,7 @@ dependencies = [
 name = "nextclade"
 version = "3.21.2"
 dependencies = [
+ "approx",
  "assert2",
  "auto_ops",
  "base64",

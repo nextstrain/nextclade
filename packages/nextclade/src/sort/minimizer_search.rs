@@ -62,7 +62,10 @@ pub fn run_minimizer_search(
     let reff = &index.references[i];
 
     let qry_hits = hit_counts[i] as f64;
-    let ref_minimizers = reff.n_minimizers as f64;
+    // Prefer the exact fractional expectation when the index provides it; fall back to the rounded
+    // integer for older indexes that predate the `expectedMinimizerHits` field.
+    #[allow(deprecated)] // deprecated `n_minimizers` read intentionally as the backward-compat fallback
+    let ref_minimizers = reff.expected_minimizer_hits.unwrap_or(reff.n_minimizers as f64);
     let ref_len = reff.length as f64;
     let qry_len = fasta_record.seq.len() as f64;
     scores[i] = (qry_hits / ref_minimizers) * (ref_len / qry_len).max(1.0);
@@ -259,7 +262,7 @@ fn get_hash(kmer: &[u8], params: &MinimizerIndexParams) -> u64 {
       return cutoff + 1; // break out of loop, return hash above cutoff
     }
 
-    // A=11=3, C=10=2, G=00=0, T=01=1
+    // A=11=3, C=01=1, G=00=0, T=10=2
     if "AC".contains(nuc) {
       x += 1 << j;
     }
@@ -294,4 +297,89 @@ pub fn get_ref_search_minimizers(seq: &FastaRecord, params: &MinimizerIndexParam
 
 fn preprocess_seq(seq: impl AsRef<str>) -> String {
   seq.as_ref().to_uppercase().replace('-', "")
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::io::fasta::FastaRecord;
+  use crate::sort::minimizer_index::{MinimizerIndexParams, MinimizerIndexRefInfo, MinimizerMap};
+  use crate::sort::params::NextcladeSeqSortParams;
+  use approx::assert_ulps_eq;
+  use rstest::rstest;
+  use serde_json::Value;
+
+  // Deterministic pseudo-random ACGT sequence (LCG), avoids long inline fixtures while producing enough
+  // distinct k-mers to clear the min_hits threshold.
+  fn make_seq(n: usize) -> String {
+    let bases = [b'A', b'C', b'G', b'T'];
+    let mut x: u64 = 0x2545_F491_4F6C_DD1D;
+    std::iter::repeat_with(|| {
+      x = x.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+      bases[((x >> 33) & 3) as usize] as char
+    })
+    .take(n)
+    .collect()
+  }
+
+  // Score a single reference whose stored minimizer set matches every query minimizer, with
+  // ref_len == qry_len so the length factor is 1. The score reduces to qry_hits / denominator, where the
+  // denominator is expected_minimizer_hits when present, else n_minimizers. Denominators are expressed as
+  // multiples of the realized query hit count so the expected score is exact regardless of that count.
+  fn single_ref_score(expected_mult: Option<f64>, n_minimizers_mult: f64) -> f64 {
+    let params = MinimizerIndexParams {
+      k: 17,
+      cutoff: 1 << 28,
+      other: Value::Null,
+    };
+    let seq = make_seq(4000);
+    let record = FastaRecord {
+      seq_name: "q".to_owned(),
+      seq: seq.clone(),
+      index: 0,
+    };
+
+    let mzs = get_ref_search_minimizers(&record, &params);
+    let n_hits = mzs.len() as f64;
+    assert!(n_hits >= 10.0, "fixture must clear min_hits, got {n_hits}");
+    let minimizers: MinimizerMap = mzs.into_iter().map(|m| (m, vec![0_usize])).collect();
+
+    #[allow(deprecated)] // constructs the deprecated `n_minimizers` to exercise the fallback path
+    let index = MinimizerIndexJson {
+      schema: String::new(),
+      schema_version: "3.0.0".to_owned(),
+      version: "1".to_owned(),
+      params,
+      minimizers,
+      references: vec![MinimizerIndexRefInfo {
+        length: seq.len() as i64,
+        name: "ref".to_owned(),
+        n_minimizers: (n_hits * n_minimizers_mult) as i64,
+        expected_minimizer_hits: expected_mult.map(|m| m * n_hits),
+        other: Value::Null,
+      }],
+      normalization: vec![],
+      other: Value::Null,
+    };
+
+    let result = run_minimizer_search(&record, &index, &NextcladeSeqSortParams::default()).unwrap();
+    result.datasets[0].score
+  }
+
+  // Denominator selection. The `prefers` case models the multi-reference regime: `n_minimizers = 4*hits`
+  // stands for the merged-union count and `expected = 2*hits` for the per-reference expectation; the
+  // score `0.5` proves the union denominator is not used (that would give `0.25`). The `falls_back` case
+  // exercises an older index with no `expectedMinimizerHits`.
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::prefers_expected_hits(      Some(2.0), 4.0, 0.5)]
+  #[case::falls_back_to_n_minimizers( None,      2.0, 0.5)]
+  #[trace]
+  fn test_minimizer_search_denominator(
+    #[case] expected_mult: Option<f64>,
+    #[case] n_minimizers_mult: f64,
+    #[case] expected_score: f64,
+  ) {
+    assert_ulps_eq!(single_ref_score(expected_mult, n_minimizers_mult), expected_score, max_ulps = 4);
+  }
 }
