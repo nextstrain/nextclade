@@ -50,7 +50,7 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
     let minimizer_index_path = index
       .minimizer_index
       .iter()
-      .find(|minimizer_index| MINIMIZER_INDEX_ALGO_VERSION == minimizer_index.version)
+      .find(|mi| u64::from_str(&mi.version).is_ok_and(|v| v == MINIMIZER_INDEX_ALGO_VERSION))
       .map(|minimizer_index| &minimizer_index.path);
 
     if let Some(minimizer_index_path) = minimizer_index_path {

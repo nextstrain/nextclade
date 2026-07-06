@@ -26,8 +26,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use validator::Validate;
 
-const PATHOGEN_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
-const PATHOGEN_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
+const PATHOGEN_JSON_SCHEMA_VERSION_FROM: Version = Version::new(3, 0, 0);
+const PATHOGEN_JSON_SCHEMA_VERSION_TO: Version = Version::new(3, 0, 0);
 
 /// Pathogen metadata attributes with recognized keys and extensibility
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
@@ -442,8 +442,8 @@ impl VirusProperties {
       s,
       &SchemaVersionParams {
         name: "pathogen.json",
-        ver_from: Some(PATHOGEN_JSON_SCHEMA_VERSION_FROM),
-        ver_to: Some(PATHOGEN_JSON_SCHEMA_VERSION_TO),
+        ver_from: Some(PATHOGEN_JSON_SCHEMA_VERSION_FROM.clone()),
+        ver_to: Some(PATHOGEN_JSON_SCHEMA_VERSION_TO.clone()),
       },
     );
 
