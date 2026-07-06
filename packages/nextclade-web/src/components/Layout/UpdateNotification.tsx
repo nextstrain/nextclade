@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react'
 import { isNil } from 'lodash'
+import semver from 'semver'
 import urljoin from 'url-join'
 import { useAxiosQueryOrUndefined } from 'src/helpers/useAxiosQuery'
 import {
@@ -66,7 +67,7 @@ export function UpdateNotification() {
     }
   }, [appJson, setLastNotifiedAppVersion])
 
-  if (isNil(appJson) || !(appJson.version > (lastNotifiedAppVersion ?? PACKAGE_VERSION ?? ''))) {
+  if (isNil(appJson) || !semver.gt(appJson.version, lastNotifiedAppVersion ?? PACKAGE_VERSION ?? '0.0.0')) {
     return null
   }
 
