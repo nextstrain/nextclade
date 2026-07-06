@@ -13,6 +13,7 @@ import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
+import { SequenceMarkerRecombination } from './SequenceMarkerRecombination'
 import { SequenceViewCoverageWrapper, SequenceViewCoverageText, SequenceViewSVG } from './SequenceViewStyles'
 
 export interface SequenceViewAbsoluteProps {
@@ -32,6 +33,7 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
     insertions,
     nucToAaMuts,
     nonACGTNs,
+    recombination,
   } = sequence
 
   const { t } = useTranslationSafe()
@@ -113,8 +115,23 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
     />
   ))
 
+  const recombinationMarkers = (recombination?.regions ?? []).map((region) => (
+    <SequenceMarkerRecombination
+      key={`recombination_${region.begin}-${region.end}`}
+      index={index}
+      seqName={seqName}
+      region={region}
+      pixelsPerBase={pixelsPerBase}
+    />
+  ))
+
   const totalMarkers =
-    mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length + insertionViews.length
+    mutationViews.length +
+    deletionViews.length +
+    missingViews.length +
+    frameShiftMarkers.length +
+    insertionViews.length +
+    recombinationMarkers.length
   if (totalMarkers > maxNucMarkers) {
     return (
       <SequenceViewCoverageWrapper>
@@ -164,6 +181,7 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
         pixelsPerBase={pixelsPerBase}
       />
       {frameShiftMarkers}
+      {recombinationMarkers}
     </SequenceViewSVG>
   )
 }
