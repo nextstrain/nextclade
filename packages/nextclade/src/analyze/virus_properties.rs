@@ -79,6 +79,10 @@ pub struct VirusProperties {
   #[serde(default, skip_serializing_if = "DatasetFiles::is_default")]
   pub files: DatasetFiles,
 
+  /// Reference sequences used to build this dataset's entry in the shared minimizer index for dataset suggestion. Build-time metadata: read when generating the index, ignored during analysis.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub minimizer_index: Option<MinimizerIndexConfig>,
+
   /// CDS shown by default in the Nextclade Web sequence view (e.g. "S", "HA1").
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub default_cds: Option<String>,
@@ -133,6 +137,18 @@ pub struct VirusProperties {
   /// Contact and documentation URLs for dataset maintainers.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub maintenance: Option<DatasetMaintenance>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
+/// Configuration for building this dataset's entry in the shared minimizer index used for dataset suggestion (`nextclade sort`).
+#[derive(Clone, Default, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MinimizerIndexConfig {
+  /// FASTA files, relative to the dataset directory, whose sequences all contribute minimizers to this dataset's suggestion fingerprint. When absent, the dataset's main reference sequence is used.
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub references: Vec<String>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
@@ -412,6 +428,7 @@ impl VirusProperties {
       shortcuts: vec_of_owned!["flu_h3n2_ha_broad", "nextstrain/flu/h3n2/ha/wisconsin-67-2005"],
       meta: DatasetMeta::default(),
       files: DatasetFiles::default(),
+      minimizer_index: None,
       default_cds: Some(o!("HA1")),
       cds_order_preference: vec_of_owned!["HA1", "HA2"],
       mut_labels: LabelledMutationsConfig::example(),
@@ -455,5 +472,29 @@ impl VirusProperties {
       .compatibility
       .as_ref()
       .is_none_or(|compat| compat.is_cli_compatible(current_cli_version))
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use pretty_assertions::assert_eq;
+
+  #[test]
+  fn test_virus_properties_parses_minimizer_index() {
+    let json = r#"{"schemaVersion":"3.0.0","minimizerIndex":{"references":["minimizer_refs/additional_refs.fasta"]}}"#;
+    let props = VirusProperties::from_str(&json).unwrap();
+    let mi = props
+      .minimizer_index
+      .expect("minimizerIndex should parse into the typed field");
+    assert_eq!(vec_of_owned!["minimizer_refs/additional_refs.fasta"], mi.references);
+    assert!(props.other.get("minimizerIndex").is_none());
+  }
+
+  #[test]
+  fn test_virus_properties_minimizer_index_absent_is_none() {
+    let json = r#"{"schemaVersion":"3.0.0"}"#;
+    let props = VirusProperties::from_str(&json).unwrap();
+    assert_eq!(None, props.minimizer_index);
   }
 }
