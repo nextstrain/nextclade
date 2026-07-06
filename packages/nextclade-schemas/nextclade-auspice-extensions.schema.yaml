@@ -359,6 +359,11 @@ definitions:
         anyOf:
         - $ref: '#/definitions/QcConfig'
         - type: 'null'
+      recombination:
+        description: Recombination detection configuration. If absent, detection runs with all parameters estimated.
+        anyOf:
+        - $ref: '#/definitions/RecombinationConfig'
+        - type: 'null'
       generalParams:
         description: General analysis parameters (e.g. includeReference, inOrder, replaceUnknown).
         anyOf:
@@ -827,6 +832,35 @@ definitions:
         type: integer
         format: uint
         minimum: 0.0
+  RecombinationConfig:
+    description: |-
+      Dataset configuration for recombination detection, as it appears in `pathogen.json`.
+
+      Each parameter is optional and resolved independently: a value given here is used verbatim, otherwise a fallback is computed from the reference and reference tree (`gamma = 1 / ref_len`, `mu_w`/`mu_r` estimated from the tree). An absent config object, or one with `enabled` omitted, leaves the feature enabled (see `RecombinationConfig::is_enabled`).
+    type: object
+    properties:
+      enabled:
+        description: Whether recombination detection runs for this dataset. Enabled by default.
+        default: true
+        type: boolean
+      gamma:
+        description: State transition rate override. When absent, defaults to `1 / ref_len`.
+        type:
+        - number
+        - 'null'
+        format: double
+      muW:
+        description: Wildtype mutation emission probability override. When absent, estimated from the tree.
+        type:
+        - number
+        - 'null'
+        format: double
+      muR:
+        description: Recombinant mutation emission probability override. When absent, estimated from the tree.
+        type:
+        - number
+        - 'null'
+        format: double
   NextcladeGeneralParamsOptional:
     type: object
     properties:
