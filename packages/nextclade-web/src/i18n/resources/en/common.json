@@ -315,6 +315,7 @@
   "Private Mutations": "Private Mutations",
   "Protein": "Protein",
   "Provide sequence data": "Provide sequence data",
+  "Putative recombinant": "Putative recombinant",
   "QC": "QC",
   "QC score: {{score}}": "QC score: {{score}}",
   "QC score: {{score}}. Reverted substitutions: {{numReversionSubstitutions}}, Labeled substitutions: {{numLabeledSubstitutions}}, Unlabeled substitutions: {{numUnlabeledSubstitutions}}, Deletion ranges: {{totalDeletionRanges}}. Weighted total: {{weightedTotal}}": "QC score: {{score}}. Reverted substitutions: {{numReversionSubstitutions}}, Labeled substitutions: {{numLabeledSubstitutions}}, Unlabeled substitutions: {{numUnlabeledSubstitutions}}, Deletion ranges: {{totalDeletionRanges}}. Weighted total: {{weightedTotal}}",

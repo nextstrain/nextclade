@@ -6,6 +6,7 @@ import type {
   AnalysisResult,
   AuspiceRefNodesDesc,
   PhenotypeAttrDesc,
+  RecombinationHmmParams,
 } from 'src/types'
 import { Thread } from 'threads'
 import type { NextcladeWasmThread } from 'src/workers/nextcladeWasm.worker'
@@ -64,6 +65,7 @@ export class ExportWorker {
     cladeNodeAttrsJson: CladeNodeAttrDesc[],
     phenotypeAttrsJson: PhenotypeAttrDesc[],
     refNodes: AuspiceRefNodesDesc,
+    recombinationParams: RecombinationHmmParams | undefined,
     nextcladeWebVersion: string,
   ): Promise<string> {
     return this.call((thread) =>
@@ -73,6 +75,7 @@ export class ExportWorker {
         cladeNodeAttrsJson,
         phenotypeAttrsJson,
         refNodes,
+        recombinationParams,
         nextcladeWebVersion,
       ),
     )

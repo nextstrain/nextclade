@@ -12,6 +12,7 @@ import type {
   AuspiceRefNodesDesc,
   CsvColumnConfig,
   PhenotypeAttrDesc,
+  RecombinationHmmParams,
 } from 'src/types'
 import type { CladeNodeAttrDesc } from 'auspice'
 import { DatasetAssignment, selectDatasetErrors } from 'src/helpers/datasetAssignment'
@@ -26,6 +27,7 @@ import {
   cdsesAtom,
   cladeNodeAttrDescsAtom,
   csvColumnConfigAtom,
+  initialDataAtom,
   mutationPatternKeysAtom,
   phenotypeAttrDescsAtom,
   refNodesAtom,
@@ -181,6 +183,7 @@ async function prepareJsonData(
   cladeNodeAttrDescs: CladeNodeAttrDesc[] | undefined,
   phenotypeAttrDescs: PhenotypeAttrDesc[] | undefined,
   refNodes: AuspiceRefNodesDesc | undefined,
+  recombinationParams: RecombinationHmmParams | undefined,
   worker: ExportWorker,
 ): Promise<string> {
   return worker.serializeResultsJson(
@@ -189,6 +192,7 @@ async function prepareJsonData(
     cladeNodeAttrDescs ?? [],
     phenotypeAttrDescs ?? [],
     refNodes ?? {},
+    recombinationParams,
     PACKAGE_VERSION,
   )
 }
@@ -271,16 +275,25 @@ export function useExportJson({ datasetName }: { datasetName: string }) {
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
   const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
+  const recombinationParams = useRecoilValue(initialDataAtom(datasetName))?.recombinationParams
 
   const exportFn = useCallback(
     async (filename: string, worker: ExportWorker) => {
       const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
       const errors = selectErrors(analysisResults, datasetName, datasetAssignment)
 
-      const jsonStr = await prepareJsonData(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, worker)
+      const jsonStr = await prepareJsonData(
+        results,
+        errors,
+        cladeNodeAttrDescs,
+        phenotypeAttrDescs,
+        refNodes,
+        recombinationParams,
+        worker,
+      )
       saveFile(jsonStr, filename, 'application/json;charset=utf-8')
     },
-    [analysisResults, datasetName, datasetAssignment, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes],
+    [analysisResults, datasetName, datasetAssignment, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, recombinationParams],
   )
 
   return useResultsExport(exportFn)
@@ -361,6 +374,7 @@ async function prepareAllExportData(
   cladeNodeAttrDescs: CladeNodeAttrDesc[] | undefined,
   phenotypeAttrDescs: PhenotypeAttrDesc[] | undefined,
   refNodes: AuspiceRefNodesDesc | undefined,
+  recombinationParams: RecombinationHmmParams | undefined,
   aaMotifsDescs: AaMotifsDesc[] | undefined,
   mutationPatternKeys: string[],
   csvColumnConfig: CsvColumnConfig | undefined,
@@ -398,7 +412,7 @@ async function prepareAllExportData(
       '\t',
       worker,
     ),
-    prepareJsonData(results, errors, cladeNodeAttrDescs ?? [], phenotypeAttrDescs ?? [], refNodes, worker),
+    prepareJsonData(results, errors, cladeNodeAttrDescs ?? [], phenotypeAttrDescs ?? [], refNodes, recombinationParams, worker),
     worker.serializeResultsNdjson(results, errors),
     worker.serializeResultsGff(results),
     worker.serializeResultsTbl(results),
@@ -425,6 +439,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
   const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
+  const recombinationParams = useRecoilValue(initialDataAtom(datasetName))?.recombinationParams
   const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
   const mutationPatternKeys = useRecoilValue(mutationPatternKeysAtom({ datasetName })) ?? NO_MUTATION_PATTERN_KEYS
   const csvColumnConfig = useRecoilValue(csvColumnConfigAtom)
@@ -440,6 +455,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
         cladeNodeAttrDescs,
         phenotypeAttrDescs,
         refNodes,
+        recombinationParams,
         aaMotifsDescs,
         mutationPatternKeys,
         csvColumnConfig,
@@ -481,6 +497,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
       cladeNodeAttrDescs,
       phenotypeAttrDescs,
       refNodes,
+      recombinationParams,
       aaMotifsDescs,
       mutationPatternKeys,
       csvColumnConfig,
