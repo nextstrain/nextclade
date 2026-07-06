@@ -9,9 +9,6 @@
 //! state, trimmed so their endpoints fall on covered positions, are reported as putative
 //! recombinant intervals. When forward-backward is run, each interval receives a confidence score
 //! (mean posterior marginal probability of the recombinant state).
-//!
-//! The method and default parameters follow Marco Molari's prototype
-//! <https://github.com/mmolari/recomb_inference> and issue #1768.
 
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::NucDelRange;
@@ -71,8 +68,8 @@ fn intervals_sorted_disjoint_nonempty(intervals: &[NucRefGlobalRange], len: usiz
 
 /// Trim each interval so its endpoints fall on covered positions, dropping leading and trailing
 /// `Missing` runs (uncovered flanks and deletions relative to the reference). Internal `Missing`
-/// stretches stay bridged: the recombinant call already spans them, and the issue asks specifically
-/// to avoid annotating leading and trailing deletion ranges, not internal ones. An interval with no
+/// stretches stay bridged: the recombinant call already spans them, and only leading and trailing
+/// deletion ranges should be excluded from the annotation, not internal ones. An interval with no
 /// covered position (all `Missing`) carries no evidence and is dropped.
 fn trim_intervals_to_covered(intervals: Vec<NucRefGlobalRange>, obs: &[RecombinationObs]) -> Vec<NucRefGlobalRange> {
   let covered = |i: usize| obs.get(i).is_some_and(|o| *o != RecombinationObs::Missing);
@@ -892,9 +889,9 @@ mod tests {
     }
   }
 
-  // T2 wiring (guards C2): the assembled missing set must contain every input range, including the
-  // placement-masked ranges. Removing the `masked` term from `recombination_missing_ranges` drops
-  // the masked range and fails this test, so the mask chaining cannot silently regress.
+  // The assembled missing set must contain every input range, including the placement-masked ranges.
+  // Dropping the `masked` term from `recombination_missing_ranges` would fail this test, so the mask
+  // chaining cannot silently regress.
   #[test]
   fn test_recombination_missing_ranges_includes_masked() {
     let missing = vec![nuc_range(0, 2)];
@@ -913,10 +910,10 @@ mod tests {
     );
   }
 
-  // T2 precedence (guards C4): fed through the same chain as `nextclade_run_one`, a position that is
-  // both masked and mutated resolves to `Missing`; an unmasked mutation resolves to `Mut`; positions
-  // outside the alignment are `Missing`; and the vector length equals `ref_len`. Reverting C4 (Missing
-  // before Mut) makes the masked+mutated position decode to `Mut` and fails this test.
+  // Fed through the same chain as `nextclade_run_one`, a position that is both masked and mutated
+  // resolves to `Missing`; an unmasked mutation resolves to `Mut`; positions outside the alignment are
+  // `Missing`; and the vector length equals `ref_len`. If missing ranges stopped taking precedence over
+  // mutations, the masked+mutated position would decode to `Mut` and fail this test.
   #[test]
   fn test_recombination_build_observations_masked_mutation_is_missing() {
     use RecombinationObs::{Missing, Mut, Ref};
@@ -937,9 +934,9 @@ mod tests {
     assert_eq!(ref_len, observed.len());
   }
 
-  // T3 Property A: structural invariants of the decoded regions hold for any observation vector and any
-  // valid parameters. Property B: a planted recombinant block is recovered. Parameters are built valid
-  // by construction (gamma < 0.5, 0 < mu_w < mu_r < 1) and through `new().unwrap()` -- a failure there
+  // Two properties: structural invariants of the decoded regions hold for any observation vector and
+  // any valid parameters, and a planted recombinant block is recovered. Parameters are built valid by
+  // construction (gamma < 0.5, 0 < mu_w < mu_r < 1) and through `new().unwrap()` -- a failure there
   // means the model preconditions drifted.
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(1000))]
