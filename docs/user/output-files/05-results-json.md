@@ -10,6 +10,8 @@ This section describes JSON/NDJSON output.
 
 JSON and NDJSON results files contain everything tabular files contain, plus more, in a more machine-friendly format.
 
+Each entry in the `results` array carries a `recombination` object when [recombination detection](../algorithm/08-recombination-detection.md) ran: `regions` (putative recombinant interval ranges, 0-indexed and semi-open like other JSON ranges), `totalRegions`, `totalLength`, and `longestRegion`. The effective HMM parameters used for the run are reported once at the top level of the plain JSON as `recombinationParams` (`gamma`, `muW`, `muR`). Both are absent when detection did not run for the dataset.
+
 NDJSON file (newline-delimited JSON) combines only `results` and `errors` arrays from the plain JSON file. JSON file contains some additional metadata compared to NDJSON. But plain JSON, due to its structure, cannot be used for runs with large number of sequences (it cannot be streamed line-by-line and information has to be retained in memory until the end of run).
 
 > ⚠️ JSON and NDJSON formats are unstable and can be changed without notice.

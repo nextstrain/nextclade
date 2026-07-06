@@ -52,6 +52,8 @@ In the screenshot below, the mouse hovers over a _20J (Gamma)_ sequence. The too
 
 ![Mutations tooltip](../assets/web_mut-tooltip.png)
 
+When a dataset has recombination detection enabled, putative recombinant regions are highlighted in the alignment/parent view and reported as an extra output column (number of regions, total length, longest region, coordinates). See [Recombination detection](../algorithm/08-recombination-detection.md).
+
 Some datasets, like SARS-CoV-2 and influenza have extra columns with additional information, e.g. gain/loss of glycosylation sites or immune escape score. For details, hover over the column header or consult the datasets' summary page (README).
 
 ### Alignment viewer

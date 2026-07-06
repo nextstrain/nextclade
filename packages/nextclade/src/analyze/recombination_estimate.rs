@@ -1,6 +1,6 @@
 //! Estimation of recombination HMM parameters from the reference tree.
 //!
-//! The two emission probabilities are statistics of the reference tree, following the issue #1768
+//! The two emission probabilities are statistics of the reference tree, following a tree-based
 //! heuristic: `mu_w` is the mean terminal branch length (typical divergence of a newly attached
 //! sequence), and `mu_r` is the typical inter-clade divergence, estimated as the median pairwise
 //! substitution distance between leaves of different clades. Both are computed as substitution counts
