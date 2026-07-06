@@ -11,6 +11,7 @@ use crate::io::dataset::{DatasetCompatibility, DatasetFiles, DatasetMeta, Datase
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
+use crate::analyze::recombination::RecombinationConfig;
 use crate::qc::qc_config::QcConfig;
 use crate::run::params_general::NextcladeGeneralParamsOptional;
 use crate::tree::params::TreeBuilderParamsOptional;
@@ -378,6 +379,10 @@ pub struct VirusProperties {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub mutation_patterns: Option<MutationPatternsConfig>,
 
+  /// Recombination detection configuration. If absent, detection runs with all parameters estimated.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub recombination: Option<RecombinationConfig>,
+
   /// General analysis parameters (e.g. includeReference, inOrder, replaceUnknown).
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub general_params: Option<NextcladeGeneralParamsOptional>,
@@ -713,6 +718,7 @@ impl VirusProperties {
       mut_labels: LabelledMutationsConfig::example(),
       qc: Some(QcConfig::example()),
       mutation_patterns: Some(MutationPatternsConfig::example()),
+      recombination: None,
       general_params: None,
       alignment_params: None,
       tree_builder_params: None,
