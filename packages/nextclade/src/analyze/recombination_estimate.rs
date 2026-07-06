@@ -47,10 +47,89 @@ pub fn resolve_recombination_params(
 
   // A meaningful model requires elevated mutation density in the recombinant state.
   if mu_r <= mu_w {
-    return Ok(None);
+    let both_explicit = config.and_then(|c| c.mu_w).is_some() && config.and_then(|c| c.mu_r).is_some();
+    if both_explicit {
+      return make_error!(
+        "Recombination parameters in pathogen.json require muR > muW, but got muW={mu_w} and muR={mu_r}"
+      );
+    }
+    return Ok(RecombinationResolution::Skipped(
+      RecombinationSkipReason::RecombinantRateNotElevated { mu_w, mu_r },
+    ));
   }
 
-  Ok(Some(RecombinationHmmParams { gamma, mu_w, mu_r }))
+  Ok(RecombinationResolution::Resolved(RecombinationHmmParams::new(
+    gamma, mu_w, mu_r,
+  )?))
+}
+
+/// Outcome of resolving recombination parameters for a dataset.
+#[derive(Debug, Clone)]
+pub enum RecombinationResolution {
+  /// Detection runs with these parameters.
+  Resolved(RecombinationHmmParams),
+  /// Detection is skipped for the stated reason. Not an error: the dataset cannot support detection.
+  Skipped(RecombinationSkipReason),
+}
+
+/// Why recombination detection was skipped for a dataset despite being enabled.
+#[derive(Debug, Clone)]
+pub enum RecombinationSkipReason {
+  /// The reference tree has fewer than two clades, so inter-clade divergence (`muR`) is undefined.
+  FewerThanTwoClades,
+  /// A required parameter could not be estimated from the tree (degenerate topology or no leaves).
+  TreeEstimateUnavailable,
+  /// The estimated recombinant rate does not exceed the wildtype rate, so the states are indistinguishable.
+  RecombinantRateNotElevated { mu_w: f64, mu_r: f64 },
+}
+
+impl RecombinationSkipReason {
+  /// Human-readable explanation, for logs and the per-sequence `warnings` output.
+  pub fn message(&self) -> String {
+    match self {
+      Self::FewerThanTwoClades => {
+        "the reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated"
+          .to_owned()
+      }
+      Self::TreeEstimateUnavailable => {
+        "a required parameter could not be estimated from the reference tree (degenerate topology)".to_owned()
+      }
+      Self::RecombinantRateNotElevated { mu_w, mu_r } => {
+        format!("the estimated recombinant divergence rate does not exceed the wildtype rate (muW={mu_w}, muR={mu_r})")
+      }
+    }
+  }
+}
+
+/// Resolve one parameter: a validated `pathogen.json` override takes precedence over the estimate.
+/// An out-of-range explicit override is a dataset-level error; an absent override with an undefined
+/// estimate yields `None`, so the caller skips detection.
+fn resolve_param(
+  name: &str,
+  override_val: Option<OrderedFloat<f64>>,
+  estimate: Option<f64>,
+) -> Result<Option<f64>, Report> {
+  match override_val {
+    Some(value) => {
+      let value = value.0;
+      if !(value.is_finite() && value > 0.0 && value < 1.0) {
+        return make_error!(
+          "Recombination parameter `{name}` in pathogen.json must be in the open interval (0, 1), but got {value}"
+        );
+      }
+      Ok(Some(value))
+    }
+    None => Ok(estimate),
+  }
+}
+
+/// Number of distinct clade labels present in the tree.
+fn count_clades(graph: &AuspiceGraph) -> usize {
+  graph
+    .iter_nodes()
+    .filter_map(|node| node.payload().clade())
+    .unique()
+    .count()
 }
 
 /// Transition rate fallback: one expected state switch per genome length.
@@ -109,7 +188,11 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
 
 /// Number of nucleotide substitutions/mutations on the branch leading to this node.
 fn nuc_mutation_count(payload: &AuspiceGraphNodePayload) -> usize {
-  payload.branch_attrs.mutations.get(NUC_MUTATIONS_KEY).map_or(0, Vec::len)
+  payload
+    .branch_attrs
+    .mutations
+    .get(NUC_MUTATIONS_KEY)
+    .map_or(0, Vec::len)
 }
 
 /// Substitution distance between two clade founders: the mutation count along the path through their
@@ -178,7 +261,7 @@ fn median(values: &[f64]) -> Option<f64> {
   Some(if sorted.len() % 2 == 1 {
     sorted[mid]
   } else {
-    (sorted[mid - 1] + sorted[mid]) / 2.0
+    f64::midpoint(sorted[mid - 1], sorted[mid])
   })
 }
 
@@ -259,6 +342,17 @@ mod tests {
     AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
   }
 
+  // Exact equality is correct here: the estimator performs the same deterministic integer arithmetic
+  // (small counts divided by ref_len), so results are bit-identical to the expected literals.
+  /// Unwrap a resolution to its parameters, panicking with context otherwise.
+  fn resolved(resolution: RecombinationResolution) -> RecombinationHmmParams {
+    match resolution {
+      RecombinationResolution::Resolved(params) => params,
+      skipped @ RecombinationResolution::Skipped(_) => panic!("expected resolved parameters, got {skipped:?}"),
+    }
+  }
+
+  #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_all_params_from_tree() {
     let graph = two_clade_tree();
@@ -268,6 +362,7 @@ mod tests {
     assert_eq!(3.0 / 100.0, params.mu_r);
   }
 
+  #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_config_override_is_used_verbatim() {
     let graph = two_clade_tree();
@@ -277,7 +372,9 @@ mod tests {
       mu_w: None,
       mu_r: None,
     };
-    let params = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap().unwrap();
+    let params = resolve_recombination_params(Some(&config), &graph, REF_LEN)
+      .unwrap()
+      .unwrap();
     assert_eq!(0.5, params.gamma);
     assert_eq!(2.0 / 100.0, params.mu_w);
     assert_eq!(3.0 / 100.0, params.mu_r);
@@ -287,7 +384,83 @@ mod tests {
   fn test_recombination_estimate_single_clade_is_unresolved() {
     let graph = single_clade_tree();
     // mu_r is undefined with a single clade and there is no override, so the model is skipped.
-    assert_eq!(None, resolve_recombination_params(None, &graph, REF_LEN).unwrap());
+    let resolution = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
+    assert!(
+      matches!(
+        resolution,
+        RecombinationResolution::Skipped(RecombinationSkipReason::FewerThanTwoClades)
+      ),
+      "got {resolution:?}"
+    );
+  }
+
+  #[test]
+  fn test_recombination_estimate_skips_when_recombinant_rate_not_elevated() {
+    let graph = two_clade_tree(); // estimated mu_w = 0.02
+    // Only muR is overridden (0.01 <= muW), so this is a degenerate estimate, not a misconfiguration: skip.
+    let config = RecombinationConfig {
+      enabled: true,
+      gamma: None,
+      mu_w: None,
+      mu_r: Some(OrderedFloat(0.01)),
+    };
+    let resolution = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();
+    assert!(
+      matches!(
+        resolution,
+        RecombinationResolution::Skipped(RecombinationSkipReason::RecombinantRateNotElevated { .. })
+      ),
+      "got {resolution:?}"
+    );
+  }
+
+  #[test]
+  fn test_recombination_estimate_errors_on_explicit_non_elevated_rate() {
+    let graph = two_clade_tree();
+    // Both rates explicit with muR <= muW: a misconfiguration, reported as a dataset-level error.
+    let config = RecombinationConfig {
+      enabled: true,
+      gamma: None,
+      mu_w: Some(OrderedFloat(0.05)),
+      mu_r: Some(OrderedFloat(0.01)),
+    };
+    let err = resolve_recombination_params(Some(&config), &graph, REF_LEN)
+      .unwrap_err()
+      .to_string();
+    assert!(err.contains("muR > muW"), "error `{err}` should require muR > muW");
+  }
+
+  #[test]
+  fn test_recombination_estimate_errors_on_out_of_range_override() {
+    let graph = two_clade_tree();
+    let config = RecombinationConfig {
+      enabled: true,
+      gamma: Some(OrderedFloat(1.5)),
+      mu_w: None,
+      mu_r: None,
+    };
+    let err = resolve_recombination_params(Some(&config), &graph, REF_LEN)
+      .unwrap_err()
+      .to_string();
+    assert!(err.contains("gamma"), "error `{err}` should name gamma");
+    assert!(
+      err.contains("open interval (0, 1)"),
+      "error `{err}` should state the (0, 1) contract"
+    );
+  }
+
+  #[allow(clippy::float_cmp)]
+  #[test]
+  fn test_recombination_estimate_three_clades_uses_nonroot_mrca() {
+    // Three clades where A and B share a non-root MRCA `I`, exercising the `- 2 * root_distance(mrca)`
+    // term with a non-zero ancestor distance (degenerate to the root in the two-clade fixture).
+    // Founder root-distances: A1=3, B1=5, C1=6. Pair distances through their MRCAs:
+    //   A1-B1 through I(rd 1): 3 + 5 - 2*1 = 6;  A1-C1 through root: 9;  B1-C1 through root: 11.
+    // median{6, 9, 11} = 9 -> mu_r = 0.09. Terminal branches 2, 4, 6 -> mean 4 -> mu_w = 0.04.
+    let graph = three_clade_tree();
+    let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
+    assert_eq!(4.0 / 100.0, params.mu_w);
+    assert_eq!(9.0 / 100.0, params.mu_r);
   }
 
   #[test]

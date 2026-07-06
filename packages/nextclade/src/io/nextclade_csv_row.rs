@@ -10,6 +10,7 @@ use crate::analyze::mutation_patterns::MutationPatternEventTypeCount;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
+use crate::analyze::recombination::RecombinationResult;
 use crate::coord::range::NucRefGlobalRange;
 use crate::io::nextclade_csv::mut_pattern_cols;
 use crate::o;
@@ -75,6 +76,7 @@ impl NextcladeResultsCsvRow {
       cds_coverage,
       phenotype_values,
       qc,
+      recombination,
       custom_node_attributes,
       is_reverse_complement,
       warnings,
@@ -314,6 +316,28 @@ impl NextcladeResultsCsvRow {
     self.add_entry("alignmentEnd", &alignment_range.end.to_string())?;
     self.add_entry("coverage", coverage)?;
     self.add_entry("cdsCoverage", &format_cds_coverage(cds_coverage, ARRAY_ITEM_DELIMITER))?;
+    self.add_entry(
+      "recombinantRegions",
+      &format_recombinant_regions(recombination.as_ref(), ARRAY_ITEM_DELIMITER),
+    )?;
+    self.add_entry(
+      "totalRecombinantRegions",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.total_regions.to_string()),
+    )?;
+    self.add_entry(
+      "totalRecombinantLength",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.total_length.to_string()),
+    )?;
+    self.add_entry(
+      "longestRecombinantRegion",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.longest_region.to_string()),
+    )?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
       qc.missing_data.as_ref().map(|md| md.missing_data_threshold.to_string()),
@@ -569,6 +593,13 @@ pub fn format_nuc_substitutions_labeled(substitutions: &[NucSubLabeled], delimit
 #[inline]
 pub fn format_nuc_deletions(deletions: &[NucDelRange], delimiter: &str) -> String {
   deletions.iter().map(|del| del.range().to_string()).join(delimiter)
+}
+
+#[inline]
+pub fn format_recombinant_regions(recombination: Option<&RecombinationResult>, delimiter: &str) -> String {
+  recombination.map_or_else(String::new, |rec| {
+    rec.regions.iter().map(NucRefGlobalRange::to_string).join(delimiter)
+  })
 }
 
 #[inline]
