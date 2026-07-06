@@ -14,6 +14,7 @@ use crate::analyze::mutation_patterns::MutationPatternsResults;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
+use crate::analyze::recombination::RecombinationResult;
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
 use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
@@ -165,6 +166,9 @@ pub struct NextcladeOutputs {
   pub cds_coverage: BTreeMap<String, f64>,
   /// Quality control results including overall score, status, and per-rule results
   pub qc: QcResult,
+  /// Putative recombinant regions detected by the HMM. Absent when detection did not run.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub recombination: Option<RecombinationResult>,
   /// Clade-like attributes from the nearest tree node, keyed by attribute name
   pub custom_node_attributes: BTreeMap<String, String>,
   /// Internal graph key of the nearest reference tree node

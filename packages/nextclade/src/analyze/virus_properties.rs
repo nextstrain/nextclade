@@ -3,6 +3,7 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_changes_find_for_cds::AaChangesParamsOptional;
 use crate::analyze::aa_sub::AaGenotype;
+use crate::analyze::recombination::RecombinationConfig;
 use crate::coord::position::AaRefPosition;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::AaRefRange;
@@ -11,7 +12,6 @@ use crate::io::dataset::{DatasetCompatibility, DatasetFiles, DatasetMeta, Datase
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
 use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
-use crate::analyze::recombination::RecombinationConfig;
 use crate::qc::qc_config::QcConfig;
 use crate::run::params_general::NextcladeGeneralParamsOptional;
 use crate::tree::params::TreeBuilderParamsOptional;

@@ -8,6 +8,8 @@ use crate::analyze::find_lost_start_codons::find_cdses_with_start_codon;
 use crate::analyze::mutation_patterns::MutationPatterns;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
+use crate::analyze::recombination::{RecombinationConfig, RecombinationHmmParams};
+use crate::analyze::recombination_estimate::{RecombinationResolution, resolve_recombination_params};
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::{GeneMap, filter_gene_map};
 use crate::graph::graph::Graph;
@@ -26,6 +28,7 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::option::{OptionMapRefFallible, find_some};
 use eyre::{Report, WrapErr, eyre};
 use itertools::Itertools;
+use log::{info, warn};
 use optfield::optfield;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -246,6 +249,8 @@ pub struct AnalysisInitialData {
   pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
   pub phenotype_attr_keys: Vec<String>,
   pub ref_nodes: AuspiceRefNodesDesc,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub recombination_params: Option<RecombinationHmmParams>,
   pub aa_motifs_descs: Vec<AaMotifsDesc>,
   pub aa_motif_keys: Vec<String>,
   pub mutation_pattern_keys: Vec<String>,
@@ -304,6 +309,14 @@ pub struct Nextclade {
   pub clade_attr_descs: Vec<CladeNodeAttrKeyDesc>,
   pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
   pub ref_nodes: AuspiceRefNodesDesc,
+
+  // Recombination HMM parameters, resolved once per run from config and the reference tree.
+  // None when detection is disabled, no tree is available, or parameters could not be resolved.
+  pub recombination_params: Option<RecombinationHmmParams>,
+
+  // When recombination detection is enabled but was skipped (e.g. too few clades), the reason.
+  // Surfaced on every sequence's `warnings` output so users see why recombinant regions are absent.
+  pub recombination_skipped_warning: Option<String>,
 }
 
 pub struct InitialStateWithAa {
@@ -413,6 +426,33 @@ impl Nextclade {
     let mutation_patterns = MutationPatterns::new(virus_properties.mutation_patterns.as_ref())
       .wrap_err("When preparing mutation patterns")?;
 
+    // Recombination detection is enabled by default; resolve its parameters once from the config
+    // and the reference tree. It requires a tree (for parent-relative mutations), so it is skipped
+    // for tree-less datasets.
+    let (recombination_params, recombination_skipped_warning) = match &graph {
+      Some(graph) if RecombinationConfig::is_enabled(virus_properties.recombination.as_ref()) => {
+        // An invalid explicit `pathogen.json` override propagates as a dataset-level error here.
+        match resolve_recombination_params(virus_properties.recombination.as_ref(), graph, ref_seq.len())? {
+          RecombinationResolution::Resolved(params) => {
+            info!(
+              "Recombination detection enabled with gamma={}, muW={}, muR={}",
+              params.gamma, params.mu_w, params.mu_r
+            );
+            (Some(params), None)
+          }
+          RecombinationResolution::Skipped(reason) => {
+            let message = reason.message();
+            warn!("Recombination detection is enabled but skipped for this dataset: {message}");
+            (
+              None,
+              Some(format!("Recombination detection is enabled but was skipped: {message}")),
+            )
+          }
+        }
+      }
+      _ => (None, None),
+    };
+
     Ok(Self {
       dataset_name,
       ref_record,
@@ -435,6 +475,8 @@ impl Nextclade {
       clade_attr_descs,
       phenotype_attr_descs,
       ref_nodes,
+      recombination_params,
+      recombination_skipped_warning,
     })
   }
 
@@ -450,6 +492,7 @@ impl Nextclade {
       phenotype_attr_descs: self.phenotype_attr_descs.clone(),
       phenotype_attr_keys: self.phenotype_attr_descs.iter().map(|desc| desc.name.clone()).collect(),
       ref_nodes: self.ref_nodes.clone(),
+      recombination_params: self.recombination_params,
       aa_motifs_descs: self.aa_motifs_descs.clone(),
       aa_motif_keys: self.aa_motifs_keys.clone(),
       mutation_pattern_keys: self.mutation_patterns.ids().map(ToOwned::to_owned).collect(),
