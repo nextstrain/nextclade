@@ -55,6 +55,17 @@
         }
       ]
     },
+    "recombinationParams": {
+      "description": "Effective recombination HMM parameters used for this run. Absent when detection did not run.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RecombinationHmmParams"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "results": {
       "description": "Per-sequence analysis results for sequences that were processed",
       "type": "array",
@@ -365,6 +376,32 @@
             "string",
             "null"
           ]
+        }
+      }
+    },
+    "RecombinationHmmParams": {
+      "description": "Emission and transition parameters for the two-state recombination HMM.\n\nAll three are probabilities and must lie in the open interval `(0, 1)`; the closed endpoints produce `log(0) = -inf` in the decoder.",
+      "type": "object",
+      "required": [
+        "gamma",
+        "muR",
+        "muW"
+      ],
+      "properties": {
+        "gamma": {
+          "description": "Transition rate: probability of switching state between adjacent sites.",
+          "type": "number",
+          "format": "double"
+        },
+        "muW": {
+          "description": "Mutation emission probability in the wildtype state (background divergence).",
+          "type": "number",
+          "format": "double"
+        },
+        "muR": {
+          "description": "Mutation emission probability in the recombinant state (elevated divergence).",
+          "type": "number",
+          "format": "double"
         }
       }
     },
@@ -784,6 +821,17 @@
           "allOf": [
             {
               "$ref": "#/definitions/QcResult"
+            }
+          ]
+        },
+        "recombination": {
+          "description": "Putative recombinant regions detected by the HMM. Absent when detection did not run.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RecombinationResult"
+            },
+            {
+              "type": "null"
             }
           ]
         },
@@ -2372,6 +2420,43 @@
         },
         "codon": {
           "description": "0-indexed codon position of the stop codon within the CDS",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "RecombinationResult": {
+      "description": "Per-sequence recombination detection result: the detected regions and their summary statistics.",
+      "type": "object",
+      "required": [
+        "longestRegion",
+        "regions",
+        "totalLength",
+        "totalRegions"
+      ],
+      "properties": {
+        "regions": {
+          "description": "Putative recombinant intervals, as 0-based half-open reference ranges.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Range_for_Position"
+          }
+        },
+        "totalRegions": {
+          "description": "Number of recombinant regions.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "totalLength": {
+          "description": "Total length of all recombinant regions, in nucleotides.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "longestRegion": {
+          "description": "Length of the longest recombinant region, in nucleotides.",
           "type": "integer",
           "format": "uint",
           "minimum": 0.0

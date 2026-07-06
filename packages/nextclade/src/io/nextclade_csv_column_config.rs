@@ -136,6 +136,10 @@ pub static CSV_COLUMN_CONFIG_MAP_DEFAULT: LazyLock<CsvColumnConfigMap> = LazyLoc
       o!("coverage") => true,
       o!("cdsCoverage") => true,
       o!("isReverseComplement") => true,
+      o!("recombinantRegions") => true,
+      o!("totalRecombinantRegions") => false,
+      o!("totalRecombinantLength") => false,
+      o!("longestRecombinantRegion") => false,
     },
     CsvColumnCategory::RefMuts => indexmap! {
       o!("substitutions") => true,

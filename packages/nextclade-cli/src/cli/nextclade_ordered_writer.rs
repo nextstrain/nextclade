@@ -4,6 +4,7 @@ use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::{info, warn};
 use nextclade::alphabet::nuc::from_nuc_seq;
+use nextclade::analyze::recombination::RecombinationHmmParams;
 use nextclade::analyze::virus_properties::PhenotypeAttrDesc;
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
@@ -43,6 +44,7 @@ impl NextcladeOrderedWriter {
     clade_node_attr_descs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_key_desc: &[PhenotypeAttrDesc],
     ref_nodes: &AuspiceRefNodesDesc,
+    recombination_params: Option<RecombinationHmmParams>,
     aa_motifs_keys: &[String],
     csv_column_config: &CsvColumnConfig,
     output_params: &NextcladeRunOutputArgs,
@@ -55,7 +57,13 @@ impl NextcladeOrderedWriter {
       .map_ref_fallible(|output_translations| FastaPeptideWriter::new(gene_map, output_translations))?;
 
     let output_json_writer = output_params.output_json.map_ref_fallible(|output_json| {
-      ResultsJsonWriter::new(output_json, clade_node_attr_descs, phenotype_attr_key_desc, ref_nodes)
+      ResultsJsonWriter::new(
+        output_json,
+        clade_node_attr_descs,
+        phenotype_attr_key_desc,
+        ref_nodes,
+        recombination_params,
+      )
     })?;
 
     let output_ndjson_writer = output_params.output_ndjson.map_ref_fallible(NdjsonFileWriter::new)?;

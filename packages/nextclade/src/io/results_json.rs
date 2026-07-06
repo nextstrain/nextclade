@@ -1,3 +1,4 @@
+use crate::analyze::recombination::RecombinationHmmParams;
 use crate::analyze::virus_properties::PhenotypeAttrDesc;
 use crate::io::json::{JsonPretty, json_stringify, json_write};
 use crate::io::ndjson::NdjsonWriter;
@@ -41,6 +42,10 @@ pub struct ResultsJson {
   /// Reference node search criteria defined in the dataset
   pub ref_nodes: AuspiceRefNodesDesc,
 
+  /// Effective recombination HMM parameters used for this run. Absent when detection did not run.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub recombination_params: Option<RecombinationHmmParams>,
+
   /// Per-sequence analysis results for sequences that were processed
   pub results: Vec<NextcladeOutputs>,
 
@@ -57,6 +62,7 @@ impl ResultsJson {
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[PhenotypeAttrDesc],
     ref_nodes: &AuspiceRefNodesDesc,
+    recombination_params: Option<RecombinationHmmParams>,
   ) -> Self {
     Self {
       schema: Self::default_schema(),
@@ -67,6 +73,7 @@ impl ResultsJson {
       clade_node_attr_keys: clade_node_attrs.to_vec(),
       phenotype_attr_keys: phenotype_attr_keys.to_vec(),
       ref_nodes: ref_nodes.to_owned(),
+      recombination_params,
       results: vec![],
       errors: vec![],
     }
@@ -78,9 +85,10 @@ impl ResultsJson {
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[PhenotypeAttrDesc],
     ref_nodes: &AuspiceRefNodesDesc,
+    recombination_params: Option<RecombinationHmmParams>,
     nextclade_web_version: Option<&String>,
   ) -> Self {
-    let mut this = Self::new(clade_node_attrs, phenotype_attr_keys, ref_nodes);
+    let mut this = Self::new(clade_node_attrs, phenotype_attr_keys, ref_nodes, recombination_params);
     this.results = outputs.to_vec();
     this.errors = errors.to_vec();
     this.nextclade_web_version = nextclade_web_version.cloned();
@@ -99,10 +107,11 @@ impl ResultsJsonWriter {
     clade_node_attrs: &[CladeNodeAttrKeyDesc],
     phenotype_attr_keys: &[PhenotypeAttrDesc],
     ref_nodes: &AuspiceRefNodesDesc,
+    recombination_params: Option<RecombinationHmmParams>,
   ) -> Result<Self, Report> {
     Ok(Self {
       filepath: filepath.as_ref().to_owned(),
-      result: ResultsJson::new(clade_node_attrs, phenotype_attr_keys, ref_nodes),
+      result: ResultsJson::new(clade_node_attrs, phenotype_attr_keys, ref_nodes, recombination_params),
     })
   }
 
@@ -136,6 +145,7 @@ pub fn results_to_json_string(
   clade_node_attrs: &[CladeNodeAttrKeyDesc],
   phenotype_attr_keys: &[PhenotypeAttrDesc],
   ref_nodes: &AuspiceRefNodesDesc,
+  recombination_params: Option<RecombinationHmmParams>,
   nextclade_web_version: Option<&String>,
 ) -> Result<String, Report> {
   let results_json = ResultsJson::from_outputs(
@@ -144,6 +154,7 @@ pub fn results_to_json_string(
     clade_node_attrs,
     phenotype_attr_keys,
     ref_nodes,
+    recombination_params,
     nextclade_web_version,
   );
   json_stringify(&results_json, JsonPretty(false))

@@ -31,9 +31,10 @@ use crate::analyze::nuc_changes::{FindNucChangesOutput, find_nuc_changes};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
+use crate::analyze::recombination::{RecombinationResult, build_observations, find_recombinant_regions};
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
-use crate::coord::position::PositionLike;
+use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::{AaRefRange, NucRefGlobalRange, Range, intersect};
 use crate::gene::cds_segment::{CdsSegment, Truncation};
 use crate::gene::gene::GeneStrand;
@@ -118,6 +119,8 @@ pub fn nextclade_run_one(
     graph,
     primers,
     ref_nodes,
+    recombination_params,
+    recombination_skipped_warning,
     ..
   } = &state;
 
@@ -425,6 +428,35 @@ pub fn nextclade_run_one(
     NextcladeResultWithGraph::default()
   };
 
+  // Recombination detection: decode putative recombinant regions from the parent-relative mutation
+  // pattern. Runs only when parameters were resolved once per run (requires a reference tree).
+  let recombination = recombination_params.as_ref().map(|params| {
+    let missing_ranges: Vec<NucRefGlobalRange> = missing
+      .iter()
+      .map(|r| r.range().clone())
+      .chain(non_acgtns.iter().map(|r| r.range().clone()))
+      .chain(deletions.iter().map(|d| d.range().clone()))
+      .collect();
+    let mutated_positions: Vec<NucRefGlobalPosition> = private_nuc_mutations
+      .private_substitutions
+      .iter()
+      .map(|sub| sub.pos)
+      .collect();
+    let observations = build_observations(ref_seq.len(), &alignment_range, &missing_ranges, &mutated_positions);
+    RecombinationResult::from_regions(find_recombinant_regions(&observations, params))
+  });
+
+  // Surface a run-level recombination skip (detection enabled but unresolvable for this dataset) on
+  // every sequence's warnings, so it appears in the `warnings` output column alongside the empty
+  // recombinant-region columns. `cds_name` is blank: this is an analysis-wide warning, not CDS-scoped.
+  let mut warnings = warnings;
+  if let Some(message) = recombination_skipped_warning {
+    warnings.push(PeptideWarning {
+      cds_name: String::new(),
+      warning: message.clone(),
+    });
+  }
+
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;
   let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_translation, &translation)?;
 
@@ -508,6 +540,7 @@ pub fn nextclade_run_one(
       aa_motifs,
       aa_motifs_changes,
       qc,
+      recombination,
       clade,
       private_nuc_mutations,
       private_aa_mutations,
