@@ -70,8 +70,8 @@ impl DatasetAttributes {
   }
 }
 
-const INDEX_JSON_SCHEMA_VERSION_FROM: &str = "3.0.0";
-const INDEX_JSON_SCHEMA_VERSION_TO: &str = "3.0.0";
+const INDEX_JSON_SCHEMA_VERSION_FROM: Version = Version::new(3, 0, 0);
+const INDEX_JSON_SCHEMA_VERSION_TO: Version = Version::new(3, 0, 0);
 
 /// Top-level dataset index file (index.json). Contains all dataset collections served by a dataset server.
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
@@ -105,8 +105,8 @@ impl DatasetsIndexJson {
       &s,
       &SchemaVersionParams {
         name: "index.json",
-        ver_from: Some(INDEX_JSON_SCHEMA_VERSION_FROM),
-        ver_to: Some(INDEX_JSON_SCHEMA_VERSION_TO),
+        ver_from: Some(INDEX_JSON_SCHEMA_VERSION_FROM.clone()),
+        ver_to: Some(INDEX_JSON_SCHEMA_VERSION_TO.clone()),
       },
     );
     json_parse(s)

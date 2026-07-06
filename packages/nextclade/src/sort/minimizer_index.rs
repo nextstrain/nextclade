@@ -4,15 +4,16 @@ use crate::io::schema_version::{SchemaVersion, SchemaVersionParams};
 use eyre::{Report, WrapErr};
 use log::warn;
 use schemars::JsonSchema;
+use semver::Version;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::str::FromStr;
 
-pub const MINIMIZER_INDEX_SCHEMA_VERSION_FROM: &str = "3.0.0";
-pub const MINIMIZER_INDEX_SCHEMA_VERSION_TO: &str = "3.0.0";
-pub const MINIMIZER_INDEX_ALGO_VERSION: &str = "1";
+const MINIMIZER_INDEX_SCHEMA_VERSION_FROM: Version = Version::new(3, 0, 0);
+const MINIMIZER_INDEX_SCHEMA_VERSION_TO: Version = Version::new(3, 0, 0);
+pub const MINIMIZER_INDEX_ALGO_VERSION: u64 = 1;
 
 pub type MinimizerMap = BTreeMap<u64, Vec<usize>>;
 
@@ -98,6 +99,11 @@ pub struct VersionCheck {
   pub other: serde_json::Value,
 }
 
+pub fn check_algo_version(version: &str) -> Result<bool, Report> {
+  let data_version = u64::from_str(version).wrap_err_with(|| format!("Invalid minimizer index version: {version}"))?;
+  Ok(data_version > MINIMIZER_INDEX_ALGO_VERSION)
+}
+
 impl MinimizerIndexJson {
   fn default_schema() -> String {
     "https://raw.githubusercontent.com/nextstrain/nextclade/refs/heads/release/packages/nextclade-schemas/internal-minimizer-index-json.schema.json".to_owned()
@@ -117,18 +123,49 @@ impl MinimizerIndexJson {
       s,
       &SchemaVersionParams {
         name: "minimizer_index.json",
-        ver_from: Some(MINIMIZER_INDEX_SCHEMA_VERSION_FROM),
-        ver_to: Some(MINIMIZER_INDEX_SCHEMA_VERSION_TO),
+        ver_from: Some(MINIMIZER_INDEX_SCHEMA_VERSION_FROM.clone()),
+        ver_to: Some(MINIMIZER_INDEX_SCHEMA_VERSION_TO.clone()),
       },
     );
 
     let VersionCheck { version, .. } = json_parse(s)?;
-    if version.as_str() > MINIMIZER_INDEX_ALGO_VERSION {
+    if check_algo_version(&version)? {
       warn!(
         "Version of the minimizer index data ({version}) is greater than maximum supported by this version of Nextclade ({MINIMIZER_INDEX_ALGO_VERSION}). This may lead to errors or incorrect results. Please try to update your version of Nextclade and/or contact dataset maintainers for more details."
       );
     }
 
     json_parse(s).wrap_err("When parsing minimizer index")
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use rstest::rstest;
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::equal(           "1",  false)]
+  #[case::below(           "0",  false)]
+  #[case::above(           "2",  true)]
+  #[case::multi_digit(     "10", true)]
+  #[case::large(           "99", true)]
+  #[trace]
+  fn test_minimizer_index_check_algo_version(#[case] version: &str, #[case] expect_above_max: bool) {
+    let result = check_algo_version(version).unwrap();
+    assert_eq!(expect_above_max, result, "version={version}");
+  }
+
+  #[test]
+  fn test_minimizer_index_check_algo_version_rejects_non_numeric() {
+    drop(check_algo_version("abc").unwrap_err());
+  }
+
+  #[test]
+  fn test_minimizer_index_multi_digit_not_lexicographic() {
+    // "10" < "2" lexicographically, but 10 > 2 numerically.
+    // With MINIMIZER_INDEX_ALGO_VERSION = "1", version "10" must be detected as above max.
+    assert!(check_algo_version("10").unwrap());
   }
 }
