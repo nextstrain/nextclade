@@ -296,7 +296,13 @@ pub fn get_ref_search_minimizers(seq: &FastaRecord, params: &MinimizerIndexParam
       minimizers.push(mhash);
     }
   }
-  minimizers.into_iter().unique().collect_vec()
+  // Deduplicate distinct minimizers via sort + dedup. The consumer only needs the set of distinct
+  // hashes (order is irrelevant), so this avoids `Itertools::unique`, which allocates a SipHash-keyed
+  // `HashSet`. A wider `cutoff` admits proportionally more surviving hashes, and the SipHash dedup
+  // dominated that cost; sort + dedup on `u64` keys removes the allocation and hashing overhead.
+  minimizers.sort_unstable();
+  minimizers.dedup();
+  minimizers
 }
 
 fn preprocess_seq(seq: impl AsRef<str>) -> String {
