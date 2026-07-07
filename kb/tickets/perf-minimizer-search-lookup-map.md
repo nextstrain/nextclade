@@ -22,6 +22,22 @@ Key finding, correcting the hypothesis in the PR comment thread: the wider-cutof
 
 The extra `BTreeMap` lookups the PR comment worried about are real but secondary. They were masked in the baseline by an even more expensive per-hit reference scan; once that scan is removed (see below), the pure lookup cost of the extra (mostly missing) c31 query k-mers becomes visible at roughly +30 ms, and an isolated comparison shows a `HashMap` view resolves them ~44% faster than the `BTreeMap` (53.6 ms vs 30.1 ms for the c31 lookup stage).
 
+### Confirmed with a sampling profiler
+
+Cross-checked with `samply`/`perf` on the host (`dev/profile`, `profiling` cargo profile), sampling the single-threaded `sort` on the c31 workload. Inclusive share of total samples, `run_minimizer_search` at ~95%:
+
+| Symbol                                                | pre-fix | post-fix |
+| ----------------------------------------------------- | ------- | -------- |
+| `get_ref_search_minimizers`                           | 75%     | 81%      |
+| `get_hash` (per-k-mer hashing, incl. char membership) | 57%     | 72%      |
+| `Itertools::unique` dedup (SipHash `HashSet`)         | 14%     | 0%       |
+| ...of which `hashbrown` resize/rehash                 | 9%      | -        |
+| ...of which `SipHash` hashing                         | 6%      | -        |
+| sort + dedup (`quicksort`), post-fix replacement      | -       | 5%       |
+| `BTreeMap::get` (map lookup)                          | 10%     | 12%      |
+
+The profiler localizes the pre-fix dedup cost concretely: the SipHash `HashSet` behind `Itertools::unique` spends most of its time in `hashbrown` reserve/rehash as it grows to hold the ~8x more surviving minimizers at the wider cutoff. Post-fix these symbols are absent, replaced by a ~5% `quicksort`. It also confirms `BTreeMap::get` is a stable ~10-12% (secondary, not the driver), and that the remaining dominant cost is the intrinsic per-k-mer `get_hash` -- which is cutoff-independent and is the target of the unmerged bit-packing work in PR [#1649](https://github.com/nextstrain/nextclade/pull/1649).
+
 ## Resolved on this branch
 
 Both are correctness-preserving (byte-identical `sort` output on the 235-sequence set for both cutoffs, verified against a captured baseline) and are covered by unit tests in `packages/nextclade/src/sort/minimizer_search.rs`.
