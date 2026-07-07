@@ -1272,14 +1272,12 @@
       "type": "object",
       "properties": {
         "enabled": {
-          "description": "Whether recombination detection runs for this dataset.\n\nThree states: `None` (field absent) is the default-on behavior; `Some(true)` is an explicit opt-in; `Some(false)` disables detection. The explicit opt-in is distinguished from the default so that a dataset that asks for detection but cannot support it (a tree too thin to estimate the parameters) surfaces one skip warning, while the silent default stays silent.",
-          "type": [
-            "boolean",
-            "null"
-          ]
+          "description": "Whether recombination detection runs for this dataset. Enabled by default.",
+          "default": true,
+          "type": "boolean"
         },
         "gamma": {
-          "description": "State transition rate override. When absent, defaults to `1 / ref_len`. Must be in the open interval (0, 1) and less than 0.5. The runtime enforces this; the schema bound is inclusive because `schemars` cannot express exclusive bounds.",
+          "description": "State transition rate override. When absent, defaults to `1 / ref_len`. A probability: the runtime enforces the open interval `(0, 1)`; the schema bound is inclusive.",
           "type": [
             "number",
             "null"
@@ -1289,7 +1287,7 @@
           "minimum": 0.0
         },
         "muW": {
-          "description": "Wildtype mutation emission probability override. When absent, estimated from the tree. Must be in the open interval (0, 1). The runtime enforces this; the schema bound is inclusive because `schemars` cannot express exclusive bounds.",
+          "description": "Wildtype mutation emission probability override. When absent, estimated from the tree. A probability: the runtime enforces the open interval `(0, 1)`; the schema bound is inclusive.",
           "type": [
             "number",
             "null"
@@ -1299,7 +1297,7 @@
           "minimum": 0.0
         },
         "muR": {
-          "description": "Recombinant mutation emission probability override. When absent, estimated from the tree. Must be in the open interval (0, 1) and greater than `muW`. The runtime enforces this; the schema bound is inclusive because `schemars` cannot express exclusive bounds.",
+          "description": "Recombinant mutation emission probability override. When absent, estimated from the tree. A probability: the runtime enforces the open interval `(0, 1)`; the schema bound is inclusive.",
           "type": [
             "number",
             "null"
