@@ -73,9 +73,13 @@ pub fn resolve_recombination_params(
   if mu_r <= mu_w {
     let both_explicit = config.and_then(|c| c.mu_w).is_some() && config.and_then(|c| c.mu_r).is_some();
     if both_explicit {
-      return make_error!("Recombination parameters in pathogen.json require muR > muW, but got muW={mu_w} and muR={mu_r}");
+      return make_error!(
+        "Recombination parameters in pathogen.json require muR > muW, but got muW={mu_w} and muR={mu_r}"
+      );
     }
-    return Ok(RecombinationResolution::Skipped(RecombinationSkipReason::RecombinantRateNotElevated { mu_w, mu_r }));
+    return Ok(RecombinationResolution::Skipped(
+      RecombinationSkipReason::RecombinantRateNotElevated { mu_w, mu_r },
+    ));
   }
 
   // `new` is the single invariant gate (range, sticky `gamma < 0.5`, `mu_r > mu_w`); see
@@ -121,7 +125,8 @@ impl RecombinationSkipReason {
          parent-relative mutations"
         .to_owned(),
       Self::FewerThanTwoClades => {
-        "the reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated".to_owned()
+        "the reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated"
+          .to_owned()
       }
       Self::NoBranchMutations => {
         "the reference tree carries no per-branch nucleotide mutations, so the wildtype and recombinant \
@@ -336,7 +341,6 @@ fn as_probability(x: f64) -> Option<f64> {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::{assert_error, pretty_assert_ulps_eq};
   use crate::tree::tree::AuspiceTree;
   use crate::{assert_error, pretty_assert_ulps_eq};
   use indoc::indoc;
@@ -518,7 +522,7 @@ mod tests {
   fn resolved(resolution: RecombinationResolution) -> RecombinationHmmParams {
     match resolution {
       RecombinationResolution::Resolved(params) => params,
-      other => panic!("expected resolved parameters, got {other:?}"),
+      skipped @ RecombinationResolution::Skipped(_) => panic!("expected resolved parameters, got {skipped:?}"),
     }
   }
 
@@ -572,7 +576,10 @@ mod tests {
     // mu_r is undefined with a single clade and there is no override, so the model is skipped.
     let resolution = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
     assert!(
-      matches!(resolution, RecombinationResolution::Skipped(RecombinationSkipReason::FewerThanTwoClades)),
+      matches!(
+        resolution,
+        RecombinationResolution::Skipped(RecombinationSkipReason::FewerThanTwoClades)
+      ),
       "got {resolution:?}"
     );
   }

@@ -260,7 +260,9 @@ impl RecombinationHmmParams {
       );
     }
     if mu_r <= mu_w {
-      return make_error!("Recombination HMM requires muR > muW (elevated recombinant divergence), but got muW={mu_w} and muR={mu_r}");
+      return make_error!(
+        "Recombination HMM requires muR > muW (elevated recombinant divergence), but got muW={mu_w} and muR={mu_r}"
+      );
     }
     Ok(())
   }
@@ -715,7 +717,11 @@ mod tests {
   fn test_recombination_new_accepts_valid_params() {
     let params = RecombinationHmmParams::new(5e-4, 0.005, 0.05).unwrap();
     assert_eq!(
-      RecombinationHmmParams { gamma: 5e-4, mu_w: 0.005, mu_r: 0.05 },
+      RecombinationHmmParams {
+        gamma: 5e-4,
+        mu_w: 0.005,
+        mu_r: 0.05
+      },
       params
     );
   }
@@ -739,7 +745,7 @@ mod tests {
   fn test_recombination_hmm_params_deserialize_rejects_invalid() {
     // The serde path fails too (message carries serde's positional suffix, so only assert it errors).
     let json = r#"{"gamma":0.7,"muW":0.05,"muR":0.2}"#;
-    assert!(serde_json::from_str::<RecombinationHmmParams>(json).is_err());
+    serde_json::from_str::<RecombinationHmmParams>(json).expect_err("serde should reject invalid params");
   }
 
   #[test]
@@ -1031,7 +1037,10 @@ mod tests {
   #[test]
   fn test_recombination_log_sum_exp_2_both_neg_inf() {
     let result = log_sum_exp_2(f64::NEG_INFINITY, f64::NEG_INFINITY);
-    assert!(result.is_infinite() && result.is_sign_negative(), "expected -inf, got {result}");
+    assert!(
+      result.is_infinite() && result.is_sign_negative(),
+      "expected -inf, got {result}"
+    );
   }
 
   #[test]
