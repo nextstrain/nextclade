@@ -3,14 +3,13 @@
 //! A two-state hidden Markov model (wildtype, recombinant) decoded with Viterbi. Each reference
 //! site emits one of three observations relative to the sequence's inferred parent (its tree
 //! attachment point): not mutated (`Ref`), mutated (`Mut`), or no usable information (`Missing`).
-//! Contiguous runs of the recombinant state are reported as putative recombinant intervals.
+//! `Missing` emits probability 1 in both states (marginalization over missing data), so it adds no
+//! emission evidence while transitions still cross it and the decoded state persists across missing
+//! runs. Contiguous runs of the recombinant state, trimmed so their endpoints fall on covered
+//! positions, are reported as putative recombinant intervals.
 //!
-//! Ported from Marco Molari's prototype <https://github.com/mmolari/recomb_inference>. The prototype
-//! is strictly binary; the only structural addition here is the `Missing` observation, which emits
-//! probability 1 in both states (standard HMM marginalization over missing data). It contributes no
-//! emission evidence while transitions still cross it, so the decoded state persists across missing
-//! runs. On fully covered input the `Missing` branch never fires and the decoded path matches the
-//! prototype exactly.
+//! The method and default parameters follow Marco Molari's prototype
+//! <https://github.com/mmolari/recomb_inference> and issue #1768.
 
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
@@ -31,13 +30,61 @@ const RECOMBINANT: usize = 1;
 ///
 /// `params` are assumed valid; construct them through [`RecombinationHmmParams::new`], which is the
 /// only path that reaches this function in production (a `debug_assert` guards the invariant).
-pub fn find_recombinant_regions(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<NucRefGlobalRange> {
-  debug_assert!(
-    params.is_valid(),
-    "recombination HMM params must be valid probabilities: {params:?}"
-  );
+pub fn find_recombinant_regions(
+  obs: &[RecombinationObs],
+  params: &RecombinationHmmParams,
+) -> Vec<NucRefGlobalRange> {
+  debug_assert!(params.is_valid(), "recombination HMM params must be valid probabilities: {params:?}");
   let is_recombinant = viterbi_decode(obs, params);
-  Ok(extract_recombinant_intervals(&is_recombinant))
+  let intervals = extract_recombinant_intervals(&is_recombinant);
+  let regions = trim_intervals_to_covered(intervals, obs);
+
+  // Postcondition: reported regions are well-formed (non-empty, sorted, disjoint, within bounds) and
+  // their endpoints carry evidence (are not `Missing`). These are the invariants downstream output and
+  // the web viewer rely on; a violation is a decoder/extraction bug, not a bad input.
+  debug_assert!(
+    intervals_sorted_disjoint_nonempty(&regions, obs.len()),
+    "recombinant regions must be non-empty, sorted, disjoint and within bounds: {regions:?}"
+  );
+  debug_assert!(
+    regions.iter().all(|r| {
+      let covered = |i: usize| obs.get(i).is_some_and(|o| *o != RecombinationObs::Missing);
+      covered(r.begin.as_usize()) && covered(r.end.as_usize() - 1)
+    }),
+    "recombinant region endpoints must fall on covered positions: {regions:?}"
+  );
+  regions
+}
+
+/// Whether a list of reference ranges is well-formed as a set of decoded regions: every range is
+/// non-empty (`begin < end`), stays within `[0, len)`, and the ranges are sorted and pairwise
+/// disjoint (`prev.end <= next.begin`). Debug-assertion helper only.
+fn intervals_sorted_disjoint_nonempty(intervals: &[NucRefGlobalRange], len: usize) -> bool {
+  let mut prev_end = 0;
+  intervals.iter().all(|r| {
+    let (begin, end) = (r.begin.as_usize(), r.end.as_usize());
+    let ok = begin < end && end <= len && begin >= prev_end;
+    prev_end = end;
+    ok
+  })
+}
+
+/// Trim each interval so its endpoints fall on covered positions, dropping leading and trailing
+/// `Missing` runs (uncovered flanks and deletions relative to the reference). Internal `Missing`
+/// stretches stay bridged: the recombinant call already spans them, and the issue asks specifically
+/// to avoid annotating leading and trailing deletion ranges, not internal ones. An interval with no
+/// covered position (all `Missing`) carries no evidence and is dropped.
+fn trim_intervals_to_covered(intervals: Vec<NucRefGlobalRange>, obs: &[RecombinationObs]) -> Vec<NucRefGlobalRange> {
+  let covered = |i: usize| obs.get(i).is_some_and(|o| *o != RecombinationObs::Missing);
+  intervals
+    .into_iter()
+    .filter_map(|range| {
+      let (begin, end) = (range.begin.as_usize(), range.end.as_usize());
+      let first = (begin..end).find(|&i| covered(i))?;
+      let last = (begin..end).rev().find(|&i| covered(i))?;
+      Some(NucRefGlobalRange::from_usize(first, last + 1))
+    })
+    .collect()
 }
 
 /// Per-site observation for the recombination HMM, in reference coordinates.
@@ -88,6 +135,13 @@ pub fn build_observations(
     }
   }
 
+  // Postcondition: one observation per reference position, so the decoded state vector aligns with
+  // reference coordinates and out-of-range mutations/ranges never grow the vector.
+  debug_assert_eq!(
+    ref_len,
+    obs.len(),
+    "observation vector must have one entry per reference position"
+  );
   obs
 }
 
@@ -106,34 +160,52 @@ pub struct RecombinationHmmParams {
   pub mu_r: f64,
 }
 
+/// Whether a value is a usable HMM probability: finite and strictly inside the open interval
+/// `(0, 1)`. The closed endpoints are excluded because they produce `log(0) = -inf` in the decoder.
+/// Single definition of the probability domain, shared by parameter validation and tree estimation.
+pub(crate) fn is_hmm_probability(x: f64) -> bool {
+  x.is_finite() && x > 0.0 && x < 1.0
+}
+
 impl RecombinationHmmParams {
   /// Construct validated parameters. This is the only sanctioned constructor: it enforces the model
-  /// invariants once, at resolution time, so the decoder can assume validity. Every field must be a
-  /// probability in the open interval `(0, 1)` (the closed endpoints produce `log(0) = -inf`), and
-  /// the recombinant emission rate must exceed the wildtype rate (`mu_r > mu_w`), otherwise the two
-  /// states are indistinguishable.
+  /// invariants once, at resolution time, so the decoder can assume validity. See [`Self::validate`]
+  /// for the full contract.
   pub fn new(gamma: f64, mu_w: f64, mu_r: f64) -> Result<Self, Report> {
+    let params = Self { gamma, mu_w, mu_r };
+    params.validate()?;
+    Ok(params)
+  }
+
+  /// Single source of truth for the model invariants. Every field must be a probability in the open
+  /// interval `(0, 1)` (the closed endpoints produce `log(0) = -inf`); the model must be sticky
+  /// (`gamma < 0.5`, so switching is rarer than staying, otherwise the states alternate and no stable
+  /// interval is decoded); and the recombinant emission rate must exceed the wildtype rate
+  /// (`mu_r > mu_w`), otherwise the two states are indistinguishable.
+  fn validate(&self) -> Result<(), Report> {
+    let Self { gamma, mu_w, mu_r } = *self;
     for (name, value) in [("gamma", gamma), ("muW", mu_w), ("muR", mu_r)] {
-      if !(value.is_finite() && value > 0.0 && value < 1.0) {
+      if !is_hmm_probability(value) {
         return make_error!(
           "Recombination HMM parameter `{name}` must be in the open interval (0, 1), but got {value}"
         );
       }
     }
-    if mu_r <= mu_w {
+    if gamma >= 0.5 {
       return make_error!(
-        "Recombination HMM requires muR > muW (elevated recombinant divergence), but got muW={mu_w} and muR={mu_r}"
+        "Recombination HMM requires gamma < 0.5 (state switching must be rarer than staying), but got gamma={gamma}"
       );
     }
-    Ok(Self { gamma, mu_w, mu_r })
+    if mu_r <= mu_w {
+      return make_error!("Recombination HMM requires muR > muW (elevated recombinant divergence), but got muW={mu_w} and muR={mu_r}");
+    }
+    Ok(())
   }
 
-  /// Whether the parameters satisfy the model invariants. Used only for debug assertions.
+  /// Whether the parameters satisfy the model invariants. Used only for debug assertions; derived
+  /// from [`Self::validate`] so the two cannot drift.
   fn is_valid(&self) -> bool {
-    [self.gamma, self.mu_w, self.mu_r]
-      .iter()
-      .all(|&v| v.is_finite() && v > 0.0 && v < 1.0)
-      && self.mu_r > self.mu_w
+    self.validate().is_ok()
   }
 
   /// Log-space emission scores `[wildtype, recombinant]` for one observation.
@@ -193,15 +265,21 @@ pub struct RecombinationConfig {
   pub enabled: bool,
 
   /// State transition rate override. When absent, defaults to `1 / ref_len`.
+  /// A probability: the runtime enforces the open interval `(0, 1)`; the schema bound is inclusive.
   #[serde(skip_serializing_if = "Option::is_none")]
+  #[schemars(range(min = 0.0, max = 1.0))]
   pub gamma: Option<OrderedFloat<f64>>,
 
   /// Wildtype mutation emission probability override. When absent, estimated from the tree.
+  /// A probability: the runtime enforces the open interval `(0, 1)`; the schema bound is inclusive.
   #[serde(skip_serializing_if = "Option::is_none")]
+  #[schemars(range(min = 0.0, max = 1.0))]
   pub mu_w: Option<OrderedFloat<f64>>,
 
   /// Recombinant mutation emission probability override. When absent, estimated from the tree.
+  /// A probability: the runtime enforces the open interval `(0, 1)`; the schema bound is inclusive.
   #[serde(skip_serializing_if = "Option::is_none")]
+  #[schemars(range(min = 0.0, max = 1.0))]
   pub mu_r: Option<OrderedFloat<f64>>,
 }
 
@@ -273,6 +351,13 @@ fn viterbi_decode(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> 
     state = back[l + 1][state];
     is_recombinant[l] = state == RECOMBINANT;
   }
+
+  // Postcondition: exactly one decoded state per observation.
+  debug_assert_eq!(
+    obs.len(),
+    is_recombinant.len(),
+    "decoded state vector must match observation length"
+  );
   is_recombinant
 }
 
@@ -293,6 +378,12 @@ fn extract_recombinant_intervals(is_recombinant: &[bool]) -> Vec<NucRefGlobalRan
   if let Some(start) = begin {
     regions.push(NucRefGlobalRange::from_usize(start, is_recombinant.len()));
   }
+
+  // Postcondition: maximal runs are non-empty, sorted, disjoint and within the decoded vector.
+  debug_assert!(
+    intervals_sorted_disjoint_nonempty(&regions, is_recombinant.len()),
+    "extracted intervals must be non-empty, sorted, disjoint and within bounds: {regions:?}"
+  );
   regions
 }
 
@@ -349,7 +440,19 @@ mod tests {
   #[case::state_persists_across_missing("RRRRRMMMMMMMMMMMMMMMXXXXXMMMMMMMMMMMMMMMRRRRR", &[(5, 40)])]
   #[trace]
   fn test_recombination_find_regions(#[case] input: &str, #[case] expected: &[(usize, usize)]) {
-    let regions = find_recombinant_regions(&obs(input), &test_params()).unwrap();
+    let regions = find_recombinant_regions(&obs(input), &test_params());
+    assert_eq!(ranges(expected), regions);
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  // Trailing Missing (uncovered flank or deletion) must not extend the reported interval past the
+  // last covered position; leading Missing must not push the start earlier. Internal Missing bridges.
+  #[case::trailing_missing_trimmed("RRRRRMMMMMMMMMMMMMMMXXXXX",      &[(5, 20)])]
+  #[case::internal_missing_bridged("RRRRRMMMMMMMMMMMMMMMXXXXXMMMMMMMMMMMMMMMRRRRR", &[(5, 40)])]
+  #[trace]
+  fn test_recombination_intervals_trimmed_to_covered(#[case] input: &str, #[case] expected: &[(usize, usize)]) {
+    let regions = find_recombinant_regions(&obs(input), &test_params());
     assert_eq!(ranges(expected), regions);
   }
 
@@ -358,7 +461,7 @@ mod tests {
     // Two Mut blocks separated by a Ref run long enough to justify two state switches
     // (a mid-sequence Ref stretch costs 2 switches, ~5.88 nats, unlike a single end flank).
     let input = obs("RRRRRMMMMMMMMMMMMMMMRRRRRRRRRRRRMMMMMMMMMMMMMMMRRRRR");
-    let regions = find_recombinant_regions(&input, &test_params()).unwrap();
+    let regions = find_recombinant_regions(&input, &test_params());
     assert_eq!(2, regions.len());
     let mut prev_end = 0;
     for region in &regions {
@@ -393,6 +496,13 @@ mod tests {
   }
 
   #[test]
+  fn test_recombination_new_rejects_high_gamma() {
+    // Valid probability but not a sticky HMM: switching is at least as likely as staying.
+    let err = RecombinationHmmParams::new(0.5, 0.005, 0.05).unwrap_err().to_string();
+    assert!(err.contains("gamma < 0.5"), "error `{err}` should require gamma < 0.5");
+  }
+
+  #[test]
   fn test_recombination_new_rejects_non_elevated_recombinant_rate() {
     // Valid probabilities, but muR does not exceed muW: the two states are indistinguishable.
     let err = RecombinationHmmParams::new(5e-4, 0.05, 0.05).unwrap_err().to_string();
@@ -403,13 +513,47 @@ mod tests {
   fn test_recombination_new_accepts_valid_params() {
     let params = RecombinationHmmParams::new(5e-4, 0.005, 0.05).unwrap();
     assert_eq!(
-      RecombinationHmmParams {
-        gamma: 5e-4,
-        mu_w: 0.005,
-        mu_r: 0.05
-      },
+      RecombinationHmmParams { gamma: 5e-4, mu_w: 0.005, mu_r: 0.05 },
       params
     );
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::zero(         0.0,               false)]
+  #[case::one(          1.0,               false)]
+  #[case::negative(    -0.1,               false)]
+  #[case::above_one(    1.5,               false)]
+  #[case::nan(          f64::NAN,          false)]
+  #[case::pos_inf(      f64::INFINITY,     false)]
+  #[case::neg_inf(      f64::NEG_INFINITY, false)]
+  #[case::tiny(         1e-9,              true)]
+  #[case::half(         0.5,               true)]
+  #[case::near_one(     0.999_999,         true)]
+  fn test_recombination_is_hmm_probability_bounds(#[case] value: f64, #[case] expected: bool) {
+    assert_eq!(expected, is_hmm_probability(value));
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  // is_valid (used for the decoder debug assertion) must agree with the new() gate for every case, so
+  // the two invariant checks cannot drift apart.
+  #[case::valid(          5e-4, 0.005, 0.05, true)]
+  #[case::gamma_zero(     0.0,  0.005, 0.05, false)]
+  #[case::gamma_one(      1.0,  0.005, 0.05, false)]
+  #[case::gamma_half(     0.5,  0.005, 0.05, false)] // sticky-model bound
+  #[case::mu_w_zero(      5e-4, 0.0,   0.05, false)]
+  #[case::mu_r_one(       5e-4, 0.005, 1.0,  false)]
+  #[case::rate_not_elev(  5e-4, 0.05,  0.05, false)] // mu_r <= mu_w
+  fn test_recombination_is_valid_agrees_with_new(
+    #[case] gamma: f64,
+    #[case] mu_w: f64,
+    #[case] mu_r: f64,
+    #[case] expected: bool,
+  ) {
+    let candidate = RecombinationHmmParams { gamma, mu_w, mu_r };
+    assert_eq!(expected, candidate.is_valid());
+    assert_eq!(expected, RecombinationHmmParams::new(gamma, mu_w, mu_r).is_ok());
   }
 
   #[rustfmt::skip]
@@ -446,6 +590,43 @@ mod tests {
 
     let expected = vec![Missing, Ref, Mut, Missing, Missing, Ref, Mut, Ref, Ref, Missing];
     assert_eq!(expected, observed);
+  }
+
+  #[test]
+  fn test_recombination_build_observations_mut_wins_over_missing_and_ignores_out_of_range() {
+    use RecombinationObs::{Missing, Mut, Ref};
+    let ref_len = 8;
+    let alignment_range = NucRefGlobalRange::from_usize(0, 8);
+    let missing_ranges = vec![NucRefGlobalRange::from_usize(2, 5)]; // positions 2, 3, 4 missing
+    // A mutation inside a missing range (position 3) resolves to Mut (applied last); a mutation
+    // outside the reference (position 20) is ignored rather than panicking or extending the vector.
+    let mutated: Vec<NucRefGlobalPosition> = [3, 20]
+      .into_iter()
+      .map(|p| NucRefGlobalPosition::from(p as isize))
+      .collect();
+
+    let observed = build_observations(ref_len, &alignment_range, &missing_ranges, &mutated);
+
+    let expected = vec![Ref, Ref, Missing, Mut, Missing, Ref, Ref, Ref];
+    assert_eq!(expected, observed);
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::empty(                &[],               10, true)]
+  #[case::single(               &[(2, 5)],         10, true)]
+  #[case::sorted_disjoint(      &[(2, 5), (7, 9)], 10, true)]
+  #[case::touching_endpoints(   &[(2, 5), (5, 9)], 10, true)]  // half-open: prev.end == next.begin is disjoint
+  #[case::empty_range(          &[(5, 5)],         10, false)] // begin == end
+  #[case::out_of_bounds(        &[(2, 12)],        10, false)] // end > len
+  #[case::unsorted(             &[(7, 9), (2, 5)], 10, false)]
+  #[case::overlapping(          &[(2, 6), (5, 9)], 10, false)] // next.begin < prev.end
+  fn test_recombination_intervals_sorted_disjoint_nonempty(
+    #[case] pairs: &[(usize, usize)],
+    #[case] len: usize,
+    #[case] expected: bool,
+  ) {
+    assert_eq!(expected, intervals_sorted_disjoint_nonempty(&ranges(pairs), len));
   }
 
   #[test]

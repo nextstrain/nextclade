@@ -1,16 +1,19 @@
 //! Estimation of recombination HMM parameters from the reference tree.
 //!
-//! The two emission probabilities are statistics of the reference tree, following the meeting-notes
-//! heuristic (issue #1768): `mu_w` is the mean terminal branch length and `mu_r` is the typical
-//! divergence between different clades. Both are computed as substitution counts (from the per-branch
-//! nucleotide mutation lists, which sidesteps the ambiguous Auspice divergence units) normalized by
-//! the reference length into per-site probabilities. `gamma` is the closed-form `1 / ref_len`.
+//! The two emission probabilities are statistics of the reference tree, following the issue #1768
+//! heuristic: `mu_w` is the mean terminal branch length (typical divergence of a newly attached
+//! sequence), and `mu_r` is a tree-based proxy for inter-clade divergence, taken here as the median
+//! substitution distance between clade founders (each clade's most recent common ancestor). Both are
+//! computed as substitution counts from the per-branch nucleotide mutation lists (which sidesteps the
+//! ambiguous Auspice divergence units), normalized by the reference length into per-site
+//! probabilities. `gamma` is the closed-form `1 / ref_len`.
 //!
-//! Each parameter is resolved independently: a value supplied in `pathogen.json` is used verbatim,
-//! otherwise the estimate below is used. When a required estimate is undefined (for example fewer
-//! than two clades for `mu_r`), the whole model is left unresolved and the caller skips detection.
+//! Each parameter is resolved independently: a value supplied in `pathogen.json` is validated and
+//! used verbatim, otherwise the estimate above is used. An out-of-range override is a dataset-level
+//! error; when a required estimate is undefined (for example fewer than two clades for `mu_r`) the
+//! model is left unresolved and the caller skips detection with a stated reason.
 
-use crate::analyze::recombination::{RecombinationConfig, RecombinationHmmParams};
+use crate::analyze::recombination::{RecombinationConfig, RecombinationHmmParams, is_hmm_probability};
 use crate::graph::node::GraphNodeKey;
 use crate::make_error;
 use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload};
@@ -25,39 +28,43 @@ const NUC_MUTATIONS_KEY: &str = "nuc";
 
 /// Resolve the three HMM parameters, combining `pathogen.json` overrides with tree-based fallbacks.
 ///
-/// Returns `Ok(None)` when the model cannot be built (a required parameter has neither an override
-/// nor a definable estimate, or the estimated `mu_r` does not exceed `mu_w`), in which case the
-/// caller skips recombination detection for this dataset.
+/// A `pathogen.json` override is validated and takes precedence over the estimate. An out-of-range
+/// override, or an explicit `muR <= muW`, is a dataset-level error (`Err`). When a required parameter
+/// has neither an override nor a definable estimate, or the estimated `muR` does not exceed `muW`,
+/// the model is `Skipped` with a stated reason and the caller omits recombination detection.
 pub fn resolve_recombination_params(
   config: Option<&RecombinationConfig>,
   graph: &AuspiceGraph,
   ref_len: usize,
-) -> Result<Option<RecombinationHmmParams>, Report> {
-  let override_gamma = config.and_then(|c| c.gamma).map(|g| g.0);
-  let override_mu_w = config.and_then(|c| c.mu_w).map(|m| m.0);
-  let override_mu_r = config.and_then(|c| c.mu_r).map(|m| m.0);
+) -> Result<RecombinationResolution, Report> {
+  let gamma = resolve_param("gamma", config.and_then(|c| c.gamma), estimate_gamma(ref_len))?;
+  let mu_w = resolve_param("muW", config.and_then(|c| c.mu_w), estimate_mu_w(graph, ref_len)?)?;
+  let mu_r = resolve_param("muR", config.and_then(|c| c.mu_r), estimate_mu_r(graph, ref_len)?)?;
 
-  let (Some(gamma), Some(mu_w), Some(mu_r)) = (
-    override_gamma.or_else(|| estimate_gamma(ref_len)),
-    override_mu_w.or(estimate_mu_w(graph, ref_len)?),
-    override_mu_r.or(estimate_mu_r(graph, ref_len)?),
-  ) else {
-    return Ok(None);
+  let (Some(gamma), Some(mu_w), Some(mu_r)) = (gamma, mu_w, mu_r) else {
+    // A required parameter has neither an override nor a definable tree estimate.
+    let reason = if count_clades(graph) < 2 {
+      RecombinationSkipReason::FewerThanTwoClades
+    } else {
+      RecombinationSkipReason::TreeEstimateUnavailable
+    };
+    return Ok(RecombinationResolution::Skipped(reason));
   };
 
-  // A meaningful model requires elevated mutation density in the recombinant state.
+  // The recombinant state must carry elevated mutation density, otherwise it is indistinguishable
+  // from wildtype. When both rates come from `pathogen.json` this is a misconfiguration (hard error);
+  // a merely degenerate tree estimate skips detection.
   if mu_r <= mu_w {
     let both_explicit = config.and_then(|c| c.mu_w).is_some() && config.and_then(|c| c.mu_r).is_some();
     if both_explicit {
-      return make_error!(
-        "Recombination parameters in pathogen.json require muR > muW, but got muW={mu_w} and muR={mu_r}"
-      );
+      return make_error!("Recombination parameters in pathogen.json require muR > muW, but got muW={mu_w} and muR={mu_r}");
     }
-    return Ok(RecombinationResolution::Skipped(
-      RecombinationSkipReason::RecombinantRateNotElevated { mu_w, mu_r },
-    ));
+    return Ok(RecombinationResolution::Skipped(RecombinationSkipReason::RecombinantRateNotElevated { mu_w, mu_r }));
   }
 
+  // `new` is the single invariant gate (range, sticky `gamma < 0.5`, `mu_r > mu_w`); see
+  // `RecombinationHmmParams::validate`. The `mu_r <= mu_w` branch above is policy, not validation: it
+  // decides whether a non-elevated rate is a misconfiguration (error) or a degenerate estimate (skip).
   Ok(RecombinationResolution::Resolved(RecombinationHmmParams::new(
     gamma, mu_w, mu_r,
   )?))
@@ -88,8 +95,7 @@ impl RecombinationSkipReason {
   pub fn message(&self) -> String {
     match self {
       Self::FewerThanTwoClades => {
-        "the reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated"
-          .to_owned()
+        "the reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated".to_owned()
       }
       Self::TreeEstimateUnavailable => {
         "a required parameter could not be estimated from the reference tree (degenerate topology)".to_owned()
@@ -104,15 +110,11 @@ impl RecombinationSkipReason {
 /// Resolve one parameter: a validated `pathogen.json` override takes precedence over the estimate.
 /// An out-of-range explicit override is a dataset-level error; an absent override with an undefined
 /// estimate yields `None`, so the caller skips detection.
-fn resolve_param(
-  name: &str,
-  override_val: Option<OrderedFloat<f64>>,
-  estimate: Option<f64>,
-) -> Result<Option<f64>, Report> {
+fn resolve_param(name: &str, override_val: Option<OrderedFloat<f64>>, estimate: Option<f64>) -> Result<Option<f64>, Report> {
   match override_val {
     Some(value) => {
       let value = value.0;
-      if !(value.is_finite() && value > 0.0 && value < 1.0) {
+      if !is_hmm_probability(value) {
         return make_error!(
           "Recombination parameter `{name}` in pathogen.json must be in the open interval (0, 1), but got {value}"
         );
@@ -125,11 +127,7 @@ fn resolve_param(
 
 /// Number of distinct clade labels present in the tree.
 fn count_clades(graph: &AuspiceGraph) -> usize {
-  graph
-    .iter_nodes()
-    .filter_map(|node| node.payload().clade())
-    .unique()
-    .count()
+  graph.iter_nodes().filter_map(|node| node.payload().clade()).unique().count()
 }
 
 /// Transition rate fallback: one expected state switch per genome length.
@@ -199,7 +197,24 @@ fn nuc_mutation_count(payload: &AuspiceGraphNodePayload) -> usize {
 /// most recent common ancestor.
 fn founder_distance(graph: &AuspiceGraph, a: GraphNodeKey, b: GraphNodeKey) -> Result<usize, Report> {
   let ancestor = mrca_pair(graph, a, b)?;
-  Ok(root_distance(graph, a)? + root_distance(graph, b)? - 2 * root_distance(graph, ancestor)?)
+  let dist_a = root_distance(graph, a)?;
+  let dist_b = root_distance(graph, b)?;
+  let dist_ancestor = root_distance(graph, ancestor)?;
+
+  // The MRCA lies on both root-to-node paths, so its root distance cannot exceed either node's, and
+  // the path length through it is non-negative. The assertion documents that precondition; the
+  // `checked_sub` guards against a future change to `mrca_pair`/`root_distance` that breaks it, so an
+  // invariant violation surfaces as an error rather than an unsigned wrap.
+  debug_assert!(
+    dist_ancestor <= dist_a && dist_ancestor <= dist_b,
+    "MRCA root distance {dist_ancestor} exceeds a founder's ({dist_a}, {dist_b})"
+  );
+  match (dist_a + dist_b).checked_sub(2 * dist_ancestor) {
+    Some(distance) => Ok(distance),
+    None => make_error!(
+      "Recombination parameter estimation: founder distance underflowed (dist_a={dist_a}, dist_b={dist_b}, mrca={dist_ancestor}); the MRCA invariant is broken"
+    ),
+  }
 }
 
 /// Cumulative substitution count from the root to a node (sum of branch mutation counts).
@@ -267,7 +282,7 @@ fn median(values: &[f64]) -> Option<f64> {
 
 /// Accept a value only if it is a valid emission/transition probability in the open interval `(0, 1)`.
 fn as_probability(x: f64) -> Option<f64> {
-  (x.is_finite() && x > 0.0 && x < 1.0).then_some(x)
+  is_hmm_probability(x).then_some(x)
 }
 
 #[cfg(test)]
@@ -318,6 +333,45 @@ mod tests {
     AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
   }
 
+  // Three clades A, B, C. An unlabeled internal node I (1 mut) parents leaves A1 (clade A, 2 muts)
+  // and B1 (clade B, 4 muts); leaf C1 (clade C, 6 muts) hangs off the root. Single-member clades so
+  // each founder is its leaf. A1 and B1 share the non-root MRCA I.
+  fn three_clade_tree() -> AuspiceGraph {
+    let json = r#"{
+      "version": "v2",
+      "meta": {},
+      "tree": {
+        "name": "root",
+        "node_attrs": { "div": 0 },
+        "children": [
+          {
+            "name": "I",
+            "node_attrs": { "div": 1 },
+            "branch_attrs": { "mutations": { "nuc": ["A5C"] } },
+            "children": [
+              {
+                "name": "A1",
+                "node_attrs": { "div": 3, "clade_membership": { "value": "A" } },
+                "branch_attrs": { "mutations": { "nuc": ["A10C", "A20G"] } }
+              },
+              {
+                "name": "B1",
+                "node_attrs": { "div": 5, "clade_membership": { "value": "B" } },
+                "branch_attrs": { "mutations": { "nuc": ["A30T", "A40C", "A50G", "A60T"] } }
+              }
+            ]
+          },
+          {
+            "name": "C1",
+            "node_attrs": { "div": 6, "clade_membership": { "value": "C" } },
+            "branch_attrs": { "mutations": { "nuc": ["A70C", "A80G", "A90T", "A100C", "A110G", "A120T"] } }
+          }
+        ]
+      }
+    }"#;
+    AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
+  }
+
   fn single_clade_tree() -> AuspiceGraph {
     let json = r#"{
       "version": "v2",
@@ -348,7 +402,7 @@ mod tests {
   fn resolved(resolution: RecombinationResolution) -> RecombinationHmmParams {
     match resolution {
       RecombinationResolution::Resolved(params) => params,
-      skipped @ RecombinationResolution::Skipped(_) => panic!("expected resolved parameters, got {skipped:?}"),
+      other => panic!("expected resolved parameters, got {other:?}"),
     }
   }
 
@@ -356,7 +410,7 @@ mod tests {
   #[test]
   fn test_recombination_estimate_all_params_from_tree() {
     let graph = two_clade_tree();
-    let params = resolve_recombination_params(None, &graph, REF_LEN).unwrap().unwrap();
+    let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
     assert_eq!(1.0 / 100.0, params.gamma);
     assert_eq!(2.0 / 100.0, params.mu_w);
     assert_eq!(3.0 / 100.0, params.mu_r);
@@ -368,16 +422,30 @@ mod tests {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
       enabled: true,
-      gamma: Some(OrderedFloat(0.5)),
+      gamma: Some(OrderedFloat(0.1)),
       mu_w: None,
       mu_r: None,
     };
-    let params = resolve_recombination_params(Some(&config), &graph, REF_LEN)
-      .unwrap()
-      .unwrap();
-    assert_eq!(0.5, params.gamma);
+    let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
+    assert_eq!(0.1, params.gamma);
     assert_eq!(2.0 / 100.0, params.mu_w);
     assert_eq!(3.0 / 100.0, params.mu_r);
+  }
+
+  #[allow(clippy::float_cmp)]
+  #[test]
+  fn test_recombination_estimate_partial_mu_overrides_used() {
+    let graph = two_clade_tree();
+    let config = RecombinationConfig {
+      enabled: true,
+      gamma: None,
+      mu_w: Some(OrderedFloat(0.01)),
+      mu_r: Some(OrderedFloat(0.2)),
+    };
+    let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
+    assert_eq!(1.0 / 100.0, params.gamma); // still estimated
+    assert_eq!(0.01, params.mu_w);
+    assert_eq!(0.2, params.mu_r);
   }
 
   #[test]
@@ -386,10 +454,7 @@ mod tests {
     // mu_r is undefined with a single clade and there is no override, so the model is skipped.
     let resolution = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
     assert!(
-      matches!(
-        resolution,
-        RecombinationResolution::Skipped(RecombinationSkipReason::FewerThanTwoClades)
-      ),
+      matches!(resolution, RecombinationResolution::Skipped(RecombinationSkipReason::FewerThanTwoClades)),
       "got {resolution:?}"
     );
   }
@@ -431,6 +496,22 @@ mod tests {
   }
 
   #[test]
+  fn test_recombination_estimate_errors_on_high_gamma_override() {
+    let graph = two_clade_tree();
+    // gamma = 0.7 is within (0, 1) but not a sticky HMM; the resolution surfaces the model error.
+    let config = RecombinationConfig {
+      enabled: true,
+      gamma: Some(OrderedFloat(0.7)),
+      mu_w: None,
+      mu_r: None,
+    };
+    let err = resolve_recombination_params(Some(&config), &graph, REF_LEN)
+      .unwrap_err()
+      .to_string();
+    assert!(err.contains("gamma < 0.5"), "error `{err}` should require gamma < 0.5");
+  }
+
+  #[test]
   fn test_recombination_estimate_errors_on_out_of_range_override() {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
@@ -443,10 +524,7 @@ mod tests {
       .unwrap_err()
       .to_string();
     assert!(err.contains("gamma"), "error `{err}` should name gamma");
-    assert!(
-      err.contains("open interval (0, 1)"),
-      "error `{err}` should state the (0, 1) contract"
-    );
+    assert!(err.contains("open interval (0, 1)"), "error `{err}` should state the (0, 1) contract");
   }
 
   #[allow(clippy::float_cmp)]
