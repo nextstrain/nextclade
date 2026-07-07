@@ -256,6 +256,8 @@ definitions:
       Emission and transition parameters for the two-state recombination HMM.
 
       All three are probabilities and must lie in the open interval `(0, 1)`; the closed endpoints produce `log(0) = -inf` in the decoder.
+
+      Fields are private and reachable only through [`RecombinationHmmParams::new`], which enforces the model invariants, so an invalid instance cannot be constructed. Read access is through the getters. `Deserialize` is derived plain: this type is only ever deserialized from Nextclade's own already-validated output (the WASM boundary and `ResultsJson`), never from user input, which enters through [`RecombinationConfig`].
     type: object
     required:
     - gamma
