@@ -48,8 +48,12 @@ pub fn run_minimizer_search(
   let mut hit_counts = vec![0; n_refs];
   for m in minimizers {
     if let Some(mz) = index.minimizers.get(&m) {
-      for (ri, hit_count) in hit_counts.iter_mut().enumerate() {
-        if mz.contains(&ri) {
+      // Each map entry `mz` already lists exactly the references carrying minimizer `m`, so we
+      // increment those directly. Scanning all `n_refs` and testing `mz.contains(&ri)` for each
+      // (a linear `Vec` scan) is `O(n_refs * mz.len())` per hit; direct iteration is `O(mz.len())`.
+      // `get_mut` skips any out-of-range reference index, matching the previous `0..n_refs` bound.
+      for &ri in mz {
+        if let Some(hit_count) = hit_counts.get_mut(ri) {
           *hit_count += 1;
         }
       }
