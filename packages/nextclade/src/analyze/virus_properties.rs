@@ -442,8 +442,8 @@ impl VirusProperties {
       s,
       &SchemaVersionParams {
         name: "pathogen.json",
-        ver_from: Some(PATHOGEN_JSON_SCHEMA_VERSION_FROM.clone()),
-        ver_to: Some(PATHOGEN_JSON_SCHEMA_VERSION_TO.clone()),
+        ver_from: Some(PATHOGEN_JSON_SCHEMA_VERSION_FROM),
+        ver_to: Some(PATHOGEN_JSON_SCHEMA_VERSION_TO),
       },
     );
 

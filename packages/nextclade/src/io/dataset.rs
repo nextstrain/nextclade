@@ -105,8 +105,8 @@ impl DatasetsIndexJson {
       &s,
       &SchemaVersionParams {
         name: "index.json",
-        ver_from: Some(INDEX_JSON_SCHEMA_VERSION_FROM.clone()),
-        ver_to: Some(INDEX_JSON_SCHEMA_VERSION_TO.clone()),
+        ver_from: Some(INDEX_JSON_SCHEMA_VERSION_FROM),
+        ver_to: Some(INDEX_JSON_SCHEMA_VERSION_TO),
       },
     );
     json_parse(s)

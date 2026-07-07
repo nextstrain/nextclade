@@ -123,8 +123,8 @@ impl MinimizerIndexJson {
       s,
       &SchemaVersionParams {
         name: "minimizer_index.json",
-        ver_from: Some(MINIMIZER_INDEX_SCHEMA_VERSION_FROM.clone()),
-        ver_to: Some(MINIMIZER_INDEX_SCHEMA_VERSION_TO.clone()),
+        ver_from: Some(MINIMIZER_INDEX_SCHEMA_VERSION_FROM),
+        ver_to: Some(MINIMIZER_INDEX_SCHEMA_VERSION_TO),
       },
     );
 
