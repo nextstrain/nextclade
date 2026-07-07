@@ -2,11 +2,11 @@
 //!
 //! The two emission probabilities are statistics of the reference tree, following the issue #1768
 //! heuristic: `mu_w` is the mean terminal branch length (typical divergence of a newly attached
-//! sequence), and `mu_r` is a tree-based proxy for inter-clade divergence, taken here as the median
-//! substitution distance between clade founders (each clade's most recent common ancestor). Both are
-//! computed as substitution counts from the per-branch nucleotide mutation lists (which sidesteps the
-//! ambiguous Auspice divergence units), normalized by the reference length into per-site
-//! probabilities. `gamma` is the closed-form `1 / ref_len`.
+//! sequence), and `mu_r` is the typical inter-clade divergence, estimated as the median pairwise
+//! substitution distance between leaves of different clades. Both are computed as substitution counts
+//! from the per-branch nucleotide mutation lists (which sidesteps the ambiguous Auspice divergence
+//! units), normalized by the reference length into per-site probabilities. `gamma` is the closed-form
+//! `1 / ref_len`.
 //!
 //! Each parameter is resolved independently: a value supplied in `pathogen.json` is validated and
 //! used verbatim, otherwise the estimate above is used. An out-of-range override is a dataset-level
@@ -151,35 +151,44 @@ fn estimate_mu_w(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
   Ok(as_probability(mean / ref_len as f64))
 }
 
-/// Recombinant emission fallback: median inter-clade founder-to-founder distance (substitutions) per site.
+/// Recombinant emission fallback: median pairwise inter-clade leaf distance (substitutions) per site.
 fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Report> {
-  let mut clade_members: BTreeMap<String, Vec<GraphNodeKey>> = BTreeMap::new();
+  let mut clade_leaves: BTreeMap<String, Vec<GraphNodeKey>> = BTreeMap::new();
   for node in graph.iter_nodes() {
-    if let Some(clade) = node.payload().clade() {
-      clade_members.entry(clade).or_default().push(node.key());
+    if node.is_leaf()
+      && let Some(clade) = node.payload().clade()
+    {
+      clade_leaves.entry(clade).or_default().push(node.key());
     }
   }
 
-  // Inter-clade divergence is undefined with fewer than two clades.
-  if clade_members.len() < 2 {
+  if clade_leaves.len() < 2 {
     return Ok(None);
   }
 
-  let mut founders: Vec<GraphNodeKey> = Vec::with_capacity(clade_members.len());
-  for members in clade_members.values() {
-    if let Some(founder) = mrca_of_set(graph, members)? {
-      founders.push(founder);
-    }
-  }
-  if founders.len() < 2 {
-    return Ok(None);
-  }
-
-  let distances: Vec<f64> = founders
-    .iter()
-    .tuple_combinations()
-    .map(|(&a, &b)| founder_distance(graph, a, b).map(|d| d as f64))
+  // Precompute root distances for all leaves to avoid repeated tree walks.
+  let root_dists: BTreeMap<GraphNodeKey, usize> = clade_leaves
+    .values()
+    .flatten()
+    .map(|&key| root_distance(graph, key).map(|d| (key, d)))
     .try_collect()?;
+
+  // Exhaustive pairwise distances between leaves of different clades.
+  let clade_groups: Vec<&Vec<GraphNodeKey>> = clade_leaves.values().collect();
+  let mut distances: Vec<f64> = Vec::new();
+
+  for (i, leaves_a) in clade_groups.iter().enumerate() {
+    for leaves_b in &clade_groups[i + 1..] {
+      for &a in *leaves_a {
+        for &b in *leaves_b {
+          let mrca = mrca_pair(graph, a, b)?;
+          let mrca_rd = root_distance(graph, mrca)?;
+          let d = root_dists[&a] + root_dists[&b] - 2 * mrca_rd;
+          distances.push(d as f64);
+        }
+      }
+    }
+  }
 
   Ok(median(&distances).and_then(|d| as_probability(d / ref_len as f64)))
 }
@@ -193,30 +202,6 @@ fn nuc_mutation_count(payload: &AuspiceGraphNodePayload) -> usize {
     .map_or(0, Vec::len)
 }
 
-/// Substitution distance between two clade founders: the mutation count along the path through their
-/// most recent common ancestor.
-fn founder_distance(graph: &AuspiceGraph, a: GraphNodeKey, b: GraphNodeKey) -> Result<usize, Report> {
-  let ancestor = mrca_pair(graph, a, b)?;
-  let dist_a = root_distance(graph, a)?;
-  let dist_b = root_distance(graph, b)?;
-  let dist_ancestor = root_distance(graph, ancestor)?;
-
-  // The MRCA lies on both root-to-node paths, so its root distance cannot exceed either node's, and
-  // the path length through it is non-negative. The assertion documents that precondition; the
-  // `checked_sub` guards against a future change to `mrca_pair`/`root_distance` that breaks it, so an
-  // invariant violation surfaces as an error rather than an unsigned wrap.
-  debug_assert!(
-    dist_ancestor <= dist_a && dist_ancestor <= dist_b,
-    "MRCA root distance {dist_ancestor} exceeds a founder's ({dist_a}, {dist_b})"
-  );
-  match (dist_a + dist_b).checked_sub(2 * dist_ancestor) {
-    Some(distance) => Ok(distance),
-    None => make_error!(
-      "Recombination parameter estimation: founder distance underflowed (dist_a={dist_a}, dist_b={dist_b}, mrca={dist_ancestor}); the MRCA invariant is broken"
-    ),
-  }
-}
-
 /// Cumulative substitution count from the root to a node (sum of branch mutation counts).
 fn root_distance(graph: &AuspiceGraph, key: GraphNodeKey) -> Result<usize, Report> {
   let mut total = 0;
@@ -226,18 +211,6 @@ fn root_distance(graph: &AuspiceGraph, key: GraphNodeKey) -> Result<usize, Repor
     current = graph.parent_key_of_by_key(node_key);
   }
   Ok(total)
-}
-
-/// Most recent common ancestor of a set of nodes. `None` only for an empty set.
-fn mrca_of_set(graph: &AuspiceGraph, keys: &[GraphNodeKey]) -> Result<Option<GraphNodeKey>, Report> {
-  let Some((&first, rest)) = keys.split_first() else {
-    return Ok(None);
-  };
-  let mut ancestor = first;
-  for &key in rest {
-    ancestor = mrca_pair(graph, ancestor, key)?;
-  }
-  Ok(Some(ancestor))
 }
 
 /// Most recent common ancestor of two nodes.
@@ -293,10 +266,10 @@ mod tests {
 
   const REF_LEN: usize = 100;
 
-  // Two clades A and B. Leaves (terminal branches): A1 with 2 nuc muts, B1 with 1, B2 with 3, so
-  // mean terminal branch length is 2 -> mu_w = 2/100 = 0.02. Clade founders: A1 (clade A) and the
-  // internal node B (clade B); their path through the root spans 2 + 1 muts -> distance 3, the only
-  // clade pair, so median inter-clade distance is 3 -> mu_r = 3/100 = 0.03. gamma = 1/100 = 0.01.
+  // Two clades A and B. Leaves: A1 (2 nuc muts), B1 (1 mut on B + 1 own = rd 2), B2 (1 + 3 = rd 4).
+  // Mean terminal branch length = (2+1+3)/3 = 2 -> mu_w = 2/100 = 0.02.
+  // Inter-clade leaf pairs: A1<->B1 = 2+2-0 = 4, A1<->B2 = 2+4-0 = 6.
+  // median{4, 6} = 5 -> mu_r = 5/100 = 0.05. gamma = 1/100 = 0.01.
   fn two_clade_tree() -> AuspiceGraph {
     let json = r#"{
       "version": "v2",
@@ -334,8 +307,9 @@ mod tests {
   }
 
   // Three clades A, B, C. An unlabeled internal node I (1 mut) parents leaves A1 (clade A, 2 muts)
-  // and B1 (clade B, 4 muts); leaf C1 (clade C, 6 muts) hangs off the root. Single-member clades so
-  // each founder is its leaf. A1 and B1 share the non-root MRCA I.
+  // and B1 (clade B, 4 muts); leaf C1 (clade C, 6 muts) hangs off the root. All clades are
+  // single-leaf, so the leaf-based estimate equals the old founder-based one. A1 and B1 share the
+  // non-root MRCA I.
   fn three_clade_tree() -> AuspiceGraph {
     let json = r#"{
       "version": "v2",
@@ -365,6 +339,71 @@ mod tests {
             "name": "C1",
             "node_attrs": { "div": 6, "clade_membership": { "value": "C" } },
             "branch_attrs": { "mutations": { "nuc": ["A70C", "A80G", "A90T", "A100C", "A110G", "A120T"] } }
+          }
+        ]
+      }
+    }"#;
+    AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
+  }
+
+  // Nested clades: "child" is nested inside "parent" with a short founder separation (1 mut) but
+  // large terminal branches on "child" leaves. The old founder-based estimate would give mu_r=0.05
+  // (barely above mu_w=0.04), while the leaf-based estimate gives mu_r=0.09.
+  //
+  //   root (0 muts)
+  //   |-- P (1 mut, clade "parent")
+  //   |   |-- P1 (1 mut, clade "parent") -- leaf, rd=2
+  //   |   |-- C (1 mut, clade "child")
+  //   |   |   |-- C1 (8 muts, clade "child") -- leaf, rd=10
+  //   |   |   +-- C2 (6 muts, clade "child") -- leaf, rd=8
+  //   |   +-- P2 (1 mut, clade "parent") -- leaf, rd=2
+  //   +-- O1 (4 muts, clade "other") -- leaf, rd=4
+  fn nested_clade_tree() -> AuspiceGraph {
+    let json = r#"{
+      "version": "v2",
+      "meta": {},
+      "tree": {
+        "name": "root",
+        "node_attrs": { "div": 0 },
+        "children": [
+          {
+            "name": "P",
+            "node_attrs": { "div": 1, "clade_membership": { "value": "parent" } },
+            "branch_attrs": { "mutations": { "nuc": ["A1C"] } },
+            "children": [
+              {
+                "name": "P1",
+                "node_attrs": { "div": 2, "clade_membership": { "value": "parent" } },
+                "branch_attrs": { "mutations": { "nuc": ["A2C"] } }
+              },
+              {
+                "name": "C",
+                "node_attrs": { "div": 2, "clade_membership": { "value": "child" } },
+                "branch_attrs": { "mutations": { "nuc": ["A3C"] } },
+                "children": [
+                  {
+                    "name": "C1",
+                    "node_attrs": { "div": 10, "clade_membership": { "value": "child" } },
+                    "branch_attrs": { "mutations": { "nuc": ["A10C","A11C","A12C","A13C","A14C","A15C","A16C","A17C"] } }
+                  },
+                  {
+                    "name": "C2",
+                    "node_attrs": { "div": 8, "clade_membership": { "value": "child" } },
+                    "branch_attrs": { "mutations": { "nuc": ["A20C","A21C","A22C","A23C","A24C","A25C"] } }
+                  }
+                ]
+              },
+              {
+                "name": "P2",
+                "node_attrs": { "div": 2, "clade_membership": { "value": "parent" } },
+                "branch_attrs": { "mutations": { "nuc": ["A30C"] } }
+              }
+            ]
+          },
+          {
+            "name": "O1",
+            "node_attrs": { "div": 4, "clade_membership": { "value": "other" } },
+            "branch_attrs": { "mutations": { "nuc": ["A40C","A41C","A42C","A43C"] } }
           }
         ]
       }
@@ -413,7 +452,7 @@ mod tests {
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
     assert_eq!(1.0 / 100.0, params.gamma);
     assert_eq!(2.0 / 100.0, params.mu_w);
-    assert_eq!(3.0 / 100.0, params.mu_r);
+    assert_eq!(5.0 / 100.0, params.mu_r);
   }
 
   #[allow(clippy::float_cmp)]
@@ -429,7 +468,7 @@ mod tests {
     let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
     assert_eq!(0.1, params.gamma);
     assert_eq!(2.0 / 100.0, params.mu_w);
-    assert_eq!(3.0 / 100.0, params.mu_r);
+    assert_eq!(5.0 / 100.0, params.mu_r);
   }
 
   #[allow(clippy::float_cmp)]
@@ -530,12 +569,26 @@ mod tests {
   #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_three_clades_uses_nonroot_mrca() {
-    // Three clades where A and B share a non-root MRCA `I`, exercising the `- 2 * root_distance(mrca)`
-    // term with a non-zero ancestor distance (degenerate to the root in the two-clade fixture).
-    // Founder root-distances: A1=3, B1=5, C1=6. Pair distances through their MRCAs:
-    //   A1-B1 through I(rd 1): 3 + 5 - 2*1 = 6;  A1-C1 through root: 9;  B1-C1 through root: 11.
+    // Three single-leaf clades where A1 and B1 share a non-root MRCA `I`, exercising the
+    // `- 2 * root_distance(mrca)` term. Root distances: A1=3, B1=5, C1=6. Leaf-pair distances:
+    //   A1<->B1 through I(rd 1): 3+5-2 = 6;  A1<->C1 through root: 9;  B1<->C1 through root: 11.
     // median{6, 9, 11} = 9 -> mu_r = 0.09. Terminal branches 2, 4, 6 -> mean 4 -> mu_w = 0.04.
     let graph = three_clade_tree();
+    let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
+    assert_eq!(4.0 / 100.0, params.mu_w);
+    assert_eq!(9.0 / 100.0, params.mu_r);
+  }
+
+  #[allow(clippy::float_cmp)]
+  #[test]
+  fn test_recombination_estimate_nested_clades_uses_leaf_distance() {
+    // Nested clades with short founder separation but large terminal branches. The leaf-based
+    // estimate captures the actual inter-clade divergence that the HMM will encounter.
+    // Leaf pairs across clades:
+    //   parent<->child: {10, 8, 10, 8}  parent<->other: {6, 6}  child<->other: {14, 12}
+    // sorted: {6, 6, 8, 8, 10, 10, 12, 14} -> median = (8+10)/2 = 9 -> mu_r = 0.09
+    // Terminal branches: 1, 8, 6, 1, 4 -> mean = 4 -> mu_w = 0.04
+    let graph = nested_clade_tree();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
     assert_eq!(4.0 / 100.0, params.mu_w);
     assert_eq!(9.0 / 100.0, params.mu_r);
