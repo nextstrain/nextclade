@@ -46,9 +46,12 @@ export function ColumnRecombination({ analysisResult }: ColumnRecombinationProps
   // item summarizing the remainder.
   const regionItems: ReactElement[] = regions.slice(0, RECOMBINATION_TOOLTIP_MAX_REGIONS).map((region) => {
     const rangeStr = formatRange(region.range)
+    const confidenceStr =
+      region.confidence === undefined ? '' : `, ${t('{{p}}% conf.', { p: (region.confidence * 100).toFixed(1) })}`
     return (
       <Li key={rangeStr}>
-        {rangeStr} ({t('{{n}} nt', { n: region.length })})
+        {rangeStr} ({t('{{n}} nt', { n: region.length })}
+        {confidenceStr})
       </Li>
     )
   })

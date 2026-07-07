@@ -50,4 +50,4 @@ All fields optional. Absent `resourceHints` = current behavior.
 
 ## Related
 
-- Known issue: `kb/known-issues/wasm-oom-large-genomes.md`
+- Known issue: `kb/issues/H-wasm-oom-large-genomes.md`
