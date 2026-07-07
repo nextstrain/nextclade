@@ -392,4 +392,108 @@ mod tests {
   ) {
     assert_ulps_eq!(single_ref_score(expected_mult, n_minimizers_mult), expected_score, max_ulps = 4);
   }
+
+  // `get_ref_search_minimizers` returns the distinct set of surviving hashes. The dedup is done by
+  // sort + dedup, so the result must be strictly increasing (sorted, no duplicates). The consumer
+  // relies only on distinctness; this test pins the sorted-unique postcondition.
+  #[test]
+  fn test_minimizer_search_get_ref_search_minimizers_are_sorted_and_unique() {
+    let params = MinimizerIndexParams {
+      k: 17,
+      cutoff: 1 << 28,
+      other: Value::Null,
+    };
+    let record = FastaRecord {
+      seq_name: "q".to_owned(),
+      seq: make_seq(4000),
+      index: 0,
+    };
+
+    let mzs = get_ref_search_minimizers(&record, &params);
+    assert!(
+      mzs.len() >= 10,
+      "fixture must produce enough minimizers, got {}",
+      mzs.len()
+    );
+    assert!(
+      mzs.iter().tuple_windows().all(|(a, b)| a < b),
+      "minimizers must be strictly increasing (sorted and deduplicated)"
+    );
+  }
+
+  // Hit counting must increment exactly the references listed in each map entry, once per distinct
+  // query minimizer. This pins the multi-reference case: a minimizer shared by several references
+  // increments all of them, and only them. Guards the direct-iteration counting path.
+  #[test]
+  fn test_minimizer_search_counts_each_reference_in_multiref_entry() {
+    let params = MinimizerIndexParams {
+      k: 17,
+      cutoff: 1 << 28,
+      other: Value::Null,
+    };
+    let seq = make_seq(4000);
+    let record = FastaRecord {
+      seq_name: "q".to_owned(),
+      seq: seq.clone(),
+      index: 0,
+    };
+
+    let mzs = get_ref_search_minimizers(&record, &params);
+    let n = mzs.len();
+    assert!(n >= 10, "fixture must clear min_hits, got {n}");
+    let half = n / 2;
+
+    // ref 0 carries every query minimizer; ref 1 carries the first half; ref 2 carries none.
+    // Entries in the first half list two references, exercising multi-reference counting.
+    let minimizers: MinimizerMap = mzs
+      .iter()
+      .enumerate()
+      .map(|(i, &m)| (m, if i < half { vec![0, 1] } else { vec![0] }))
+      .collect();
+
+    #[allow(deprecated)] // `n_minimizers` is a required struct field; scoring uses `expected_minimizer_hits`
+    let ref_info = |name: &str| MinimizerIndexRefInfo {
+      length: seq.len() as i64,
+      name: name.to_owned(),
+      n_minimizers: n as i64,
+      expected_minimizer_hits: Some(n as f64),
+      other: Value::Null,
+    };
+
+    let index = MinimizerIndexJson {
+      schema: String::new(),
+      schema_version: "3.0.0".to_owned(),
+      version: "1".to_owned(),
+      params,
+      minimizers,
+      references: vec![ref_info("ref0"), ref_info("ref1"), ref_info("ref2")],
+      normalization: vec![],
+      other: Value::Null,
+    };
+
+    // Keep every reaching reference so raw hit counts are observable: accept low hit counts and
+    // scores, and disable the score-gap truncation that would otherwise drop the lower-scoring ref1.
+    let search_params = NextcladeSeqSortParams {
+      min_hits: 1,
+      min_score: 0.0,
+      max_score_gap: f64::INFINITY,
+      all_matches: true,
+      ..NextcladeSeqSortParams::default()
+    };
+
+    let result = run_minimizer_search(&record, &index, &search_params).unwrap();
+    let hits = |name: &str| result.datasets.iter().find(|d| d.name == name).map(|d| d.n_hits);
+
+    assert_eq!(
+      Some(n as u64),
+      hits("ref0"),
+      "ref0 must be hit by every distinct minimizer"
+    );
+    assert_eq!(
+      Some(half as u64),
+      hits("ref1"),
+      "ref1 must be hit by exactly the shared half"
+    );
+    assert_eq!(None, hits("ref2"), "ref2 carries no minimizer and must not be reported");
+  }
 }
