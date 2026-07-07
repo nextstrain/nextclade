@@ -292,6 +292,12 @@ definitions:
         type: array
         items:
           type: string
+      cutoff:
+        description: 'Minimizer acceptance threshold given as an exponent: the retained fraction of k-mers is `2^cutoff / 2^32`. When absent, a default cutoff is used.'
+        type:
+        - integer
+        - 'null'
+        format: int64
   LabelledMutationsConfig:
     description: Mapping from specific mutations to human-readable labels (e.g. clade-defining or drug-resistance mutations).
     examples:
