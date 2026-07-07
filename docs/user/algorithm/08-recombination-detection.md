@@ -33,7 +33,7 @@ Each parameter can be set explicitly in the dataset [pathogen configuration](../
 
 - `gamma` defaults to `1 / L`, where `L` is the reference length (following issue #1768). At this value a single state switch costs about `ln L`, so only sustained dense stretches, not a few isolated mutations, open a recombinant interval.
 - `muW` is estimated as the mean terminal branch length of the reference tree (in substitutions per site).
-- `muR` is estimated as the typical divergence between sequences of different clades (the median substitution distance between clade founders, per site).
+- `muR` is estimated as the typical divergence between sequences of different clades (the median pairwise substitution distance between leaves of different clades, per site).
 
 Detection requires a reference tree (to determine the parent) and at least two clades (to estimate `muR`). When the parameters cannot be estimated and are not supplied, detection is skipped for that dataset. The effective parameters actually used are reported once per run.
 
