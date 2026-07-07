@@ -101,3 +101,7 @@ harness = false
 [[bench]]
 name = "bench_seed_alignment"
 harness = false
+
+[[bench]]
+name = "bench_minimizer_search"
+harness = false

@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+#
+# Usage: $0 [options] <program> [args...]
+#
+# Sampling performance profiling on the host (not in the container).
+#
+# Builds the given binary with the `profiling` cargo profile (optimized release build with debug
+# symbols kept, not stripped; see `.cargo/config.toml`), then samples it with a profiler.
+#
+# Two output modes:
+#   * samply (default): records with samply (https://github.com/mstange/samply) and opens the
+#     Firefox Profiler UI (https://profiler.firefox.com) in the browser. For interactive use.
+#   * --report: records with perf and prints a text hotspot report to stdout. For headless,
+#     scripted, or CI use where a browser is not available.
+#
+# For meaningful results the workload should run for at least a few seconds; a sampling profiler
+# collects ~1000 samples/second. Profile single-threaded first (e.g. `nextclade sort -j 1 ...`) so
+# samples are not spread across worker threads.
+#
+# Options:
+#   -h, --help     Show this help
+#   --report       Use perf and print a text report to stdout instead of opening samply UI
+#   --rate <hz>    Sampling rate in Hz (default: 1234)
+#
+# Examples:
+#   $0 nextclade sort -j 1 -m index.json queries.fasta -r /dev/null
+#   $0 --report nextclade sort -j 1 -m index.json queries.fasta -r /dev/null
+#
+# Requirements:
+#   * cargo, and the host toolchain from rust-toolchain.toml
+#   * samply (`cargo install samply`) for the default mode
+#   * perf (https://perf.wiki.kernel.org) for --report mode and as the samply backend on Linux
+#   * unprivileged access to performance events (otherwise results may be incomplete):
+#       echo -1 | sudo tee /proc/sys/kernel/perf_event_paranoid >/dev/null
+#       echo  0 | sudo tee /proc/sys/kernel/kptr_restrict        >/dev/null
+#     Learn the security implications first:
+#       https://www.kernel.org/doc/html/latest/admin-guide/perf-security.html
+#
+set -euo pipefail
+trap "exit" INT
+
+THIS_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+PROJECT_DIR="$(dirname "${THIS_DIR}")"
+
+readonly PERF_DATA="${PROJECT_DIR}/tmp/perf.data"
+readonly SAMPLY_JSON="${PROJECT_DIR}/tmp/samply.json"
+
+build_binary() {
+  local bin="${1}"
+  if ! cargo build --quiet --profile=profiling --manifest-path="${PROJECT_DIR}/Cargo.toml" --bin="${bin}"; then
+    printf "Failed to build binary '%s' with the profiling profile\n" "${bin}" >&2
+    exit 1
+  fi
+}
+
+profile_samply() {
+  local rate="${1}" bin_path="${2}"
+  shift 2
+  samply record --rate="${rate}" -o "${SAMPLY_JSON}" -- "${bin_path}" "$@"
+}
+
+profile_perf_report() {
+  local rate="${1}" bin_path="${2}"
+  shift 2
+  mkdir -p "${PROJECT_DIR}/tmp"
+  if ! perf record -F "${rate}" --call-graph dwarf -o "${PERF_DATA}" -- "${bin_path}" "$@"; then
+    printf "perf record failed; check /proc/sys/kernel/perf_event_paranoid (see --help)\n" >&2
+    exit 1
+  fi
+  # Self-time hotspots (where the CPU actually spent time), most expensive first.
+  perf report -i "${PERF_DATA}" --stdio --percent-limit=1 --sort=overhead,symbol -g none
+}
+
+main() {
+  show_help() {
+    sed -n '2,${/^#/!q; s/^# \?//p}' "${BASH_SOURCE[0]}" | sed "s|\$0|${0##*/}|g"
+  }
+
+  [[ "${1:-}" =~ ^(-h|--help)$ ]] && {
+    show_help
+    exit 0
+  }
+
+  local report=false
+  local rate=1234
+
+  # shfmt:off
+  while (($# > 0)); do
+    case "${1}" in
+      -h | --help)
+        show_help
+        exit 0
+        ;;
+      --report)
+        report=true
+        shift
+        ;;
+      --rate)
+        rate="${2}"
+        shift 2
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        printf "Unknown option: %s\n" "${1}" >&2
+        exit 1
+        ;;
+      *) break ;;
+    esac
+  done
+  # shfmt:on
+
+  if (($# == 0)); then
+    printf "Expected a program name. See --help.\n" >&2
+    exit 1
+  fi
+
+  local bin="${1}"
+  shift
+
+  build_binary "${bin}"
+
+  local bin_path="${PROJECT_DIR}/target/profiling/${bin}"
+  if [[ ! -x "${bin_path}" ]]; then
+    printf "Built binary not found at %s\n" "${bin_path}" >&2
+    exit 1
+  fi
+
+  mkdir -p "${PROJECT_DIR}/tmp"
+
+  if "${report}"; then
+    profile_perf_report "${rate}" "${bin_path}" "$@"
+  else
+    profile_samply "${rate}" "${bin_path}" "$@"
+  fi
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
