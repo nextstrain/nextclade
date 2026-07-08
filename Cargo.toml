@@ -71,6 +71,7 @@ owo-colors = { version = "=4.2.3", features = ["supports-colors"] }
 percent-encoding = "=2.3.2"
 pretty_assertions = "=1.4.1"
 proptest = "=1.11.0"
+rand = "=0.8.5"
 rayon = "=1.11.0"
 # `regex`, `regex-automata` and `regex-syntax` are one family: `regex` and `regex-automata` depend on the others.
 # Update the three pins together, so that the build contains one version of each.

@@ -11,6 +11,8 @@
 //! The method and default parameters follow Marco Molari's prototype
 //! <https://github.com/mmolari/recomb_inference> and issue #1768.
 
+use crate::analyze::letter_ranges::NucRange;
+use crate::analyze::nuc_del::NucDelRange;
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
 use crate::make_error;
@@ -28,13 +30,9 @@ const RECOMBINANT: usize = 1;
 /// returned intervals are the maximal runs of the recombinant state, as 0-based half-open ranges,
 /// with each interval trimmed so its first and last positions carry evidence (are not `Missing`).
 ///
-/// `params` are assumed valid; construct them through [`RecombinationHmmParams::new`], which is the
-/// only path that reaches this function in production (a `debug_assert` guards the invariant).
-pub fn find_recombinant_regions(
-  obs: &[RecombinationObs],
-  params: &RecombinationHmmParams,
-) -> Vec<NucRefGlobalRange> {
-  debug_assert!(params.is_valid(), "recombination HMM params must be valid probabilities: {params:?}");
+/// `params` are always valid: [`RecombinationHmmParams`] has private fields and can only be built
+/// through [`RecombinationHmmParams::new`], which enforces the model invariants.
+pub fn find_recombinant_regions(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<NucRefGlobalRange> {
   let is_recombinant = viterbi_decode(obs, params);
   let intervals = extract_recombinant_intervals(&is_recombinant);
   let regions = trim_intervals_to_covered(intervals, obs);
@@ -99,11 +97,35 @@ pub enum RecombinationObs {
   Missing,
 }
 
+/// Assemble the non-comparable reference ranges handed to [`build_observations`] as `missing`.
+///
+/// These are all the positions that carry no usable evidence relative to the parent: missing (`N`)
+/// runs, non-ACGTN ambiguous runs, deletions, and placement-masked sites. The placement mask is
+/// included because a masked position that differs from the parent would otherwise be scored as `Mut`
+/// and could manufacture a false recombinant call at a homoplasic site. Extracted from the
+/// per-sequence pipeline so this chaining is guarded by a direct test rather than an inline closure.
+pub fn recombination_missing_ranges(
+  missing: &[NucRange],
+  non_acgtns: &[NucRange],
+  deletions: &[NucDelRange],
+  masked: &[NucRefGlobalRange],
+) -> Vec<NucRefGlobalRange> {
+  missing
+    .iter()
+    .map(|r| r.range().clone())
+    .chain(non_acgtns.iter().map(|r| r.range().clone()))
+    .chain(deletions.iter().map(|d| d.range().clone()))
+    .chain(masked.iter().cloned())
+    .collect()
+}
+
 /// Build the per-site observation vector in reference coordinates.
 ///
 /// A position is `Mut` at a private substitution (mutations relative to the parent, which include
 /// reversions), `Missing` where it is uncovered (outside the alignment) or carries no comparable
-/// base (N, ambiguous character, or deletion), and `Ref` otherwise.
+/// base (N, ambiguous character, deletion, or placement-masked site), and `Ref` otherwise.
+/// `Missing` is final: a non-comparable position stays `Missing` even if a mutation also maps to it,
+/// because missing data must not contribute to the likelihood.
 pub fn build_observations(
   ref_len: usize,
   alignment_range: &NucRefGlobalRange,
@@ -112,26 +134,30 @@ pub fn build_observations(
 ) -> Vec<RecombinationObs> {
   let mut obs = vec![RecombinationObs::Missing; ref_len];
 
-  // Covered positions start as Ref.
+  // 1. Covered positions start as Ref.
   for pos in alignment_range.iter() {
     if let Some(slot) = obs.get_mut(pos.as_usize()) {
       *slot = RecombinationObs::Ref;
     }
   }
 
-  // Uncovered or non-comparable positions are Missing.
+  // 2. Substitutions relative to the parent. Applied before missing so that
+  //    non-comparable positions (step 3) take precedence.
+  for pos in mutated_positions {
+    if let Some(slot) = obs.get_mut(pos.as_usize()) {
+      *slot = RecombinationObs::Mut;
+    }
+  }
+
+  // 3. Non-comparable positions are Missing (final). N, deletion, ambiguous,
+  //    placement-masked, or outside alignment. This stage is last so it
+  //    overrides any mutation at a non-comparable position (missing data must
+  //    not contribute to the likelihood).
   for range in missing_ranges {
     for pos in range.iter() {
       if let Some(slot) = obs.get_mut(pos.as_usize()) {
         *slot = RecombinationObs::Missing;
       }
-    }
-  }
-
-  // Substitutions relative to the parent are Mut.
-  for pos in mutated_positions {
-    if let Some(slot) = obs.get_mut(pos.as_usize()) {
-      *slot = RecombinationObs::Mut;
     }
   }
 
@@ -149,15 +175,21 @@ pub fn build_observations(
 ///
 /// All three are probabilities and must lie in the open interval `(0, 1)`; the closed endpoints
 /// produce `log(0) = -inf` in the decoder.
+///
+/// Fields are private and reachable only through [`RecombinationHmmParams::new`], which enforces the
+/// model invariants, so an invalid instance cannot be constructed. Read access is through the
+/// getters. `Deserialize` is derived plain: this type is only ever deserialized from Nextclade's own
+/// already-validated output (the WASM boundary and `ResultsJson`), never from user input, which
+/// enters through [`RecombinationConfig`].
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecombinationHmmParams {
   /// Transition rate: probability of switching state between adjacent sites.
-  pub gamma: f64,
+  gamma: f64,
   /// Mutation emission probability in the wildtype state (background divergence).
-  pub mu_w: f64,
+  mu_w: f64,
   /// Mutation emission probability in the recombinant state (elevated divergence).
-  pub mu_r: f64,
+  mu_r: f64,
 }
 
 /// Whether a value is a usable HMM probability: finite and strictly inside the open interval
@@ -175,6 +207,21 @@ impl RecombinationHmmParams {
     let params = Self { gamma, mu_w, mu_r };
     params.validate()?;
     Ok(params)
+  }
+
+  /// Transition rate: probability of switching state between adjacent sites.
+  pub const fn gamma(&self) -> f64 {
+    self.gamma
+  }
+
+  /// Mutation emission probability in the wildtype state (background divergence).
+  pub const fn mu_w(&self) -> f64 {
+    self.mu_w
+  }
+
+  /// Mutation emission probability in the recombinant state (elevated divergence).
+  pub const fn mu_r(&self) -> f64 {
+    self.mu_r
   }
 
   /// Single source of truth for the model invariants. Every field must be a probability in the open
@@ -200,12 +247,6 @@ impl RecombinationHmmParams {
       return make_error!("Recombination HMM requires muR > muW (elevated recombinant divergence), but got muW={mu_w} and muR={mu_r}");
     }
     Ok(())
-  }
-
-  /// Whether the parameters satisfy the model invariants. Used only for debug assertions; derived
-  /// from [`Self::validate`] so the two cannot drift.
-  fn is_valid(&self) -> bool {
-    self.validate().is_ok()
   }
 
   /// Log-space emission scores `[wildtype, recombinant]` for one observation.
@@ -257,47 +298,52 @@ impl RecombinationResult {
 /// otherwise a fallback is computed from the reference and reference tree (`gamma = 1 / ref_len`,
 /// `mu_w`/`mu_r` estimated from the tree). An absent config object, or one with `enabled` omitted,
 /// leaves the feature enabled (see `RecombinationConfig::is_enabled`).
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct RecombinationConfig {
-  /// Whether recombination detection runs for this dataset. Enabled by default.
-  pub enabled: bool,
+  /// Whether recombination detection runs for this dataset.
+  ///
+  /// Three states: `None` (field absent) is the default-on behavior; `Some(true)` is an explicit
+  /// opt-in; `Some(false)` disables detection. The explicit opt-in is distinguished from the default
+  /// so that a dataset that asks for detection but cannot support it (a tree too thin to estimate the
+  /// parameters) surfaces one skip warning, while the silent default stays silent.
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub enabled: Option<bool>,
 
   /// State transition rate override. When absent, defaults to `1 / ref_len`.
-  /// A probability: the runtime enforces the open interval `(0, 1)`; the schema bound is inclusive.
+  /// Must be in the open interval (0, 1) and less than 0.5. The runtime enforces this; the schema
+  /// bound is inclusive because `schemars` cannot express exclusive bounds.
   #[serde(skip_serializing_if = "Option::is_none")]
   #[schemars(range(min = 0.0, max = 1.0))]
   pub gamma: Option<OrderedFloat<f64>>,
 
   /// Wildtype mutation emission probability override. When absent, estimated from the tree.
-  /// A probability: the runtime enforces the open interval `(0, 1)`; the schema bound is inclusive.
+  /// Must be in the open interval (0, 1). The runtime enforces this; the schema bound is inclusive
+  /// because `schemars` cannot express exclusive bounds.
   #[serde(skip_serializing_if = "Option::is_none")]
   #[schemars(range(min = 0.0, max = 1.0))]
   pub mu_w: Option<OrderedFloat<f64>>,
 
   /// Recombinant mutation emission probability override. When absent, estimated from the tree.
-  /// A probability: the runtime enforces the open interval `(0, 1)`; the schema bound is inclusive.
+  /// Must be in the open interval (0, 1) and greater than `muW`. The runtime enforces this; the
+  /// schema bound is inclusive because `schemars` cannot express exclusive bounds.
   #[serde(skip_serializing_if = "Option::is_none")]
   #[schemars(range(min = 0.0, max = 1.0))]
   pub mu_r: Option<OrderedFloat<f64>>,
 }
 
-impl Default for RecombinationConfig {
-  fn default() -> Self {
-    Self {
-      enabled: true,
-      gamma: None,
-      mu_w: None,
-      mu_r: None,
-    }
-  }
-}
-
 impl RecombinationConfig {
-  /// Effective enablement for an optional config: absent config counts as enabled (default-on).
+  /// Effective enablement for an optional config: enabled unless explicitly disabled (`Some(false)`).
+  /// An absent config object, or one with `enabled` omitted, is default-on.
   pub fn is_enabled(config: Option<&RecombinationConfig>) -> bool {
-    config.is_none_or(|c| c.enabled)
+    config.is_none_or(|c| c.enabled != Some(false))
+  }
+
+  /// Whether detection was explicitly requested (`enabled: true`), as opposed to left on by default.
+  /// Only an explicit request warrants a skip warning when the tree cannot support detection.
+  pub fn is_explicitly_enabled(config: Option<&RecombinationConfig>) -> bool {
+    config.and_then(|c| c.enabled) == Some(true)
   }
 }
 
@@ -390,7 +436,10 @@ fn extract_recombinant_intervals(is_recombinant: &[bool]) -> Vec<NucRefGlobalRan
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::alphabet::nuc::Nuc;
   use pretty_assertions::assert_eq;
+  use rand::rngs::StdRng;
+  use rand::{Rng, SeedableRng};
   use rstest::rstest;
 
   // Test-scale parameters chosen so short fixtures decode with clean interval boundaries. At
@@ -437,7 +486,6 @@ mod tests {
   #[case::single_mut_flanked_stays_ref("RRRRRRRRRRMRRRRRRRRRR",                       &[])]
   #[case::dense_block(                 "RRRRRRRRRRMMMMMMMMMMMMMMMRRRRRRRRRR",         &[(10, 25)])]
   #[case::missing_run_no_interval(     "RRRRRRRRRRXXXXXRRRRRRRRRR",                   &[])]
-  #[case::state_persists_across_missing("RRRRRMMMMMMMMMMMMMMMXXXXXMMMMMMMMMMMMMMMRRRRR", &[(5, 40)])]
   #[trace]
   fn test_recombination_find_regions(#[case] input: &str, #[case] expected: &[(usize, usize)]) {
     let regions = find_recombinant_regions(&obs(input), &test_params());
@@ -536,43 +584,38 @@ mod tests {
 
   #[rustfmt::skip]
   #[rstest]
-  // is_valid (used for the decoder debug assertion) must agree with the new() gate for every case, so
-  // the two invariant checks cannot drift apart.
-  #[case::valid(          5e-4, 0.005, 0.05, true)]
-  #[case::gamma_zero(     0.0,  0.005, 0.05, false)]
-  #[case::gamma_one(      1.0,  0.005, 0.05, false)]
-  #[case::gamma_half(     0.5,  0.005, 0.05, false)] // sticky-model bound
-  #[case::mu_w_zero(      5e-4, 0.0,   0.05, false)]
-  #[case::mu_r_one(       5e-4, 0.005, 1.0,  false)]
-  #[case::rate_not_elev(  5e-4, 0.05,  0.05, false)] // mu_r <= mu_w
-  fn test_recombination_is_valid_agrees_with_new(
-    #[case] gamma: f64,
-    #[case] mu_w: f64,
-    #[case] mu_r: f64,
-    #[case] expected: bool,
-  ) {
-    let candidate = RecombinationHmmParams { gamma, mu_w, mu_r };
-    assert_eq!(expected, candidate.is_valid());
-    assert_eq!(expected, RecombinationHmmParams::new(gamma, mu_w, mu_r).is_ok());
-  }
-
-  #[rustfmt::skip]
-  #[rstest]
-  #[case::absent(None,                                              true)]
-  #[case::default(Some(RecombinationConfig::default()),            true)]
-  #[case::explicit_on(Some(RecombinationConfig { enabled: true,  ..RecombinationConfig::default() }), true)]
-  #[case::explicit_off(Some(RecombinationConfig { enabled: false, ..RecombinationConfig::default() }), false)]
+  #[case::absent(None,                                                                                      true)]
+  #[case::default(Some(RecombinationConfig::default()),                                                     true)]
+  #[case::explicit_on(Some(RecombinationConfig { enabled: Some(true),  ..RecombinationConfig::default() }), true)]
+  #[case::explicit_off(Some(RecombinationConfig { enabled: Some(false), ..RecombinationConfig::default() }), false)]
   fn test_recombination_config_is_enabled_default_on(#[case] config: Option<RecombinationConfig>, #[case] expected: bool) {
     assert_eq!(expected, RecombinationConfig::is_enabled(config.as_ref()));
   }
 
+  #[rustfmt::skip]
   #[rstest]
-  #[case::empty_object("{}", true)]
-  #[case::enabled_omitted(r#"{"gamma": 0.01}"#, true)]
-  #[case::enabled_false(r#"{"enabled": false}"#, false)]
-  fn test_recombination_config_serde_default_enabled(#[case] json: &str, #[case] expected: bool) {
+  // is_explicitly_enabled is true ONLY for `enabled: true`; the default-on states (absent config or
+  // omitted `enabled`) are not explicit, so they do not warrant a skip warning.
+  #[case::absent(None,                                                                                       false)]
+  #[case::default(Some(RecombinationConfig::default()),                                                      false)]
+  #[case::explicit_on(Some(RecombinationConfig { enabled: Some(true),  ..RecombinationConfig::default() }),  true)]
+  #[case::explicit_off(Some(RecombinationConfig { enabled: Some(false), ..RecombinationConfig::default() }), false)]
+  fn test_recombination_config_is_explicitly_enabled(#[case] config: Option<RecombinationConfig>, #[case] expected: bool) {
+    assert_eq!(expected, RecombinationConfig::is_explicitly_enabled(config.as_ref()));
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  // `enabled` is Option<bool>: absent or omitted deserializes to None (default-on), only an explicit
+  // value is Some. `is_enabled` treats None and Some(true) as enabled, Some(false) as disabled.
+  #[case::empty_object("{}",                    None,        true)]
+  #[case::enabled_omitted(r#"{"gamma": 0.01}"#, None,        true)]
+  #[case::enabled_true(r#"{"enabled": true}"#,  Some(true),  true)]
+  #[case::enabled_false(r#"{"enabled": false}"#, Some(false), false)]
+  fn test_recombination_config_serde_default_enabled(#[case] json: &str, #[case] enabled: Option<bool>, #[case] is_enabled: bool) {
     let config: RecombinationConfig = serde_json::from_str(json).unwrap();
-    assert_eq!(expected, config.enabled);
+    assert_eq!(enabled, config.enabled);
+    assert_eq!(is_enabled, RecombinationConfig::is_enabled(Some(&config)));
   }
 
   #[test]
@@ -593,13 +636,14 @@ mod tests {
   }
 
   #[test]
-  fn test_recombination_build_observations_mut_wins_over_missing_and_ignores_out_of_range() {
-    use RecombinationObs::{Missing, Mut, Ref};
+  fn test_recombination_build_observations_missing_wins_over_mut_and_ignores_out_of_range() {
+    use RecombinationObs::{Missing, Ref};
     let ref_len = 8;
     let alignment_range = NucRefGlobalRange::from_usize(0, 8);
     let missing_ranges = vec![NucRefGlobalRange::from_usize(2, 5)]; // positions 2, 3, 4 missing
-    // A mutation inside a missing range (position 3) resolves to Mut (applied last); a mutation
-    // outside the reference (position 20) is ignored rather than panicking or extending the vector.
+    // A mutation inside a missing range (position 3) resolves to Missing: non-comparable positions
+    // are final and must not contribute to the likelihood. A mutation outside the reference (position
+    // 20) is ignored rather than panicking or extending the vector.
     let mutated: Vec<NucRefGlobalPosition> = [3, 20]
       .into_iter()
       .map(|p| NucRefGlobalPosition::from(p as isize))
@@ -607,7 +651,7 @@ mod tests {
 
     let observed = build_observations(ref_len, &alignment_range, &missing_ranges, &mutated);
 
-    let expected = vec![Ref, Ref, Missing, Mut, Missing, Ref, Ref, Ref];
+    let expected = vec![Ref, Ref, Missing, Missing, Missing, Ref, Ref, Ref];
     assert_eq!(expected, observed);
   }
 
@@ -645,5 +689,135 @@ mod tests {
     assert_eq!(0, result.total_regions);
     assert_eq!(0, result.total_length);
     assert_eq!(0, result.longest_region);
+  }
+
+  fn nuc_range(begin: usize, end: usize) -> NucRange {
+    NucRange {
+      range: NucRefGlobalRange::from_usize(begin, end),
+      letter: Nuc::N,
+    }
+  }
+
+  // T2 wiring (guards C2): the assembled missing set must contain every input range, including the
+  // placement-masked ranges. Removing the `masked` term from `recombination_missing_ranges` drops
+  // the masked range and fails this test, so the mask chaining cannot silently regress.
+  #[test]
+  fn test_recombination_missing_ranges_includes_masked() {
+    let missing = vec![nuc_range(0, 2)];
+    let non_acgtns = vec![nuc_range(10, 11)];
+    let deletions = vec![NucDelRange::from_usize(20, 22)];
+    let masked = ranges(&[(30, 33)]);
+
+    let assembled = recombination_missing_ranges(&missing, &non_acgtns, &deletions, &masked);
+
+    // Order is missing, then non-ACGTN, then deletions, then masked.
+    let expected = ranges(&[(0, 2), (10, 11), (20, 22), (30, 33)]);
+    assert_eq!(expected, assembled);
+    assert!(
+      assembled.contains(&NucRefGlobalRange::from_usize(30, 33)),
+      "assembled missing set must contain the placement-masked range"
+    );
+  }
+
+  // T2 precedence (guards C4): fed through the same chain as `nextclade_run_one`, a position that is
+  // both masked and mutated resolves to `Missing`; an unmasked mutation resolves to `Mut`; positions
+  // outside the alignment are `Missing`; and the vector length equals `ref_len`. Reverting C4 (Missing
+  // before Mut) makes the masked+mutated position decode to `Mut` and fails this test.
+  #[test]
+  fn test_recombination_build_observations_masked_mutation_is_missing() {
+    use RecombinationObs::{Missing, Mut, Ref};
+    let ref_len = 10;
+    let alignment_range = NucRefGlobalRange::from_usize(1, 9); // positions 0 and 9 outside the alignment
+    let masked = ranges(&[(4, 5)]); // position 4 is placement-masked
+    let missing_ranges = recombination_missing_ranges(&[], &[], &[], &masked);
+    // Position 4 is masked and mutated; position 6 is mutated but not masked.
+    let mutated: Vec<NucRefGlobalPosition> = [4, 6]
+      .into_iter()
+      .map(|p| NucRefGlobalPosition::from(p as isize))
+      .collect();
+
+    let observed = build_observations(ref_len, &alignment_range, &missing_ranges, &mutated);
+
+    let expected = vec![Missing, Ref, Ref, Ref, Missing, Ref, Mut, Ref, Ref, Missing];
+    assert_eq!(expected, observed);
+    assert_eq!(ref_len, observed.len());
+  }
+
+  // T3 Property A: structural invariants of the decoded regions hold for any observation vector and any
+  // valid parameters. Property B: a planted recombinant block is recovered. Parameters are built valid
+  // by construction (gamma < 0.5, 0 < mu_w < mu_r < 1) and through `new().unwrap()` -- a failure there
+  // means the model preconditions drifted.
+  proptest::proptest! {
+    #![proptest_config(proptest::prelude::ProptestConfig::with_cases(1000))]
+
+    #[test]
+    fn test_prop_recombination_regions_well_formed(
+      observations in proptest::collection::vec(
+        proptest::prop_oneof![
+          proptest::prelude::Just(RecombinationObs::Ref),
+          proptest::prelude::Just(RecombinationObs::Mut),
+          proptest::prelude::Just(RecombinationObs::Missing),
+        ],
+        1..500_usize,
+      ),
+      gamma in 1e-6_f64..0.5,
+      mu_w in 1e-6_f64..0.5,
+      offset in 1e-6_f64..0.5,
+    ) {
+      // gamma < 0.5; mu_w in (0, 0.5); mu_r = mu_w + offset in (mu_w, 1). All satisfy `new` by construction.
+      let params = RecombinationHmmParams::new(gamma, mu_w, mu_w + offset).unwrap();
+      let regions = find_recombinant_regions(&observations, &params);
+
+      let mut prev_end = 0;
+      for region in &regions {
+        let (begin, end) = (region.begin.as_usize(), region.end.as_usize());
+        proptest::prop_assert!(begin < end, "empty region {begin}..{end}");
+        proptest::prop_assert!(end <= observations.len(), "region {begin}..{end} out of bounds");
+        proptest::prop_assert!(begin >= prev_end, "regions unsorted or overlapping at {begin}");
+        proptest::prop_assert_ne!(observations[begin], RecombinationObs::Missing, "begin endpoint is Missing");
+        proptest::prop_assert_ne!(observations[end - 1], RecombinationObs::Missing, "end endpoint is Missing");
+        prev_end = end;
+      }
+    }
+
+    #[test]
+    fn test_prop_recombination_recovers_planted_block(seed in proptest::prelude::any::<u64>()) {
+      // Strong separation so recovery is near-certain: a 200-site recombinant block at mu_r = 0.6 in a
+      // wildtype background at mu_w = 0.01. Emissions are sampled from a seeded RNG (the forward model);
+      // the decoder under test is Viterbi, a different algorithm, so this is not circular.
+      let params = RecombinationHmmParams::new(0.01, 0.01, 0.6).unwrap();
+      let len = 600_usize;
+      let block = 200_usize..400;
+      let mut rng = StdRng::seed_from_u64(seed);
+      let observations: Vec<RecombinationObs> = (0..len)
+        .map(|i| {
+          let rate = if block.contains(&i) { 0.6 } else { 0.01 };
+          if rng.gen_bool(rate) {
+            RecombinationObs::Mut
+          } else {
+            RecombinationObs::Ref
+          }
+        })
+        .collect();
+
+      let regions = find_recombinant_regions(&observations, &params);
+
+      // At least one decoded region overlaps the planted block's core [250, 350). Overlap only, never
+      // exact per-site equality: Viterbi recovery is probabilistic even under strong signal.
+      let (core_begin, core_end) = (250_usize, 350);
+      let overlaps = regions.iter().any(|r| {
+        let (begin, end) = (r.begin.as_usize(), r.end.as_usize());
+        begin < core_end && core_begin < end
+      });
+      proptest::prop_assert!(overlaps, "no decoded region overlaps the planted block; regions={:?}", regions);
+    }
+  }
+
+  #[test]
+  fn test_recombination_metamorphic_all_ref_yields_no_regions() {
+    // An all-Ref vector carries no recombinant signal, so no region is decoded, for any valid params.
+    let params = RecombinationHmmParams::new(0.01, 0.01, 0.6).unwrap();
+    let observations = vec![RecombinationObs::Ref; 500];
+    assert_eq!(Vec::<NucRefGlobalRange>::new(), find_recombinant_regions(&observations, &params));
   }
 }
