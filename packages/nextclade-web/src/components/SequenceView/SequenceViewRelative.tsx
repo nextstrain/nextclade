@@ -22,6 +22,7 @@ import {
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
+import { RecombinationMarkers, recombinationMarkerCount } from './RecombinationMarkers'
 import { SequenceViewCoverageWrapper, SequenceViewCoverageText, SequenceViewSVG } from './SequenceViewStyles'
 
 export interface SequenceViewRelativeProps {
@@ -124,7 +125,8 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
     missingViews.length +
     frameShiftMarkers.length +
     insertionViews.length +
-    countMutationPatternClusters(patterns)
+    countMutationPatternClusters(patterns) +
+    recombinationMarkerCount(sequence)
 
   if (totalMarkers > maxNucMarkers) {
     return (
@@ -177,6 +179,7 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
           pixelsPerBase={pixelsPerBase}
         />
         {frameShiftMarkers}
+        <RecombinationMarkers sequence={sequence} pixelsPerBase={pixelsPerBase} />
       </g>
       <SequenceMarkerMutationPatterns
         index={index}
