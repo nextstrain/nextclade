@@ -32,5 +32,5 @@
 \.Trashes
 \.vscode/*
 ehthumbs.db
-node_modules/
+node_modules
 Thumbs.db
