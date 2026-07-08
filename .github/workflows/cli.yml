@@ -55,13 +55,13 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Set up Docker Buildx"
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: "Free disk space"
         uses: ./.github/actions/free-disk-space
@@ -86,7 +86,7 @@ jobs:
         run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
 
       - name: "Setup cache for Docker buildx (${{ matrix.arch }})"
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache/docker/buildx
           key: cache-v1-buildx-${{ runner.os }}-${{ matrix.arch }}-${{ steps.docker-build-checksum.outputs.checksum }}
@@ -97,7 +97,7 @@ jobs:
             cache-v1-buildx-${{ runner.os }}-
 
       - name: "Setup cache for Rust and Cargo"
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .cache/docker/.cargo
@@ -130,7 +130,7 @@ jobs:
           sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org/v3|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
 
       - name: "Login to Docker Hub"
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: docker.io
           username: nextstrainbot
@@ -145,7 +145,7 @@ jobs:
           CROSS="${{ matrix.arch }}" ./docker/dev build-release
 
       - name: "Upload build artifacts (${{ matrix.arch }})"
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: out-${{ matrix.arch }}
           path: ./.out/*
@@ -159,13 +159,13 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Set up Docker Buildx"
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: "Free disk space"
         uses: ./.github/actions/free-disk-space
@@ -175,7 +175,7 @@ jobs:
         run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
 
       - name: "Setup cache for Docker buildx"
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache/docker/buildx
           key: cache-v1-buildx-unit-tests-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
@@ -184,7 +184,7 @@ jobs:
             cache-v1-buildx-unit-tests-${{ runner.os }}-
 
       - name: "Setup cache for Rust and Cargo"
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .cache/docker/.cargo
@@ -213,13 +213,13 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Set up Docker Buildx"
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: "Free disk space"
         uses: ./.github/actions/free-disk-space
@@ -229,7 +229,7 @@ jobs:
         run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
 
       - name: "Setup cache for Docker buildx"
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache/docker/buildx
           key: cache-v1-buildx-lints-${{ runner.os }}-${{ steps.docker-build-checksum.outputs.checksum }}
@@ -238,7 +238,7 @@ jobs:
             cache-v1-buildx-lints-${{ runner.os }}-
 
       - name: "Setup cache for Rust and Cargo"
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .cache/docker/.cargo
@@ -267,7 +267,7 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           submodules: true
@@ -284,7 +284,7 @@ jobs:
           curl -sSL "https://github.com/shenwei356/seqkit/releases/download/v${SEQKIT_VERSION}/seqkit_linux_amd64.tar.gz" | tar -C "${HOME}/bin" -xz "seqkit"
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: out-*
           merge-multiple: true
@@ -308,13 +308,13 @@ jobs:
   #
   #    steps:
   #      - name: "Checkout code"
-  #        uses: actions/checkout@v5
+  #        uses: actions/checkout@v7
   #        with:
   #          fetch-depth: 1
   #          submodules: true
   #
   #      - name: "Download build artifacts"
-  #        uses: actions/download-artifact@v6
+  #        uses: actions/download-artifact@v8
   #        with:
   #          name: "out"
   #          path: ".out"
@@ -332,19 +332,19 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Set up Docker Buildx"
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: "Free disk space"
         uses: ./.github/actions/free-disk-space
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: out-*
           merge-multiple: true
@@ -363,7 +363,7 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           submodules: true
@@ -372,7 +372,7 @@ jobs:
         uses: ./.github/actions/free-disk-space
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: out-*
           merge-multiple: true
@@ -395,13 +395,13 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: out-*
           merge-multiple: true
@@ -435,13 +435,13 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: out-*
           merge-multiple: true
@@ -454,10 +454,10 @@ jobs:
           curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
 
       - name: "Set up QEMU"
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: "Set up Docker Buildx"
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: "Build and test Docker images"
         run: |
@@ -473,13 +473,13 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           submodules: true
 
       - name: "Download build artifacts"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: out-*
           merge-multiple: true
@@ -492,17 +492,17 @@ jobs:
           curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
 
       - name: "Login to Docker Hub"
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: docker.io
           username: nextstrainbot
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: "Set up QEMU"
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: "Set up Docker Buildx"
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: "Build and publish Docker container images to Docker Hub"
         run: |
