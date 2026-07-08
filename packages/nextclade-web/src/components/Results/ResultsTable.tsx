@@ -61,6 +61,7 @@ import HelpTipsColumnNonAcgtn from './HelpTips/HelpTipsColumnNonAcgtn.mdx'
 import HelpTipsColumnQC from './HelpTips/HelpTipsColumnQC.mdx'
 import HelpTipsColumnFrameShifts from './HelpTips/HelpTipsColumnFrameShifts.mdx'
 import HelpTipsColumnStopCodons from './HelpTips/HelpTipsColumnStopCodons.mdx'
+import HelpTipsColumnRecombination from './HelpTips/HelpTipsColumnRecombination.mdx'
 import HelpTipsColumnSeqName from './HelpTips/HelpTipsColumnSeqName.mdx'
 
 const LIST_STYLE: CSSProperties = { overflowY: 'scroll' }
@@ -390,6 +391,18 @@ export function ResultsTable() {
       direction: SortDirection.desc,
     }),
   )
+  const sortByRecombinantLengthAsc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalRecombinantLength,
+      direction: SortDirection.asc,
+    }),
+  )
+  const sortByRecombinantLengthDesc = useSetAtom(
+    sortAnalysisResultsAtom({
+      category: SortCategory.totalRecombinantLength,
+      direction: SortDirection.desc,
+    }),
+  )
 
   const dynamicCladeColumns = useMemo(() => {
     return (
@@ -489,6 +502,16 @@ export function ResultsTable() {
         </TableHeaderCell>
 
         {dynamicCladeColumns}
+
+        <TableHeaderCell basis={columnWidthsPx.recombination} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{t('Rec.')}</TableCellText>
+            <ResultsControlsSort sortAsc={sortByRecombinantLengthAsc} sortDesc={sortByRecombinantLengthDesc} />
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier="btn-help-col-recombination">
+            <HelpTipsColumnRecombination />
+          </ButtonHelpStyled>
+        </TableHeaderCell>
 
         {dynamicPhenotypeColumns}
 
