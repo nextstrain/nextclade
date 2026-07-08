@@ -27,6 +27,7 @@ export const COLUMN_WIDTHS = {
   insertions: 50,
   frameShifts: 50,
   stopCodons: 50,
+  recombination: 50,
   sequenceView: 550,
 } as const
 
