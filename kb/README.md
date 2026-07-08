@@ -68,7 +68,14 @@ Every work item falls into exactly one category:
 - Created during a research or design session with ecosystem survey, design axes, options, and tradeoffs
 - Every actionable item extracted into a separate issue in [`issues/`](issues/). Items left only in proposals are effectively invisible to agents
 - The user decides per axis. Decided items become tickets (if immediately implementable) or stay as issues (if further research is needed)
-- Implemented proposals move to [`decisions/`](decisions/)
+- Once implemented, a proposal moves to [`decisions/`](decisions/) (recording the shipped design) or is deleted when its content is already captured elsewhere (a decision, an [`algo/`](algo/) doc, or spun-off issues). A proposal describes an unimplemented design, so a resolved or implemented one no longer belongs to any category
+- NEVER leave a resolved or implemented proposal lingering in [`proposals/`](proposals/), and NEVER mark one "resolved" in place. Git history preserves the record
+
+### Issue lifecycle
+
+- Created when a concrete problem is found: bug, missing feature, regression, or behavioral difference
+- Resolved issues are deleted immediately, file and any index row together. An issue describes an open problem, so a fixed one no longer belongs to any category. NEVER keep a resolved issue or mark it "resolved" in place; git history preserves the record
+- Partial resolution: update the issue to describe only the remaining problem
 
 ### Ticket lifecycle
 
