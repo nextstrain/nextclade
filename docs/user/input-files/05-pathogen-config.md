@@ -127,6 +127,33 @@ Example configuration for SARS-CoV-2:
 }
 ```
 
+#### `recombination`
+
+Optional. Recombination detection configuration. Detection is enabled by default for datasets that have a reference tree; it can be disabled per dataset. Details of the algorithm and its parameters are described in [Algorithm: Recombination detection](../algorithm/08-recombination-detection.md).
+
+Fields (all optional):
+
+- `enabled`: whether recombination detection runs for this dataset. Defaults to `true`.
+- `gamma`: HMM state transition rate. Defaults to `1 / L` (`L` = reference length).
+- `muW`: mutation emission probability in the wildtype state. Defaults to the mean terminal branch length of the reference tree.
+- `muR`: mutation emission probability in the recombinant state. Defaults to the median substitution distance between leaves of different clades (a tree-based proxy for inter-clade divergence).
+
+When set explicitly, the three numeric parameters must satisfy the model constraints, or the dataset fails to load:
+
+- `gamma`, `muW`, and `muR` must each be in the open interval (0, 1).
+- `gamma` must be less than 0.5 (state switching must be rarer than staying).
+- `muR` must be greater than `muW` (the recombinant state must carry elevated divergence).
+
+Any parameter left unset is estimated from the reference tree. Set parameters explicitly to override the estimate, or set `enabled` to `false` to turn the feature off:
+
+```json
+{
+  "enabled": true,
+  "muW": 0.0002,
+  "muR": 0.007
+}
+```
+
 #### `compatibility`
 
 Optional. Minimum Nextclade CLI/web version required to use this dataset. If not provided, no compatibility checks are performed.

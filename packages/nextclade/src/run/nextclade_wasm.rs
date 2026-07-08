@@ -303,10 +303,6 @@ pub struct Nextclade {
   // Recombination HMM parameters, resolved once per run from config and the reference tree.
   // None when detection is disabled, no tree is available, or parameters could not be resolved.
   pub recombination_params: Option<RecombinationHmmParams>,
-
-  // When recombination detection is enabled but was skipped (e.g. too few clades), the reason.
-  // Surfaced on every sequence's `warnings` output so users see why recombinant regions are absent.
-  pub recombination_skipped_warning: Option<String>,
 }
 
 pub struct InitialStateWithAa {
@@ -408,30 +404,36 @@ impl Nextclade {
       .unwrap_or_default();
 
     // Recombination detection is enabled by default; resolve its parameters once from the config
-    // and the reference tree. It requires a tree (for parent-relative mutations), so it is skipped
-    // for tree-less datasets.
-    let (recombination_params, recombination_skipped_warning) = match &graph {
+    // and the reference tree. It requires a tree (for parent-relative mutations), so a tree-less
+    // dataset falls to the catch-all arm below and is silently skipped, like other tree-dependent
+    // steps -- even when detection was explicitly enabled.
+    let recombination_params = match &graph {
       Some(graph) if RecombinationConfig::is_enabled(virus_properties.recombination.as_ref()) => {
         // An invalid explicit `pathogen.json` override propagates as a dataset-level error here.
         match resolve_recombination_params(virus_properties.recombination.as_ref(), graph, ref_seq.len())? {
           RecombinationResolution::Resolved(params) => {
             info!(
               "Recombination detection enabled with gamma={}, muW={}, muR={}",
-              params.gamma, params.mu_w, params.mu_r
+              params.gamma(),
+              params.mu_w(),
+              params.mu_r()
             );
-            (Some(params), None)
+            Some(params)
           }
           RecombinationResolution::Skipped(reason) => {
-            let message = reason.message();
-            warn!("Recombination detection is enabled but skipped for this dataset: {message}");
-            (
-              None,
-              Some(format!("Recombination detection is enabled but was skipped: {message}")),
-            )
+            // A skip is not a per-sequence event. When detection was explicitly requested but the tree
+            // cannot support it, log one dataset-level line; the default-on case stays silent.
+            if RecombinationConfig::is_explicitly_enabled(virus_properties.recombination.as_ref()) {
+              warn!(
+                "Recombination detection is enabled but skipped for this dataset: {}",
+                reason.message()
+              );
+            }
+            None
           }
         }
       }
-      _ => (None, None),
+      _ => None,
     };
 
     Ok(Self {
@@ -454,7 +456,6 @@ impl Nextclade {
       phenotype_attr_descs,
       ref_nodes,
       recombination_params,
-      recombination_skipped_warning,
     })
   }
 

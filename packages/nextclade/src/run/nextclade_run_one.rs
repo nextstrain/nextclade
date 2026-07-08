@@ -31,7 +31,9 @@ use crate::analyze::nuc_changes::{FindNucChangesOutput, find_nuc_changes};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
-use crate::analyze::recombination::{RecombinationResult, build_observations, find_recombinant_regions};
+use crate::analyze::recombination::{
+  RecombinationResult, build_observations, find_recombinant_regions, recombination_missing_ranges,
+};
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
@@ -120,7 +122,6 @@ pub fn nextclade_run_one(
     primers,
     ref_nodes,
     recombination_params,
-    recombination_skipped_warning,
     ..
   } = &state;
 
@@ -428,15 +429,19 @@ pub fn nextclade_run_one(
     NextcladeResultWithGraph::default()
   };
 
+  // Placement-masked positions are non-comparable for recombination (C2): a masked site that differs
+  // from the parent must not be scored as `Mut`, or it could manufacture a false recombinant call at
+  // a homoplasic site. `graph` is `None` for tree-less datasets, in which case this is an empty slice
+  // and the recombination closure never runs (`recombination_params` is `None`).
+  let masked_ranges: &[NucRefGlobalRange] = graph
+    .as_ref()
+    .map(|g| g.data.meta.placement_mask_ranges())
+    .unwrap_or_default();
+
   // Recombination detection: decode putative recombinant regions from the parent-relative mutation
   // pattern. Runs only when parameters were resolved once per run (requires a reference tree).
   let recombination = recombination_params.as_ref().map(|params| {
-    let missing_ranges: Vec<NucRefGlobalRange> = missing
-      .iter()
-      .map(|r| r.range().clone())
-      .chain(non_acgtns.iter().map(|r| r.range().clone()))
-      .chain(deletions.iter().map(|d| d.range().clone()))
-      .collect();
+    let missing_ranges = recombination_missing_ranges(&missing, &non_acgtns, &deletions, masked_ranges);
     let mutated_positions: Vec<NucRefGlobalPosition> = private_nuc_mutations
       .private_substitutions
       .iter()
@@ -445,17 +450,6 @@ pub fn nextclade_run_one(
     let observations = build_observations(ref_seq.len(), &alignment_range, &missing_ranges, &mutated_positions);
     RecombinationResult::from_regions(find_recombinant_regions(&observations, params))
   });
-
-  // Surface a run-level recombination skip (detection enabled but unresolvable for this dataset) on
-  // every sequence's warnings, so it appears in the `warnings` output column alongside the empty
-  // recombinant-region columns. `cds_name` is blank: this is an analysis-wide warning, not CDS-scoped.
-  let mut warnings = warnings;
-  if let Some(message) = recombination_skipped_warning {
-    warnings.push(PeptideWarning {
-      cds_name: String::new(),
-      warning: message.clone(),
-    });
-  }
 
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;
   let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_translation, &translation)?;
