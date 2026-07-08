@@ -125,9 +125,19 @@ fn resolve_param(name: &str, override_val: Option<OrderedFloat<f64>>, estimate: 
   }
 }
 
-/// Number of distinct clade labels present in the tree.
+/// Number of distinct clade labels present among the tree's leaves.
+///
+/// Counts leaf clades only, matching `estimate_mu_r`'s requirement: `mu_r` is the median pairwise
+/// distance between leaves of different clades, so a clade that labels only internal nodes cannot
+/// contribute. Counting all nodes here would report "degenerate topology" when the real reason a
+/// dataset cannot support detection is that its leaves carry fewer than two clades.
 fn count_clades(graph: &AuspiceGraph) -> usize {
-  graph.iter_nodes().filter_map(|node| node.payload().clade()).unique().count()
+  graph
+    .iter_nodes()
+    .filter(|node| node.is_leaf())
+    .filter_map(|node| node.payload().clade())
+    .unique()
+    .count()
 }
 
 /// Transition rate fallback: one expected state switch per genome length.
@@ -166,11 +176,13 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
     return Ok(None);
   }
 
-  // Precompute root distances for all leaves to avoid repeated tree walks.
-  let root_dists: BTreeMap<GraphNodeKey, usize> = clade_leaves
-    .values()
-    .flatten()
-    .map(|&key| root_distance(graph, key).map(|d| (key, d)))
+  // Precompute root distances for ALL nodes, not only leaves, so the inter-clade distance below needs
+  // no second tree walk for the MRCA: each pair costs one map lookup per endpoint plus the single MRCA
+  // search. Complexity: O(P) inter-clade leaf pairs times O(depth) per pair for that search; the
+  // quadratic pair count is the dominant cost.
+  let root_dists: BTreeMap<GraphNodeKey, usize> = graph
+    .iter_nodes()
+    .map(|node| root_distance(graph, node.key()).map(|d| (node.key(), d)))
     .try_collect()?;
 
   // Exhaustive pairwise distances between leaves of different clades.
@@ -182,8 +194,7 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
       for &a in *leaves_a {
         for &b in *leaves_b {
           let mrca = mrca_pair(graph, a, b)?;
-          let mrca_rd = root_distance(graph, mrca)?;
-          let d = root_dists[&a] + root_dists[&b] - 2 * mrca_rd;
+          let d = root_dists[&a] + root_dists[&b] - 2 * root_dists[&mrca];
           distances.push(d as f64);
         }
       }
@@ -193,13 +204,20 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
   Ok(median(&distances).and_then(|d| as_probability(d / ref_len as f64)))
 }
 
-/// Number of nucleotide substitutions/mutations on the branch leading to this node.
+/// Number of nucleotide substitutions on the branch leading to this node, excluding deletions.
+///
+/// The algorithm treats gap characters as missing data, not mutations (mirroring `build_observations`,
+/// which routes deletions to `Missing`), so the same ruler applies to the `mu_w`/`mu_r` calibration.
+/// Auspice `nuc` mutations are `<ref><pos><query>`; a deletion ends with `-`. Nextclade-built trees
+/// carry substitutions only, so the filter is a no-op there; it applies to externally produced trees
+/// (augur/TreeTime) whose branch mutations encode deletions as `"A10-"`. Insertions (`"-10A"`) are
+/// query bases absent from the reference, not query gaps, and stay counted.
 fn nuc_mutation_count(payload: &AuspiceGraphNodePayload) -> usize {
   payload
     .branch_attrs
     .mutations
     .get(NUC_MUTATIONS_KEY)
-    .map_or(0, Vec::len)
+    .map_or(0, |muts| muts.iter().filter(|m| !m.ends_with('-')).count())
 }
 
 /// Cumulative substitution count from the root to a node (sum of branch mutation counts).
@@ -262,7 +280,9 @@ fn as_probability(x: f64) -> Option<f64> {
 mod tests {
   use super::*;
   use crate::tree::tree::AuspiceTree;
+  use indoc::indoc;
   use pretty_assertions::assert_eq;
+  use rstest::rstest;
 
   const REF_LEN: usize = 100;
 
@@ -271,7 +291,7 @@ mod tests {
   // Inter-clade leaf pairs: A1<->B1 = 2+2-0 = 4, A1<->B2 = 2+4-0 = 6.
   // median{4, 6} = 5 -> mu_r = 5/100 = 0.05. gamma = 1/100 = 0.01.
   fn two_clade_tree() -> AuspiceGraph {
-    let json = r#"{
+    let json = indoc! {r#"{
       "version": "v2",
       "meta": {},
       "tree": {
@@ -302,16 +322,15 @@ mod tests {
           }
         ]
       }
-    }"#;
+    }"#};
     AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
   }
 
   // Three clades A, B, C. An unlabeled internal node I (1 mut) parents leaves A1 (clade A, 2 muts)
-  // and B1 (clade B, 4 muts); leaf C1 (clade C, 6 muts) hangs off the root. All clades are
-  // single-leaf, so the leaf-based estimate equals the old founder-based one. A1 and B1 share the
-  // non-root MRCA I.
+  // and B1 (clade B, 4 muts); leaf C1 (clade C, 6 muts) hangs off the root. A1 and B1 share the
+  // non-root MRCA I, exercising the `- 2 * root_distance(mrca)` term with a non-root common ancestor.
   fn three_clade_tree() -> AuspiceGraph {
-    let json = r#"{
+    let json = indoc! {r#"{
       "version": "v2",
       "meta": {},
       "tree": {
@@ -342,13 +361,14 @@ mod tests {
           }
         ]
       }
-    }"#;
+    }"#};
     AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
   }
 
-  // Nested clades: "child" is nested inside "parent" with a short founder separation (1 mut) but
-  // large terminal branches on "child" leaves. The old founder-based estimate would give mu_r=0.05
-  // (barely above mu_w=0.04), while the leaf-based estimate gives mu_r=0.09.
+  // Nested clades: "child" is nested inside "parent", their most recent common ancestors one mutation
+  // apart, but the "child" leaves carry large terminal branches. This exercises that mu_r is the
+  // inter-clade leaf distance (mu_r=0.09 here), driven by the leaves rather than by how close the
+  // clade ancestors sit on the tree.
   //
   //   root (0 muts)
   //   |-- P (1 mut, clade "parent")
@@ -359,7 +379,7 @@ mod tests {
   //   |   +-- P2 (1 mut, clade "parent") -- leaf, rd=2
   //   +-- O1 (4 muts, clade "other") -- leaf, rd=4
   fn nested_clade_tree() -> AuspiceGraph {
-    let json = r#"{
+    let json = indoc! {r#"{
       "version": "v2",
       "meta": {},
       "tree": {
@@ -407,12 +427,12 @@ mod tests {
           }
         ]
       }
-    }"#;
+    }"#};
     AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
   }
 
   fn single_clade_tree() -> AuspiceGraph {
-    let json = r#"{
+    let json = indoc! {r#"{
       "version": "v2",
       "meta": {},
       "tree": {
@@ -431,12 +451,10 @@ mod tests {
           }
         ]
       }
-    }"#;
+    }"#};
     AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
   }
 
-  // Exact equality is correct here: the estimator performs the same deterministic integer arithmetic
-  // (small counts divided by ref_len), so results are bit-identical to the expected literals.
   /// Unwrap a resolution to its parameters, panicking with context otherwise.
   fn resolved(resolution: RecombinationResolution) -> RecombinationHmmParams {
     match resolution {
@@ -445,14 +463,17 @@ mod tests {
     }
   }
 
+  // Exact equality is correct throughout these estimator tests: the estimator does deterministic
+  // integer arithmetic (small counts divided by ref_len), so results are bit-identical to the
+  // expected literals. This is what `#[allow(clippy::float_cmp)]` on each such test documents.
   #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_all_params_from_tree() {
     let graph = two_clade_tree();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
-    assert_eq!(1.0 / 100.0, params.gamma);
-    assert_eq!(2.0 / 100.0, params.mu_w);
-    assert_eq!(5.0 / 100.0, params.mu_r);
+    assert_eq!(1.0 / 100.0, params.gamma());
+    assert_eq!(2.0 / 100.0, params.mu_w());
+    assert_eq!(5.0 / 100.0, params.mu_r());
   }
 
   #[allow(clippy::float_cmp)]
@@ -460,15 +481,15 @@ mod tests {
   fn test_recombination_estimate_config_override_is_used_verbatim() {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
-      enabled: true,
+      enabled: Some(true),
       gamma: Some(OrderedFloat(0.1)),
       mu_w: None,
       mu_r: None,
     };
     let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
-    assert_eq!(0.1, params.gamma);
-    assert_eq!(2.0 / 100.0, params.mu_w);
-    assert_eq!(5.0 / 100.0, params.mu_r);
+    assert_eq!(0.1, params.gamma());
+    assert_eq!(2.0 / 100.0, params.mu_w());
+    assert_eq!(5.0 / 100.0, params.mu_r());
   }
 
   #[allow(clippy::float_cmp)]
@@ -476,15 +497,15 @@ mod tests {
   fn test_recombination_estimate_partial_mu_overrides_used() {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
-      enabled: true,
+      enabled: Some(true),
       gamma: None,
       mu_w: Some(OrderedFloat(0.01)),
       mu_r: Some(OrderedFloat(0.2)),
     };
     let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
-    assert_eq!(1.0 / 100.0, params.gamma); // still estimated
-    assert_eq!(0.01, params.mu_w);
-    assert_eq!(0.2, params.mu_r);
+    assert_eq!(1.0 / 100.0, params.gamma()); // still estimated
+    assert_eq!(0.01, params.mu_w());
+    assert_eq!(0.2, params.mu_r());
   }
 
   #[test]
@@ -503,7 +524,7 @@ mod tests {
     let graph = two_clade_tree(); // estimated mu_w = 0.02
     // Only muR is overridden (0.01 <= muW), so this is a degenerate estimate, not a misconfiguration: skip.
     let config = RecombinationConfig {
-      enabled: true,
+      enabled: Some(true),
       gamma: None,
       mu_w: None,
       mu_r: Some(OrderedFloat(0.01)),
@@ -523,7 +544,7 @@ mod tests {
     let graph = two_clade_tree();
     // Both rates explicit with muR <= muW: a misconfiguration, reported as a dataset-level error.
     let config = RecombinationConfig {
-      enabled: true,
+      enabled: Some(true),
       gamma: None,
       mu_w: Some(OrderedFloat(0.05)),
       mu_r: Some(OrderedFloat(0.01)),
@@ -539,7 +560,7 @@ mod tests {
     let graph = two_clade_tree();
     // gamma = 0.7 is within (0, 1) but not a sticky HMM; the resolution surfaces the model error.
     let config = RecombinationConfig {
-      enabled: true,
+      enabled: Some(true),
       gamma: Some(OrderedFloat(0.7)),
       mu_w: None,
       mu_r: None,
@@ -554,7 +575,7 @@ mod tests {
   fn test_recombination_estimate_errors_on_out_of_range_override() {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
-      enabled: true,
+      enabled: Some(true),
       gamma: Some(OrderedFloat(1.5)),
       mu_w: None,
       mu_r: None,
@@ -575,38 +596,136 @@ mod tests {
     // median{6, 9, 11} = 9 -> mu_r = 0.09. Terminal branches 2, 4, 6 -> mean 4 -> mu_w = 0.04.
     let graph = three_clade_tree();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
-    assert_eq!(4.0 / 100.0, params.mu_w);
-    assert_eq!(9.0 / 100.0, params.mu_r);
+    assert_eq!(4.0 / 100.0, params.mu_w());
+    assert_eq!(9.0 / 100.0, params.mu_r());
   }
 
   #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_nested_clades_uses_leaf_distance() {
-    // Nested clades with short founder separation but large terminal branches. The leaf-based
-    // estimate captures the actual inter-clade divergence that the HMM will encounter.
+    // Nested clades whose clade ancestors sit one mutation apart but whose leaves carry large terminal
+    // branches. mu_r reflects the actual inter-clade leaf divergence the HMM will encounter, not the
+    // small ancestor separation.
     // Leaf pairs across clades:
     //   parent<->child: {10, 8, 10, 8}  parent<->other: {6, 6}  child<->other: {14, 12}
     // sorted: {6, 6, 8, 8, 10, 10, 12, 14} -> median = (8+10)/2 = 9 -> mu_r = 0.09
     // Terminal branches: 1, 8, 6, 1, 4 -> mean = 4 -> mu_w = 0.04
     let graph = nested_clade_tree();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
-    assert_eq!(4.0 / 100.0, params.mu_w);
-    assert_eq!(9.0 / 100.0, params.mu_r);
+    assert_eq!(4.0 / 100.0, params.mu_w());
+    assert_eq!(9.0 / 100.0, params.mu_r());
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::empty(  &[],                    None)]
+  #[case::single( &[3.0],                 Some(3.0))]
+  #[case::odd(    &[5.0, 1.0, 3.0],       Some(3.0))]      // sorted {1,3,5}, middle 3
+  #[case::even(   &[1.0, 4.0, 2.0, 3.0],  Some(2.5))]      // sorted {1,2,3,4}, midpoint(2,3)
+  #[trace]
+  fn test_recombination_estimate_median(#[case] values: &[f64], #[case] expected: Option<f64>) {
+    assert_eq!(expected, median(values));
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  // as_probability accepts only the open interval (0, 1); the closed endpoints and non-finite values
+  // are rejected (they would produce log(0) = -inf in the decoder).
+  #[case::zero( 0.0,      None)]
+  #[case::one(  1.0,      None)]
+  #[case::nan(  f64::NAN, None)]
+  #[case::half( 0.5,      Some(0.5))]
+  #[trace]
+  fn test_recombination_estimate_as_probability(#[case] value: f64, #[case] expected: Option<f64>) {
+    assert_eq!(expected, as_probability(value));
+  }
+
+  // Augur/TreeTime-style reference tree whose `nuc` branch mutations include a deletion (`A15-`),
+  // which Nextclade-built trees never emit. C3: deletions are excluded from the mutation count.
+  // Two clades A, B. Terminal branches by substitution count (deletions ignored): A1=2, B=1, B1=1.
+  // With the deletion on B1 excluded, its terminal branch is 1 (the substitution A40C only), so mean
+  // terminal length = (2+1)/2 = 1.5 -> mu_w = 0.015. Were the deletion counted, B1 would be 2 and the
+  // mean would differ.
+  fn external_tree_with_deletion() -> AuspiceGraph {
+    let json = indoc! {r#"{
+      "version": "v2",
+      "meta": {},
+      "tree": {
+        "name": "root",
+        "node_attrs": { "div": 0 },
+        "children": [
+          {
+            "name": "A1",
+            "node_attrs": { "div": 2, "clade_membership": { "value": "A" } },
+            "branch_attrs": { "mutations": { "nuc": ["A10C", "A20G"] } }
+          },
+          {
+            "name": "B1",
+            "node_attrs": { "div": 2, "clade_membership": { "value": "B" } },
+            "branch_attrs": { "mutations": { "nuc": ["A40C", "A15-"] } }
+          }
+        ]
+      }
+    }"#};
+    AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
+  }
+
+  #[allow(clippy::float_cmp)]
+  #[test]
+  fn test_recombination_estimate_excludes_deletions_from_branch_length() {
+    // Terminal branches counting substitutions only: A1=2, B1=1 (the `A15-` deletion excluded).
+    // mean = (2+1)/2 = 1.5 -> mu_w = 1.5/100 = 0.015. If the deletion were counted, B1=2 and mu_w=0.02.
+    let graph = external_tree_with_deletion();
+    let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
+    assert_eq!(1.5 / 100.0, params.mu_w());
+  }
+
+  // A tree where a clade label appears only on an internal node, not on any leaf. Leaves carry a
+  // single clade ("A"), so leaf-clade count is 1 and mu_r is undefined. C7: the skip reason must be
+  // FewerThanTwoClades (derived from leaf clades), not TreeEstimateUnavailable.
+  fn internal_only_second_clade_tree() -> AuspiceGraph {
+    let json = indoc! {r#"{
+      "version": "v2",
+      "meta": {},
+      "tree": {
+        "name": "root",
+        "node_attrs": { "div": 0 },
+        "children": [
+          {
+            "name": "I",
+            "node_attrs": { "div": 1, "clade_membership": { "value": "B" } },
+            "branch_attrs": { "mutations": { "nuc": ["A5C"] } },
+            "children": [
+              {
+                "name": "A1",
+                "node_attrs": { "div": 2, "clade_membership": { "value": "A" } },
+                "branch_attrs": { "mutations": { "nuc": ["A10C"] } }
+              },
+              {
+                "name": "A2",
+                "node_attrs": { "div": 2, "clade_membership": { "value": "A" } },
+                "branch_attrs": { "mutations": { "nuc": ["A20G"] } }
+              }
+            ]
+          }
+        ]
+      }
+    }"#};
+    AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
   }
 
   #[test]
-  fn test_recombination_estimate_median_even_and_odd() {
-    assert_eq!(None, median(&[]));
-    assert_eq!(Some(3.0), median(&[3.0]));
-    assert_eq!(Some(3.0), median(&[5.0, 1.0, 3.0]));
-    assert_eq!(Some(2.5), median(&[1.0, 4.0, 2.0, 3.0]));
-  }
-
-  #[test]
-  fn test_recombination_estimate_as_probability_bounds() {
-    assert_eq!(None, as_probability(0.0));
-    assert_eq!(None, as_probability(1.0));
-    assert_eq!(None, as_probability(f64::NAN));
-    assert_eq!(Some(0.5), as_probability(0.5));
+  fn test_recombination_estimate_internal_only_clade_is_fewer_than_two_clades() {
+    // Internal node I is labeled clade "B" but no leaf is; the two leaves are both clade "A".
+    // The skip reason is derived from leaf clades, so it must be FewerThanTwoClades.
+    let graph = internal_only_second_clade_tree();
+    let resolution = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
+    assert!(
+      matches!(
+        resolution,
+        RecombinationResolution::Skipped(RecombinationSkipReason::FewerThanTwoClades)
+      ),
+      "got {resolution:?}"
+    );
   }
 }
