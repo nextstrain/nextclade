@@ -4,7 +4,7 @@
 
 ## Context
 
-The wildtype emission probability `muW` is the model's `P(site mutated relative to the parent | wildtype)`. It is estimated as the mean terminal branch length of the reference tree, divided by the reference length ([`packages/nextclade/src/analyze/recombination_estimate.rs#L157-L171`](packages/nextclade/src/analyze/recombination_estimate.rs#L157-L171)), per the tree-based heuristic recorded in [`kb/decisions/recombination-detection.md`](../decisions/recombination-detection.md).
+The wildtype emission probability `muW` is the model's `P(site mutated relative to the parent | wildtype)`. It is estimated as the mean terminal branch length of the reference tree, divided by the reference length, in `fn estimate_mu_w()` ([`packages/nextclade/src/analyze/recombination_estimate.rs#L189-L201`](packages/nextclade/src/analyze/recombination_estimate.rs#L189-L201)), per the tree-based heuristic recorded in [`kb/decisions/recombination-detection.md`](../decisions/recombination-detection.md).
 
 ## Concern
 
