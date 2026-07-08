@@ -14,12 +14,13 @@ export interface RecombinationMarkerProps {
   index: number
   seqName: string
   region: Range
+  confidence?: number
   pixelsPerBase: number
 }
 
 export const SequenceMarkerRecombination = React.memo(SequenceMarkerRecombinationUnmemoed)
 
-function SequenceMarkerRecombinationUnmemoed({ index, seqName, region, pixelsPerBase }: RecombinationMarkerProps) {
+function SequenceMarkerRecombinationUnmemoed({ index, seqName, region, confidence, pixelsPerBase }: RecombinationMarkerProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
@@ -32,21 +33,27 @@ function SequenceMarkerRecombinationUnmemoed({ index, seqName, region, pixelsPer
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
   const x = region.begin * pixelsPerBase - halfNuc
 
+  const fillOpacity = Math.max(0.35, confidence ?? 1.0)
+  const borderOpacity = Math.max(0.5, confidence ?? 1.0)
+
   // Recombinant intervals may span multiple genes, so gene and codon labels are intentionally omitted.
   return (
     <g>
       <rect
         fill={recombinationBorderColor}
+        fillOpacity={borderOpacity}
         x={x - 1}
         y={1.75}
         width={width + 2}
         stroke={recombinationBorderColor}
+        strokeOpacity={borderOpacity}
         strokeWidth={0.5}
         height={7}
       />
       <rect
         id={id}
         fill={recombinationColor}
+        fillOpacity={fillOpacity}
         x={x}
         y={2.5}
         width={width}
@@ -69,6 +76,13 @@ function SequenceMarkerRecombinationUnmemoed({ index, seqName, region, pixelsPer
                 <td>{t('Nucleotide length')}</td>
                 <td>{nucLength}</td>
               </tr>
+
+              {confidence !== undefined && (
+                <tr>
+                  <td>{t('Confidence')}</td>
+                  <td>{`${(confidence * 100).toFixed(1)}%`}</td>
+                </tr>
+              )}
             </tbody>
           </TableSlim>
         </Tooltip>

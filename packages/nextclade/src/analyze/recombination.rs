@@ -1,12 +1,14 @@
 //! HMM-based recombination detection.
 //!
-//! A two-state hidden Markov model (wildtype, recombinant) decoded with Viterbi. Each reference
-//! site emits one of three observations relative to the sequence's inferred parent (its tree
-//! attachment point): not mutated (`Ref`), mutated (`Mut`), or no usable information (`Missing`).
-//! `Missing` emits probability 1 in both states (marginalization over missing data), so it adds no
-//! emission evidence while transitions still cross it and the decoded state persists across missing
-//! runs. Contiguous runs of the recombinant state, trimmed so their endpoints fall on covered
-//! positions, are reported as putative recombinant intervals.
+//! A two-state hidden Markov model (wildtype, recombinant) decoded with Viterbi and optionally
+//! scored with forward-backward. Each reference site emits one of three observations relative to
+//! the sequence's inferred parent (its tree attachment point): not mutated (`Ref`), mutated
+//! (`Mut`), or no usable information (`Missing`). `Missing` emits probability 1 in both states
+//! (marginalization over missing data), so it adds no emission evidence while transitions still
+//! cross it and the decoded state persists across missing runs. Contiguous runs of the recombinant
+//! state, trimmed so their endpoints fall on covered positions, are reported as putative
+//! recombinant intervals. When forward-backward is run, each interval receives a confidence score
+//! (mean posterior marginal probability of the recombinant state).
 //!
 //! The method and default parameters follow Marco Molari's prototype
 //! <https://github.com/mmolari/recomb_inference> and issue #1768.
@@ -260,12 +262,16 @@ impl RecombinationHmmParams {
   }
 }
 
-/// A single putative recombinant interval with its range and nucleotide length.
+/// A single putative recombinant interval with its range, nucleotide length, and optional
+/// forward-backward confidence score.
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecombinationRegion {
   pub range: NucRefGlobalRange,
   pub length: usize,
+  /// Mean posterior P(recombinant) from forward-backward within this interval.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub confidence: Option<f64>,
 }
 
 /// Per-sequence recombination detection result: the detected regions and their summary statistics.
@@ -289,17 +295,27 @@ pub struct RecombinationResult {
 }
 
 impl RecombinationResult {
-  /// Summarize a list of decoded recombinant ranges. Returns `None` when the list is empty
-  /// (detection ran but found no recombinant intervals).
-  pub fn from_ranges(ranges: Vec<NucRefGlobalRange>) -> Option<Self> {
+  /// Summarize decoded recombinant ranges with optional per-interval confidence scores.
+  /// Returns `None` when the list is empty (detection ran but found no recombinant intervals).
+  pub fn from_ranges(ranges: Vec<NucRefGlobalRange>, confidences: Option<&[f64]>) -> Option<Self> {
     if ranges.is_empty() {
       return None;
     }
+    debug_assert!(
+      confidences.is_none_or(|c| c.len() == ranges.len()),
+      "confidences length must match ranges length"
+    );
     let regions: Vec<RecombinationRegion> = ranges
       .into_iter()
-      .map(|range| {
+      .enumerate()
+      .map(|(i, range)| {
         let length = range.len();
-        RecombinationRegion { range, length }
+        let confidence = confidences.map(|c| c[i]);
+        RecombinationRegion {
+          range,
+          length,
+          confidence,
+        }
       })
       .collect();
     let total_regions = regions.len();
@@ -367,6 +383,89 @@ impl RecombinationConfig {
   pub fn is_explicitly_enabled(config: Option<&RecombinationConfig>) -> bool {
     config.and_then(|c| c.enabled) == Some(true)
   }
+}
+
+/// Numerically stable log(exp(a) + exp(b)) for two values.
+fn log_sum_exp_2(a: f64, b: f64) -> f64 {
+  let (max, min) = if a >= b { (a, b) } else { (b, a) };
+  if max == f64::NEG_INFINITY {
+    return f64::NEG_INFINITY;
+  }
+  max + (min - max).exp().ln_1p()
+}
+
+/// Forward-backward algorithm in log-space. Returns per-site P(recombinant | observations).
+pub(crate) fn forward_backward_marginals(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<f64> {
+  let n = obs.len();
+  if n == 0 {
+    return vec![];
+  }
+
+  let log_stay = (1.0 - params.gamma).ln();
+  let log_switch = params.gamma.ln();
+  let log_prior = 0.5_f64.ln();
+
+  // Forward pass: log_alpha[l][k] = log P(s_1..s_l, h_l = k)
+  let mut log_alpha = vec![[f64::NEG_INFINITY; 2]; n];
+  let emit0 = params.log_emission(obs[0]);
+  log_alpha[0] = [log_prior + emit0[WILDTYPE], log_prior + emit0[RECOMBINANT]];
+
+  for l in 1..n {
+    let emit = params.log_emission(obs[l]);
+    log_alpha[l][WILDTYPE] = emit[WILDTYPE]
+      + log_sum_exp_2(
+        log_alpha[l - 1][WILDTYPE] + log_stay,
+        log_alpha[l - 1][RECOMBINANT] + log_switch,
+      );
+    log_alpha[l][RECOMBINANT] = emit[RECOMBINANT]
+      + log_sum_exp_2(
+        log_alpha[l - 1][WILDTYPE] + log_switch,
+        log_alpha[l - 1][RECOMBINANT] + log_stay,
+      );
+  }
+
+  // Backward pass: log_beta[l][k] = log P(s_{l+1}..s_n | h_l = k)
+  let mut log_beta = vec![[0.0; 2]; n];
+
+  for l in (0..n - 1).rev() {
+    let emit_next = params.log_emission(obs[l + 1]);
+    log_beta[l][WILDTYPE] = log_sum_exp_2(
+      log_stay + emit_next[WILDTYPE] + log_beta[l + 1][WILDTYPE],
+      log_switch + emit_next[RECOMBINANT] + log_beta[l + 1][RECOMBINANT],
+    );
+    log_beta[l][RECOMBINANT] = log_sum_exp_2(
+      log_switch + emit_next[WILDTYPE] + log_beta[l + 1][WILDTYPE],
+      log_stay + emit_next[RECOMBINANT] + log_beta[l + 1][RECOMBINANT],
+    );
+  }
+
+  // Marginals: P(h_l = recombinant | s) = exp(log_alpha[l][R] + log_beta[l][R] - normalizer)
+  let mut marginals = vec![0.0; n];
+  for l in 0..n {
+    let log_w = log_alpha[l][WILDTYPE] + log_beta[l][WILDTYPE];
+    let log_r = log_alpha[l][RECOMBINANT] + log_beta[l][RECOMBINANT];
+    let log_normalizer = log_sum_exp_2(log_w, log_r);
+    marginals[l] = (log_r - log_normalizer).exp();
+  }
+
+  debug_assert_eq!(obs.len(), marginals.len(), "marginals must match observation length");
+  marginals
+}
+
+/// Mean P(recombinant) within each interval, as a confidence score per region.
+pub(crate) fn compute_interval_confidences(marginals: &[f64], intervals: &[NucRefGlobalRange]) -> Vec<f64> {
+  intervals
+    .iter()
+    .map(|r| {
+      let (begin, end) = (r.begin.as_usize(), r.end.as_usize());
+      let count = end - begin;
+      if count == 0 {
+        return 0.0;
+      }
+      let sum: f64 = marginals[begin..end].iter().sum();
+      sum / count as f64
+    })
+    .collect()
 }
 
 /// Viterbi decoding in log-space. Returns, per site, whether the most likely state is recombinant.
@@ -459,6 +558,7 @@ fn extract_recombinant_intervals(is_recombinant: &[bool]) -> Vec<NucRefGlobalRan
 mod tests {
   use super::*;
   use crate::alphabet::nuc::Nuc;
+  use approx::assert_abs_diff_eq;
   use pretty_assertions::assert_eq;
   use rand::rngs::StdRng;
   use rand::{Rng, SeedableRng};
@@ -698,10 +798,11 @@ mod tests {
   #[test]
   fn test_recombination_result_summary() {
     let input = ranges(&[(10, 25), (40, 50)]);
-    let result = RecombinationResult::from_ranges(input).unwrap();
+    let result = RecombinationResult::from_ranges(input, None).unwrap();
     assert_eq!(2, result.regions.len());
     assert_eq!(NucRefGlobalRange::from_usize(10, 25), result.regions[0].range);
     assert_eq!(15, result.regions[0].length);
+    assert_eq!(None, result.regions[0].confidence);
     assert_eq!(NucRefGlobalRange::from_usize(40, 50), result.regions[1].range);
     assert_eq!(10, result.regions[1].length);
     assert_eq!(2, result.total_regions);
@@ -712,7 +813,7 @@ mod tests {
 
   #[test]
   fn test_recombination_result_empty_returns_none() {
-    assert!(RecombinationResult::from_ranges(vec![]).is_none());
+    assert!(RecombinationResult::from_ranges(vec![], None).is_none());
   }
 
   fn nuc_range(begin: usize, end: usize) -> NucRange {
@@ -846,5 +947,238 @@ mod tests {
       Vec::<NucRefGlobalRange>::new(),
       find_recombinant_regions(&observations, &params)
     );
+  }
+
+  // --- Forward-backward and confidence tests ---
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::equal(      0.0,   0.0,                2.0_f64.ln()                   )] // ln(exp(0)+exp(0)) = ln(2)
+  #[case::large_diff( 100.0, 0.0,                100.0                          )] // dominated by max
+  #[case::one_neg_inf(5.0,   f64::NEG_INFINITY,  5.0                            )]
+  #[case::symmetric(  3.0,   5.0,                5.0 + (-2.0_f64).exp().ln_1p() )]
+  #[trace]
+  fn test_recombination_log_sum_exp_2(#[case] a: f64, #[case] b: f64, #[case] expected: f64) {
+    assert_abs_diff_eq!(expected, log_sum_exp_2(a, b), epsilon = 1e-12);
+  }
+
+  #[test]
+  fn test_recombination_log_sum_exp_2_both_neg_inf() {
+    assert_eq!(f64::NEG_INFINITY, log_sum_exp_2(f64::NEG_INFINITY, f64::NEG_INFINITY));
+  }
+
+  #[test]
+  fn test_recombination_log_sum_exp_2_matches_naive() {
+    for &(a, b) in &[
+      (1.0_f64, 2.0_f64),
+      (0.0, 0.0),
+      (-1.0, -2.0),
+      (10.0, 10.0),
+      (-50.0, -51.0),
+    ] {
+      let naive = (a.exp() + b.exp()).ln();
+      assert_abs_diff_eq!(naive, log_sum_exp_2(a, b), epsilon = 1e-10);
+    }
+  }
+
+  #[test]
+  fn test_recombination_forward_backward_empty() {
+    assert!(forward_backward_marginals(&[], &test_params()).is_empty());
+  }
+
+  #[test]
+  fn test_recombination_forward_backward_all_ref_near_zero() {
+    let marginals = forward_backward_marginals(&obs("RRRRRRRRRRRRRRRRRRRR"), &test_params());
+    for &m in &marginals {
+      assert!(m < 0.1, "all-Ref site should have low P(recombinant), got {m}");
+    }
+  }
+
+  #[test]
+  fn test_recombination_forward_backward_all_mut_near_one() {
+    let marginals = forward_backward_marginals(&obs("MMMMMMMMMMMMMMMMMMMM"), &test_params());
+    for &m in &marginals {
+      assert!(m > 0.9, "all-Mut site should have high P(recombinant), got {m}");
+    }
+  }
+
+  #[test]
+  fn test_recombination_forward_backward_dense_block() {
+    let marginals = forward_backward_marginals(&obs("RRRRRRRRRRMMMMMMMMMMMMMMMRRRRRRRRRR"), &test_params());
+    // Interior of Mut block [12..23] should have high marginals.
+    for &m in &marginals[12..23] {
+      assert!(m > 0.8, "interior Mut site should be high, got {m}");
+    }
+    // Ref flanks [0..5] and [29..34] should have low marginals.
+    for &m in &marginals[0..5] {
+      assert!(m < 0.2, "Ref flank site should be low, got {m}");
+    }
+    for &m in &marginals[29..34] {
+      assert!(m < 0.2, "Ref flank site should be low, got {m}");
+    }
+  }
+
+  #[test]
+  fn test_recombination_forward_backward_missing_run_persists() {
+    // Mut block with Missing run in the middle -- marginals should stay elevated across the hole.
+    let marginals = forward_backward_marginals(&obs("RRRRRMMMMMMMMMMMMMMMXXXXXMMMMMMMMMMMMMMMRRRRR"), &test_params());
+    // Middle of the Missing run (positions 22-23) should still show elevated marginals.
+    for &m in &marginals[22..24] {
+      assert!(
+        m > 0.5,
+        "Missing-bridged site should maintain elevated marginal, got {m}"
+      );
+    }
+  }
+
+  #[test]
+  fn test_recombination_forward_backward_marginals_sum_to_one() {
+    // P(wildtype) + P(recombinant) = 1 at every site. We compute the wildtype marginal separately
+    // to verify the normalization.
+    let observations = obs("RRRRRRMMMMMMMMMMMRRRRRR");
+    let params = test_params();
+    let n = observations.len();
+
+    let log_stay = (1.0 - params.gamma).ln();
+    let log_switch = params.gamma.ln();
+    let log_prior = 0.5_f64.ln();
+
+    let mut log_alpha = vec![[f64::NEG_INFINITY; 2]; n];
+    let emit0 = params.log_emission(observations[0]);
+    log_alpha[0] = [log_prior + emit0[WILDTYPE], log_prior + emit0[RECOMBINANT]];
+    for l in 1..n {
+      let emit = params.log_emission(observations[l]);
+      log_alpha[l][WILDTYPE] = emit[WILDTYPE]
+        + log_sum_exp_2(
+          log_alpha[l - 1][WILDTYPE] + log_stay,
+          log_alpha[l - 1][RECOMBINANT] + log_switch,
+        );
+      log_alpha[l][RECOMBINANT] = emit[RECOMBINANT]
+        + log_sum_exp_2(
+          log_alpha[l - 1][WILDTYPE] + log_switch,
+          log_alpha[l - 1][RECOMBINANT] + log_stay,
+        );
+    }
+
+    let mut log_beta = vec![[0.0; 2]; n];
+    for l in (0..n - 1).rev() {
+      let emit_next = params.log_emission(observations[l + 1]);
+      log_beta[l][WILDTYPE] = log_sum_exp_2(
+        log_stay + emit_next[WILDTYPE] + log_beta[l + 1][WILDTYPE],
+        log_switch + emit_next[RECOMBINANT] + log_beta[l + 1][RECOMBINANT],
+      );
+      log_beta[l][RECOMBINANT] = log_sum_exp_2(
+        log_switch + emit_next[WILDTYPE] + log_beta[l + 1][WILDTYPE],
+        log_stay + emit_next[RECOMBINANT] + log_beta[l + 1][RECOMBINANT],
+      );
+    }
+
+    for l in 0..n {
+      let log_w = log_alpha[l][WILDTYPE] + log_beta[l][WILDTYPE];
+      let log_r = log_alpha[l][RECOMBINANT] + log_beta[l][RECOMBINANT];
+      let log_norm = log_sum_exp_2(log_w, log_r);
+      let p_w = (log_w - log_norm).exp();
+      let p_r = (log_r - log_norm).exp();
+      assert_abs_diff_eq!(1.0, p_w + p_r, epsilon = 1e-10);
+    }
+  }
+
+  #[test]
+  fn test_recombination_compute_interval_confidences_single() {
+    let marginals = vec![0.1, 0.2, 0.9, 0.95, 0.92, 0.3, 0.1];
+    let intervals = ranges(&[(2, 5)]);
+    let confidences = compute_interval_confidences(&marginals, &intervals);
+    // Mean of [0.9, 0.95, 0.92] = 2.77 / 3 = 0.9233...
+    assert_eq!(1, confidences.len());
+    assert_abs_diff_eq!(0.923_333_333, confidences[0], epsilon = 1e-8);
+  }
+
+  #[test]
+  fn test_recombination_compute_interval_confidences_multiple() {
+    let marginals = vec![0.9, 0.8, 0.1, 0.1, 0.7, 0.85];
+    let intervals = ranges(&[(0, 2), (4, 6)]);
+    let confidences = compute_interval_confidences(&marginals, &intervals);
+    assert_eq!(2, confidences.len());
+    assert_abs_diff_eq!(0.85, confidences[0], epsilon = 1e-10); // mean(0.9, 0.8)
+    assert_abs_diff_eq!(0.775, confidences[1], epsilon = 1e-10); // mean(0.7, 0.85)
+  }
+
+  #[test]
+  fn test_recombination_result_with_confidences() {
+    let result = RecombinationResult::from_ranges(ranges(&[(10, 25), (40, 50)]), Some(&[0.95, 0.82])).unwrap();
+    assert_eq!(Some(0.95), result.regions[0].confidence);
+    assert_eq!(Some(0.82), result.regions[1].confidence);
+    assert_eq!(2, result.total_regions);
+  }
+
+  #[test]
+  fn test_recombination_result_serde_round_trip_with_confidences() {
+    let result = RecombinationResult::from_ranges(ranges(&[(10, 25)]), Some(&[0.95])).unwrap();
+    let json = serde_json::to_string(&result).unwrap();
+    assert!(json.contains("confidence"), "JSON should contain confidence: {json}");
+    let deserialized: RecombinationResult = serde_json::from_str(&json).unwrap();
+    assert_eq!(result.regions[0].confidence, deserialized.regions[0].confidence);
+  }
+
+  #[test]
+  fn test_recombination_result_serde_round_trip_without_confidences() {
+    let result = RecombinationResult::from_ranges(ranges(&[(10, 25)]), None).unwrap();
+    let json = serde_json::to_string(&result).unwrap();
+    assert!(
+      !json.contains("confidence"),
+      "JSON should omit confidence when None: {json}"
+    );
+    let deserialized: RecombinationResult = serde_json::from_str(&json).unwrap();
+    assert_eq!(None, deserialized.regions[0].confidence);
+  }
+
+  // Property: forward-backward marginals are always in [0, 1] for any valid params and observations.
+  proptest::proptest! {
+    #![proptest_config(proptest::prelude::ProptestConfig::with_cases(500))]
+
+    #[test]
+    fn test_prop_recombination_forward_backward_marginals_bounded(
+      observations in proptest::collection::vec(
+        proptest::prop_oneof![
+          proptest::prelude::Just(RecombinationObs::Ref),
+          proptest::prelude::Just(RecombinationObs::Mut),
+          proptest::prelude::Just(RecombinationObs::Missing),
+        ],
+        1..200_usize,
+      ),
+      gamma in 1e-6_f64..0.5,
+      mu_w in 1e-6_f64..0.5,
+      offset in 1e-6_f64..0.5,
+    ) {
+      let params = RecombinationHmmParams::new(gamma, mu_w, mu_w + offset).unwrap();
+      let marginals = forward_backward_marginals(&observations, &params);
+      proptest::prop_assert_eq!(observations.len(), marginals.len());
+      for (l, &m) in marginals.iter().enumerate() {
+        proptest::prop_assert!((0.0..=1.0).contains(&m), "marginal at {l} out of [0,1]: {m}");
+      }
+    }
+  }
+
+  #[test]
+  fn test_recombination_integration_confidence_populated_when_regions_exist() {
+    let observations = obs("RRRRRRRRRRMMMMMMMMMMMMMMMRRRRRRRRRR");
+    let params = test_params();
+    let regions = find_recombinant_regions(&observations, &params);
+    assert!(!regions.is_empty(), "should find at least one region");
+    let marginals = forward_backward_marginals(&observations, &params);
+    let confidences = compute_interval_confidences(&marginals, &regions);
+    assert_eq!(regions.len(), confidences.len());
+    for &c in &confidences {
+      assert!(c > 0.5, "confidence for a strong Mut block should be high, got {c}");
+    }
+  }
+
+  #[test]
+  fn test_recombination_integration_no_confidence_when_no_regions() {
+    let observations = obs("RRRRRRRRRRRRRRRRRRRR");
+    let params = test_params();
+    let regions = find_recombinant_regions(&observations, &params);
+    assert!(regions.is_empty());
+    assert!(RecombinationResult::from_ranges(regions, None).is_none());
   }
 }
