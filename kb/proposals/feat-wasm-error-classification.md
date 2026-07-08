@@ -287,5 +287,5 @@ The enrichment happens at `nextcladeWasm.worker.ts` by wrapping the WASM call wi
 
 ## Related
 
-- `kb/known-issues/wasm-oom-large-genomes.md` - large genome OOM root cause (prevention via thread count requires `pathogen.json` changes, separate feature)
-- `kb/tickets/feat-dataset-resource-hints.md` - dataset-driven thread count limits
+- `kb/issues/H-wasm-oom-large-genomes.md` - large genome OOM root cause (prevention via thread count requires `pathogen.json` changes, separate feature)
+- `kb/proposals/feat-dataset-resource-hints.md` - dataset-driven thread count limits

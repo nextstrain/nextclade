@@ -139,6 +139,7 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
           phenotype_attr_descs,
           aa_motif_keys,
           ref_nodes,
+          recombination_params,
           ..
         } = nextclade.get_initial_data();
 
@@ -147,6 +148,7 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
           &clade_node_attr_key_descs,
           &phenotype_attr_descs,
           &ref_nodes,
+          recombination_params,
           &aa_motif_keys,
           &csv_column_config,
           &run_args.outputs,

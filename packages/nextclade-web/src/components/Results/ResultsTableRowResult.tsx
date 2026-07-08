@@ -33,6 +33,7 @@ import { CDS_OPTION_NUC_SEQUENCE, REF_NODE_ROOT } from 'src/constants'
 import { analysisResultAtom, currentRefNodeNameAtom } from 'src/state/results.state'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
+import { ColumnRecombination } from 'src/components/Results/ColumnRecombination'
 
 export interface ResultsTableRowResultProps {
   rowIndex: number
@@ -151,6 +152,10 @@ export function ResultsTableRowResult({
             <ColumnCustomNodeAttr sequence={analysisResult} attrKey={name} />
           </TableCellAlignedLeft>
         ))}
+
+      <TableCell basis={columnWidthsPx.recombination} grow={0} shrink={0}>
+        <ColumnRecombination analysisResult={analysisResult} />
+      </TableCell>
 
       {phenotypeAttrDescs.map(({ name }) => (
         <TableCellAlignedLeft key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>

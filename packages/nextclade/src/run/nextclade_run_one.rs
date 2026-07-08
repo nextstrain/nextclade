@@ -31,9 +31,13 @@ use crate::analyze::nuc_changes::{FindNucChangesOutput, find_nuc_changes};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
+use crate::analyze::recombination::{
+  RecombinationConfig, RecombinationResult, build_observations, compute_interval_confidences, find_recombinant_regions,
+  forward_backward_marginals, recombination_missing_ranges,
+};
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
-use crate::coord::position::PositionLike;
+use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::{AaRefRange, NucRefGlobalRange, Range, intersect};
 use crate::gene::cds_segment::{CdsSegment, Truncation};
 use crate::gene::gene::GeneStrand;
@@ -118,6 +122,7 @@ pub fn nextclade_run_one(
     graph,
     primers,
     ref_nodes,
+    recombination_params,
     ..
   } = &state;
 
@@ -425,6 +430,42 @@ pub fn nextclade_run_one(
     NextcladeResultWithGraph::default()
   };
 
+  // Placement-masked positions are non-comparable for recombination: a masked site that differs from
+  // the parent must not be scored as `Mut`, or it could manufacture a false recombinant call at a
+  // homoplasic site. `graph` is `None` for tree-less datasets, in which case this is an empty slice
+  // and the recombination closure never runs (`recombination_params` is `None`).
+  let masked_ranges: &[NucRefGlobalRange] = graph
+    .as_ref()
+    .map(|g| g.data.meta.placement_mask_ranges())
+    .unwrap_or_default();
+
+  // Recombination detection: decode putative recombinant regions from the parent-relative mutation
+  // pattern. Runs only when parameters were resolved once per run (requires a reference tree), and
+  // only for sequences carrying at least the configured minimum number of private substitutions.
+  // A sequence below that threshold cannot produce a recombinant call, so both Viterbi and
+  // forward-backward are skipped and the sequence gets no recombination result.
+  let min_private_subs_to_run = RecombinationConfig::min_private_subs_to_run(virus_properties.recombination.as_ref());
+  let recombination = recombination_params.as_ref().and_then(|params| {
+    if private_nuc_mutations.private_substitutions.len() < min_private_subs_to_run {
+      return None;
+    }
+    let missing_ranges = recombination_missing_ranges(&missing, &non_acgtns, &deletions, masked_ranges);
+    let mutated_positions: Vec<NucRefGlobalPosition> = private_nuc_mutations
+      .private_substitutions
+      .iter()
+      .map(|sub| sub.pos)
+      .collect();
+    let observations = build_observations(ref_seq.len(), &alignment_range, &missing_ranges, &mutated_positions);
+    let regions = find_recombinant_regions(&observations, params);
+    let confidences = if regions.is_empty() {
+      None
+    } else {
+      let marginals = forward_backward_marginals(&observations, params);
+      Some(compute_interval_confidences(&marginals, &regions))
+    };
+    RecombinationResult::from_ranges(regions, confidences.as_deref())
+  });
+
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;
   let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_translation, &translation)?;
 
@@ -508,6 +549,7 @@ pub fn nextclade_run_one(
       aa_motifs,
       aa_motifs_changes,
       qc,
+      recombination,
       clade,
       private_nuc_mutations,
       private_aa_mutations,

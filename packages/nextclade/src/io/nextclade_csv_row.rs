@@ -9,6 +9,7 @@ use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
+use crate::analyze::recombination::RecombinationResult;
 use crate::coord::range::NucRefGlobalRange;
 use crate::o;
 use crate::qc::qc_config::StopCodonLocation;
@@ -72,6 +73,7 @@ impl NextcladeResultsCsvRow {
       cds_coverage,
       phenotype_values,
       qc,
+      recombination,
       custom_node_attributes,
       is_reverse_complement,
       warnings,
@@ -311,6 +313,38 @@ impl NextcladeResultsCsvRow {
     self.add_entry("alignmentEnd", &alignment_range.end.to_string())?;
     self.add_entry("coverage", coverage)?;
     self.add_entry("cdsCoverage", &format_cds_coverage(cds_coverage, ARRAY_ITEM_DELIMITER))?;
+    self.add_entry(
+      "recombination.regions",
+      &format_recombinant_regions(recombination.as_ref(), ARRAY_ITEM_DELIMITER),
+    )?;
+    self.add_entry(
+      "recombination.totalRegions",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.total_regions.to_string()),
+    )?;
+    self.add_entry(
+      "recombination.totalLength",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.total_length.to_string()),
+    )?;
+    self.add_entry(
+      "recombination.longestRegion.range",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.longest_region.range.to_string()),
+    )?;
+    self.add_entry(
+      "recombination.longestRegion.length",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.longest_region.length.to_string()),
+    )?;
+    self.add_entry(
+      "recombination.regionConfidences",
+      &format_recombinant_region_confidences(recombination.as_ref(), ARRAY_ITEM_DELIMITER),
+    )?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
       qc.missing_data.as_ref().map(|md| md.missing_data_threshold.to_string()),
@@ -556,6 +590,24 @@ pub fn format_nuc_substitutions_labeled(substitutions: &[NucSubLabeled], delimit
 #[inline]
 pub fn format_nuc_deletions(deletions: &[NucDelRange], delimiter: &str) -> String {
   deletions.iter().map(|del| del.range().to_string()).join(delimiter)
+}
+
+#[inline]
+pub fn format_recombinant_regions(recombination: Option<&RecombinationResult>, delimiter: &str) -> String {
+  recombination.map_or_else(String::new, |rec| {
+    rec.regions.iter().map(|r| r.range.to_string()).join(delimiter)
+  })
+}
+
+#[inline]
+pub fn format_recombinant_region_confidences(recombination: Option<&RecombinationResult>, delimiter: &str) -> String {
+  recombination.map_or_else(String::new, |rec| {
+    rec
+      .regions
+      .iter()
+      .filter_map(|r| r.confidence.map(|c| format!("{c:.3}")))
+      .join(delimiter)
+  })
 }
 
 #[inline]

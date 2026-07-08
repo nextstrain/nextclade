@@ -85,8 +85,12 @@ zip = { workspace = true }
 zstd = { workspace = true }
 
 [dev-dependencies]
+approx = { workspace = true }
 assert2 = { workspace = true }
 criterion = { workspace = true }
+indoc = { workspace = true }
+proptest = { workspace = true }
+rand = { workspace = true }
 rstest = { workspace = true }
 
 [build-dependencies]

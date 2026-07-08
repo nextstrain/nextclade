@@ -14,7 +14,7 @@ Each web worker instantiates a separate WASM module that holds: the dataset, ali
 
 Thread count reduction cannot be hardcoded in software per-pathogen. The solution requires coordination with the data repository (`nextclade_data`) and `pathogen.json` configuration, so dataset maintainers can specify resource requirements per dataset.
 
-See `kb/tickets/feat-dataset-resource-hints.md` for the proposed solution.
+See `kb/proposals/feat-dataset-resource-hints.md` for the proposed solution.
 
 ## Possible directions (not decided)
 

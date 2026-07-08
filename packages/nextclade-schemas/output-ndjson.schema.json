@@ -418,6 +418,17 @@
         }
       ]
     },
+    "recombination": {
+      "description": "Putative recombinant regions detected by the HMM. Absent when detection did not run.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RecombinationResult"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "customNodeAttributes": {
       "description": "Clade-like attributes from the nearest tree node, keyed by attribute name",
       "type": "object",
@@ -2245,6 +2256,71 @@
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
+        }
+      }
+    },
+    "RecombinationResult": {
+      "description": "Per-sequence recombination detection result: the detected regions and their summary statistics.\n\nAlways contains at least one region. When detection runs but finds no recombinant intervals the caller produces `None` rather than an empty `RecombinationResult`.",
+      "type": "object",
+      "required": [
+        "longestRegion",
+        "regions",
+        "totalLength",
+        "totalRegions"
+      ],
+      "properties": {
+        "regions": {
+          "description": "Putative recombinant intervals.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RecombinationRegion"
+          }
+        },
+        "totalRegions": {
+          "description": "Number of recombinant regions.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "totalLength": {
+          "description": "Total length of all recombinant regions, in nucleotides.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "longestRegion": {
+          "description": "The longest recombinant region.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/RecombinationRegion"
+            }
+          ]
+        }
+      }
+    },
+    "RecombinationRegion": {
+      "description": "A single putative recombinant interval with its range, nucleotide length, and optional forward-backward confidence score.",
+      "type": "object",
+      "required": [
+        "length",
+        "range"
+      ],
+      "properties": {
+        "range": {
+          "$ref": "#/definitions/Range_for_Position"
+        },
+        "length": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "confidence": {
+          "description": "Mean posterior P(recombinant) from forward-backward within this interval.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
         }
       }
     },

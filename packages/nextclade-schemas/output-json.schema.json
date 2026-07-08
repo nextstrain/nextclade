@@ -55,6 +55,17 @@
         }
       ]
     },
+    "recombinationParams": {
+      "description": "Effective recombination HMM parameters used for this run. Absent when detection did not run.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RecombinationHmmParams"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "results": {
       "description": "Per-sequence analysis results for sequences that were processed",
       "type": "array",
@@ -365,6 +376,32 @@
             "string",
             "null"
           ]
+        }
+      }
+    },
+    "RecombinationHmmParams": {
+      "description": "Effective recombination HMM parameters used for a run.\n\nAll three are probabilities between 0 and 1 (exclusive). `gamma` is the transition rate, `muW` and `muR` are the wildtype and recombinant mutation emission probabilities, with `muR` greater than `muW`.",
+      "type": "object",
+      "required": [
+        "gamma",
+        "muR",
+        "muW"
+      ],
+      "properties": {
+        "gamma": {
+          "description": "Transition rate: probability of switching state between adjacent sites.",
+          "type": "number",
+          "format": "double"
+        },
+        "muW": {
+          "description": "Mutation emission probability in the wildtype state (background divergence).",
+          "type": "number",
+          "format": "double"
+        },
+        "muR": {
+          "description": "Mutation emission probability in the recombinant state (elevated divergence).",
+          "type": "number",
+          "format": "double"
         }
       }
     },
@@ -784,6 +821,17 @@
           "allOf": [
             {
               "$ref": "#/definitions/QcResult"
+            }
+          ]
+        },
+        "recombination": {
+          "description": "Putative recombinant regions detected by the HMM. Absent when detection did not run.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RecombinationResult"
+            },
+            {
+              "type": "null"
             }
           ]
         },
@@ -2375,6 +2423,71 @@
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
+        }
+      }
+    },
+    "RecombinationResult": {
+      "description": "Per-sequence recombination detection result: the detected regions and their summary statistics.\n\nAlways contains at least one region. When detection runs but finds no recombinant intervals the caller produces `None` rather than an empty `RecombinationResult`.",
+      "type": "object",
+      "required": [
+        "longestRegion",
+        "regions",
+        "totalLength",
+        "totalRegions"
+      ],
+      "properties": {
+        "regions": {
+          "description": "Putative recombinant intervals.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RecombinationRegion"
+          }
+        },
+        "totalRegions": {
+          "description": "Number of recombinant regions.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "totalLength": {
+          "description": "Total length of all recombinant regions, in nucleotides.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "longestRegion": {
+          "description": "The longest recombinant region.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/RecombinationRegion"
+            }
+          ]
+        }
+      }
+    },
+    "RecombinationRegion": {
+      "description": "A single putative recombinant interval with its range, nucleotide length, and optional forward-backward confidence score.",
+      "type": "object",
+      "required": [
+        "length",
+        "range"
+      ],
+      "properties": {
+        "range": {
+          "$ref": "#/definitions/Range_for_Position"
+        },
+        "length": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "confidence": {
+          "description": "Mean posterior P(recombinant) from forward-backward within this interval.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
         }
       }
     },

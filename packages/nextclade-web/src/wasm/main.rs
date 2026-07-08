@@ -1,6 +1,7 @@
 use crate::wasm::jserr::jserr;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use nextclade::analyze::recombination::RecombinationHmmParams;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
 use nextclade::io::csv::{CsvVecWriter, VecWriter};
 use nextclade::io::fasta::{FastaReader, FastaRecord, read_one_fasta_from_str};
@@ -158,6 +159,7 @@ impl NextcladeWasm {
     clade_node_attrs_json_str: &str,
     phenotype_attrs_json_str: &str,
     ref_nodes_json_str: &str,
+    recombination_params_json_str: &str,
     nextclade_web_version: Option<String>,
   ) -> Result<String, JsError> {
     let outputs: Vec<NextcladeOutputs> = jserr(
@@ -182,6 +184,11 @@ impl NextcladeWasm {
       json_parse(ref_nodes_json_str).wrap_err("When serializing results JSON: When parsing ref nodes JSON internally"),
     )?;
 
+    let recombination_params: Option<RecombinationHmmParams> = jserr(
+      json_parse(recombination_params_json_str)
+        .wrap_err("When serializing results JSON: When parsing recombination params JSON internally"),
+    )?;
+
     jserr(
       results_to_json_string(
         &outputs,
@@ -189,6 +196,7 @@ impl NextcladeWasm {
         &clade_node_attrs,
         &phenotype_attrs,
         &ref_nodes,
+        recombination_params,
         nextclade_web_version.as_ref(),
       )
       .wrap_err("When serializing results JSON"),

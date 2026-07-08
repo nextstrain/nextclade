@@ -13,6 +13,7 @@ import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
+import { RecombinationMarkers, recombinationMarkerCount } from './RecombinationMarkers'
 import { SequenceViewCoverageWrapper, SequenceViewCoverageText, SequenceViewSVG } from './SequenceViewStyles'
 
 export interface SequenceViewAbsoluteProps {
@@ -114,7 +115,12 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
   ))
 
   const totalMarkers =
-    mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length + insertionViews.length
+    mutationViews.length +
+    deletionViews.length +
+    missingViews.length +
+    frameShiftMarkers.length +
+    insertionViews.length +
+    recombinationMarkerCount(sequence)
   if (totalMarkers > maxNucMarkers) {
     return (
       <SequenceViewCoverageWrapper>
@@ -164,6 +170,7 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
         pixelsPerBase={pixelsPerBase}
       />
       {frameShiftMarkers}
+      <RecombinationMarkers sequence={sequence} pixelsPerBase={pixelsPerBase} />
     </SequenceViewSVG>
   )
 }

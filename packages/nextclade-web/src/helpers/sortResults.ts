@@ -14,6 +14,7 @@ export enum SortCategory {
   totalInsertions = 'totalInsertions',
   totalFrameShifts = 'totalFrameShifts',
   totalStopCodons = 'totalStopCodons',
+  totalRecombinantLength = 'totalRecombinantLength',
 }
 
 export enum SortDirection {
@@ -135,6 +136,14 @@ export function sortByStopCodons(results: NextcladeResult[], direction: SortDire
   )
 }
 
+export function sortByRecombinantLength(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(
+    results,
+    (result) => result.result?.analysisResult.recombination?.totalLength ?? defaultNumber(direction),
+    direction,
+  )
+}
+
 export function sortResults(results: NextcladeResult[], sorting: Sorting) {
   const { category, direction } = sorting
 
@@ -174,6 +183,9 @@ export function sortResults(results: NextcladeResult[], sorting: Sorting) {
 
     case SortCategory.totalStopCodons:
       return sortByStopCodons(results, direction)
+
+    case SortCategory.totalRecombinantLength:
+      return sortByRecombinantLength(results, direction)
   }
 
   return results

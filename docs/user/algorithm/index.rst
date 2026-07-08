@@ -15,4 +15,5 @@ Internally, Nextclade is implemented as a parallel pipeline which consists of se
     05-mutation-calling.md
     06-quality-control.md
     07-pcr-primer-changes-detection.md
+    08-recombination-detection.md
     nextclade-pango.md

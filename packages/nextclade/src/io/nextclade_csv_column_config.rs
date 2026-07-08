@@ -19,6 +19,7 @@ use strum_macros::{Display, EnumString, VariantNames};
 pub enum CsvColumnCategory {
   All,
   General,
+  Recombination,
   RefMuts,
   PrivMuts,
   PrivAaMuts,
@@ -32,7 +33,10 @@ pub enum CsvColumnCategory {
 
 pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>>;
 
-// Configuration for enabling/disabling CSV columns or categories of them
+// Configuration for enabling/disabling CSV columns or categories of them.
+// The `include_*` fields are independent per-category toggles, so a flat set of bools is the natural
+// representation rather than a state machine.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CsvColumnConfig {
@@ -41,6 +45,7 @@ pub struct CsvColumnConfig {
   pub include_dynamic: bool,
   pub include_clade_founder_muts: bool,
   pub include_rel_muts: bool,
+  pub include_recombination: bool,
 }
 
 impl CsvColumnConfig {
@@ -80,6 +85,8 @@ impl CsvColumnConfig {
 
       let include_clade_founder_muts = categories.contains(&CsvColumnCategory::CladeFounderMuts);
 
+      let include_recombination = categories.contains(&CsvColumnCategory::Recombination);
+
       let categories = categories
         .into_iter()
         .filter_map(|category| {
@@ -94,6 +101,7 @@ impl CsvColumnConfig {
         include_dynamic,
         include_clade_founder_muts,
         include_rel_muts,
+        include_recombination,
       })
     }
   }
@@ -107,6 +115,7 @@ impl Default for CsvColumnConfig {
       include_dynamic: true,
       include_clade_founder_muts: true,
       include_rel_muts: true,
+      include_recombination: true,
     }
   }
 }
@@ -136,6 +145,14 @@ pub static CSV_COLUMN_CONFIG_MAP_DEFAULT: LazyLock<CsvColumnConfigMap> = LazyLoc
       o!("coverage") => true,
       o!("cdsCoverage") => true,
       o!("isReverseComplement") => true,
+    },
+    CsvColumnCategory::Recombination => indexmap! {
+      o!("recombination.regions") => true,
+      o!("recombination.regionConfidences") => true,
+      o!("recombination.totalRegions") => true,
+      o!("recombination.totalLength") => true,
+      o!("recombination.longestRegion.range") => true,
+      o!("recombination.longestRegion.length") => true,
     },
     CsvColumnCategory::RefMuts => indexmap! {
       o!("substitutions") => true,
