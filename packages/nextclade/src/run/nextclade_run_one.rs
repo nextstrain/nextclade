@@ -32,7 +32,8 @@ use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::recombination::{
-  RecombinationResult, build_observations, find_recombinant_regions, recombination_missing_ranges,
+  RecombinationResult, build_observations, compute_interval_confidences, find_recombinant_regions,
+  forward_backward_marginals, recombination_missing_ranges,
 };
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
@@ -448,7 +449,14 @@ pub fn nextclade_run_one(
       .map(|sub| sub.pos)
       .collect();
     let observations = build_observations(ref_seq.len(), &alignment_range, &missing_ranges, &mutated_positions);
-    RecombinationResult::from_ranges(find_recombinant_regions(&observations, params))
+    let regions = find_recombinant_regions(&observations, params);
+    let confidences = if regions.is_empty() {
+      None
+    } else {
+      let marginals = forward_backward_marginals(&observations, params);
+      Some(compute_interval_confidences(&marginals, &regions))
+    };
+    RecombinationResult::from_ranges(regions, confidences.as_deref())
   });
 
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;

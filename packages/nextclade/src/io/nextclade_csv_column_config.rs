@@ -145,6 +145,7 @@ pub static CSV_COLUMN_CONFIG_MAP_DEFAULT: LazyLock<CsvColumnConfigMap> = LazyLoc
     },
     CsvColumnCategory::Recombination => indexmap! {
       o!("recombination.regions") => true,
+      o!("recombination.regionConfidences") => true,
       o!("recombination.totalRegions") => true,
       o!("recombination.totalLength") => true,
       o!("recombination.longestRegion.range") => true,

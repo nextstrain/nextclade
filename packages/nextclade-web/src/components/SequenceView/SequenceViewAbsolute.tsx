@@ -121,6 +121,7 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
       index={index}
       seqName={seqName}
       region={region.range}
+      confidence={region.confidence}
       pixelsPerBase={pixelsPerBase}
     />
   ))

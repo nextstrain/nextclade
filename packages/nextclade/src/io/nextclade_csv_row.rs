@@ -341,6 +341,10 @@ impl NextcladeResultsCsvRow {
         .as_ref()
         .map_or_else(String::new, |rec| rec.longest_region.length.to_string()),
     )?;
+    self.add_entry(
+      "recombination.regionConfidences",
+      &format_recombinant_region_confidences(recombination.as_ref(), ARRAY_ITEM_DELIMITER),
+    )?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
       qc.missing_data.as_ref().map(|md| md.missing_data_threshold.to_string()),
@@ -592,6 +596,17 @@ pub fn format_nuc_deletions(deletions: &[NucDelRange], delimiter: &str) -> Strin
 pub fn format_recombinant_regions(recombination: Option<&RecombinationResult>, delimiter: &str) -> String {
   recombination.map_or_else(String::new, |rec| {
     rec.regions.iter().map(|r| r.range.to_string()).join(delimiter)
+  })
+}
+
+#[inline]
+pub fn format_recombinant_region_confidences(recombination: Option<&RecombinationResult>, delimiter: &str) -> String {
+  recombination.map_or_else(String::new, |rec| {
+    rec
+      .regions
+      .iter()
+      .filter_map(|r| r.confidence.map(|c| format!("{c:.3}")))
+      .join(delimiter)
   })
 }
 

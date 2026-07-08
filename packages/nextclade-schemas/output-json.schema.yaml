@@ -1746,7 +1746,7 @@ definitions:
         allOf:
         - $ref: '#/definitions/RecombinationRegion'
   RecombinationRegion:
-    description: A single putative recombinant interval with its range and nucleotide length.
+    description: A single putative recombinant interval with its range, nucleotide length, and optional forward-backward confidence score.
     type: object
     required:
     - length
@@ -1758,6 +1758,12 @@ definitions:
         type: integer
         format: uint
         minimum: 0.0
+      confidence:
+        description: Mean posterior P(recombinant) from forward-backward within this interval.
+        type:
+        - number
+        - 'null'
+        format: double
   PhenotypeValue:
     description: Result for a single phenotype value
     type: object
