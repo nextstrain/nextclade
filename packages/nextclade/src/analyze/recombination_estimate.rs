@@ -336,6 +336,7 @@ fn as_probability(x: f64) -> Option<f64> {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::{assert_error, pretty_assert_ulps_eq};
   use crate::tree::tree::AuspiceTree;
   use crate::{assert_error, pretty_assert_ulps_eq};
   use indoc::indoc;
@@ -521,20 +522,18 @@ mod tests {
     }
   }
 
-  // Exact equality is correct throughout these estimator tests: the estimator does deterministic
-  // integer arithmetic (small counts divided by ref_len), so results are bit-identical to the
-  // expected literals. This is what `#[allow(clippy::float_cmp)]` on each such test documents.
-  #[allow(clippy::float_cmp)]
+  // The estimator does deterministic integer arithmetic (small counts divided by ref_len), so results
+  // are bit-identical to the expected literals; a `max_ulps = 2` bound compares them exactly while
+  // staying robust if a future estimator step introduces a non-exact operation.
   #[test]
   fn test_recombination_estimate_all_params_from_tree() {
     let graph = two_clade_tree();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
-    assert_eq!(1.0 / 100.0, params.gamma());
-    assert_eq!(2.0 / 100.0, params.mu_w());
-    assert_eq!(5.0 / 100.0, params.mu_r());
+    pretty_assert_ulps_eq!(1.0 / 100.0, params.gamma(), max_ulps = 2);
+    pretty_assert_ulps_eq!(2.0 / 100.0, params.mu_w(), max_ulps = 2);
+    pretty_assert_ulps_eq!(5.0 / 100.0, params.mu_r(), max_ulps = 2);
   }
 
-  #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_config_override_is_used_verbatim() {
     let graph = two_clade_tree();
@@ -546,12 +545,11 @@ mod tests {
       mu_r: None,
     };
     let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
-    assert_eq!(0.1, params.gamma());
-    assert_eq!(2.0 / 100.0, params.mu_w());
-    assert_eq!(5.0 / 100.0, params.mu_r());
+    pretty_assert_ulps_eq!(0.1, params.gamma(), max_ulps = 2);
+    pretty_assert_ulps_eq!(2.0 / 100.0, params.mu_w(), max_ulps = 2);
+    pretty_assert_ulps_eq!(5.0 / 100.0, params.mu_r(), max_ulps = 2);
   }
 
-  #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_partial_mu_overrides_used() {
     let graph = two_clade_tree();
@@ -563,9 +561,9 @@ mod tests {
       mu_r: Some(OrderedFloat(0.2)),
     };
     let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
-    assert_eq!(1.0 / 100.0, params.gamma()); // still estimated
-    assert_eq!(0.01, params.mu_w());
-    assert_eq!(0.2, params.mu_r());
+    pretty_assert_ulps_eq!(1.0 / 100.0, params.gamma(), max_ulps = 2); // still estimated
+    pretty_assert_ulps_eq!(0.01, params.mu_w(), max_ulps = 2);
+    pretty_assert_ulps_eq!(0.2, params.mu_r(), max_ulps = 2);
   }
 
   #[test]
@@ -611,10 +609,10 @@ mod tests {
       mu_w: Some(OrderedFloat(0.05)),
       mu_r: Some(OrderedFloat(0.01)),
     };
-    let err = resolve_recombination_params(Some(&config), &graph, REF_LEN)
-      .unwrap_err()
-      .to_string();
-    assert!(err.contains("muR > muW"), "error `{err}` should require muR > muW");
+    assert_error!(
+      resolve_recombination_params(Some(&config), &graph, REF_LEN),
+      "Recombination parameters in pathogen.json require muR > muW, but got muW=0.05 and muR=0.01"
+    );
   }
 
   #[test]
@@ -628,10 +626,10 @@ mod tests {
       mu_w: None,
       mu_r: None,
     };
-    let err = resolve_recombination_params(Some(&config), &graph, REF_LEN)
-      .unwrap_err()
-      .to_string();
-    assert!(err.contains("gamma < 0.5"), "error `{err}` should require gamma < 0.5");
+    assert_error!(
+      resolve_recombination_params(Some(&config), &graph, REF_LEN),
+      "Recombination HMM requires gamma < 0.5 (state switching must be rarer than staying), but got gamma=0.7"
+    );
   }
 
   #[test]
@@ -644,14 +642,12 @@ mod tests {
       mu_w: None,
       mu_r: None,
     };
-    let err = resolve_recombination_params(Some(&config), &graph, REF_LEN)
-      .unwrap_err()
-      .to_string();
-    assert!(err.contains("gamma"), "error `{err}` should name gamma");
-    assert!(err.contains("open interval (0, 1)"), "error `{err}` should state the (0, 1) contract");
+    assert_error!(
+      resolve_recombination_params(Some(&config), &graph, REF_LEN),
+      "Recombination parameter `gamma` in pathogen.json must be in the open interval (0, 1), but got 1.5"
+    );
   }
 
-  #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_three_clades_uses_nonroot_mrca() {
     // Three single-leaf clades where A1 and B1 share a non-root MRCA `I`, exercising the
@@ -660,11 +656,10 @@ mod tests {
     // median{6, 9, 11} = 9 -> mu_r = 0.09. Terminal branches 2, 4, 6 -> mean 4 -> mu_w = 0.04.
     let graph = three_clade_tree();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
-    assert_eq!(4.0 / 100.0, params.mu_w());
-    assert_eq!(9.0 / 100.0, params.mu_r());
+    pretty_assert_ulps_eq!(4.0 / 100.0, params.mu_w(), max_ulps = 2);
+    pretty_assert_ulps_eq!(9.0 / 100.0, params.mu_r(), max_ulps = 2);
   }
 
-  #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_nested_clades_uses_leaf_distance() {
     // Nested clades whose clade ancestors sit one mutation apart but whose leaves carry large terminal
@@ -676,8 +671,8 @@ mod tests {
     // Terminal branches: 1, 8, 6, 1, 4 -> mean = 4 -> mu_w = 0.04
     let graph = nested_clade_tree();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
-    assert_eq!(4.0 / 100.0, params.mu_w());
-    assert_eq!(9.0 / 100.0, params.mu_r());
+    pretty_assert_ulps_eq!(4.0 / 100.0, params.mu_w(), max_ulps = 2);
+    pretty_assert_ulps_eq!(9.0 / 100.0, params.mu_r(), max_ulps = 2);
   }
 
   #[rustfmt::skip]
@@ -734,14 +729,13 @@ mod tests {
     AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
   }
 
-  #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_excludes_deletions_from_branch_length() {
     // Terminal branches counting substitutions only: A1=2, B1=1 (the `A15-` deletion excluded).
     // mean = (2+1)/2 = 1.5 -> mu_w = 1.5/100 = 0.015. If the deletion were counted, B1=2 and mu_w=0.02.
     let graph = external_tree_with_deletion();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
-    assert_eq!(1.5 / 100.0, params.mu_w());
+    pretty_assert_ulps_eq!(1.5 / 100.0, params.mu_w(), max_ulps = 2);
   }
 
   // A tree where a clade label appears only on an internal node, not on any leaf. Leaves carry a
@@ -909,20 +903,27 @@ mod tests {
   fn test_recombination_estimate_errors_on_malformed_branch_mutation() {
     // A malformed tree annotation surfaces as an error instead of being silently miscounted.
     let graph = tree_with_malformed_mutation();
-    let err = resolve_recombination_params(None, &graph, REF_LEN).unwrap_err().to_string();
-    assert!(err.contains("branch mutation"), "error `{err}` should mention the branch mutation");
+    assert_error!(
+      resolve_recombination_params(None, &graph, REF_LEN),
+      "When counting recombination branch mutations from tree annotation 'not-a-mutation': \
+       Unable to parse nucleotide mutation: 'not-a-mutation'"
+    );
   }
 
   #[rustfmt::skip]
   #[rstest]
-  #[case::no_reference_tree(RecombinationSkipReason::NoReferenceTree,                              "reference tree")]
-  #[case::fewer_than_two(   RecombinationSkipReason::FewerThanTwoClades,                           "fewer than two clades")]
-  #[case::no_mutations(     RecombinationSkipReason::NoBranchMutations,                            "no per-branch nucleotide mutations")]
-  #[case::tree_unavailable( RecombinationSkipReason::TreeEstimateUnavailable,                      "could not be estimated")]
-  #[case::not_elevated(     RecombinationSkipReason::RecombinantRateNotElevated { mu_w: 0.05, mu_r: 0.01 }, "does not exceed")]
+  #[case::no_reference_tree(RecombinationSkipReason::NoReferenceTree,
+    "no reference tree is available, and recombination detection requires one to derive parent-relative mutations")]
+  #[case::fewer_than_two(RecombinationSkipReason::FewerThanTwoClades,
+    "the reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated")]
+  #[case::no_mutations(RecombinationSkipReason::NoBranchMutations,
+    "the reference tree carries no per-branch nucleotide mutations, so the wildtype and recombinant divergence rates cannot be estimated")]
+  #[case::tree_unavailable(RecombinationSkipReason::TreeEstimateUnavailable,
+    "a required parameter could not be estimated from the reference tree (degenerate topology)")]
+  #[case::not_elevated(RecombinationSkipReason::RecombinantRateNotElevated { mu_w: 0.05, mu_r: 0.01 },
+    "the estimated recombinant divergence rate does not exceed the wildtype rate (muW=0.05, muR=0.01)")]
   #[trace]
-  fn test_recombination_skip_reason_message(#[case] reason: RecombinationSkipReason, #[case] needle: &str) {
-    let message = reason.message();
-    assert!(message.contains(needle), "message `{message}` should mention `{needle}`");
+  fn test_recombination_skip_reason_message(#[case] reason: RecombinationSkipReason, #[case] expected: &str) {
+    assert_eq!(expected, reason.message());
   }
 }

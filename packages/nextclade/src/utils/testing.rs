@@ -49,8 +49,9 @@ macro_rules! pretty_assert_abs_diff_eq {
 #[macro_export]
 macro_rules! assert_error {
   ($result:expr, $expected_message:expr $(,)?) => {{
-    let Err(error) = $result else {
-      panic!("expected Err, got Ok");
+    let error = match $result {
+      Ok(_) => panic!("expected Err, got Ok"),
+      Err(e) => e,
     };
     let actual_message = $crate::utils::error::report_to_string(&error);
     pretty_assertions::assert_eq!(actual_message, $expected_message);
