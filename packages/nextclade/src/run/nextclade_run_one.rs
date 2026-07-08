@@ -32,7 +32,7 @@ use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
 use crate::analyze::recombination::{
-  RecombinationResult, build_observations, compute_interval_confidences, find_recombinant_regions,
+  RecombinationConfig, RecombinationResult, build_observations, compute_interval_confidences, find_recombinant_regions,
   forward_backward_marginals, recombination_missing_ranges,
 };
 use crate::analyze::virus_properties::PhenotypeData;
@@ -440,8 +440,15 @@ pub fn nextclade_run_one(
     .unwrap_or_default();
 
   // Recombination detection: decode putative recombinant regions from the parent-relative mutation
-  // pattern. Runs only when parameters were resolved once per run (requires a reference tree).
+  // pattern. Runs only when parameters were resolved once per run (requires a reference tree), and
+  // only for sequences carrying at least the configured minimum number of private substitutions.
+  // A sequence below that threshold cannot produce a recombinant call, so both Viterbi and
+  // forward-backward are skipped and the sequence gets no recombination result.
+  let min_private_subs_to_run = RecombinationConfig::min_private_subs_to_run(virus_properties.recombination.as_ref());
   let recombination = recombination_params.as_ref().and_then(|params| {
+    if private_nuc_mutations.private_substitutions.len() < min_private_subs_to_run {
+      return None;
+    }
     let missing_ranges = recombination_missing_ranges(&missing, &non_acgtns, &deletions, masked_ranges);
     let mutated_positions: Vec<NucRefGlobalPosition> = private_nuc_mutations
       .private_substitutions

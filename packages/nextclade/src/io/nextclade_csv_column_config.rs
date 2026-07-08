@@ -33,7 +33,10 @@ pub enum CsvColumnCategory {
 
 pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>>;
 
-// Configuration for enabling/disabling CSV columns or categories of them
+// Configuration for enabling/disabling CSV columns or categories of them.
+// The `include_*` fields are independent per-category toggles, so a flat set of bools is the natural
+// representation rather than a state machine.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CsvColumnConfig {

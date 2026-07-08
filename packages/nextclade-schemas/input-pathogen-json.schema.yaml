@@ -634,17 +634,24 @@ definitions:
     description: |-
       Dataset configuration for recombination detection, as it appears in `pathogen.json`.
 
-      Each parameter is optional and resolved independently: a value given here is used verbatim, otherwise a fallback is computed from the reference and reference tree (`gamma = 1 / ref_len`, `mu_w`/`mu_r` estimated from the tree). An absent config object, or one with `enabled` omitted, leaves the feature enabled (see `RecombinationConfig::is_enabled`).
+      Each field is optional. The HMM parameters are resolved independently: a value given here is used verbatim, otherwise a fallback is computed from the reference and reference tree. An absent config object, or one with `enabled` omitted, leaves the feature enabled (see `is_enabled`).
     type: object
     properties:
       enabled:
         description: |-
           Whether recombination detection runs for this dataset.
 
-          Three states: `None` (field absent) is the default-on behavior; `Some(true)` is an explicit opt-in; `Some(false)` disables detection. The explicit opt-in is distinguished from the default so that a dataset that asks for detection but cannot support it (a tree too thin to estimate the parameters) surfaces one skip warning, while the silent default stays silent.
+          When the field is absent, detection is on by default; `true` opts in explicitly; `false` disables it. An explicit `true` is treated as a hard requirement: if the dataset cannot support detection (for example it has no reference tree, or a tree too thin to estimate the parameters), that is a dataset-level error rather than a silent skip. The default-on case skips silently instead.
         type:
         - boolean
         - 'null'
+      minPrivateSubsToRun:
+        description: Minimum number of private substitutions (relative to the inferred parent) a sequence must carry for detection to run on it. Sequences below this threshold produce no recombination result. Defaults to 1 when absent, which skips only sequences that carry no recombinant signal at all.
+        type:
+        - integer
+        - 'null'
+        format: uint
+        minimum: 0.0
       gamma:
         description: State transition rate override. When absent, defaults to `1 / ref_len`. Must be in the open interval (0, 1) and less than 0.5. The runtime enforces this; the schema bound is inclusive because `schemars` cannot express exclusive bounds.
         type:

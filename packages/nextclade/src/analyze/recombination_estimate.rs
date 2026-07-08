@@ -13,11 +13,13 @@
 //! error; when a required estimate is undefined (for example fewer than two clades for `mu_r`) the
 //! model is left unresolved and the caller skips detection with a stated reason.
 
+use crate::alphabet::nuc::Nuc;
+use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::recombination::{RecombinationConfig, RecombinationHmmParams, is_hmm_probability};
 use crate::graph::node::GraphNodeKey;
 use crate::make_error;
 use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload};
-use eyre::Report;
+use eyre::{Report, WrapErr};
 use indexmap::IndexSet;
 use itertools::Itertools;
 use ordered_float::OrderedFloat;
@@ -37,14 +39,28 @@ pub fn resolve_recombination_params(
   graph: &AuspiceGraph,
   ref_len: usize,
 ) -> Result<RecombinationResolution, Report> {
-  let gamma = resolve_param("gamma", config.and_then(|c| c.gamma), estimate_gamma(ref_len))?;
-  let mu_w = resolve_param("muW", config.and_then(|c| c.mu_w), estimate_mu_w(graph, ref_len)?)?;
-  let mu_r = resolve_param("muR", config.and_then(|c| c.mu_r), estimate_mu_r(graph, ref_len)?)?;
+  // Each parameter is the validated `pathogen.json` override when present, otherwise the tree
+  // estimate. The estimate is computed only in the `None` arm, so an explicit override neither pays
+  // for the estimator nor is aborted by an estimator error on a difficult tree.
+  let gamma = match config.and_then(|c| c.gamma) {
+    Some(value) => Some(validate_override("gamma", value)?),
+    None => estimate_gamma(ref_len),
+  };
+  let mu_w = match config.and_then(|c| c.mu_w) {
+    Some(value) => Some(validate_override("muW", value)?),
+    None => estimate_mu_w(graph, ref_len)?,
+  };
+  let mu_r = match config.and_then(|c| c.mu_r) {
+    Some(value) => Some(validate_override("muR", value)?),
+    None => estimate_mu_r(graph, ref_len)?,
+  };
 
   let (Some(gamma), Some(mu_w), Some(mu_r)) = (gamma, mu_w, mu_r) else {
     // A required parameter has neither an override nor a definable tree estimate.
     let reason = if count_clades(graph) < 2 {
       RecombinationSkipReason::FewerThanTwoClades
+    } else if !has_any_branch_mutations(graph)? {
+      RecombinationSkipReason::NoBranchMutations
     } else {
       RecombinationSkipReason::TreeEstimateUnavailable
     };
@@ -79,11 +95,18 @@ pub enum RecombinationResolution {
   Skipped(RecombinationSkipReason),
 }
 
-/// Why recombination detection was skipped for a dataset despite being enabled.
+/// Why recombination detection cannot run for a dataset. When detection is enabled by default this is
+/// a silent skip; when it is explicitly requested (`enabled: true`) the caller turns it into an error.
 #[derive(Debug, Clone)]
 pub enum RecombinationSkipReason {
+  /// No reference tree is available; detection needs one for parent-relative mutations.
+  NoReferenceTree,
   /// The reference tree has fewer than two clades, so inter-clade divergence (`muR`) is undefined.
   FewerThanTwoClades,
+  /// The reference tree carries no per-branch nucleotide mutations, so the divergence rates that
+  /// calibrate the model cannot be estimated (for example a tree exported with only divergence values
+  /// and no `nuc` mutation lists).
+  NoBranchMutations,
   /// A required parameter could not be estimated from the tree (degenerate topology or no leaves).
   TreeEstimateUnavailable,
   /// The estimated recombinant rate does not exceed the wildtype rate, so the states are indistinguishable.
@@ -91,11 +114,19 @@ pub enum RecombinationSkipReason {
 }
 
 impl RecombinationSkipReason {
-  /// Human-readable explanation, for logs and the per-sequence `warnings` output.
+  /// Human-readable explanation, for logs, error messages, and the per-sequence `warnings` output.
   pub fn message(&self) -> String {
     match self {
+      Self::NoReferenceTree => "no reference tree is available, and recombination detection requires one to derive \
+         parent-relative mutations"
+        .to_owned(),
       Self::FewerThanTwoClades => {
         "the reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated".to_owned()
+      }
+      Self::NoBranchMutations => {
+        "the reference tree carries no per-branch nucleotide mutations, so the wildtype and recombinant \
+         divergence rates cannot be estimated"
+          .to_owned()
       }
       Self::TreeEstimateUnavailable => {
         "a required parameter could not be estimated from the reference tree (degenerate topology)".to_owned()
@@ -107,22 +138,26 @@ impl RecombinationSkipReason {
   }
 }
 
-/// Resolve one parameter: a validated `pathogen.json` override takes precedence over the estimate.
-/// An out-of-range explicit override is a dataset-level error; an absent override with an undefined
-/// estimate yields `None`, so the caller skips detection.
-fn resolve_param(name: &str, override_val: Option<OrderedFloat<f64>>, estimate: Option<f64>) -> Result<Option<f64>, Report> {
-  match override_val {
-    Some(value) => {
-      let value = value.0;
-      if !is_hmm_probability(value) {
-        return make_error!(
-          "Recombination parameter `{name}` in pathogen.json must be in the open interval (0, 1), but got {value}"
-        );
-      }
-      Ok(Some(value))
-    }
-    None => Ok(estimate),
+/// Validate a `pathogen.json` parameter override. An out-of-range value is a dataset-level error.
+fn validate_override(name: &str, value: OrderedFloat<f64>) -> Result<f64, Report> {
+  let value = value.0;
+  if !is_hmm_probability(value) {
+    return make_error!(
+      "Recombination parameter `{name}` in pathogen.json must be in the open interval (0, 1), but got {value}"
+    );
   }
+  Ok(value)
+}
+
+/// Whether any branch in the tree carries at least one nucleotide substitution. When false, the
+/// divergence-based rate estimates are undefined (all counts are zero).
+fn has_any_branch_mutations(graph: &AuspiceGraph) -> Result<bool, Report> {
+  for node in graph.iter_nodes() {
+    if nuc_mutation_count(node.payload())? > 0 {
+      return Ok(true);
+    }
+  }
+  Ok(false)
 }
 
 /// Number of distinct clade labels present among the tree's leaves.
@@ -151,7 +186,7 @@ fn estimate_mu_w(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
     .iter_nodes()
     .filter(|node| node.is_leaf())
     .map(|node| nuc_mutation_count(node.payload()))
-    .collect();
+    .try_collect()?;
 
   if branch_lengths.is_empty() {
     return Ok(None);
@@ -192,9 +227,13 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
   for (i, leaves_a) in clade_groups.iter().enumerate() {
     for leaves_b in &clade_groups[i + 1..] {
       for &a in *leaves_a {
+        // `a` is fixed across the inner loop, so compute its ancestor set once and reuse it for every
+        // `b` rather than rebuilding (and reallocating) it per pair.
+        let ancestors_a = ancestors_inclusive(graph, a);
+        let rd_a = root_dists[&a];
         for &b in *leaves_b {
-          let mrca = mrca_pair(graph, a, b)?;
-          let d = root_dists[&a] + root_dists[&b] - 2 * root_dists[&mrca];
+          let mrca = mrca_with_ancestors(graph, &ancestors_a, b)?;
+          let d = rd_a + root_dists[&b] - 2 * root_dists[&mrca];
           distances.push(d as f64);
         }
       }
@@ -206,18 +245,27 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
 
 /// Number of nucleotide substitutions on the branch leading to this node, excluding deletions.
 ///
-/// The algorithm treats gap characters as missing data, not mutations (mirroring `build_observations`,
-/// which routes deletions to `Missing`), so the same ruler applies to the `mu_w`/`mu_r` calibration.
-/// Auspice `nuc` mutations are `<ref><pos><query>`; a deletion ends with `-`. Nextclade-built trees
-/// carry substitutions only, so the filter is a no-op there; it applies to externally produced trees
-/// (augur/TreeTime) whose branch mutations encode deletions as `"A10-"`. Insertions (`"-10A"`) are
-/// query bases absent from the reference, not query gaps, and stay counted.
-fn nuc_mutation_count(payload: &AuspiceGraphNodePayload) -> usize {
-  payload
-    .branch_attrs
-    .mutations
-    .get(NUC_MUTATIONS_KEY)
-    .map_or(0, |muts| muts.iter().filter(|m| !m.ends_with('-')).count())
+/// The model treats gap characters as missing data, not mutations (mirroring `build_observations`,
+/// which routes deletions to `Missing`), so the same ruler calibrates `mu_w`/`mu_r`. Each `nuc`
+/// mutation token is parsed as a `<ref><pos><query>` substitution: a token with a gap query base is a
+/// deletion and is not counted, while substitutions and insertions (query base present) are. A token
+/// that does not parse is a malformed tree annotation and surfaces as an error rather than being
+/// silently miscounted. Nextclade-built trees carry substitutions only; deletions appear on externally
+/// produced trees (augur/TreeTime) as `"A15-"`.
+fn nuc_mutation_count(payload: &AuspiceGraphNodePayload) -> Result<usize, Report> {
+  let Some(muts) = payload.branch_attrs.mutations.get(NUC_MUTATIONS_KEY) else {
+    return Ok(0);
+  };
+  let mut count = 0;
+  for m in muts {
+    let sub: NucSub = m
+      .parse()
+      .wrap_err_with(|| format!("When counting recombination branch mutations from tree annotation '{m}'"))?;
+    if sub.qry_nuc != Nuc::Gap {
+      count += 1;
+    }
+  }
+  Ok(count)
 }
 
 /// Cumulative substitution count from the root to a node (sum of branch mutation counts).
@@ -225,15 +273,20 @@ fn root_distance(graph: &AuspiceGraph, key: GraphNodeKey) -> Result<usize, Repor
   let mut total = 0;
   let mut current = Some(key);
   while let Some(node_key) = current {
-    total += nuc_mutation_count(graph.get_node(node_key)?.payload());
+    total += nuc_mutation_count(graph.get_node(node_key)?.payload())?;
     current = graph.parent_key_of_by_key(node_key);
   }
   Ok(total)
 }
 
-/// Most recent common ancestor of two nodes.
-fn mrca_pair(graph: &AuspiceGraph, a: GraphNodeKey, b: GraphNodeKey) -> Result<GraphNodeKey, Report> {
-  let ancestors_a = ancestors_inclusive(graph, a);
+/// Most recent common ancestor of node `b` and the node whose inclusive ancestor set is `ancestors_a`.
+/// Walks `b` toward the root until it reaches a node in `ancestors_a`. The caller precomputes
+/// `ancestors_a` once per `a` so it is not rebuilt for every `b`.
+fn mrca_with_ancestors(
+  graph: &AuspiceGraph,
+  ancestors_a: &IndexSet<GraphNodeKey>,
+  b: GraphNodeKey,
+) -> Result<GraphNodeKey, Report> {
   let mut current = b;
   loop {
     if ancestors_a.contains(&current) {
@@ -241,7 +294,11 @@ fn mrca_pair(graph: &AuspiceGraph, a: GraphNodeKey, b: GraphNodeKey) -> Result<G
     }
     match graph.parent_key_of_by_key(current) {
       Some(parent) => current = parent,
-      None => return make_error!("Recombination parameter estimation: nodes {a:?} and {b:?} have no common ancestor"),
+      None => {
+        return make_error!(
+          "Recombination parameter estimation: node {b:?} has no common ancestor with the compared leaf"
+        );
+      }
     }
   }
 }
@@ -280,6 +337,7 @@ fn as_probability(x: f64) -> Option<f64> {
 mod tests {
   use super::*;
   use crate::tree::tree::AuspiceTree;
+  use crate::{assert_error, pretty_assert_ulps_eq};
   use indoc::indoc;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
@@ -482,6 +540,7 @@ mod tests {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
       enabled: Some(true),
+      min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(0.1)),
       mu_w: None,
       mu_r: None,
@@ -498,6 +557,7 @@ mod tests {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
       enabled: Some(true),
+      min_private_subs_to_run: None,
       gamma: None,
       mu_w: Some(OrderedFloat(0.01)),
       mu_r: Some(OrderedFloat(0.2)),
@@ -525,6 +585,7 @@ mod tests {
     // Only muR is overridden (0.01 <= muW), so this is a degenerate estimate, not a misconfiguration: skip.
     let config = RecombinationConfig {
       enabled: Some(true),
+      min_private_subs_to_run: None,
       gamma: None,
       mu_w: None,
       mu_r: Some(OrderedFloat(0.01)),
@@ -545,6 +606,7 @@ mod tests {
     // Both rates explicit with muR <= muW: a misconfiguration, reported as a dataset-level error.
     let config = RecombinationConfig {
       enabled: Some(true),
+      min_private_subs_to_run: None,
       gamma: None,
       mu_w: Some(OrderedFloat(0.05)),
       mu_r: Some(OrderedFloat(0.01)),
@@ -561,6 +623,7 @@ mod tests {
     // gamma = 0.7 is within (0, 1) but not a sticky HMM; the resolution surfaces the model error.
     let config = RecombinationConfig {
       enabled: Some(true),
+      min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(0.7)),
       mu_w: None,
       mu_r: None,
@@ -576,6 +639,7 @@ mod tests {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
       enabled: Some(true),
+      min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(1.5)),
       mu_w: None,
       mu_r: None,
@@ -727,5 +791,138 @@ mod tests {
       ),
       "got {resolution:?}"
     );
+  }
+
+  // Two clades but no per-branch nucleotide mutations (a tree exported with only divergence values).
+  // Every branch mutation count is zero, so the divergence rates are undefined.
+  fn two_clade_no_mutations_tree() -> AuspiceGraph {
+    let json = indoc! {r#"{
+      "version": "v2",
+      "meta": {},
+      "tree": {
+        "name": "root",
+        "node_attrs": { "div": 0 },
+        "children": [
+          { "name": "A1", "node_attrs": { "div": 1, "clade_membership": { "value": "A" } } },
+          { "name": "B1", "node_attrs": { "div": 1, "clade_membership": { "value": "B" } } }
+        ]
+      }
+    }"#};
+    AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
+  }
+
+  #[test]
+  fn test_recombination_estimate_no_branch_mutations_skip_reason() {
+    // Two clades, but no `nuc` branch mutations: rates are undefined, so the reason distinguishes the
+    // missing-annotation cause from a generic degenerate topology.
+    let graph = two_clade_no_mutations_tree();
+    let resolution = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
+    assert!(
+      matches!(
+        resolution,
+        RecombinationResolution::Skipped(RecombinationSkipReason::NoBranchMutations)
+      ),
+      "got {resolution:?}"
+    );
+  }
+
+  #[allow(clippy::float_cmp)]
+  #[test]
+  fn test_recombination_estimate_all_overrides_bypass_unresolvable_tree() {
+    // A single-clade tree cannot estimate muR, so with no overrides it would skip. Overriding all
+    // three parameters must resolve regardless: the estimator is not consulted when a value is given.
+    let graph = single_clade_tree();
+    let config = RecombinationConfig {
+      enabled: Some(true),
+      min_private_subs_to_run: None,
+      gamma: Some(OrderedFloat(0.01)),
+      mu_w: Some(OrderedFloat(0.02)),
+      mu_r: Some(OrderedFloat(0.2)),
+    };
+    let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
+    pretty_assert_ulps_eq!(0.01, params.gamma(), max_ulps = 2);
+    pretty_assert_ulps_eq!(0.02, params.mu_w(), max_ulps = 2);
+    pretty_assert_ulps_eq!(0.2, params.mu_r(), max_ulps = 2);
+  }
+
+  // Two clades; leaf B1 carries a substitution and an insertion ("-10A"). Insertions have a query base
+  // present (not a gap), so they are counted alongside substitutions: A1=2, B1=2 -> mean 2 -> mu_w=0.02.
+  fn tree_with_insertion() -> AuspiceGraph {
+    let json = indoc! {r#"{
+      "version": "v2",
+      "meta": {},
+      "tree": {
+        "name": "root",
+        "node_attrs": { "div": 0 },
+        "children": [
+          {
+            "name": "A1",
+            "node_attrs": { "div": 2, "clade_membership": { "value": "A" } },
+            "branch_attrs": { "mutations": { "nuc": ["A10C", "A20G"] } }
+          },
+          {
+            "name": "B1",
+            "node_attrs": { "div": 2, "clade_membership": { "value": "B" } },
+            "branch_attrs": { "mutations": { "nuc": ["A40C", "-10A"] } }
+          }
+        ]
+      }
+    }"#};
+    AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
+  }
+
+  #[allow(clippy::float_cmp)]
+  #[test]
+  fn test_recombination_estimate_counts_insertions_as_mutations() {
+    // The insertion "-10A" is counted (query base present), so B1's branch length is 2, not 1.
+    let graph = tree_with_insertion();
+    let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
+    pretty_assert_ulps_eq!(2.0 / 100.0, params.mu_w(), max_ulps = 2);
+  }
+
+  // A leaf whose `nuc` branch mutation does not parse as `<ref><pos><query>`.
+  fn tree_with_malformed_mutation() -> AuspiceGraph {
+    let json = indoc! {r#"{
+      "version": "v2",
+      "meta": {},
+      "tree": {
+        "name": "root",
+        "node_attrs": { "div": 0 },
+        "children": [
+          {
+            "name": "A1",
+            "node_attrs": { "div": 2, "clade_membership": { "value": "A" } },
+            "branch_attrs": { "mutations": { "nuc": ["not-a-mutation"] } }
+          },
+          {
+            "name": "B1",
+            "node_attrs": { "div": 2, "clade_membership": { "value": "B" } },
+            "branch_attrs": { "mutations": { "nuc": ["A40C"] } }
+          }
+        ]
+      }
+    }"#};
+    AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
+  }
+
+  #[test]
+  fn test_recombination_estimate_errors_on_malformed_branch_mutation() {
+    // A malformed tree annotation surfaces as an error instead of being silently miscounted.
+    let graph = tree_with_malformed_mutation();
+    let err = resolve_recombination_params(None, &graph, REF_LEN).unwrap_err().to_string();
+    assert!(err.contains("branch mutation"), "error `{err}` should mention the branch mutation");
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::no_reference_tree(RecombinationSkipReason::NoReferenceTree,                              "reference tree")]
+  #[case::fewer_than_two(   RecombinationSkipReason::FewerThanTwoClades,                           "fewer than two clades")]
+  #[case::no_mutations(     RecombinationSkipReason::NoBranchMutations,                            "no per-branch nucleotide mutations")]
+  #[case::tree_unavailable( RecombinationSkipReason::TreeEstimateUnavailable,                      "could not be estimated")]
+  #[case::not_elevated(     RecombinationSkipReason::RecombinantRateNotElevated { mu_w: 0.05, mu_r: 0.01 }, "does not exceed")]
+  #[trace]
+  fn test_recombination_skip_reason_message(#[case] reason: RecombinationSkipReason, #[case] needle: &str) {
+    let message = reason.message();
+    assert!(message.contains(needle), "message `{message}` should mention `{needle}`");
   }
 }

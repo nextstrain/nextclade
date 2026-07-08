@@ -253,11 +253,9 @@ definitions:
         - 'null'
   RecombinationHmmParams:
     description: |-
-      Emission and transition parameters for the two-state recombination HMM.
+      Effective recombination HMM parameters used for a run.
 
-      All three are probabilities and must lie in the open interval `(0, 1)`; the closed endpoints produce `log(0) = -inf` in the decoder.
-
-      Fields are private and reachable only through [`RecombinationHmmParams::new`], which enforces the model invariants, so an invalid instance cannot be constructed. Read access is through the getters. `Deserialize` is derived plain: this type is only ever deserialized from Nextclade's own already-validated output (the WASM boundary and `ResultsJson`), never from user input, which enters through [`RecombinationConfig`].
+      All three are probabilities between 0 and 1 (exclusive). `gamma` is the transition rate, `muW` and `muR` are the wildtype and recombinant mutation emission probabilities, with `muR` greater than `muW`.
     type: object
     required:
     - gamma

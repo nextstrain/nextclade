@@ -7,13 +7,16 @@ use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
 use crate::analyze::recombination::{RecombinationConfig, RecombinationHmmParams};
-use crate::analyze::recombination_estimate::{RecombinationResolution, resolve_recombination_params};
+use crate::analyze::recombination_estimate::{
+  RecombinationResolution, RecombinationSkipReason, resolve_recombination_params,
+};
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::{GeneMap, filter_gene_map};
 use crate::graph::graph::Graph;
 use crate::io::fasta::{FastaRecord, read_one_fasta_from_str};
 use crate::io::nextclade_csv_column_config::CsvColumnConfig;
 use crate::io::nwk_writer::nwk_write_to_string;
+use crate::make_error;
 use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
 use crate::run::validate_ref_seq::validate_ref_seq;
@@ -26,7 +29,7 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::option::{OptionMapRefFallible, find_some};
 use eyre::{Report, WrapErr, eyre};
 use itertools::Itertools;
-use log::{info, warn};
+use log::info;
 use optfield::optfield;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -403,37 +406,41 @@ impl Nextclade {
       .cloned()
       .unwrap_or_default();
 
-    // Recombination detection is enabled by default; resolve its parameters once from the config
-    // and the reference tree. It requires a tree (for parent-relative mutations), so a tree-less
-    // dataset falls to the catch-all arm below and is silently skipped, like other tree-dependent
-    // steps -- even when detection was explicitly enabled.
-    let recombination_params = match &graph {
-      Some(graph) if RecombinationConfig::is_enabled(virus_properties.recombination.as_ref()) => {
+    // Recombination detection is enabled by default; resolve its parameters once per dataset from the
+    // config and the reference tree. When the dataset cannot support detection, an explicit
+    // `enabled: true` is a hard error (the request cannot be honored), while the default-on case skips
+    // silently. Detection requires a tree for parent-relative mutations, so a tree-less dataset is one
+    // such "cannot support" case.
+    let recombination_config = virus_properties.recombination.as_ref();
+    let recombination_params = if !RecombinationConfig::is_enabled(recombination_config) {
+      None
+    } else {
+      let explicit = RecombinationConfig::is_explicitly_enabled(recombination_config);
+      let resolution = match &graph {
+        None => RecombinationResolution::Skipped(RecombinationSkipReason::NoReferenceTree),
         // An invalid explicit `pathogen.json` override propagates as a dataset-level error here.
-        match resolve_recombination_params(virus_properties.recombination.as_ref(), graph, ref_seq.len())? {
-          RecombinationResolution::Resolved(params) => {
-            info!(
-              "Recombination detection enabled with gamma={}, muW={}, muR={}",
-              params.gamma(),
-              params.mu_w(),
-              params.mu_r()
-            );
-            Some(params)
-          }
-          RecombinationResolution::Skipped(reason) => {
-            // A skip is not a per-sequence event. When detection was explicitly requested but the tree
-            // cannot support it, log one dataset-level line; the default-on case stays silent.
-            if RecombinationConfig::is_explicitly_enabled(virus_properties.recombination.as_ref()) {
-              warn!(
-                "Recombination detection is enabled but skipped for this dataset: {}",
-                reason.message()
-              );
-            }
-            None
-          }
+        Some(graph) => resolve_recombination_params(recombination_config, graph, ref_seq.len())?,
+      };
+      match resolution {
+        RecombinationResolution::Resolved(params) => {
+          info!(
+            "Recombination detection enabled with gamma={}, muW={}, muR={}",
+            params.gamma(),
+            params.mu_w(),
+            params.mu_r()
+          );
+          Some(params)
         }
+        RecombinationResolution::Skipped(reason) if explicit => {
+          return make_error!(
+            "Recombination detection is enabled for this dataset (recombination.enabled=true in \
+             pathogen.json), but cannot run: {}. Provide the missing input, set the parameters \
+             explicitly, or remove recombination.enabled to skip silently.",
+            reason.message()
+          );
+        }
+        RecombinationResolution::Skipped(_) => None,
       }
-      _ => None,
     };
 
     Ok(Self {
