@@ -173,18 +173,17 @@ pub fn build_observations(
   obs
 }
 
-/// Emission and transition parameters for the two-state recombination HMM.
+/// Effective recombination HMM parameters used for a run.
 ///
-/// All three are probabilities and must lie in the open interval `(0, 1)`; the closed endpoints
-/// produce `log(0) = -inf` in the decoder.
-///
-/// Fields are private and reachable only through [`RecombinationHmmParams::new`], which enforces the
-/// model invariants, so an invalid instance cannot be constructed. Read access is through the
-/// getters. `Deserialize` is derived plain: this type is only ever deserialized from Nextclade's own
-/// already-validated output (the WASM boundary and `ResultsJson`), never from user input, which
-/// enters through [`RecombinationConfig`].
+/// All three are probabilities between 0 and 1 (exclusive). `gamma` is the transition rate, `muW` and
+/// `muR` are the wildtype and recombinant mutation emission probabilities, with `muR` greater than
+/// `muW`.
+//
+// Fields are private and every construction path enforces the model invariants: `new` validates
+// directly, and deserialization routes through `RecombinationHmmParamsRaw` + `TryFrom` so a JSON
+// document cannot produce an invalid instance either. Read access is through the getters.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", try_from = "RecombinationHmmParamsRaw")]
 pub struct RecombinationHmmParams {
   /// Transition rate: probability of switching state between adjacent sites.
   gamma: f64,
@@ -192,6 +191,24 @@ pub struct RecombinationHmmParams {
   mu_w: f64,
   /// Mutation emission probability in the recombinant state (elevated divergence).
   mu_r: f64,
+}
+
+/// Unvalidated wire form of [`RecombinationHmmParams`]. Deserialization goes through this type and the
+/// [`TryFrom`] below so the model invariants hold for values parsed from JSON, not only those built
+/// with [`RecombinationHmmParams::new`].
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RecombinationHmmParamsRaw {
+  gamma: f64,
+  mu_w: f64,
+  mu_r: f64,
+}
+
+impl TryFrom<RecombinationHmmParamsRaw> for RecombinationHmmParams {
+  type Error = Report;
+  fn try_from(raw: RecombinationHmmParamsRaw) -> Result<Self, Self::Error> {
+    Self::new(raw.gamma, raw.mu_w, raw.mu_r)
+  }
 }
 
 /// Whether a value is a usable HMM probability: finite and strictly inside the open interval
@@ -330,24 +347,37 @@ impl RecombinationResult {
   }
 }
 
+/// Default minimum number of private substitutions a sequence must carry for detection to run.
+///
+/// One private substitution is the smallest count that can carry any recombinant evidence: a sequence
+/// with zero private substitutions has an all-`Ref`/`Missing` observation vector, so the recombinant
+/// state can never outscore wildtype and the result is always empty. Skipping that case is exact, not
+/// a heuristic. Raising the threshold above 1 trades sensitivity for speed and is a per-dataset choice.
+pub const DEFAULT_MIN_PRIVATE_SUBS_TO_RUN: usize = 1;
+
 /// Dataset configuration for recombination detection, as it appears in `pathogen.json`.
 ///
-/// Each parameter is optional and resolved independently: a value given here is used verbatim,
-/// otherwise a fallback is computed from the reference and reference tree (`gamma = 1 / ref_len`,
-/// `mu_w`/`mu_r` estimated from the tree). An absent config object, or one with `enabled` omitted,
-/// leaves the feature enabled (see `RecombinationConfig::is_enabled`).
+/// Each field is optional. The HMM parameters are resolved independently: a value given here is used
+/// verbatim, otherwise a fallback is computed from the reference and reference tree. An absent config
+/// object, or one with `enabled` omitted, leaves the feature enabled (see `is_enabled`).
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct RecombinationConfig {
   /// Whether recombination detection runs for this dataset.
   ///
-  /// Three states: `None` (field absent) is the default-on behavior; `Some(true)` is an explicit
-  /// opt-in; `Some(false)` disables detection. The explicit opt-in is distinguished from the default
-  /// so that a dataset that asks for detection but cannot support it (a tree too thin to estimate the
-  /// parameters) surfaces one skip warning, while the silent default stays silent.
+  /// When the field is absent, detection is on by default; `true` opts in explicitly; `false` disables
+  /// it. An explicit `true` is treated as a hard requirement: if the dataset cannot support detection
+  /// (for example it has no reference tree, or a tree too thin to estimate the parameters), that is a
+  /// dataset-level error rather than a silent skip. The default-on case skips silently instead.
   #[serde(skip_serializing_if = "Option::is_none")]
   pub enabled: Option<bool>,
+
+  /// Minimum number of private substitutions (relative to the inferred parent) a sequence must carry
+  /// for detection to run on it. Sequences below this threshold produce no recombination result.
+  /// Defaults to 1 when absent, which skips only sequences that carry no recombinant signal at all.
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub min_private_subs_to_run: Option<usize>,
 
   /// State transition rate override. When absent, defaults to `1 / ref_len`.
   /// Must be in the open interval (0, 1) and less than 0.5. The runtime enforces this; the schema
@@ -379,9 +409,16 @@ impl RecombinationConfig {
   }
 
   /// Whether detection was explicitly requested (`enabled: true`), as opposed to left on by default.
-  /// Only an explicit request warrants a skip warning when the tree cannot support detection.
+  /// An explicit request that cannot be honored is an error, not a silent skip.
   pub fn is_explicitly_enabled(config: Option<&RecombinationConfig>) -> bool {
     config.and_then(|c| c.enabled) == Some(true)
+  }
+
+  /// The configured minimum private-substitution count to run detection, or the default when unset.
+  pub fn min_private_subs_to_run(config: Option<&RecombinationConfig>) -> usize {
+    config
+      .and_then(|c| c.min_private_subs_to_run)
+      .unwrap_or(DEFAULT_MIN_PRIVATE_SUBS_TO_RUN)
   }
 }
 
@@ -688,6 +725,21 @@ mod tests {
     );
   }
 
+  #[test]
+  fn test_recombination_hmm_params_deserialize_rejects_invalid() {
+    // Deserialization must enforce the same invariants as `new`: gamma >= 0.5 is not a sticky HMM.
+    let json = r#"{"gamma":0.7,"muW":0.05,"muR":0.2}"#;
+    serde_json::from_str::<RecombinationHmmParams>(json).expect_err("serde should reject invalid params");
+  }
+
+  #[test]
+  fn test_recombination_hmm_params_deserialize_roundtrip_valid() {
+    let params = RecombinationHmmParams::new(5e-4, 0.005, 0.05).unwrap();
+    let json = serde_json::to_string(&params).unwrap();
+    let back: RecombinationHmmParams = serde_json::from_str(&json).unwrap();
+    assert_eq!(params, back);
+  }
+
   #[rustfmt::skip]
   #[rstest]
   #[case::zero(         0.0,               false)]
@@ -964,7 +1016,8 @@ mod tests {
 
   #[test]
   fn test_recombination_log_sum_exp_2_both_neg_inf() {
-    assert_eq!(f64::NEG_INFINITY, log_sum_exp_2(f64::NEG_INFINITY, f64::NEG_INFINITY));
+    let result = log_sum_exp_2(f64::NEG_INFINITY, f64::NEG_INFINITY);
+    assert!(result.is_infinite() && result.is_sign_negative(), "expected -inf, got {result}");
   }
 
   #[test]
@@ -1180,5 +1233,71 @@ mod tests {
     let regions = find_recombinant_regions(&observations, &params);
     assert!(regions.is_empty());
     assert!(RecombinationResult::from_ranges(regions, None).is_none());
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::absent(         None,                                   1)]
+  #[case::field_omitted(  Some(RecombinationConfig::default()),   1)]
+  #[case::explicit_one(   Some(cfg_min_subs(1)),                  1)]
+  #[case::explicit_three( Some(cfg_min_subs(3)),                  3)]
+  #[case::explicit_zero(  Some(cfg_min_subs(0)),                  0)]
+  fn test_recombination_config_min_private_subs_to_run(#[case] config: Option<RecombinationConfig>, #[case] expected: usize) {
+    assert_eq!(expected, RecombinationConfig::min_private_subs_to_run(config.as_ref()));
+  }
+
+  fn cfg_min_subs(n: usize) -> RecombinationConfig {
+    RecombinationConfig {
+      min_private_subs_to_run: Some(n),
+      ..RecombinationConfig::default()
+    }
+  }
+
+  /// Total log-probability of a hidden-state path under the model: uniform prior, per-site emissions,
+  /// and per-step transitions. Independent of the Viterbi implementation, so it is a valid oracle.
+  fn path_log_prob(obs: &[RecombinationObs], states: &[bool], params: &RecombinationHmmParams) -> f64 {
+    let log_stay = (1.0 - params.gamma()).ln();
+    let log_switch = params.gamma().ln();
+    let state_idx = |recombinant: bool| if recombinant { RECOMBINANT } else { WILDTYPE };
+    let mut total = 0.5_f64.ln() + params.log_emission(obs[0])[state_idx(states[0])];
+    for l in 1..obs.len() {
+      total += if states[l] == states[l - 1] {
+        log_stay
+      } else {
+        log_switch
+      };
+      total += params.log_emission(obs[l])[state_idx(states[l])];
+    }
+    total
+  }
+
+  #[rstest]
+  #[case::all_ref("RRRRRRRR")]
+  #[case::all_mut("MMMMMMMM")]
+  #[case::single_mut("RRRMRRRR")]
+  #[case::block("RRMMMMRR")]
+  #[case::two_blocks("MMRRMMRR")]
+  #[case::with_missing("RRMMXXMMRR")]
+  #[case::alternating("RMRMRMRM")]
+  fn test_recombination_viterbi_matches_bruteforce_oracle(#[case] input: &str) {
+    // For short vectors, enumerate all 2^L hidden-state paths and confirm the Viterbi-decoded path
+    // achieves the maximum path log-probability. This pins decoder optimality (recurrence, backtrace,
+    // initialization) against an independent brute-force search, not against the decoder itself.
+    let params = test_params();
+    let observations = obs(input);
+    let n = observations.len();
+    assert!(n <= 12, "brute-force oracle is only tractable for short vectors");
+
+    let decoded = viterbi_decode(&observations, &params);
+    let decoded_score = path_log_prob(&observations, &decoded, &params);
+
+    let best_score = (0..(1_u32 << n))
+      .map(|mask| {
+        let path: Vec<bool> = (0..n).map(|i| (mask >> i) & 1 == 1).collect();
+        path_log_prob(&observations, &path, &params)
+      })
+      .fold(f64::NEG_INFINITY, f64::max);
+
+    pretty_assert_abs_diff_eq!(best_score, decoded_score, epsilon = 1e-9);
   }
 }
