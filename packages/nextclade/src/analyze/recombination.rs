@@ -281,7 +281,7 @@ impl RecombinationHmmParams {
 
 /// A single putative recombinant interval with its range, nucleotide length, and optional
 /// forward-backward confidence score.
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecombinationRegion {
   pub range: NucRefGlobalRange,
@@ -295,7 +295,7 @@ pub struct RecombinationRegion {
 ///
 /// Always contains at least one region. When detection runs but finds no recombinant intervals the
 /// caller produces `None` rather than an empty `RecombinationResult`.
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecombinationResult {
   /// Putative recombinant intervals.
@@ -595,7 +595,7 @@ fn extract_recombinant_intervals(is_recombinant: &[bool]) -> Vec<NucRefGlobalRan
 mod tests {
   use super::*;
   use crate::alphabet::nuc::Nuc;
-  use approx::assert_abs_diff_eq;
+  use crate::{assert_error, pretty_assert_abs_diff_eq};
   use pretty_assertions::assert_eq;
   use rand::rngs::StdRng;
   use rand::{Rng, SeedableRng};
@@ -611,11 +611,7 @@ mod tests {
   // so a block needs > ~3 Mut to overcome one switch (> ~6 to open and close an interval), and a
   // flank needs > ~5 Ref to justify switching back to wildtype.
   fn test_params() -> RecombinationHmmParams {
-    RecombinationHmmParams {
-      gamma: 0.05,
-      mu_w: 0.05,
-      mu_r: 0.5,
-    }
+    RecombinationHmmParams::new(0.05, 0.05, 0.5).unwrap()
   }
 
   /// Build an observation vector from a compact string: `R`=Ref, `M`=Mut, `X`=Missing.
@@ -686,34 +682,36 @@ mod tests {
 
   #[rustfmt::skip]
   #[rstest]
-  #[case::gamma_zero(0.0,  0.005, 0.05, "gamma")]
-  #[case::gamma_one( 1.0,  0.005, 0.05, "gamma")]
-  #[case::mu_w_zero( 5e-4, 0.0,   0.05, "muW")]
-  #[case::mu_r_one(  5e-4, 0.005, 1.0,  "muR")]
-  #[case::mu_w_neg(  5e-4, -0.1,  0.05, "muW")]
+  #[case::gamma_zero(0.0,  0.005, 0.05, "Recombination HMM parameter `gamma` must be in the open interval (0, 1), but got 0")]
+  #[case::gamma_one( 1.0,  0.005, 0.05, "Recombination HMM parameter `gamma` must be in the open interval (0, 1), but got 1")]
+  #[case::mu_w_zero( 5e-4, 0.0,   0.05, "Recombination HMM parameter `muW` must be in the open interval (0, 1), but got 0")]
+  #[case::mu_r_one(  5e-4, 0.005, 1.0,  "Recombination HMM parameter `muR` must be in the open interval (0, 1), but got 1")]
+  #[case::mu_w_neg(  5e-4, -0.1,  0.05, "Recombination HMM parameter `muW` must be in the open interval (0, 1), but got -0.1")]
   fn test_recombination_new_rejects_out_of_range_params(
     #[case] gamma: f64,
     #[case] mu_w: f64,
     #[case] mu_r: f64,
-    #[case] offending: &str,
+    #[case] expected: &str,
   ) {
-    let err = RecombinationHmmParams::new(gamma, mu_w, mu_r).unwrap_err().to_string();
-    assert!(err.contains(offending), "error `{err}` should name the offending parameter `{offending}`");
-    assert!(err.contains("open interval (0, 1)"), "error `{err}` should state the (0, 1) contract");
+    assert_error!(RecombinationHmmParams::new(gamma, mu_w, mu_r), expected);
   }
 
   #[test]
   fn test_recombination_new_rejects_high_gamma() {
     // Valid probability but not a sticky HMM: switching is at least as likely as staying.
-    let err = RecombinationHmmParams::new(0.5, 0.005, 0.05).unwrap_err().to_string();
-    assert!(err.contains("gamma < 0.5"), "error `{err}` should require gamma < 0.5");
+    assert_error!(
+      RecombinationHmmParams::new(0.5, 0.005, 0.05),
+      "Recombination HMM requires gamma < 0.5 (state switching must be rarer than staying), but got gamma=0.5"
+    );
   }
 
   #[test]
   fn test_recombination_new_rejects_non_elevated_recombinant_rate() {
     // Valid probabilities, but muR does not exceed muW: the two states are indistinguishable.
-    let err = RecombinationHmmParams::new(5e-4, 0.05, 0.05).unwrap_err().to_string();
-    assert!(err.contains("muR > muW"), "error `{err}` should require muR > muW");
+    assert_error!(
+      RecombinationHmmParams::new(5e-4, 0.05, 0.05),
+      "Recombination HMM requires muR > muW (elevated recombinant divergence), but got muW=0.05 and muR=0.05"
+    );
   }
 
   #[test]
@@ -726,10 +724,25 @@ mod tests {
   }
 
   #[test]
+  fn test_recombination_hmm_params_try_from_rejects_invalid() {
+    // Deserialization routes through TryFrom, which enforces the same invariants as `new`:
+    // gamma >= 0.5 is not a sticky HMM.
+    let raw = RecombinationHmmParamsRaw {
+      gamma: 0.7,
+      mu_w: 0.05,
+      mu_r: 0.2,
+    };
+    assert_error!(
+      RecombinationHmmParams::try_from(raw),
+      "Recombination HMM requires gamma < 0.5 (state switching must be rarer than staying), but got gamma=0.7"
+    );
+  }
+
+  #[test]
   fn test_recombination_hmm_params_deserialize_rejects_invalid() {
-    // Deserialization must enforce the same invariants as `new`: gamma >= 0.5 is not a sticky HMM.
+    // The serde path fails too (message carries serde's positional suffix, so only assert it errors).
     let json = r#"{"gamma":0.7,"muW":0.05,"muR":0.2}"#;
-    serde_json::from_str::<RecombinationHmmParams>(json).expect_err("serde should reject invalid params");
+    assert!(serde_json::from_str::<RecombinationHmmParams>(json).is_err());
   }
 
   #[test]
@@ -847,20 +860,24 @@ mod tests {
     assert_eq!(expected, intervals_sorted_disjoint_nonempty(&ranges(pairs), len));
   }
 
+  fn region(begin: usize, end: usize, confidence: Option<f64>) -> RecombinationRegion {
+    RecombinationRegion {
+      range: NucRefGlobalRange::from_usize(begin, end),
+      length: end - begin,
+      confidence,
+    }
+  }
+
   #[test]
   fn test_recombination_result_summary() {
-    let input = ranges(&[(10, 25), (40, 50)]);
-    let result = RecombinationResult::from_ranges(input, None).unwrap();
-    assert_eq!(2, result.regions.len());
-    assert_eq!(NucRefGlobalRange::from_usize(10, 25), result.regions[0].range);
-    assert_eq!(15, result.regions[0].length);
-    assert_eq!(None, result.regions[0].confidence);
-    assert_eq!(NucRefGlobalRange::from_usize(40, 50), result.regions[1].range);
-    assert_eq!(10, result.regions[1].length);
-    assert_eq!(2, result.total_regions);
-    assert_eq!(25, result.total_length); // 15 + 10
-    assert_eq!(NucRefGlobalRange::from_usize(10, 25), result.longest_region.range);
-    assert_eq!(15, result.longest_region.length);
+    let result = RecombinationResult::from_ranges(ranges(&[(10, 25), (40, 50)]), None).unwrap();
+    let expected = RecombinationResult {
+      regions: vec![region(10, 25, None), region(40, 50, None)],
+      total_regions: 2,
+      total_length: 25, // 15 + 10
+      longest_region: region(10, 25, None),
+    };
+    assert_eq!(expected, result);
   }
 
   #[test]
@@ -1011,7 +1028,7 @@ mod tests {
   #[case::symmetric(  3.0,   5.0,                5.0 + (-2.0_f64).exp().ln_1p() )]
   #[trace]
   fn test_recombination_log_sum_exp_2(#[case] a: f64, #[case] b: f64, #[case] expected: f64) {
-    assert_abs_diff_eq!(expected, log_sum_exp_2(a, b), epsilon = 1e-12);
+    pretty_assert_abs_diff_eq!(expected, log_sum_exp_2(a, b), epsilon = 1e-12);
   }
 
   #[test]
@@ -1030,7 +1047,7 @@ mod tests {
       (-50.0, -51.0),
     ] {
       let naive = (a.exp() + b.exp()).ln();
-      assert_abs_diff_eq!(naive, log_sum_exp_2(a, b), epsilon = 1e-10);
+      pretty_assert_abs_diff_eq!(naive, log_sum_exp_2(a, b), epsilon = 1e-10);
     }
   }
 
@@ -1132,7 +1149,7 @@ mod tests {
       let log_norm = log_sum_exp_2(log_w, log_r);
       let p_w = (log_w - log_norm).exp();
       let p_r = (log_r - log_norm).exp();
-      assert_abs_diff_eq!(1.0, p_w + p_r, epsilon = 1e-10);
+      pretty_assert_abs_diff_eq!(1.0, p_w + p_r, epsilon = 1e-10);
     }
   }
 
@@ -1143,7 +1160,7 @@ mod tests {
     let confidences = compute_interval_confidences(&marginals, &intervals);
     // Mean of [0.9, 0.95, 0.92] = 2.77 / 3 = 0.9233...
     assert_eq!(1, confidences.len());
-    assert_abs_diff_eq!(0.923_333_333, confidences[0], epsilon = 1e-8);
+    pretty_assert_abs_diff_eq!(0.923_333_333, confidences[0], epsilon = 1e-8);
   }
 
   #[test]
@@ -1152,16 +1169,20 @@ mod tests {
     let intervals = ranges(&[(0, 2), (4, 6)]);
     let confidences = compute_interval_confidences(&marginals, &intervals);
     assert_eq!(2, confidences.len());
-    assert_abs_diff_eq!(0.85, confidences[0], epsilon = 1e-10); // mean(0.9, 0.8)
-    assert_abs_diff_eq!(0.775, confidences[1], epsilon = 1e-10); // mean(0.7, 0.85)
+    pretty_assert_abs_diff_eq!(0.85, confidences[0], epsilon = 1e-10); // mean(0.9, 0.8)
+    pretty_assert_abs_diff_eq!(0.775, confidences[1], epsilon = 1e-10); // mean(0.7, 0.85)
   }
 
   #[test]
   fn test_recombination_result_with_confidences() {
     let result = RecombinationResult::from_ranges(ranges(&[(10, 25), (40, 50)]), Some(&[0.95, 0.82])).unwrap();
-    assert_eq!(Some(0.95), result.regions[0].confidence);
-    assert_eq!(Some(0.82), result.regions[1].confidence);
-    assert_eq!(2, result.total_regions);
+    let expected = RecombinationResult {
+      regions: vec![region(10, 25, Some(0.95)), region(40, 50, Some(0.82))],
+      total_regions: 2,
+      total_length: 25,
+      longest_region: region(10, 25, Some(0.95)),
+    };
+    assert_eq!(expected, result);
   }
 
   #[test]
