@@ -314,26 +314,32 @@ impl NextcladeResultsCsvRow {
     self.add_entry("coverage", coverage)?;
     self.add_entry("cdsCoverage", &format_cds_coverage(cds_coverage, ARRAY_ITEM_DELIMITER))?;
     self.add_entry(
-      "recombinantRegions",
+      "recombination.regions",
       &format_recombinant_regions(recombination.as_ref(), ARRAY_ITEM_DELIMITER),
     )?;
     self.add_entry(
-      "totalRecombinantRegions",
+      "recombination.totalRegions",
       &recombination
         .as_ref()
         .map_or_else(String::new, |rec| rec.total_regions.to_string()),
     )?;
     self.add_entry(
-      "totalRecombinantLength",
+      "recombination.totalLength",
       &recombination
         .as_ref()
         .map_or_else(String::new, |rec| rec.total_length.to_string()),
     )?;
     self.add_entry(
-      "longestRecombinantRegion",
+      "recombination.longestRegion.range",
       &recombination
         .as_ref()
-        .map_or_else(String::new, |rec| rec.longest_region.to_string()),
+        .map_or_else(String::new, |rec| rec.longest_region.range.to_string()),
+    )?;
+    self.add_entry(
+      "recombination.longestRegion.length",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.longest_region.length.to_string()),
     )?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
@@ -585,7 +591,7 @@ pub fn format_nuc_deletions(deletions: &[NucDelRange], delimiter: &str) -> Strin
 #[inline]
 pub fn format_recombinant_regions(recombination: Option<&RecombinationResult>, delimiter: &str) -> String {
   recombination.map_or_else(String::new, |rec| {
-    rec.regions.iter().map(NucRefGlobalRange::to_string).join(delimiter)
+    rec.regions.iter().map(|r| r.range.to_string()).join(delimiter)
   })
 }
 

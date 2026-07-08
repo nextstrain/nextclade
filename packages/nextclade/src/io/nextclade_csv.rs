@@ -283,6 +283,7 @@ mod tests {
       include_dynamic: false,
       include_rel_muts: false,
       include_clade_founder_muts: false,
+      include_recombination: false,
     };
 
     let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &column_config);

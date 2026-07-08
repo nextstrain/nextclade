@@ -117,10 +117,10 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
 
   const recombinationMarkers = (recombination?.regions ?? []).map((region) => (
     <SequenceMarkerRecombination
-      key={`recombination_${region.begin}-${region.end}`}
+      key={`recombination_${region.range.begin}-${region.range.end}`}
       index={index}
       seqName={seqName}
-      region={region}
+      region={region.range}
       pixelsPerBase={pixelsPerBase}
     />
   ))

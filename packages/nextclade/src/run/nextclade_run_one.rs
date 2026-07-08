@@ -440,7 +440,7 @@ pub fn nextclade_run_one(
 
   // Recombination detection: decode putative recombinant regions from the parent-relative mutation
   // pattern. Runs only when parameters were resolved once per run (requires a reference tree).
-  let recombination = recombination_params.as_ref().map(|params| {
+  let recombination = recombination_params.as_ref().and_then(|params| {
     let missing_ranges = recombination_missing_ranges(&missing, &non_acgtns, &deletions, masked_ranges);
     let mutated_positions: Vec<NucRefGlobalPosition> = private_nuc_mutations
       .private_substitutions
@@ -448,7 +448,7 @@ pub fn nextclade_run_one(
       .map(|sub| sub.pos)
       .collect();
     let observations = build_observations(ref_seq.len(), &alignment_range, &missing_ranges, &mutated_positions);
-    RecombinationResult::from_regions(find_recombinant_regions(&observations, params))
+    RecombinationResult::from_ranges(find_recombinant_regions(&observations, params))
   });
 
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;

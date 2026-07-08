@@ -1592,7 +1592,10 @@ definitions:
         format: uint
         minimum: 0.0
   RecombinationResult:
-    description: 'Per-sequence recombination detection result: the detected regions and their summary statistics.'
+    description: |-
+      Per-sequence recombination detection result: the detected regions and their summary statistics.
+
+      Always contains at least one region. When detection runs but finds no recombinant intervals the caller produces `None` rather than an empty `RecombinationResult`.
     type: object
     required:
     - longestRegion
@@ -1601,10 +1604,10 @@ definitions:
     - totalRegions
     properties:
       regions:
-        description: Putative recombinant intervals, as 0-based half-open reference ranges.
+        description: Putative recombinant intervals.
         type: array
         items:
-          $ref: '#/definitions/Range_for_Position'
+          $ref: '#/definitions/RecombinationRegion'
       totalRegions:
         description: Number of recombinant regions.
         type: integer
@@ -1616,7 +1619,19 @@ definitions:
         format: uint
         minimum: 0.0
       longestRegion:
-        description: Length of the longest recombinant region, in nucleotides.
+        description: The longest recombinant region.
+        allOf:
+        - $ref: '#/definitions/RecombinationRegion'
+  RecombinationRegion:
+    description: A single putative recombinant interval with its range and nucleotide length.
+    type: object
+    required:
+    - length
+    - range
+    properties:
+      range:
+        $ref: '#/definitions/Range_for_Position'
+      length:
         type: integer
         format: uint
         minimum: 0.0
