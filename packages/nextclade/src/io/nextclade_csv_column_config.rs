@@ -19,6 +19,7 @@ use strum_macros::{Display, EnumString, VariantNames};
 pub enum CsvColumnCategory {
   All,
   General,
+  Recombination,
   RefMuts,
   PrivMuts,
   PrivAaMuts,
@@ -47,6 +48,7 @@ pub struct CsvColumnConfig {
   pub include_clade_founder_muts: bool,
   pub include_rel_muts: bool,
   pub include_mut_patterns: bool,
+  pub include_recombination: bool,
 }
 
 impl CsvColumnConfig {
@@ -87,6 +89,7 @@ impl CsvColumnConfig {
       let include_clade_founder_muts = categories.contains(&CsvColumnCategory::CladeFounderMuts);
 
       let include_mut_patterns = categories.contains(&CsvColumnCategory::MutPatterns);
+      let include_recombination = categories.contains(&CsvColumnCategory::Recombination);
 
       let categories = categories
         .into_iter()
@@ -103,6 +106,7 @@ impl CsvColumnConfig {
         include_clade_founder_muts,
         include_rel_muts,
         include_mut_patterns,
+        include_recombination,
       })
     }
   }
@@ -117,6 +121,7 @@ impl Default for CsvColumnConfig {
       include_clade_founder_muts: true,
       include_rel_muts: true,
       include_mut_patterns: true,
+      include_recombination: true,
     }
   }
 }
@@ -146,10 +151,13 @@ pub static CSV_COLUMN_CONFIG_MAP_DEFAULT: LazyLock<CsvColumnConfigMap> = LazyLoc
       o!("coverage") => true,
       o!("cdsCoverage") => true,
       o!("isReverseComplement") => true,
-      o!("recombinantRegions") => true,
-      o!("totalRecombinantRegions") => false,
-      o!("totalRecombinantLength") => false,
-      o!("longestRecombinantRegion") => false,
+    },
+    CsvColumnCategory::Recombination => indexmap! {
+      o!("recombination.regions") => true,
+      o!("recombination.totalRegions") => true,
+      o!("recombination.totalLength") => true,
+      o!("recombination.longestRegion.range") => true,
+      o!("recombination.longestRegion.length") => true,
     },
     CsvColumnCategory::RefMuts => indexmap! {
       o!("substitutions") => true,

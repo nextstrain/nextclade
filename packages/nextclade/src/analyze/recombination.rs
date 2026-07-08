@@ -260,12 +260,23 @@ impl RecombinationHmmParams {
   }
 }
 
+/// A single putative recombinant interval with its range and nucleotide length.
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct RecombinationRegion {
+  pub range: NucRefGlobalRange,
+  pub length: usize,
+}
+
 /// Per-sequence recombination detection result: the detected regions and their summary statistics.
+///
+/// Always contains at least one region. When detection runs but finds no recombinant intervals the
+/// caller produces `None` rather than an empty `RecombinationResult`.
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecombinationResult {
-  /// Putative recombinant intervals, as 0-based half-open reference ranges.
-  pub regions: Vec<NucRefGlobalRange>,
+  /// Putative recombinant intervals.
+  pub regions: Vec<RecombinationRegion>,
 
   /// Number of recombinant regions.
   pub total_regions: usize,
@@ -273,22 +284,33 @@ pub struct RecombinationResult {
   /// Total length of all recombinant regions, in nucleotides.
   pub total_length: usize,
 
-  /// Length of the longest recombinant region, in nucleotides.
-  pub longest_region: usize,
+  /// The longest recombinant region.
+  pub longest_region: RecombinationRegion,
 }
 
 impl RecombinationResult {
-  /// Summarize a list of decoded recombinant regions.
-  pub fn from_regions(regions: Vec<NucRefGlobalRange>) -> Self {
+  /// Summarize a list of decoded recombinant ranges. Returns `None` when the list is empty
+  /// (detection ran but found no recombinant intervals).
+  pub fn from_ranges(ranges: Vec<NucRefGlobalRange>) -> Option<Self> {
+    if ranges.is_empty() {
+      return None;
+    }
+    let regions: Vec<RecombinationRegion> = ranges
+      .into_iter()
+      .map(|range| {
+        let length = range.len();
+        RecombinationRegion { range, length }
+      })
+      .collect();
     let total_regions = regions.len();
-    let total_length = regions.iter().map(NucRefGlobalRange::len).sum();
-    let longest_region = regions.iter().map(NucRefGlobalRange::len).max().unwrap_or(0);
-    Self {
+    let total_length = regions.iter().map(|r| r.length).sum();
+    let longest_region = regions.iter().max_by_key(|r| r.length).unwrap().clone();
+    Some(Self {
       regions,
       total_regions,
       total_length,
       longest_region,
-    }
+    })
   }
 }
 
@@ -675,20 +697,22 @@ mod tests {
 
   #[test]
   fn test_recombination_result_summary() {
-    let regions = ranges(&[(10, 25), (40, 50)]);
-    let result = RecombinationResult::from_regions(regions.clone());
-    assert_eq!(regions, result.regions);
+    let input = ranges(&[(10, 25), (40, 50)]);
+    let result = RecombinationResult::from_ranges(input).unwrap();
+    assert_eq!(2, result.regions.len());
+    assert_eq!(NucRefGlobalRange::from_usize(10, 25), result.regions[0].range);
+    assert_eq!(15, result.regions[0].length);
+    assert_eq!(NucRefGlobalRange::from_usize(40, 50), result.regions[1].range);
+    assert_eq!(10, result.regions[1].length);
     assert_eq!(2, result.total_regions);
     assert_eq!(25, result.total_length); // 15 + 10
-    assert_eq!(15, result.longest_region);
+    assert_eq!(NucRefGlobalRange::from_usize(10, 25), result.longest_region.range);
+    assert_eq!(15, result.longest_region.length);
   }
 
   #[test]
-  fn test_recombination_result_summary_empty() {
-    let result = RecombinationResult::from_regions(vec![]);
-    assert_eq!(0, result.total_regions);
-    assert_eq!(0, result.total_length);
-    assert_eq!(0, result.longest_region);
+  fn test_recombination_result_empty_returns_none() {
+    assert!(RecombinationResult::from_ranges(vec![]).is_none());
   }
 
   fn nuc_range(begin: usize, end: usize) -> NucRange {
@@ -818,6 +842,9 @@ mod tests {
     // An all-Ref vector carries no recombinant signal, so no region is decoded, for any valid params.
     let params = RecombinationHmmParams::new(0.01, 0.01, 0.6).unwrap();
     let observations = vec![RecombinationObs::Ref; 500];
-    assert_eq!(Vec::<NucRefGlobalRange>::new(), find_recombinant_regions(&observations, &params));
+    assert_eq!(
+      Vec::<NucRefGlobalRange>::new(),
+      find_recombinant_regions(&observations, &params)
+    );
   }
 }
