@@ -609,7 +609,9 @@ fn extract_recombinant_intervals(is_recombinant: &[bool]) -> Vec<NucRefGlobalRan
 mod tests {
   use super::*;
   use crate::alphabet::nuc::Nuc;
+  use crate::io::json::{JsonPretty, json_stringify};
   use crate::{assert_error, pretty_assert_abs_diff_eq};
+  use indoc::indoc;
   use pretty_assertions::assert_eq;
   use rand::rngs::StdRng;
   use rand::{Rng, SeedableRng};
@@ -758,9 +760,14 @@ mod tests {
 
   #[test]
   fn test_recombination_hmm_params_deserialize_rejects_invalid() {
-    // The serde path fails too (message carries serde's positional suffix, so only assert it errors).
+    // The serde path enforces the same invariants as `new` (via `TryFrom`); `report_to_string`
+    // renders the model error message from the chain without serde_json's positional suffix.
     let json = r#"{"gamma":0.7,"muW":0.05,"muR":0.2}"#;
-    serde_json::from_str::<RecombinationHmmParams>(json).expect_err("serde should reject invalid params");
+    let result = serde_json::from_str::<RecombinationHmmParams>(json).map_err(Report::from);
+    assert_error!(
+      result,
+      "Recombination HMM requires gamma < 0.5 (state switching must be rarer than staying), but got gamma=0.7"
+    );
   }
 
   #[test]
@@ -1058,18 +1065,20 @@ mod tests {
     );
   }
 
-  #[test]
-  fn test_recombination_log_sum_exp_2_matches_naive() {
-    for &(a, b) in &[
-      (1.0_f64, 2.0_f64),
-      (0.0, 0.0),
-      (-1.0, -2.0),
-      (10.0, 10.0),
-      (-50.0, -51.0),
-    ] {
-      let naive = (a.exp() + b.exp()).ln();
-      pretty_assert_abs_diff_eq!(naive, log_sum_exp_2(a, b), epsilon = 1e-10);
-    }
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::small_pos(  1.0,   2.0)]
+  #[case::zeros(      0.0,   0.0)]
+  #[case::small_neg( -1.0,  -2.0)]
+  #[case::equal_ten( 10.0,  10.0)]
+  #[case::large_neg(-50.0, -51.0)]
+  #[trace]
+  fn test_recombination_log_sum_exp_2_matches_naive(#[case] a: f64, #[case] b: f64) {
+    // Independent naive oracle: log(exp(a) + exp(b)) computed directly. Valid for operands where
+    // exp(a) and exp(b) neither overflow nor underflow, so it cross-checks the stable `max + ln_1p`
+    // form on well-conditioned inputs.
+    let naive = (a.exp() + b.exp()).ln();
+    pretty_assert_abs_diff_eq!(naive, log_sum_exp_2(a, b), epsilon = 1e-10);
   }
 
   #[test]
@@ -1077,6 +1086,11 @@ mod tests {
     assert!(forward_backward_marginals(&[], &test_params()).is_empty());
   }
 
+  // The thresholds in these four forward-backward tests (0.1, 0.9, 0.8, 0.2, 0.5) are loose
+  // qualitative sanity bands, not derived values: they assert the sign of the signal (Ref sites low,
+  // Mut sites high, Missing-bridged sites stay elevated), not exact posteriors. Exact per-site
+  // correctness is pinned by `test_recombination_forward_backward_matches_bruteforce_marginals`
+  // against an independent oracle.
   #[test]
   fn test_recombination_forward_backward_all_ref_near_zero() {
     let marginals = forward_backward_marginals(&obs("RRRRRRRRRRRRRRRRRRRR"), &test_params());
@@ -1122,55 +1136,64 @@ mod tests {
     }
   }
 
-  #[test]
-  fn test_recombination_forward_backward_marginals_sum_to_one() {
-    // P(wildtype) + P(recombinant) = 1 at every site. We compute the wildtype marginal separately
-    // to verify the normalization.
-    let observations = obs("RRRRRRMMMMMMMMMMMRRRRRR");
+  /// Independent brute-force posterior marginals: enumerate all `2^L` hidden-state paths, weight each
+  /// by its joint log-probability [`path_log_prob`], and marginalize per site into
+  /// `[P(wildtype), P(recombinant)]`. `O(2^L)`, tractable only for short vectors, but a genuine oracle
+  /// for the forward-backward recurrence -- a different algorithm than the alpha/beta dynamic program.
+  fn bruteforce_marginals(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<[f64; 2]> {
+    let n = obs.len();
+    let paths: Vec<Vec<bool>> = (0..(1_u32 << n))
+      .map(|mask| (0..n).map(|i| (mask >> i) & 1 == 1).collect())
+      .collect();
+    let log_joint: Vec<f64> = paths.iter().map(|path| path_log_prob(obs, path, params)).collect();
+    let log_total = log_joint.iter().copied().fold(f64::NEG_INFINITY, log_sum_exp_2);
+
+    (0..n)
+      .map(|site| {
+        let log_marginal = |recombinant: bool| {
+          paths
+            .iter()
+            .zip(&log_joint)
+            .filter(|(path, _)| path[site] == recombinant)
+            .map(|(_, &lj)| lj)
+            .fold(f64::NEG_INFINITY, log_sum_exp_2)
+        };
+        [
+          (log_marginal(false) - log_total).exp(),
+          (log_marginal(true) - log_total).exp(),
+        ]
+      })
+      .collect()
+  }
+
+  #[rstest]
+  #[case::all_ref("RRRRRRRR")]
+  #[case::all_mut("MMMMMMMM")]
+  #[case::single_mut("RRRMRRRR")]
+  #[case::block("RRMMMMRR")]
+  #[case::two_blocks("MMRRMMRR")]
+  #[case::with_missing("RRMMXXMMRR")]
+  #[case::alternating("RMRMRMRM")]
+  fn test_recombination_forward_backward_matches_bruteforce_marginals(#[case] input: &str) {
+    // Compare the production forward-backward posteriors against an independent brute-force
+    // marginalization over all 2^L hidden-state paths. This pins the alpha/beta recurrence and its
+    // normalization against a different algorithm, not against a re-derivation of the same math (as a
+    // sum-to-one identity on the same normalizer would be). Normalization is covered transitively:
+    // brute-force marginals sum to 1, so matching them forces the production posteriors to as well.
     let params = test_params();
-    let n = observations.len();
+    let observations = obs(input);
+    assert!(
+      observations.len() <= 12,
+      "brute-force marginals are only tractable for short vectors"
+    );
 
-    let log_stay = (1.0 - params.gamma).ln();
-    let log_switch = params.gamma.ln();
-    let log_prior = 0.5_f64.ln();
+    let posteriors = forward_backward_posteriors(&observations, &params);
+    let expected = bruteforce_marginals(&observations, &params);
+    assert_eq!(expected.len(), posteriors.len());
 
-    let mut log_alpha = vec![[f64::NEG_INFINITY; 2]; n];
-    let emit0 = params.log_emission(observations[0]);
-    log_alpha[0] = [log_prior + emit0[WILDTYPE], log_prior + emit0[RECOMBINANT]];
-    for l in 1..n {
-      let emit = params.log_emission(observations[l]);
-      log_alpha[l][WILDTYPE] = emit[WILDTYPE]
-        + log_sum_exp_2(
-          log_alpha[l - 1][WILDTYPE] + log_stay,
-          log_alpha[l - 1][RECOMBINANT] + log_switch,
-        );
-      log_alpha[l][RECOMBINANT] = emit[RECOMBINANT]
-        + log_sum_exp_2(
-          log_alpha[l - 1][WILDTYPE] + log_switch,
-          log_alpha[l - 1][RECOMBINANT] + log_stay,
-        );
-    }
-
-    let mut log_beta = vec![[0.0; 2]; n];
-    for l in (0..n - 1).rev() {
-      let emit_next = params.log_emission(observations[l + 1]);
-      log_beta[l][WILDTYPE] = log_sum_exp_2(
-        log_stay + emit_next[WILDTYPE] + log_beta[l + 1][WILDTYPE],
-        log_switch + emit_next[RECOMBINANT] + log_beta[l + 1][RECOMBINANT],
-      );
-      log_beta[l][RECOMBINANT] = log_sum_exp_2(
-        log_switch + emit_next[WILDTYPE] + log_beta[l + 1][WILDTYPE],
-        log_stay + emit_next[RECOMBINANT] + log_beta[l + 1][RECOMBINANT],
-      );
-    }
-
-    for l in 0..n {
-      let log_w = log_alpha[l][WILDTYPE] + log_beta[l][WILDTYPE];
-      let log_r = log_alpha[l][RECOMBINANT] + log_beta[l][RECOMBINANT];
-      let log_norm = log_sum_exp_2(log_w, log_r);
-      let p_w = (log_w - log_norm).exp();
-      let p_r = (log_r - log_norm).exp();
-      pretty_assert_abs_diff_eq!(1.0, p_w + p_r, epsilon = 1e-10);
+    for (post, exp) in posteriors.iter().zip(&expected) {
+      pretty_assert_abs_diff_eq!(exp[WILDTYPE], post[WILDTYPE], epsilon = 1e-9);
+      pretty_assert_abs_diff_eq!(exp[RECOMBINANT], post[RECOMBINANT], epsilon = 1e-9);
     }
   }
 
@@ -1209,22 +1232,62 @@ mod tests {
   #[test]
   fn test_recombination_result_serde_round_trip_with_confidences() {
     let result = RecombinationResult::from_ranges(ranges(&[(10, 25)]), Some(&[0.95])).unwrap();
-    let json = serde_json::to_string(&result).unwrap();
-    assert!(json.contains("confidence"), "JSON should contain confidence: {json}");
+    let json = json_stringify(&result, JsonPretty(true)).unwrap();
+    let expected = indoc! {r#"{
+      "regions": [
+        {
+          "range": {
+            "begin": 10,
+            "end": 25
+          },
+          "length": 15,
+          "confidence": 0.95
+        }
+      ],
+      "totalRegions": 1,
+      "totalLength": 15,
+      "longestRegion": {
+        "range": {
+          "begin": 10,
+          "end": 25
+        },
+        "length": 15,
+        "confidence": 0.95
+      }
+    }"#};
+    assert_eq!(expected, json);
     let deserialized: RecombinationResult = serde_json::from_str(&json).unwrap();
-    assert_eq!(result.regions[0].confidence, deserialized.regions[0].confidence);
+    assert_eq!(result, deserialized);
   }
 
   #[test]
   fn test_recombination_result_serde_round_trip_without_confidences() {
+    // `confidence` is `skip_serializing_if = "Option::is_none"`, so the key is absent when unset.
     let result = RecombinationResult::from_ranges(ranges(&[(10, 25)]), None).unwrap();
-    let json = serde_json::to_string(&result).unwrap();
-    assert!(
-      !json.contains("confidence"),
-      "JSON should omit confidence when None: {json}"
-    );
+    let json = json_stringify(&result, JsonPretty(true)).unwrap();
+    let expected = indoc! {r#"{
+      "regions": [
+        {
+          "range": {
+            "begin": 10,
+            "end": 25
+          },
+          "length": 15
+        }
+      ],
+      "totalRegions": 1,
+      "totalLength": 15,
+      "longestRegion": {
+        "range": {
+          "begin": 10,
+          "end": 25
+        },
+        "length": 15
+      }
+    }"#};
+    assert_eq!(expected, json);
     let deserialized: RecombinationResult = serde_json::from_str(&json).unwrap();
-    assert_eq!(None, deserialized.regions[0].confidence);
+    assert_eq!(result, deserialized);
   }
 
   // Property: forward-backward marginals are always in [0, 1] for any valid params and observations.
