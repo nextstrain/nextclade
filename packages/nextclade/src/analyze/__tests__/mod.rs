@@ -1,1 +1,9 @@
+mod recombination_test_helpers;
 mod test_gm_recombination;
+mod test_recombination_config;
+mod test_recombination_decode;
+mod test_recombination_estimate;
+mod test_recombination_forward_backward;
+mod test_recombination_observations;
+mod test_recombination_params;
+mod test_recombination_result;
