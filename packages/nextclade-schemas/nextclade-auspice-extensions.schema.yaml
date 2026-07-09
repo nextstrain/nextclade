@@ -339,6 +339,11 @@ definitions:
         description: Filenames of other dataset input files (reference FASTA, genome annotation, tree, examples).
         allOf:
         - $ref: '#/definitions/DatasetFiles'
+      minimizerIndex:
+        description: 'Reference sequences used to build this dataset''s entry in the shared minimizer index for dataset suggestion. Build-time metadata: read when generating the index, ignored during analysis.'
+        anyOf:
+        - $ref: '#/definitions/MinimizerIndexConfig'
+        - type: 'null'
       defaultCds:
         description: CDS shown by default in the Nextclade Web sequence view (e.g. "S", "HA1").
         type:
@@ -497,6 +502,15 @@ definitions:
         type:
         - string
         - 'null'
+  MinimizerIndexConfig:
+    description: Configuration for building this dataset's entry in the shared minimizer index used for dataset suggestion (`nextclade sort`).
+    type: object
+    properties:
+      references:
+        description: FASTA files, relative to the dataset directory, whose sequences all contribute minimizers to this dataset's suggestion fingerprint. When absent, the dataset's main reference sequence is used.
+        type: array
+        items:
+          type: string
   LabelledMutationsConfig:
     description: Mapping from specific mutations to human-readable labels (e.g. clade-defining or drug-resistance mutations).
     examples:

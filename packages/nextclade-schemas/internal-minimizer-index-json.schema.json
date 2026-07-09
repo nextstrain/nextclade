@@ -77,8 +77,18 @@
           "type": "string"
         },
         "nMinimizers": {
+          "description": "Deprecated: prefer `expected_minimizer_hits`. Retained as the integer score denominator for older clients. For indexes that provide both fields it is the rounded `expected_minimizer_hits`; older indexes instead carry the literal count of stored minimizers.",
+          "deprecated": true,
           "type": "integer",
           "format": "int64"
+        },
+        "expectedMinimizerHits": {
+          "description": "Exact fractional expected number of minimizer hits from a single reference. Preferred as the score denominator when present; absent in older indexes, which fall back to `n_minimizers`.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
         }
       }
     }

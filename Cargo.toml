@@ -24,6 +24,7 @@ authors = ["Nextstrain team"]
 
 
 [workspace.dependencies]
+approx = "=0.5.1"
 assert2 = "=0.3.16"
 auto_ops = "=0.3.0"
 base64 = "=0.22.1"
