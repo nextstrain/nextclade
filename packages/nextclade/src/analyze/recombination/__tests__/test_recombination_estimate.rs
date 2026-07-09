@@ -1,5 +1,5 @@
 //! Resolving the recombination HMM parameters from `pathogen.json` overrides and tree-based
-//! fallbacks: override precedence, skip reasons, hard errors, and the `median`/`as_probability`
+//! fallbacks: override precedence, skip reasons, hard errors, and the `compute_median`/`accept_as_probability`
 //! numeric helpers.
 
 #[cfg(test)]
@@ -11,7 +11,8 @@ mod tests {
   };
   use crate::analyze::recombination::config::RecombinationConfig;
   use crate::analyze::recombination::estimate::{
-    RecombinationResolution, RecombinationSkipReason, as_probability, median, resolve_recombination_params,
+    RecombinationResolution, RecombinationSkipReason, accept_as_probability, compute_median,
+    resolve_recombination_params,
   };
   use crate::{assert_error, pretty_assert_ulps_eq};
   use ordered_float::OrderedFloat;
@@ -153,7 +154,7 @@ mod tests {
   #[test]
   fn test_recombination_estimate_three_clades_uses_nonroot_mrca() {
     // Three single-leaf clades where A1 and B1 share a non-root MRCA `I`, exercising the
-    // `- 2 * root_distance(mrca)` term. Root distances: A1=3, B1=5, C1=6. Leaf-pair distances:
+    // `- 2 * compute_root_distance(mrca)` term. Root distances: A1=3, B1=5, C1=6. Leaf-pair distances:
     //   A1<->B1 through I(rd 1): 3+5-2 = 6;  A1<->C1 through root: 9;  B1<->C1 through root: 11.
     // median{6, 9, 11} = 9 -> mu_r = 0.09. Terminal branches 2, 4, 6 -> mean 4 -> mu_w = 0.04.
     let graph = three_clade_tree();
@@ -277,21 +278,21 @@ mod tests {
   #[case::odd(    &[5.0, 1.0, 3.0],       Some(3.0))]      // sorted {1,3,5}, middle 3
   #[case::even(   &[1.0, 4.0, 2.0, 3.0],  Some(2.5))]      // sorted {1,2,3,4}, midpoint(2,3)
   #[trace]
-  fn test_recombination_estimate_median(#[case] values: &[f64], #[case] expected: Option<f64>) {
-    assert_eq!(expected, median(values));
+  fn test_recombination_estimate_compute_median(#[case] values: &[f64], #[case] expected: Option<f64>) {
+    assert_eq!(expected, compute_median(values));
   }
 
   #[rustfmt::skip]
   #[rstest]
-  // as_probability accepts only the open interval (0, 1); the closed endpoints and non-finite values
+  // accept_as_probability accepts only the open interval (0, 1); the closed endpoints and non-finite values
   // are rejected (they would produce log(0) = -inf in the decoder).
   #[case::zero( 0.0,      None)]
   #[case::one(  1.0,      None)]
   #[case::nan(  f64::NAN, None)]
   #[case::half( 0.5,      Some(0.5))]
   #[trace]
-  fn test_recombination_estimate_as_probability(#[case] value: f64, #[case] expected: Option<f64>) {
-    assert_eq!(expected, as_probability(value));
+  fn test_recombination_estimate_accept_as_probability(#[case] value: f64, #[case] expected: Option<f64>) {
+    assert_eq!(expected, accept_as_probability(value));
   }
 
   proptest::proptest! {
@@ -305,7 +306,7 @@ mod tests {
       values in proptest::collection::vec(-1e6_f64..1e6, 1..50_usize),
       seed in proptest::prelude::any::<u64>(),
     ) {
-      let m = median(&values).unwrap();
+      let m = compute_median(&values).unwrap();
 
       let mn = values.iter().copied().fold(f64::INFINITY, f64::min);
       let mx = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
@@ -314,7 +315,7 @@ mod tests {
       let mut shuffled = values.clone();
       let mut rng = StdRng::seed_from_u64(seed);
       shuffled.shuffle(&mut rng);
-      proptest::prop_assert_eq!(median(&values).map(f64::to_bits), median(&shuffled).map(f64::to_bits));
+      proptest::prop_assert_eq!(compute_median(&values).map(f64::to_bits), compute_median(&shuffled).map(f64::to_bits));
 
       if values.len() % 2 == 1 {
         proptest::prop_assert!(

@@ -3,7 +3,7 @@
 //!
 //! # Scope
 //!
-//! `viterbi_decode` vs `viterbi_recombination`, `forward_backward_marginals` vs
+//! `viterbi_decode` vs `viterbi_recombination`, `compute_forward_backward_marginals` vs
 //! `forward_backward_recombination_logexp`. Only the binary observation subset shared by both
 //! implementations (`0 = Ref`, `1 = Mut`) is compared here; `Missing`-state handling is covered by
 //! the unit and property tests in `recombination.rs`.
@@ -95,7 +95,7 @@ mod tests {
   }
 
   mod helpers {
-    use crate::analyze::recombination::forward_backward::forward_backward_marginals;
+    use crate::analyze::recombination::forward_backward::compute_forward_backward_marginals;
     use crate::analyze::recombination::observations::RecombinationObs;
     use crate::analyze::recombination::params::RecombinationHmmParams;
     use serde::Deserialize;
@@ -155,7 +155,7 @@ mod tests {
       let expected = output_case(name);
 
       let obs = observations(&input.mutations);
-      let actual = forward_backward_marginals(&obs, &input.params);
+      let actual = compute_forward_backward_marginals(&obs, &input.params);
       assert_eq!(expected.fb_marginals.len(), actual.len());
 
       expected

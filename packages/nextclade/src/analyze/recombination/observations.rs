@@ -18,7 +18,7 @@ use crate::coord::range::NucRefGlobalRange;
 /// included because a masked position that differs from the parent would otherwise be scored as `Mut`
 /// and could manufacture a false recombinant call at a homoplasic site. Extracted from the
 /// per-sequence pipeline so this chaining is guarded by a direct test rather than an inline closure.
-pub(crate) fn recombination_missing_ranges(
+pub(crate) fn collect_missing_ranges(
   missing: &[NucRange],
   non_acgtns: &[NucRange],
   deletions: &[NucDelRange],

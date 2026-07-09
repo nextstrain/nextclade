@@ -9,7 +9,7 @@ use crate::alphabet::nuc::Nuc;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::recombination::config::RecombinationConfig;
 use crate::analyze::recombination::estimate::RecombinationResolution;
-use crate::analyze::recombination::forward_backward::log_sum_exp_2;
+use crate::analyze::recombination::forward_backward::compute_log_sum_exp_2;
 use crate::analyze::recombination::observations::RecombinationObs;
 use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE};
 use crate::analyze::recombination::result::RecombinationRegion;
@@ -81,14 +81,14 @@ pub fn path_log_prob(obs: &[RecombinationObs], states: &[bool], params: &Recombi
   let log_stay = (1.0 - params.gamma()).ln();
   let log_switch = params.gamma().ln();
   let state_idx = |recombinant: bool| if recombinant { RECOMBINANT } else { WILDTYPE };
-  let mut total = 0.5_f64.ln() + params.log_emission(obs[0])[state_idx(states[0])];
+  let mut total = 0.5_f64.ln() + params.compute_log_emission(obs[0])[state_idx(states[0])];
   for l in 1..obs.len() {
     total += if states[l] == states[l - 1] {
       log_stay
     } else {
       log_switch
     };
-    total += params.log_emission(obs[l])[state_idx(states[l])];
+    total += params.compute_log_emission(obs[l])[state_idx(states[l])];
   }
   total
 }
@@ -103,7 +103,7 @@ pub fn bruteforce_marginals(obs: &[RecombinationObs], params: &RecombinationHmmP
     .map(|mask| (0..n).map(|i| (mask >> i) & 1 == 1).collect())
     .collect();
   let log_joint: Vec<f64> = paths.iter().map(|path| path_log_prob(obs, path, params)).collect();
-  let log_total = log_joint.iter().copied().fold(f64::NEG_INFINITY, log_sum_exp_2);
+  let log_total = log_joint.iter().copied().fold(f64::NEG_INFINITY, compute_log_sum_exp_2);
 
   (0..n)
     .map(|site| {
@@ -113,7 +113,7 @@ pub fn bruteforce_marginals(obs: &[RecombinationObs], params: &RecombinationHmmP
           .zip(&log_joint)
           .filter(|(path, _)| path[site] == recombinant)
           .map(|(_, &lj)| lj)
-          .fold(f64::NEG_INFINITY, log_sum_exp_2)
+          .fold(f64::NEG_INFINITY, compute_log_sum_exp_2)
       };
       [
         (log_marginal(false) - log_total).exp(),
@@ -173,7 +173,7 @@ pub fn two_clade_tree() -> AuspiceGraph {
 
 // Three clades A, B, C. An unlabeled internal node I (1 mut) parents leaves A1 (clade A, 2 muts)
 // and B1 (clade B, 4 muts); leaf C1 (clade C, 6 muts) hangs off the root. A1 and B1 share the
-// non-root MRCA I, exercising the `- 2 * root_distance(mrca)` term with a non-root common ancestor.
+// non-root MRCA I, exercising the `- 2 * compute_root_distance(mrca)` term with a non-root common ancestor.
 pub fn three_clade_tree() -> AuspiceGraph {
   let json = indoc! {r#"{
     "version": "v2",

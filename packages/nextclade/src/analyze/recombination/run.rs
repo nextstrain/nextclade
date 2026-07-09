@@ -19,8 +19,10 @@ use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::recombination::config::RecombinationConfig;
 use crate::analyze::recombination::decode::find_recombinant_regions;
-use crate::analyze::recombination::forward_backward::{compute_interval_confidences, forward_backward_marginals};
-use crate::analyze::recombination::observations::{build_observations, recombination_missing_ranges};
+use crate::analyze::recombination::forward_backward::{
+  compute_forward_backward_marginals, compute_interval_confidences,
+};
+use crate::analyze::recombination::observations::{build_observations, collect_missing_ranges};
 use crate::analyze::recombination::params::RecombinationHmmParams;
 use crate::analyze::recombination::result::RecombinationResult;
 use crate::coord::position::NucRefGlobalPosition;
@@ -58,8 +60,7 @@ pub fn run_recombination(
     return None;
   }
 
-  let missing_ranges =
-    recombination_missing_ranges(input.missing, input.non_acgtns, input.deletions, input.masked_ranges);
+  let missing_ranges = collect_missing_ranges(input.missing, input.non_acgtns, input.deletions, input.masked_ranges);
   let mutated_positions: Vec<NucRefGlobalPosition> = input.private_substitutions.iter().map(|sub| sub.pos).collect();
   let observations = build_observations(
     input.ref_len,
@@ -70,7 +71,7 @@ pub fn run_recombination(
 
   let regions = find_recombinant_regions(&observations, params);
   let confidences = (!regions.is_empty()).then(|| {
-    let marginals = forward_backward_marginals(&observations, params);
+    let marginals = compute_forward_backward_marginals(&observations, params);
     compute_interval_confidences(&marginals, &regions)
   });
 

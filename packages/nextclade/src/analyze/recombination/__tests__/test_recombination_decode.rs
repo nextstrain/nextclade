@@ -6,7 +6,7 @@
 mod tests {
   use crate::analyze::recombination::__tests__::recombination_test_helpers::{obs, path_log_prob, ranges, test_params};
   use crate::analyze::recombination::decode::{
-    find_recombinant_regions, intervals_sorted_disjoint_nonempty, viterbi_decode,
+    are_intervals_sorted_disjoint_nonempty, find_recombinant_regions, viterbi_decode,
   };
   use crate::analyze::recombination::observations::RecombinationObs;
   use crate::analyze::recombination::params::RecombinationHmmParams;
@@ -75,12 +75,12 @@ mod tests {
   #[case::out_of_bounds(        &[(2, 12)],        10, false)] // end > len
   #[case::unsorted(             &[(7, 9), (2, 5)], 10, false)]
   #[case::overlapping(          &[(2, 6), (5, 9)], 10, false)] // next.begin < prev.end
-  fn test_recombination_intervals_sorted_disjoint_nonempty(
+  fn test_recombination_are_intervals_sorted_disjoint_nonempty(
     #[case] pairs: &[(usize, usize)],
     #[case] len: usize,
     #[case] expected: bool,
   ) {
-    assert_eq!(expected, intervals_sorted_disjoint_nonempty(&ranges(pairs), len));
+    assert_eq!(expected, are_intervals_sorted_disjoint_nonempty(&ranges(pairs), len));
   }
 
   #[test]
