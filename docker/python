@@ -3,8 +3,8 @@
 # Usage: $0 <command> [args...]
 #
 # Run a command in the Python container (docker/python.dockerfile). Separate from docker/dev.
-# Mounts the project at /workdir, maps the host user. Image tag is a content hash of build
-# inputs; rebuilds only when they change. DOCKER_FORCE_REBUILD=1 to force.
+# Mounts the project at /workdir, maps the host user. Content-hashed image tag;
+# rebuilds only when inputs change. DOCKER_FORCE_REBUILD=1 to force.
 #
 # Examples:
 #   $0 bash
@@ -20,7 +20,7 @@ DOCKER_REPO_SAFE="${DOCKER_REPO//\//-}"
 CONTAINER_USER="user"
 CONTAINER_GROUP="user"
 
-# Content hash of build inputs -- tag changes when any input changes.
+# Content hash of build inputs.
 image_tag() {
   local inputs=("${THIS_DIR}/python.dockerfile" "${THIS_DIR}/../requirements.txt")
   local f

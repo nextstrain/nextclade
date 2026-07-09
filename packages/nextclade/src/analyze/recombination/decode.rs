@@ -1,23 +1,17 @@
 //! Viterbi decoding of the observation vector into putative recombinant intervals.
 //!
-//! A log-space Viterbi pass assigns each site the most likely state; contiguous runs of the
-//! recombinant state become 0-based half-open reference ranges, each trimmed so its endpoints fall on
-//! covered positions. Contiguous runs of missing data stay bridged: the decoded state persists across
-//! them, and only leading and trailing uncovered flanks are excluded from the reported interval.
+//! Log-space Viterbi assigns each site the most likely state. Contiguous recombinant runs become
+//! half-open reference ranges, trimmed so endpoints fall on covered positions. Missing data stays
+//! bridged; only leading/trailing uncovered flanks are excluded.
 
 use crate::analyze::recombination::observations::RecombinationObs;
 use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE};
 use crate::coord::position::PositionLike;
 use crate::coord::range::NucRefGlobalRange;
 
-/// Decode putative recombinant intervals from a per-site observation vector.
+/// Decode putative recombinant intervals from a per-site observation vector (reference coordinates).
 ///
-/// The observation vector is in reference coordinates, one entry per reference position. The
-/// returned intervals are the maximal runs of the recombinant state, as 0-based half-open ranges,
-/// with each interval trimmed so its first and last positions carry evidence (are not `Missing`).
-///
-/// `params` are always valid: [`RecombinationHmmParams`] has private fields and can only be built
-/// through [`RecombinationHmmParams::new`], which enforces the model invariants.
+/// Returns maximal recombinant runs as half-open ranges, trimmed so endpoints carry evidence.
 pub(crate) fn find_recombinant_regions(
   obs: &[RecombinationObs],
   params: &RecombinationHmmParams,
@@ -26,9 +20,7 @@ pub(crate) fn find_recombinant_regions(
   let intervals = extract_recombinant_intervals(&is_recombinant);
   let regions = trim_intervals_to_covered(intervals, obs);
 
-  // Postcondition: reported regions are well-formed (non-empty, sorted, disjoint, within bounds) and
-  // their endpoints carry evidence (are not `Missing`). These are the invariants downstream output and
-  // the web viewer rely on; a violation is a decoder/extraction bug, not a bad input.
+  // Postcondition: regions are well-formed and endpoints carry evidence.
   debug_assert!(
     are_intervals_sorted_disjoint_nonempty(&regions, obs.len()),
     "recombinant regions must be non-empty, sorted, disjoint and within bounds: {regions:?}"
@@ -43,9 +35,7 @@ pub(crate) fn find_recombinant_regions(
   regions
 }
 
-/// Whether a list of reference ranges is well-formed as a set of decoded regions: every range is
-/// non-empty (`begin < end`), stays within `[0, len)`, and the ranges are sorted and pairwise
-/// disjoint (`prev.end <= next.begin`). Debug-assertion helper only.
+/// Well-formedness check: non-empty, within bounds, sorted, pairwise disjoint. Debug-only.
 pub(crate) fn are_intervals_sorted_disjoint_nonempty(intervals: &[NucRefGlobalRange], len: usize) -> bool {
   let mut prev_end = 0;
   intervals.iter().all(|r| {
@@ -142,11 +132,8 @@ fn extract_recombinant_intervals(is_recombinant: &[bool]) -> Vec<NucRefGlobalRan
   regions
 }
 
-/// Trim each interval so its endpoints fall on covered positions, dropping leading and trailing
-/// `Missing` runs (uncovered flanks and deletions relative to the reference). Internal `Missing`
-/// stretches stay bridged: the recombinant call already spans them, and only leading and trailing
-/// deletion ranges should be excluded from the annotation, not internal ones. An interval with no
-/// covered position (all `Missing`) carries no evidence and is dropped.
+/// Trim leading/trailing `Missing` from each interval. Internal `Missing` stays bridged.
+/// All-`Missing` intervals are dropped.
 fn trim_intervals_to_covered(intervals: Vec<NucRefGlobalRange>, obs: &[RecombinationObs]) -> Vec<NucRefGlobalRange> {
   let covered = |i: usize| obs.get(i).is_some_and(|o| *o != RecombinationObs::Missing);
   intervals

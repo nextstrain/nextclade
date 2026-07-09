@@ -1,12 +1,12 @@
 # Whole-sequence recombinant calls on globally divergent queries
 
-> Records a scientific validity concern, not a code defect; the decoder correctly implements the two-state model. The model has no constraint that a recombinant call be _localized_, so a query that is uniformly diverged from its parent decodes as recombinant along its entire length.
+> The model has no localization constraint, so a uniformly divergent query decodes as recombinant along its entire length. Correct against spec, but scientifically wrong.
 
 ## Context
 
 The detector decodes recombinant intervals with a two-state Viterbi decoder under a uniform state prior and symmetric transitions ([`packages/nextclade/src/analyze/recombination.rs#L508-L565`](packages/nextclade/src/analyze/recombination.rs#L508-L565)). Per-site emission evidence is `ln(muR/muW)` toward recombinant for a `Mut` and `ln((1-muW)/(1-muR))` toward wildtype for a `Ref` ([`packages/nextclade/src/analyze/recombination.rs#L271-L278`](packages/nextclade/src/analyze/recombination.rs#L271-L278)).
 
-Recombination is meant to be a _localized_ elevation of mutation density: a segment from a different parent, flanked by wildtype background. The model encodes no such flanking requirement. A single all-recombinant path competes directly with the all-wildtype path, and pays no switch cost because it never switches.
+Recombination is a _localized_ elevation: a segment from a different parent, flanked by wildtype. The model encodes no flanking requirement. An all-recombinant path pays no switch cost.
 
 ## Concern
 
@@ -28,11 +28,11 @@ Observed instances (dataset example sequences, data repository trees):
 - Flu H3N2 HA `A/Missouri/19/2022`: 18 private substitutions spread uniformly (positions 35 to 1677); the **entire** `0-1718` segment is reported as one region (confidence ~ 0.79).
 - SARS-CoV-2 orfs `USA/AR-CDC-ASC210377904/2021`: 57 private substitutions; a 4966 nt region at confidence ≈ 0.60.
 
-The practical effect: outlier, poorly placed, or simply divergent queries (undersampled clade, novel variant, low-quality assembly) are flagged as "putative recombinant" when they are only _distant from their inferred parent_. Detection is on by default, so every tree-bearing dataset is exposed.
+Practical effect: divergent queries (undersampled clade, novel variant, low-quality assembly) get flagged as "putative recombinant" when they are only _distant from their parent_. Detection is on by default for every tree-bearing dataset.
 
 ## Current state
 
-The decoder is correct against the prototype specification. The prototype likewise has no localization constraint. `muW`/`muR` overrides in `pathogen.json` shift `d*` but cannot express "must be flanked by wildtype".
+Correct against spec -- the prototype likewise has no localization constraint. `muW`/`muR` overrides shift `d*` but cannot express "must be flanked by wildtype".
 
 ## Directions to investigate
 

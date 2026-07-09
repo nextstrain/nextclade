@@ -8,11 +8,11 @@ Shared knowledge base (KB). AI agents and humans collaborate here: documenting p
 
 ## Motivation
 
-- AI continuity. Sessions start with zero memory. The KB persists decisions, defects, and findings so knowledge compounds instead of being rediscovered.
-- Human onboarding. Synthesized view of algorithms, design rationale, open problems, and research context.
-- Multi-agent coordination. Parallel agents working on different tasks share state through issues, decisions, and proposals.
-- Preventing rework. Issues and decisions prevent re-investigating solved problems or re-introducing fixed bugs.
-- Decision traceability. Design choices are documented with rationale, not left implicit in code.
+- **AI continuity.** Sessions start with zero memory. The KB persists findings so knowledge compounds instead of being rediscovered
+- **Human onboarding.** Synthesized view of algorithms, rationale, and open problems
+- **Multi-agent coordination.** Parallel agents share state through issues, decisions, and proposals
+- **Preventing rework.** Tracked issues prevent re-investigating solved problems
+- **Decision traceability.** Design choices documented with rationale, not left implicit in code
 
 ## Directories
 

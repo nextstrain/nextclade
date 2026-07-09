@@ -1,23 +1,16 @@
-//! The per-site observation vector in reference coordinates.
+//! Per-site observation vector in reference coordinates.
 //!
-//! Each reference site emits one of three observations relative to the sequence's inferred parent (its
-//! tree attachment point): not mutated (`Ref`), mutated (`Mut`), or no usable information (`Missing`).
-//! `Missing` covers positions that carry no comparable base (N, deletion, ambiguity, placement-masked
-//! site, or outside the alignment) and is final: it overrides a mutation mapped to the same position,
-//! because missing data must not contribute to the likelihood.
+//! Each site emits `Ref` (not mutated), `Mut` (mutated), or `Missing` (N, deletion, ambiguity,
+//! placement-masked, or outside alignment) relative to the inferred parent. `Missing` is final --
+//! it overrides mutations at the same position.
 
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
 
-/// Assemble the non-comparable reference ranges handed to [`build_observations`] as `missing`.
-///
-/// These are all the positions that carry no usable evidence relative to the parent: missing (`N`)
-/// runs, non-ACGTN ambiguous runs, deletions, and placement-masked sites. The placement mask is
-/// included because a masked position that differs from the parent would otherwise be scored as `Mut`
-/// and could manufacture a false recombinant call at a homoplasic site. Extracted from the
-/// per-sequence pipeline so this chaining is guarded by a direct test rather than an inline closure.
+/// Assemble non-comparable ranges for `build_observations`: N runs, non-ACGTN, deletions, and
+/// placement-masked sites. Masked positions would otherwise score as `Mut` at homoplasic sites.
 pub(crate) fn collect_missing_ranges(
   missing: &[NucRange],
   non_acgtns: &[NucRange],
@@ -35,11 +28,8 @@ pub(crate) fn collect_missing_ranges(
 
 /// Build the per-site observation vector in reference coordinates.
 ///
-/// A position is `Mut` at a private substitution (mutations relative to the parent, which include
-/// reversions), `Missing` where it is uncovered (outside the alignment) or carries no comparable
-/// base (N, ambiguous character, deletion, or placement-masked site), and `Ref` otherwise.
-/// `Missing` is final: a non-comparable position stays `Missing` even if a mutation also maps to it,
-/// because missing data must not contribute to the likelihood.
+/// `Mut` at private substitutions (including reversions), `Missing` at uncovered or non-comparable
+/// positions, `Ref` otherwise. `Missing` is final and overrides mutations.
 pub(crate) fn build_observations(
   ref_len: usize,
   alignment_range: &NucRefGlobalRange,
@@ -75,8 +65,7 @@ pub(crate) fn build_observations(
     }
   }
 
-  // Postcondition: one observation per reference position, so the decoded state vector aligns with
-  // reference coordinates and out-of-range mutations/ranges never grow the vector.
+  // Postcondition: one observation per reference position.
   debug_assert_eq!(
     ref_len,
     obs.len(),

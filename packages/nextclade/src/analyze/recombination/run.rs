@@ -1,18 +1,12 @@
 //! HMM-based recombination detection.
 //!
-//! A two-state hidden Markov model (wildtype, recombinant) decoded with Viterbi and optionally scored
-//! with forward-backward. Each reference site emits one of three observations relative to the
-//! sequence's inferred parent (its tree attachment point): not mutated (`Ref`), mutated (`Mut`), or no
-//! usable information (`Missing`). `Missing` emits probability 1 in both states (marginalization over
-//! missing data), so it adds no emission evidence while transitions still cross it and the decoded
-//! state persists across missing runs. Contiguous runs of the recombinant state, trimmed so their
-//! endpoints fall on covered positions, are reported as putative recombinant intervals. When
-//! forward-backward is run, each interval receives a confidence score (mean posterior marginal
-//! probability of the recombinant state).
+//! Two-state HMM (wildtype/recombinant), Viterbi-decoded, optionally forward-backward scored.
+//! Sites emit `Ref`, `Mut`, or `Missing` relative to the inferred parent. `Missing` emits
+//! probability 1 in both states (marginalization), so transitions cross it but it adds no evidence.
+//! Recombinant runs, trimmed to covered endpoints, are reported with optional confidence scores.
 //!
-//! `run_recombination` is the per-sequence entry point; `estimate::resolve_recombination_params` is
-//! the paired setup entry point, run once per dataset to resolve the parameters from `pathogen.json`
-//! and the reference tree.
+//! Entry points: `run_recombination` (per-sequence), `estimate::resolve_recombination_params`
+//! (per-dataset setup).
 
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::NucDelRange;
@@ -46,11 +40,8 @@ pub struct RecombinationRunInput<'a> {
   pub masked_ranges: &'a [NucRefGlobalRange],
 }
 
-/// Detect putative recombinant regions for one sequence, or `None` when detection does not run or
-/// finds nothing.
-///
-/// Gated on the private-substitution count: a sequence below `config`'s `minPrivateSubsToRun`
-/// (default 1) cannot carry recombinant signal and is skipped.
+/// Detect recombinant regions for one sequence, or `None` when skipped or nothing found.
+/// Gated on `minPrivateSubsToRun` (default 1).
 pub fn run_recombination(
   params: &RecombinationHmmParams,
   config: Option<&RecombinationConfig>,

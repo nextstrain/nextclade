@@ -252,10 +252,7 @@ definitions:
         - string
         - 'null'
   RecombinationHmmParams:
-    description: |-
-      Effective recombination HMM parameters used for a run.
-
-      All three are probabilities between 0 and 1 (exclusive). `gamma` is the transition rate, `muW` and `muR` are the wildtype and recombinant mutation emission probabilities, with `muR` greater than `muW`.
+    description: Validated recombination HMM parameters. `gamma` (transition), `muW`/`muR` (emission), all in (0, 1), `muR > muW`.
     type: object
     required:
     - gamma
@@ -1715,10 +1712,7 @@ definitions:
         format: uint
         minimum: 0.0
   RecombinationResult:
-    description: |-
-      Per-sequence recombination detection result: the detected regions and their summary statistics.
-
-      Always contains at least one region. When detection runs but finds no recombinant intervals the caller produces `None` rather than an empty `RecombinationResult`.
+    description: Per-sequence detection result. Always has at least one region; empty results are `None`.
     type: object
     required:
     - longestRegion
@@ -1746,7 +1740,7 @@ definitions:
         allOf:
         - $ref: '#/definitions/RecombinationRegion'
   RecombinationRegion:
-    description: A single putative recombinant interval with its range, nucleotide length, and optional forward-backward confidence score.
+    description: A putative recombinant interval with optional forward-backward confidence.
     type: object
     required:
     - length

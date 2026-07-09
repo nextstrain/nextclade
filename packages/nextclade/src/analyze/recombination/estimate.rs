@@ -1,17 +1,11 @@
 //! Estimation of recombination HMM parameters from the reference tree.
 //!
-//! The two emission probabilities are statistics of the reference tree, following a tree-based
-//! heuristic: `mu_w` is the mean terminal branch length (typical divergence of a newly attached
-//! sequence), and `mu_r` is the typical inter-clade divergence, estimated as the median pairwise
-//! substitution distance between leaves of different clades. Both are computed as substitution counts
-//! from the per-branch nucleotide mutation lists (which sidesteps the ambiguous Auspice divergence
-//! units), normalized by the reference length into per-site probabilities. `gamma` is the closed-form
-//! `1 / ref_len`.
+//! `mu_w` = mean terminal branch length (substitution count / ref_len). `mu_r` = median pairwise
+//! inter-clade leaf distance / ref_len. `gamma` = `1 / ref_len`. Substitution counts come from
+//! per-branch `nuc` mutation lists, sidestepping ambiguous Auspice divergence units.
 //!
-//! Each parameter is resolved independently: a value supplied in `pathogen.json` is validated and
-//! used verbatim, otherwise the estimate above is used. An out-of-range override is a dataset-level
-//! error; when a required estimate is undefined (for example fewer than two clades for `mu_r`) the
-//! model is left unresolved and the caller skips detection with a stated reason.
+//! Each parameter is resolved independently: `pathogen.json` override (validated, verbatim) >
+//! tree estimate. Out-of-range override = dataset error. Undefined estimate = skip with reason.
 
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::nuc_sub::NucSub;
@@ -29,20 +23,16 @@ use std::collections::BTreeMap;
 /// Key under which nucleotide (as opposed to per-gene) mutations are stored in branch attributes.
 const NUC_MUTATIONS_KEY: &str = "nuc";
 
-/// Resolve the three HMM parameters, combining `pathogen.json` overrides with tree-based fallbacks.
+/// Resolve the three HMM parameters: `pathogen.json` overrides > tree-based fallbacks.
 ///
-/// A `pathogen.json` override is validated and takes precedence over the estimate. An out-of-range
-/// override, or an explicit `muR <= muW`, is a dataset-level error (`Err`). When a required parameter
-/// has neither an override nor a definable estimate, or the estimated `muR` does not exceed `muW`,
-/// the model is `Skipped` with a stated reason and the caller omits recombination detection.
+/// Out-of-range override or explicit `muR <= muW` = dataset error. Missing override + undefined
+/// estimate = `Skipped` with reason.
 pub fn resolve_recombination_params(
   config: Option<&RecombinationConfig>,
   graph: &AuspiceGraph,
   ref_len: usize,
 ) -> Result<RecombinationResolution, Report> {
-  // Each parameter is the validated `pathogen.json` override when present, otherwise the tree
-  // estimate. The estimate is computed only in the `None` arm, so an explicit override neither pays
-  // for the estimator nor is aborted by an estimator error on a difficult tree.
+  // Each parameter: validated override when present, tree estimate otherwise.
   let gamma = match config.and_then(|c| c.gamma) {
     Some(value) => Some(validate_override("gamma", value)?),
     None => estimate_gamma(ref_len),
@@ -68,9 +58,8 @@ pub fn resolve_recombination_params(
     return Ok(RecombinationResolution::Skipped(reason));
   };
 
-  // The recombinant state must carry elevated mutation density, otherwise it is indistinguishable
-  // from wildtype. When both rates come from `pathogen.json` this is a misconfiguration (hard error);
-  // a merely degenerate tree estimate skips detection.
+  // Recombinant state must have elevated mutation density. Both rates from pathogen.json with
+  // muR <= muW = misconfiguration (error); degenerate tree estimate = skip.
   if mu_r <= mu_w {
     let both_explicit = config.and_then(|c| c.mu_w).is_some() && config.and_then(|c| c.mu_r).is_some();
     if both_explicit {
@@ -83,9 +72,8 @@ pub fn resolve_recombination_params(
     ));
   }
 
-  // `new` is the single invariant gate (range, sticky `gamma < 0.5`, `mu_r > mu_w`); see
-  // `RecombinationHmmParams::validate`. The `mu_r <= mu_w` branch above is policy, not validation: it
-  // decides whether a non-elevated rate is a misconfiguration (error) or a degenerate estimate (skip).
+  // `new` is the single invariant gate. The `mu_r <= mu_w` branch above is policy (error vs skip),
+  // not validation.
   Ok(RecombinationResolution::Resolved(RecombinationHmmParams::new(
     gamma, mu_w, mu_r,
   )?))
@@ -100,21 +88,19 @@ pub enum RecombinationResolution {
   Skipped(RecombinationSkipReason),
 }
 
-/// Why recombination detection cannot run for a dataset. When detection is enabled by default this is
-/// a silent skip; when it is explicitly requested (`enabled: true`) the caller turns it into an error.
+/// Why detection cannot run. Default-on = silent skip; explicit `enabled: true` = error.
 #[derive(Debug, Clone)]
 pub enum RecombinationSkipReason {
   /// No reference tree is available; detection needs one for parent-relative mutations.
   NoReferenceTree,
-  /// The reference tree has fewer than two clades, so inter-clade divergence (`muR`) is undefined.
+  /// Fewer than two clades -- inter-clade divergence (`muR`) is undefined.
   FewerThanTwoClades,
-  /// The reference tree carries no per-branch nucleotide mutations, so the divergence rates that
-  /// calibrate the model cannot be estimated (for example a tree exported with only divergence values
-  /// and no `nuc` mutation lists).
+  /// No per-branch `nuc` mutations -- divergence rates undefined (e.g. tree with only divergence
+  /// values).
   NoBranchMutations,
-  /// A required parameter could not be estimated from the tree (degenerate topology or no leaves).
+  /// Required parameter not estimable (degenerate topology or no leaves).
   TreeEstimateUnavailable,
-  /// The estimated recombinant rate does not exceed the wildtype rate, so the states are indistinguishable.
+  /// Estimated muR does not exceed muW -- states are indistinguishable.
   RecombinantRateNotElevated { mu_w: f64, mu_r: f64 },
 }
 
@@ -166,12 +152,8 @@ fn has_any_branch_mutations(graph: &AuspiceGraph) -> Result<bool, Report> {
   Ok(false)
 }
 
-/// Number of distinct clade labels present among the tree's leaves.
-///
-/// Counts leaf clades only, matching `estimate_mu_r`'s requirement: `mu_r` is the median pairwise
-/// distance between leaves of different clades, so a clade that labels only internal nodes cannot
-/// contribute. Counting all nodes here would report "degenerate topology" when the real reason a
-/// dataset cannot support detection is that its leaves carry fewer than two clades.
+/// Distinct clade labels among leaves only. A clade labeling only internal nodes cannot contribute
+/// to `mu_r` (inter-clade leaf distance), so it is not counted.
 fn count_clades(graph: &AuspiceGraph) -> usize {
   graph
     .iter_nodes()
@@ -217,10 +199,7 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
     return Ok(None);
   }
 
-  // Precompute root distances for ALL nodes, not only leaves, so the inter-clade distance below needs
-  // no second tree walk for the MRCA: each pair costs one map lookup per endpoint plus the single MRCA
-  // search. Complexity: O(P) inter-clade leaf pairs times O(depth) per pair for that search; the
-  // quadratic pair count is the dominant cost.
+  // Precompute root distances for all nodes so inter-clade distance needs no second tree walk.
   let root_dists: BTreeMap<GraphNodeKey, usize> = graph
     .iter_nodes()
     .map(|node| compute_root_distance(graph, node.key()).map(|d| (node.key(), d)))
@@ -233,8 +212,7 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
   for (i, leaves_a) in clade_groups.iter().enumerate() {
     for leaves_b in &clade_groups[i + 1..] {
       for &a in *leaves_a {
-        // `a` is fixed across the inner loop, so compute its ancestor set once and reuse it for every
-        // `b` rather than rebuilding (and reallocating) it per pair.
+        // Compute `a`'s ancestor set once, reuse for every `b`.
         let ancestors_a = collect_ancestors_inclusive(graph, a);
         let rd_a = root_dists[&a];
         for &b in *leaves_b {
@@ -249,15 +227,9 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
   Ok(compute_median(&distances).and_then(|d| accept_as_probability(d / ref_len as f64)))
 }
 
-/// Number of nucleotide substitutions on the branch leading to this node, excluding deletions.
-///
-/// The model treats gap characters as missing data, not mutations (mirroring `build_observations`,
-/// which routes deletions to `Missing`), so the same ruler calibrates `mu_w`/`mu_r`. Each `nuc`
-/// mutation token is parsed as a `<ref><pos><query>` substitution: a token with a gap query base is a
-/// deletion and is not counted, while substitutions and insertions (query base present) are. A token
-/// that does not parse is a malformed tree annotation and surfaces as an error rather than being
-/// silently miscounted. Nextclade-built trees carry substitutions only; deletions appear on externally
-/// produced trees (augur/TreeTime) as `"A15-"`.
+/// Nucleotide substitutions on this branch, excluding deletions (gap query = missing data, not
+/// mutation, matching `build_observations`). Insertions count (query base present). Malformed
+/// tokens surface as errors. Deletions appear on external trees (augur/TreeTime) as `"A15-"`.
 fn count_nuc_mutations(payload: &AuspiceGraphNodePayload) -> Result<usize, Report> {
   let Some(muts) = payload.branch_attrs.mutations.get(NUC_MUTATIONS_KEY) else {
     return Ok(0);
@@ -285,9 +257,8 @@ fn compute_root_distance(graph: &AuspiceGraph, key: GraphNodeKey) -> Result<usiz
   Ok(total)
 }
 
-/// Most recent common ancestor of node `b` and the node whose inclusive ancestor set is `ancestors_a`.
-/// Walks `b` toward the root until it reaches a node in `ancestors_a`. The caller precomputes
-/// `ancestors_a` once per `a` so it is not rebuilt for every `b`.
+/// MRCA of `b` and the node whose inclusive ancestor set is `ancestors_a`. Walks `b` toward the
+/// root until it hits `ancestors_a`.
 fn find_mrca_with_ancestors(
   graph: &AuspiceGraph,
   ancestors_a: &IndexSet<GraphNodeKey>,

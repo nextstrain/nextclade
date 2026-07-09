@@ -834,28 +834,25 @@ definitions:
         minimum: 0.0
   RecombinationConfig:
     description: |-
-      Dataset configuration for recombination detection, as it appears in `pathogen.json`.
+      Dataset configuration for recombination detection (`pathogen.json`).
 
-      Each field is optional. The HMM parameters are resolved independently: a value given here is used verbatim, otherwise a fallback is computed from the reference and reference tree. An absent config object, or one with `enabled` omitted, leaves the feature enabled (see `is_enabled`).
+      Each field is optional. A given value is used verbatim; otherwise a fallback is computed from the reference tree. Absent config or omitted `enabled` leaves detection on (see `is_enabled`).
     type: object
     properties:
       enabled:
-        description: |-
-          Whether recombination detection runs for this dataset.
-
-          When the field is absent, detection is on by default; `true` opts in explicitly; `false` disables it. An explicit `true` is treated as a hard requirement: if the dataset cannot support detection (for example it has no reference tree, or a tree too thin to estimate the parameters), that is a dataset-level error rather than a silent skip. The default-on case skips silently instead.
+        description: Whether recombination detection runs. Absent = on by default; `true` = explicit opt-in (failure to support detection is an error, not a silent skip); `false` = disabled.
         type:
         - boolean
         - 'null'
       minPrivateSubsToRun:
-        description: Minimum number of private substitutions (relative to the inferred parent) a sequence must carry for detection to run on it. Sequences below this threshold produce no recombination result. Defaults to 1 when absent, which skips only sequences that carry no recombinant signal at all.
+        description: Minimum private substitutions for detection to run. Defaults to 1 (skips sequences with no recombinant signal).
         type:
         - integer
         - 'null'
         format: uint
         minimum: 0.0
       gamma:
-        description: State transition rate override. When absent, defaults to `1 / ref_len`. Must be in the open interval (0, 1) and less than 0.5. The runtime enforces this; the schema bound is inclusive because `schemars` cannot express exclusive bounds.
+        description: State transition rate override. Absent = `1 / ref_len`. Must be in (0, 0.5).
         type:
         - number
         - 'null'
@@ -863,7 +860,7 @@ definitions:
         maximum: 1.0
         minimum: 0.0
       muW:
-        description: Wildtype mutation emission probability override. When absent, estimated from the tree. Must be in the open interval (0, 1). The runtime enforces this; the schema bound is inclusive because `schemars` cannot express exclusive bounds.
+        description: Wildtype emission probability override. Absent = estimated from tree. Must be in (0, 1).
         type:
         - number
         - 'null'
@@ -871,7 +868,7 @@ definitions:
         maximum: 1.0
         minimum: 0.0
       muR:
-        description: Recombinant mutation emission probability override. When absent, estimated from the tree. Must be in the open interval (0, 1) and greater than `muW`. The runtime enforces this; the schema bound is inclusive because `schemars` cannot express exclusive bounds.
+        description: Recombinant emission probability override. Absent = estimated from tree. Must be in (0, 1) and greater than `muW`.
         type:
         - number
         - 'null'

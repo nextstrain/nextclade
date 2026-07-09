@@ -1,6 +1,5 @@
-//! Building the per-site observation vector: coverage/mutation mapping, missing-over-mutation
-//! precedence, out-of-range absorption, and assembly of the non-comparable ranges (including the
-//! placement mask).
+//! Observation vector: coverage/mutation mapping, missing-over-mutation precedence, out-of-range
+//! absorption, and placement mask assembly.
 
 #[cfg(test)]
 mod tests {
@@ -34,9 +33,8 @@ mod tests {
     let ref_len = 8;
     let alignment_range = NucRefGlobalRange::from_usize(0, 8);
     let missing_ranges = vec![NucRefGlobalRange::from_usize(2, 5)]; // positions 2, 3, 4 missing
-    // A mutation inside a missing range (position 3) resolves to Missing: non-comparable positions
-    // are final and must not contribute to the likelihood. A mutation outside the reference (position
-    // 20) is ignored rather than panicking or extending the vector.
+    // Mutation inside missing range (pos 3) -> Missing (non-comparable is final).
+    // Mutation outside reference (pos 20) -> ignored.
     let mutated: Vec<NucRefGlobalPosition> = [3, 20]
       .into_iter()
       .map(|p| NucRefGlobalPosition::from(p as isize))
@@ -48,9 +46,7 @@ mod tests {
     assert_eq!(expected, observed);
   }
 
-  // The assembled missing set must contain every input range, including the placement-masked ranges.
-  // Dropping the `masked` term from `collect_missing_ranges` would fail this test, so the mask
-  // chaining cannot silently regress.
+  // Must include placement-masked ranges. Dropping the `masked` term would fail this test.
   #[test]
   fn test_collect_missing_ranges_includes_masked() {
     let missing = vec![nuc_range(0, 2)];
@@ -69,10 +65,8 @@ mod tests {
     );
   }
 
-  // Fed through the same chain as `nextclade_run_one`, a position that is both masked and mutated
-  // resolves to `Missing`; an unmasked mutation resolves to `Mut`; positions outside the alignment are
-  // `Missing`; and the vector length equals `ref_len`. If missing ranges stopped taking precedence over
-  // mutations, the masked+mutated position would decode to `Mut` and fail this test.
+  // Masked+mutated -> Missing; unmasked mutation -> Mut; outside alignment -> Missing; length = ref_len.
+  // If missing precedence broke, the masked+mutated position would decode as Mut.
   #[test]
   fn test_recombination_build_observations_masked_mutation_is_missing() {
     use RecombinationObs::{Missing, Mut, Ref};
@@ -96,10 +90,8 @@ mod tests {
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(1000))]
 
-    // build_observations always emits exactly one observation per reference position (so the decoded
-    // state vector stays in reference coordinates), and every position inside a missing range resolves
-    // to Missing regardless of any mutation mapped there -- missing data must not enter the likelihood.
-    // Out-of-range mutations and ranges are absorbed without panicking or growing the vector.
+    // One observation per reference position; missing ranges override mutations; out-of-range
+    // mutations/ranges absorbed without panicking or growing the vector.
     #[test]
     fn test_prop_recombination_build_observations_length_and_missing_precedence(
       ref_len in 1_usize..300,

@@ -54,7 +54,7 @@ Parameters are resolved once per dataset at initialization from the reference tr
 - $\mu_r$ = median pairwise inter-clade leaf distance / $L_{\text{ref}}$ [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L204-L249)]: expected mutation density in a region from a different clade, computed via <a id="gloss-use-8"></a>MRCA <sup>[8](#gloss-8)</sup>-based path distances using per-branch mutation lists (not Auspice divergence units, which may use different scales)
 - $\gamma = 1 / L_{\text{ref}}$ [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L183-L186)]: one expected state switch per genome, so the model only switches when emission evidence is strong
 
-Both $\mu_w$ and $\mu_r$ count substitutions only. Deletions are excluded from per-branch mutation counts because a deletion is a single event treated as missing, not a run of per-site mutations. Insertions remain counted. Branch mutations are parsed structurally -- a token whose query base is a gap is a deletion -- rather than by string suffix, so the same rule that routes deletions to `Missing` in the observation vector also calibrates the rates; a malformed tree annotation surfaces as an error rather than being silently miscounted [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L251-L274)].
+Both $\mu_w$ and $\mu_r$ count substitutions only. Deletions are excluded because a deletion is one event treated as missing, not a run of per-site mutations. Insertions remain counted. Branch mutations are classified structurally (gap in query base = deletion) rather than by string suffix, so the same rule that routes deletions to `Missing` in observations also calibrates the rates. Malformed annotations surface as errors [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L251-L274)].
 
 #### Transition cost and emission evidence
 
@@ -76,7 +76,7 @@ Three invariants are enforced [[src](https://github.com/nextstrain/nextclade/blo
 - $\gamma < 0.5$: at 0.5 the chain is memoryless (uniform transition matrix); above 0.5 it prefers alternation. The spec's $\gamma \ll 1/L$ [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L41)] is stricter for any real genome; $\gamma < 0.5$ is the weakest invariant preventing degenerate decoding
 - $\mu_r > \mu_w$: otherwise a `Mut` observation provides zero or negative evidence for the recombinant state, making the states indistinguishable
 
-These invariants hold on every construction path. Besides the validating constructor, JSON deserialization enforces them: `RecombinationHmmParams` deserializes through an unvalidated wire struct and a `TryFrom` conversion [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L182-L209)], so an invalid instance cannot arise even when the type is read back at the WASM boundary.
+Enforced on every construction path, including JSON deserialization (`TryFrom` on an unvalidated wire struct [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L182-L209)]), so invalid instances cannot exist even across the WASM boundary.
 
 ### Viterbi decoding
 
@@ -98,7 +98,7 @@ $$\log \beta_{l}(k) = \text{log-sum-exp}_{k'} \left[\log T(k' \mid k) + \log P(s
 
 The per-site marginal is $P(h_l = r \mid s) = \exp\!\bigl(\log \alpha_l(r) + \log \beta_l(r) - \log Z\bigr)$ where $\log Z = \text{log-sum-exp}_k\!\bigl(\log \alpha_l(k) + \log \beta_l(k)\bigr)$ [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L160-L175)] [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L434-L489)].
 
-Each Viterbi-decoded interval receives a confidence score equal to the mean posterior marginal within it [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L492-L505)]. The score is bounded in $[0, 1]$: values near 1 indicate high posterior certainty the interval is recombinant; values near 0.5 indicate ambiguous evidence. This is the per-call reliability measure natural to an HMM -- certainty aggregated over all paths -- which Viterbi's single hard state assignment cannot express.
+Each Viterbi-decoded interval receives a confidence score: the mean posterior marginal within it [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L492-L505)]. Near 1 = high certainty, near 0.5 = ambiguous. This is the reliability measure natural to an HMM -- certainty aggregated over all paths -- which Viterbi's hard state assignment cannot express.
 
 ## Pipeline integration
 
@@ -116,7 +116,7 @@ Recombination detection runs per-sequence in the parallel phase, after private m
 
 ### Overrides
 
-Each parameter resolves independently [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L37-L91)]: an explicit `pathogen.json` value is validated [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L147-L155)] and used verbatim, and the corresponding tree estimate is not computed at all; only unset parameters are estimated. An out-of-range explicit override is a dataset-level error. Because the estimate is reached only in the unset arm, a dataset that supplies all three parameters explicitly never invokes the estimator, so a difficult or degenerate tree cannot make such a dataset fail to load. When a parameter is unset and its estimate is undefined (e.g. fewer than two clades for $\mu_r$), detection is skipped; see [Enable/disable](#enabledisable) for how that skip surfaces.
+Each parameter resolves independently [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L37-L91)]: explicit `pathogen.json` values are validated [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L147-L155)] and used verbatim; only unset parameters are estimated. Out-of-range overrides are dataset-level errors. A dataset supplying all three never invokes the estimator, so a degenerate tree cannot block loading. When a parameter is unset and its estimate is undefined (e.g. fewer than two clades for $\mu_r$), detection is skipped; see [Enable/disable](#enabledisable).
 
 ### Freezing parameters into a dataset (data repository)
 
@@ -125,17 +125,17 @@ The run-time estimate above recomputes the parameters from whatever reference tr
 - Inputs: `--input-tree` (Auspice `tree.json`) and `--input-ref` (`reference.fasta`), plus an optional `--pathogen`.
 - With `--pathogen`, the three estimates are written into that file's `recombination` object in place, preserving any existing `enabled` decision and otherwise defaulting it on; without it, the parameters are printed as JSON to stdout for inspection.
 
-The helper reproduces the authoritative definitions exactly, including the details that calibrate the rates: it counts substitutions and insertions but excludes deletions (query-base gaps) from per-branch mutation counts, groups clades by leaves only, computes $\mu_r$ as the median pairwise inter-clade **leaf-to-leaf** distance (not a founder-to-founder distance), and errors on a malformed branch-mutation token rather than miscounting it. Because a frozen value becomes an explicit override, a dataset that freezes all three never invokes the run-time estimator (see [Overrides](#overrides)). Parity is not assumed: it is guarded by tests that transcribe the Rust unit-test fixtures (`packages/nextclade/src/analyze/recombination_estimate.rs`) as the oracle, in `nextclade_data` `tests/test_recombination_params.py`.
+The helper mirrors the Rust estimator exactly: substitutions + insertions (not deletions), leaf-only clade grouping, median pairwise inter-clade **leaf-to-leaf** distance, and strict validation of branch-mutation tokens. Freezing all three bypasses the run-time estimator entirely (see [Overrides](#overrides)). Parity is guarded by tests in `nextclade_data` `tests/test_recombination_params.py` that use the Rust unit-test fixtures as the oracle.
 
 ### Minimum private substitutions to run
 
-The optional `minPrivateSubsToRun` field gates detection per sequence: a sequence carrying fewer than this many private substitutions is skipped entirely -- neither Viterbi nor forward-backward runs, and the sequence receives no `recombination` result [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L375-L421)]. It defaults to 1. A sequence with zero private substitutions has an all-`Ref`/`Missing` observation vector, so the recombinant state can never outscore wildtype and the decoded result is provably empty; the default therefore skips only sequences that carry no recombinant signal at all, making it an exact optimization rather than a heuristic. Raising the threshold above 1 trades sensitivity for throughput and is a per-dataset choice.
+`minPrivateSubsToRun` gates detection per sequence [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L375-L421)]. Default: 1. A sequence with zero private substitutions has an all-`Ref`/`Missing` observation vector, so the recombinant state can never win -- the default is an exact optimization, not a heuristic. Raising it above 1 trades sensitivity for throughput.
 
 ### Enable/disable
 
 Detection is on by default. The `enabled` field of the `recombination` config object in `pathogen.json` is optional and tri-state: absent (or an absent config object) means default-on, `true` is an explicit opt-in, and `false` disables detection [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L403-L414)].
 
-A dataset **cannot support** detection when any of the following holds. These are enumerated by the `RecombinationSkipReason` enum [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L104-L144)], each carrying an actionable, human-readable message:
+A dataset **cannot support** detection when any of the following holds (`RecombinationSkipReason` enum [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L104-L144)]]):
 
 - `NoReferenceTree`: no reference tree, so there are no parent-relative mutations to observe
 - `FewerThanTwoClades`: fewer than two leaf clades, so inter-clade divergence ($\mu_r$) is undefined
@@ -143,10 +143,10 @@ A dataset **cannot support** detection when any of the following holds. These ar
 - `TreeEstimateUnavailable`: a required estimate is undefined for some other degenerate topology
 - `RecombinantRateNotElevated`: a degenerate estimate with $\mu_r \leq \mu_w$, leaving the two states indistinguishable
 
-The outcome when a dataset cannot support detection is decided once, at `Nextclade::new`, and depends on how detection was requested [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/run/nextclade_wasm.rs#L409-L444)]:
+Decided once at `Nextclade::new` [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/run/nextclade_wasm.rs#L409-L444)]:
 
-- **Default-on** (`enabled` absent): silently skipped, like any other tree-dependent step whose inputs are missing
-- **Explicit `enabled: true`**: a dataset-level error at load, whose message names the cause and advises the author to provide the missing input, set the parameters explicitly, or remove `recombination.enabled`. An explicit request that cannot be honored fails loudly rather than silently emitting nothing
+- **Default-on** (`enabled` absent): silently skipped
+- **Explicit `enabled: true`**: dataset-level error naming the cause. An explicit request that cannot be honored fails loudly
 
 Invalid explicit parameters are a dataset-level error regardless of `enabled`: any of the three outside the open interval $(0, 1)$ [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L147-L155)], $\gamma \geq 0.5$, or both $\mu_w$ and $\mu_r$ supplied with $\mu_r \leq \mu_w$ [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L73-L83)].
 
@@ -169,7 +169,7 @@ Recombination is an observation about sequence origin, not a quality metric, so 
 - `length`: nucleotide span
 - `confidence: Option<f64>`: mean posterior $P(\text{recombinant} \mid s)$ within the interval
 
-`RecombinationResult::from_ranges()` returns `Option<Self>`: `None` when no recombinant intervals are found, collapsing "ran, found nothing" into the same representation as "didn't run".
+`RecombinationResult::from_ranges()` returns `Option<Self>`: `None` when no intervals are found, collapsing "ran, found nothing" and "didn't run" into one representation.
 
 ### CSV/TSV columns
 
@@ -202,11 +202,10 @@ The `recombination` field of the per-sequence result object is omitted when `Non
 Recombinant intervals appear as purple rectangles in the sequence view per the [design meeting](https://docs.google.com/document/d/1EGIaSpCdSfgnPO0m4h9_OweGnw8wSGCio3ATK-xfof8?hl=en#heading=h.yh3vb8at25y1):
 
 - Color: purple (`#8f2fd4` fill, `#e0b3ff` border), distinct from mutation and QC markers
-- Confidence visualization: higher confidence produces more opaque fill and border (minimum fill opacity 0.35, minimum border opacity 0.5). When confidence is unavailable, markers render at full opacity
-- Tooltip: "Putative recombinant" with nucleotide range, length, and confidence percentage (when available)
-- Shown in all nucleotide views. The intervals use fixed reference coordinates, so they render identically in the absolute (Reference) view and the relative views (parent, clade founder, custom node) regardless of the "Relative to" selection. Markers count toward the per-view display threshold and are suppressed when it is exceeded
-- No gene or codon labels: recombinant intervals can span multiple genes, so per-gene labels would be misleading
-- No leading/trailing `Missing` annotations: handled by [interval trimming](#interval-trimming)
+- Confidence mapped to opacity (min fill 0.35, min border 0.5). Full opacity when confidence unavailable
+- Tooltip: range, length, confidence percentage
+- Shown in all nucleotide views with fixed reference coordinates (identical rendering regardless of "Relative to" selection). Markers count toward the per-view display threshold
+- No gene labels (intervals span multiple genes) or `Missing` annotations (handled by [interval trimming](#interval-trimming))
 
 The results table includes a "Rec." column (placed after clade columns) showing total recombinant length:
 
@@ -234,7 +233,7 @@ Leading and trailing `Missing` positions are trimmed from each decoded interval 
 
 ### Forward-backward confidence
 
-Forward-backward [[prototype](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/code/recomb_inference/forward_backward.py#L115-L192)] [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L97-L202)] runs conditionally: only when Viterbi finds at least one recombinant region. When the decoded state sequence is entirely wildtype, forward-backward is skipped and confidence fields are `None`, avoiding the $O(L)$ memory cost of two full message arrays ($\alpha$ and $\beta$) for the common case. Per-site marginals are not surfaced in output -- only the per-interval mean is stored on each `RecombinationRegion`.
+Forward-backward [[prototype](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/code/recomb_inference/forward_backward.py#L115-L192)] [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L97-L202)] runs only when Viterbi finds at least one recombinant region. All-wildtype sequences skip it entirely, avoiding two $O(L)$ message arrays for the common case. Only per-interval mean marginals are stored, not per-site.
 
 ### Parameter validation
 
@@ -242,7 +241,7 @@ Three invariants beyond the prototype's $[0, 1]$ range check; see [Validation](#
 
 ## Deferred
 
-Design questions raised and deliberately postponed. Each is numbered so later deferrals can be appended without renumbering the earlier ones.
+Deliberately postponed. Numbered for stable references.
 
 ### 1. Per-segment placement after a breakpoint
 

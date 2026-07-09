@@ -1,9 +1,4 @@
-//! Shared fixtures and oracles for the recombination and recombination-estimate test modules.
-//!
-//! Split out so the topic-scoped `test_recombination_*` files and `test_recombination_estimate`
-//! reuse the same observation builders, tree fixtures, and independent brute-force oracles without
-//! duplicating them. The whole `__tests__` subtree is `#[cfg(test)]`-gated by its parent module, so
-//! these `pub` items are reachable only within the test build.
+//! Shared fixtures and oracles for the recombination test modules.
 
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::letter_ranges::NucRange;
@@ -17,19 +12,16 @@ use crate::coord::range::NucRefGlobalRange;
 use crate::tree::tree::{AuspiceGraph, AuspiceTree};
 use indoc::indoc;
 
-/// Reference length used by the estimate tests. Fixtures place mutations well inside this bound so the
-/// per-site rates are simple `count / REF_LEN` fractions.
+/// Reference length for estimate tests. Rates are simple `count / REF_LEN` fractions.
 pub const REF_LEN: usize = 100;
 
-// Test-scale parameters chosen so short fixtures decode with clean interval boundaries. At
-// genome scale gamma ~ 1/L makes state switches so costly that boundaries only resolve over
-// hundreds of sites (correct sticky-state behavior), which cannot be exercised on L~50 inputs.
-// Here the per-site signals are:
+// Test-scale parameters: short fixtures decode with clean interval boundaries.
+// At genome scale, gamma ~ 1/L makes state switches too costly for L~50 inputs.
+// Per-site signals:
 //   switch cost      c   = ln((1-gamma)/gamma) = ln(0.95/0.05) ~ 2.94 nats
 //   Mut -> recombinant    = ln(mu_r/mu_w)      = ln(0.5/0.05)  ~ 2.30 nats
 //   Ref -> wildtype       = ln((1-mu_w)/(1-mu_r)) = ln(0.95/0.5) ~ 0.64 nats
-// so a block needs > ~3 Mut to overcome one switch (> ~6 to open and close an interval), and a
-// flank needs > ~5 Ref to justify switching back to wildtype.
+// A block needs > ~3 Mut to overcome one switch (> ~6 to open and close), flanks need > ~5 Ref.
 pub fn test_params() -> RecombinationHmmParams {
   RecombinationHmmParams::new(0.05, 0.05, 0.5).unwrap()
 }
@@ -75,8 +67,7 @@ pub fn cfg_min_subs(n: usize) -> RecombinationConfig {
   }
 }
 
-/// Total log-probability of a hidden-state path under the model: uniform prior, per-site emissions,
-/// and per-step transitions. Independent of the Viterbi implementation, so it is a valid oracle.
+/// Total log-probability of a path: uniform prior + emissions + transitions. Independent oracle.
 pub fn path_log_prob(obs: &[RecombinationObs], states: &[bool], params: &RecombinationHmmParams) -> f64 {
   let log_stay = (1.0 - params.gamma()).ln();
   let log_switch = params.gamma().ln();
@@ -93,10 +84,8 @@ pub fn path_log_prob(obs: &[RecombinationObs], states: &[bool], params: &Recombi
   total
 }
 
-/// Independent brute-force posterior marginals: enumerate all `2^L` hidden-state paths, weight each
-/// by its joint log-probability [`path_log_prob`], and marginalize per site into
-/// `[P(wildtype), P(recombinant)]`. `O(2^L)`, tractable only for short vectors, but a genuine oracle
-/// for the forward-backward recurrence -- a different algorithm than the alpha/beta dynamic program.
+/// Brute-force posterior marginals over all `2^L` paths. `O(2^L)` -- tractable only for short
+/// vectors, but a genuine oracle (exhaustive enumeration, not the alpha/beta recurrence).
 pub fn bruteforce_marginals(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<[f64; 2]> {
   let n = obs.len();
   let paths: Vec<Vec<bool>> = (0..(1_u32 << n))
@@ -123,7 +112,7 @@ pub fn bruteforce_marginals(obs: &[RecombinationObs], params: &RecombinationHmmP
     .collect()
 }
 
-/// Unwrap a resolution to its parameters, panicking with context otherwise.
+/// Unwrap a resolution to its parameters, panicking if skipped.
 pub fn resolved(resolution: RecombinationResolution) -> RecombinationHmmParams {
   match resolution {
     RecombinationResolution::Resolved(params) => params,
@@ -210,10 +199,9 @@ pub fn three_clade_tree() -> AuspiceGraph {
   AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
 }
 
-// Nested clades: "child" is nested inside "parent", their most recent common ancestors one mutation
-// apart, but the "child" leaves carry large terminal branches. This exercises that mu_r is the
-// inter-clade leaf distance (mu_r=0.09 here), driven by the leaves rather than by how close the
-// clade ancestors sit on the tree.
+// Nested clades: "child" inside "parent", ancestors one mutation apart, but leaves carry large
+// terminal branches. Exercises that mu_r tracks inter-clade leaf distance (0.09), not ancestor
+// proximity.
 //
 //   root (0 muts)
 //   |-- P (1 mut, clade "parent")
@@ -300,12 +288,9 @@ pub fn single_clade_tree() -> AuspiceGraph {
   AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
 }
 
-// Augur/TreeTime-style reference tree whose `nuc` branch mutations include a deletion (`A15-`),
-// which Nextclade-built trees never emit. C3: deletions are excluded from the mutation count.
-// Two clades A, B. Terminal branches by substitution count (deletions ignored): A1=2, B=1, B1=1.
-// With the deletion on B1 excluded, its terminal branch is 1 (the substitution A40C only), so mean
-// terminal length = (2+1)/2 = 1.5 -> mu_w = 0.015. Were the deletion counted, B1 would be 2 and the
-// mean would differ.
+// Augur/TreeTime tree with a deletion (`A15-`) on B1's branch. Deletions are excluded from the
+// mutation count. Terminal branches by substitution only: A1=2, B1=1 -> mean 1.5 -> mu_w = 0.015.
+// Were the deletion counted, B1 would be 2 and the mean would differ.
 pub fn external_tree_with_deletion() -> AuspiceGraph {
   let json = indoc! {r#"{
     "version": "v2",
@@ -330,9 +315,8 @@ pub fn external_tree_with_deletion() -> AuspiceGraph {
   AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
 }
 
-// A tree where a clade label appears only on an internal node, not on any leaf. Leaves carry a
-// single clade ("A"), so leaf-clade count is 1 and mu_r is undefined. C7: the skip reason must be
-// FewerThanTwoClades (derived from leaf clades), not TreeEstimateUnavailable.
+// Clade "B" labels only the internal node, not leaves. Leaf-clade count is 1, so mu_r is undefined.
+// Skip reason must be FewerThanTwoClades (from leaf clades), not TreeEstimateUnavailable.
 pub fn internal_only_second_clade_tree() -> AuspiceGraph {
   let json = indoc! {r#"{
     "version": "v2",
@@ -382,8 +366,8 @@ pub fn two_clade_no_mutations_tree() -> AuspiceGraph {
   AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
 }
 
-// Two clades; leaf B1 carries a substitution and an insertion ("-10A"). Insertions have a query base
-// present (not a gap), so they are counted alongside substitutions: A1=2, B1=2 -> mean 2 -> mu_w=0.02.
+// B1 carries a substitution and an insertion ("-10A"). Insertions count (query base present):
+// A1=2, B1=2 -> mean 2 -> mu_w=0.02.
 pub fn tree_with_insertion() -> AuspiceGraph {
   let json = indoc! {r#"{
     "version": "v2",

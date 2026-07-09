@@ -1,6 +1,5 @@
-//! Resolving the recombination HMM parameters from `pathogen.json` overrides and tree-based
-//! fallbacks: override precedence, skip reasons, hard errors, and the `compute_median`/`accept_as_probability`
-//! numeric helpers.
+//! Resolving HMM parameters: `pathogen.json` override precedence, skip reasons, hard errors, and
+//! the `compute_median`/`accept_as_probability` helpers.
 
 #[cfg(test)]
 mod tests {
@@ -22,9 +21,8 @@ mod tests {
   use rand::seq::SliceRandom;
   use rstest::rstest;
 
-  // The estimator does deterministic integer arithmetic (small counts divided by ref_len), so results
-  // are bit-identical to the expected literals; a `max_ulps = 2` bound compares them exactly while
-  // staying robust if a future estimator step introduces a non-exact operation.
+  // Deterministic integer arithmetic: results are bit-identical. max_ulps = 2 guards against future
+  // non-exact operations.
   #[test]
   fn test_recombination_estimate_all_params_from_tree() {
     let graph = two_clade_tree();
@@ -153,10 +151,9 @@ mod tests {
 
   #[test]
   fn test_recombination_estimate_three_clades_uses_nonroot_mrca() {
-    // Three single-leaf clades where A1 and B1 share a non-root MRCA `I`, exercising the
-    // `- 2 * compute_root_distance(mrca)` term. Root distances: A1=3, B1=5, C1=6. Leaf-pair distances:
-    //   A1<->B1 through I(rd 1): 3+5-2 = 6;  A1<->C1 through root: 9;  B1<->C1 through root: 11.
-    // median{6, 9, 11} = 9 -> mu_r = 0.09. Terminal branches 2, 4, 6 -> mean 4 -> mu_w = 0.04.
+    // A1 and B1 share non-root MRCA `I`, exercising `- 2 * compute_root_distance(mrca)`.
+    // Leaf distances: A1<->B1=6, A1<->C1=9, B1<->C1=11; median=9 -> mu_r=0.09.
+    // Terminal branches 2, 4, 6 -> mean 4 -> mu_w=0.04.
     let graph = three_clade_tree();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
     pretty_assert_ulps_eq!(4.0 / 100.0, params.mu_w(), max_ulps = 2);
@@ -165,13 +162,10 @@ mod tests {
 
   #[test]
   fn test_recombination_estimate_nested_clades_uses_leaf_distance() {
-    // Nested clades whose clade ancestors sit one mutation apart but whose leaves carry large terminal
-    // branches. mu_r reflects the actual inter-clade leaf divergence the HMM will encounter, not the
-    // small ancestor separation.
-    // Leaf pairs across clades:
-    //   parent<->child: {10, 8, 10, 8}  parent<->other: {6, 6}  child<->other: {14, 12}
-    // sorted: {6, 6, 8, 8, 10, 10, 12, 14} -> median = (8+10)/2 = 9 -> mu_r = 0.09
-    // Terminal branches: 1, 8, 6, 1, 4 -> mean = 4 -> mu_w = 0.04
+    // Ancestors one mutation apart, but leaves carry large terminal branches. mu_r tracks leaf
+    // divergence, not ancestor proximity.
+    // Cross-clade pairs: {10,8,10,8,6,6,14,12} -> median = (8+10)/2 = 9 -> mu_r = 0.09
+    // Terminal branches: 1,8,6,1,4 -> mean 4 -> mu_w = 0.04
     let graph = nested_clade_tree();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
     pretty_assert_ulps_eq!(4.0 / 100.0, params.mu_w(), max_ulps = 2);
@@ -298,9 +292,7 @@ mod tests {
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(512))]
 
-    // median depends only on the multiset of inputs, so it is invariant under permutation; it always
-    // lies within the value range; and for odd length it is one of the inputs. A median that failed to
-    // sort, or that computed the wrong index, would break at least one of these.
+    // Permutation-invariant, within [min, max], and for odd length is one of the inputs.
     #[test]
     fn test_prop_recombination_estimate_median_invariants(
       values in proptest::collection::vec(-1e6_f64..1e6, 1..50_usize),
@@ -326,9 +318,7 @@ mod tests {
       }
     }
 
-    // A pathogen.json override is used verbatim: when all three parameters are supplied, the estimator
-    // is never consulted and the resolved parameters are bit-identical to the overrides, for any valid
-    // parameter triple (gamma < 0.5, 0 < mu_w < mu_r < 1). The tree fixture is irrelevant in this arm.
+    // All three params supplied -> estimator not consulted, resolved values bit-identical to overrides.
     #[test]
     fn test_prop_recombination_estimate_override_verbatim(
       gamma in 1e-6_f64..0.5,

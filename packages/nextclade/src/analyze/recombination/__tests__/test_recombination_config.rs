@@ -1,5 +1,4 @@
-//! [`RecombinationConfig`] semantics: default-on enablement, explicit-enable detection, serde
-//! defaults, and the minimum private-substitution threshold.
+//! `RecombinationConfig` semantics: enablement, serde defaults, minimum private-sub threshold.
 
 #[cfg(test)]
 mod tests {
@@ -20,8 +19,7 @@ mod tests {
 
   #[rustfmt::skip]
   #[rstest]
-  // is_explicitly_enabled is true ONLY for `enabled: true`; the default-on states (absent config or
-  // omitted `enabled`) are not explicit, so they do not warrant a skip warning.
+  // is_explicitly_enabled is true only for `enabled: true`; default-on states are not explicit.
   #[case::absent(None,                                                                                       false)]
   #[case::default(Some(RecombinationConfig::default()),                                                      false)]
   #[case::explicit_on(Some(RecombinationConfig { enabled: Some(true),  ..RecombinationConfig::default() }),  true)]
@@ -32,8 +30,7 @@ mod tests {
 
   #[rustfmt::skip]
   #[rstest]
-  // `enabled` is Option<bool>: absent or omitted deserializes to None (default-on), only an explicit
-  // value is Some. `is_enabled` treats None and Some(true) as enabled, Some(false) as disabled.
+  // `enabled`: None (absent/omitted) = default-on, Some(true) = on, Some(false) = off.
   #[case::empty_object("{}",                    None,        true)]
   #[case::enabled_omitted(r#"{"gamma": 0.01}"#, None,        true)]
   #[case::enabled_true(r#"{"enabled": true}"#,  Some(true),  true)]

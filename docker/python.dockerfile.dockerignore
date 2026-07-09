@@ -1,4 +1,4 @@
-# Build context whitelist for docker/python.dockerfile. Only COPYed files included.
+# Build context whitelist for docker/python.dockerfile.
 *
 !/docker/files/create-user
 !/docker/files/.conda
