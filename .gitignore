@@ -32,6 +32,6 @@
 \.Trashes
 \.vscode/*
 ehthumbs.db
-node_modules/
-proptest-regressions/
+proptest-regressions
+node_modules
 Thumbs.db
