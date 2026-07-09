@@ -18,7 +18,7 @@ use crate::coord::range::NucRefGlobalRange;
 /// included because a masked position that differs from the parent would otherwise be scored as `Mut`
 /// and could manufacture a false recombinant call at a homoplasic site. Extracted from the
 /// per-sequence pipeline so this chaining is guarded by a direct test rather than an inline closure.
-pub fn recombination_missing_ranges(
+pub(crate) fn recombination_missing_ranges(
   missing: &[NucRange],
   non_acgtns: &[NucRange],
   deletions: &[NucDelRange],
@@ -40,7 +40,7 @@ pub fn recombination_missing_ranges(
 /// base (N, ambiguous character, deletion, or placement-masked site), and `Ref` otherwise.
 /// `Missing` is final: a non-comparable position stays `Missing` even if a mutation also maps to it,
 /// because missing data must not contribute to the likelihood.
-pub fn build_observations(
+pub(crate) fn build_observations(
   ref_len: usize,
   alignment_range: &NucRefGlobalRange,
   missing_ranges: &[NucRefGlobalRange],

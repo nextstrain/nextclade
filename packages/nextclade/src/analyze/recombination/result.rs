@@ -38,7 +38,7 @@ pub struct RecombinationResult {
 impl RecombinationResult {
   /// Summarize decoded recombinant ranges with optional per-interval confidence scores.
   /// Returns `None` when the list is empty (detection ran but found no recombinant intervals).
-  pub fn from_ranges(ranges: Vec<NucRefGlobalRange>, confidences: Option<&[f64]>) -> Option<Self> {
+  pub(crate) fn from_ranges(ranges: Vec<NucRefGlobalRange>, confidences: Option<&[f64]>) -> Option<Self> {
     if ranges.is_empty() {
       return None;
     }
