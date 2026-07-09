@@ -242,3 +242,62 @@ pub static CSV_POSSIBLE_COLUMNS: LazyLock<Vec<String>> = LazyLock::new(|| {
     .map(|(column, _)| column.clone())
     .collect_vec()
 });
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::o;
+  use indexmap::indexmap;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  // An empty selection and the explicit `all` category both resolve to the default configuration, which
+  // enables every column category, recombination included.
+  #[rstest]
+  #[case::empty(vec![])]
+  #[case::all(vec![o!("all")])]
+  fn test_nextclade_csv_column_config_new_is_default(#[case] selection: Vec<String>) {
+    assert_eq!(CsvColumnConfig::default(), CsvColumnConfig::new(&selection).unwrap());
+  }
+
+  // The default configuration enables the recombination columns.
+  #[test]
+  fn test_nextclade_csv_column_config_default_enables_recombination() {
+    assert!(CsvColumnConfig::default().include_recombination);
+  }
+
+  // Selecting the `recombination` category (kebab-case per the enum's strum serialization) sets its
+  // include flag and puts the category into the resolved column map.
+  #[test]
+  fn test_nextclade_csv_column_config_new_recombination_category_selected() {
+    let config = CsvColumnConfig::new(&[o!("recombination")]).unwrap();
+    assert!(config.include_recombination);
+    assert!(config.categories.contains_key(&CsvColumnCategory::Recombination));
+  }
+
+  // Recombination is an independent per-category toggle: selecting an unrelated category leaves it off.
+  #[test]
+  fn test_nextclade_csv_column_config_new_other_category_excludes_recombination() {
+    let config = CsvColumnConfig::new(&[o!("general")]).unwrap();
+    assert!(!config.include_recombination);
+    assert!(!config.categories.contains_key(&CsvColumnCategory::Recombination));
+  }
+
+  // Oracle: kb/decisions/recombination-detection.md "CSV/TSV columns" enumerates exactly these six
+  // columns for the Recombination category, all enabled by default.
+  #[test]
+  fn test_nextclade_csv_column_config_default_map_recombination_columns() {
+    let expected = indexmap! {
+      o!("recombination.regions") => true,
+      o!("recombination.regionConfidences") => true,
+      o!("recombination.totalRegions") => true,
+      o!("recombination.totalLength") => true,
+      o!("recombination.longestRegion.range") => true,
+      o!("recombination.longestRegion.length") => true,
+    };
+    assert_eq!(
+      Some(&expected),
+      CSV_COLUMN_CONFIG_MAP_DEFAULT.get(&CsvColumnCategory::Recombination)
+    );
+  }
+}

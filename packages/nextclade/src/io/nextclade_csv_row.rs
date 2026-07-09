@@ -778,3 +778,94 @@ fn format_aa_motifs(motifs: &[AaMotif]) -> String {
     .map(|AaMotif { cds, position, seq, .. }| format!("{}:{}:{seq}", cds, position + 1))
     .join(";")
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::analyze::recombination::RecombinationRegion;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  fn ranges(pairs: &[(usize, usize)]) -> Vec<NucRefGlobalRange> {
+    pairs
+      .iter()
+      .map(|&(begin, end)| NucRefGlobalRange::from_usize(begin, end))
+      .collect()
+  }
+
+  // Oracle: kb/decisions/recombination-detection.md "CSV/TSV columns" -- `recombination.regions` is a
+  // comma-delimited list of `begin-end` ranges in 1-based closed coordinates. The 1-based closed
+  // rendering comes from `Range`'s Display impl (begin+1..end), so a 0-based half-open [100, 200)
+  // prints as `101-200` and a single-position [100, 101) prints as `101`.
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::single(          &[(100, 200)],              "101-200")]
+  #[case::multiple(        &[(100, 200), (300, 350)],  "101-200,301-350")]
+  #[case::single_position( &[(100, 101)],              "101")]
+  #[trace]
+  fn test_nextclade_csv_row_format_recombinant_regions_some(#[case] pairs: &[(usize, usize)], #[case] expected: &str) {
+    let result = RecombinationResult::from_ranges(ranges(pairs), None).unwrap();
+    assert_eq!(expected, format_recombinant_regions(Some(&result), ARRAY_ITEM_DELIMITER));
+  }
+
+  // A `None` result is the "detection did not run / found nothing" case and renders as an empty cell.
+  #[test]
+  fn test_nextclade_csv_row_format_recombinant_regions_none_is_empty() {
+    assert_eq!("", format_recombinant_regions(None, ARRAY_ITEM_DELIMITER));
+  }
+
+  // Oracle: kb/decisions/recombination-detection.md "CSV/TSV columns" -- `recombination.regionConfidences`
+  // is a comma-delimited list of per-region confidences at 3 decimal places.
+  #[test]
+  fn test_nextclade_csv_row_format_recombinant_region_confidences_three_decimals() {
+    let result = RecombinationResult::from_ranges(ranges(&[(100, 200), (300, 350)]), Some(&[0.95, 0.5])).unwrap();
+    assert_eq!(
+      "0.950,0.500",
+      format_recombinant_region_confidences(Some(&result), ARRAY_ITEM_DELIMITER)
+    );
+  }
+
+  // A `None` result renders as an empty cell.
+  #[test]
+  fn test_nextclade_csv_row_format_recombinant_region_confidences_none_is_empty() {
+    assert_eq!("", format_recombinant_region_confidences(None, ARRAY_ITEM_DELIMITER));
+  }
+
+  // Regions carrying no confidence (forward-backward did not produce scores) are filtered out, so the
+  // cell is empty rather than listing placeholder values.
+  #[test]
+  fn test_nextclade_csv_row_format_recombinant_region_confidences_absent_is_empty() {
+    let result = RecombinationResult::from_ranges(ranges(&[(100, 200)]), None).unwrap();
+    assert_eq!(
+      "",
+      format_recombinant_region_confidences(Some(&result), ARRAY_ITEM_DELIMITER)
+    );
+  }
+
+  // The confidence list contains one entry per region that has a score; a region whose `confidence` is
+  // `None` contributes nothing. Built directly because the `from_ranges` constructor sets confidence
+  // uniformly for all regions, so a per-region mix is only reachable by constructing the value.
+  #[test]
+  fn test_nextclade_csv_row_format_recombinant_region_confidences_skips_regions_without_score() {
+    let scored = RecombinationRegion {
+      range: NucRefGlobalRange::from_usize(100, 200),
+      length: 100,
+      confidence: Some(0.95),
+    };
+    let unscored = RecombinationRegion {
+      range: NucRefGlobalRange::from_usize(300, 350),
+      length: 50,
+      confidence: None,
+    };
+    let result = RecombinationResult {
+      total_regions: 2,
+      total_length: 150,
+      longest_region: scored.clone(),
+      regions: vec![scored, unscored],
+    };
+    assert_eq!(
+      "0.950",
+      format_recombinant_region_confidences(Some(&result), ARRAY_ITEM_DELIMITER)
+    );
+  }
+}
