@@ -1,0 +1,18 @@
+{
+    // Text Editor
+    // @jupyterlab/fileeditor-extension:plugin
+    // Text editor settings.
+    // ***************************************
+
+    // Editor Configuration
+    // The configuration for all text editors; it will override the CodeMirror default configuration.
+    // If `fontFamily`, `fontSize` or `lineHeight` are `null`,
+    // values from current theme are used.
+    "editorConfig": {
+        "highlightActiveLine": false,
+        "highlightTrailingWhitespace": true,
+        "highlightWhitespace": true,
+        "autoClosingBrackets": true,
+        "theme": "jupyter"
+    }
+}
