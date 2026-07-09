@@ -1,0 +1,7 @@
+# Build context whitelist for docker/python.dockerfile. Only COPYed files included.
+*
+!/docker/files/create-user
+!/docker/files/.conda
+!/docker/files/.jupyter
+!/docker/files/start-jupyter
+!/requirements.txt
