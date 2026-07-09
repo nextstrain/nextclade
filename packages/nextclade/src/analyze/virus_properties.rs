@@ -19,9 +19,9 @@ use crate::{o, vec_of_owned};
 use eyre::{Report, WrapErr};
 use maplit::btreemap;
 use ordered_float::OrderedFloat;
-use schemars;
 use semver::Version;
 use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
 use std::collections::BTreeMap;
 use std::path::Path;
 use validator::Validate;
@@ -52,6 +52,169 @@ pub struct PathogenAttributes {
 impl PathogenAttributes {
   pub fn is_default(&self) -> bool {
     self == &Self::default()
+  }
+}
+
+/// Mutation event filter in mutation pattern analysis.
+///
+/// Each event selects one class of private mutations to include in a pattern. More event variants can be added without
+/// changing the surrounding `mutationPatterns.patterns[]` structure.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(tag = "type", rename_all = "camelCase")]
+#[schemars(example = "MutationPatternEvent::example")]
+pub enum MutationPatternEvent {
+  /// Nucleotide substitution event, selected by reference nucleotide, query nucleotide, and optional reference motifs.
+  NucSubstitution(MutationPatternNucSubstitution),
+}
+
+impl MutationPatternEvent {
+  pub fn example() -> Self {
+    Self::NucSubstitution(MutationPatternNucSubstitution::example())
+  }
+
+  pub const fn matches_all_contexts(&self) -> bool {
+    match self {
+      Self::NucSubstitution(event) => event.motifs.is_empty(),
+    }
+  }
+}
+
+/// Filter for selecting nucleotide substitutions in mutation pattern analysis.
+///
+/// A substitution matches this event when its reference nucleotide is in `ref`, its query nucleotide is in `qry`, and at
+/// least one motif matches the surrounding reference sequence. If `motifs` is empty, the event matches without a sequence
+/// context restriction.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(example = "MutationPatternNucSubstitution::example")]
+pub struct MutationPatternNucSubstitution {
+  /// Reference nucleotides to match at the mutated position.
+  #[serde(rename = "ref")]
+  pub ref_nucs: Vec<Nuc>,
+
+  /// Query nucleotides to match at the mutated position.
+  pub qry: Vec<Nuc>,
+
+  /// Regular expressions matched against the reference sequence. A mutation matches a motif when the regex match spans
+  /// the mutated position. Use IUPAC nucleotide letters directly in the regex, for example `TC[AT]` for a TCW motif.
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub motifs: Vec<String>,
+}
+
+impl MutationPatternNucSubstitution {
+  pub fn example() -> Self {
+    Self {
+      ref_nucs: vec![Nuc::A, Nuc::T],
+      qry: vec![Nuc::G, Nuc::C],
+      motifs: vec_of_owned!["A[ACGT]G", "T[ACGT]C"],
+    }
+  }
+}
+
+/// Clustering rule applied to events matching one mutation pattern.
+///
+/// Clustering is pattern-local. It decides which matched events are reported as dense clusters in this pattern. It does
+/// not change the global `qc.snpClusters` rule unless the QC rule itself is configured separately.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, SmartDefault, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+#[schemars(example = "MutationPatternClusterConfig::example")]
+pub struct MutationPatternClusterConfig {
+  /// Sliding nucleotide window size. A cluster is detected when `cutoff` matched events fall within this many reference
+  /// nucleotides.
+  #[default = 100]
+  pub window_size: usize,
+
+  /// Minimum number of matched events in one sliding window required to report a cluster.
+  #[default = 5]
+  pub cutoff: usize,
+}
+
+impl MutationPatternClusterConfig {
+  pub const fn example() -> Self {
+    Self {
+      window_size: 100,
+      cutoff: 5,
+    }
+  }
+}
+
+/// Named mutation pattern: event filters, optional clustering, and display metadata.
+///
+/// Dataset authors can define multiple patterns to separate biologically different mutation processes, such as
+/// ADAR-like A-to-I editing and APOBEC-like cytosine deamination.
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(example = "MutationPatternConfig::example")]
+pub struct MutationPatternConfig {
+  /// Stable machine-readable identifier. This value appears in JSON and TSV output.
+  pub id: String,
+
+  /// Human-readable name shown in Nextclade Web tooltips and reports.
+  pub name: String,
+
+  /// Optional explanatory text shown together with the pattern result.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub description: Option<String>,
+
+  /// Event filters included in this pattern. If empty, the pattern matches all private nucleotide substitutions.
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub events: Vec<MutationPatternEvent>,
+
+  /// Optional pattern-local clustering rule. If omitted, Nextclade reports matches and type counts, but no clusters for
+  /// this pattern.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub cluster: Option<MutationPatternClusterConfig>,
+}
+
+impl MutationPatternConfig {
+  pub fn example() -> Self {
+    Self {
+      id: o!("adar"),
+      name: o!("ADAR-like RNA editing"),
+      description: Some(o!("ADAR-mediated A-to-I editing observed as A>G and complementary T>C")),
+      events: vec![MutationPatternEvent::NucSubstitution(
+        MutationPatternNucSubstitution::example(),
+      )],
+      cluster: Some(MutationPatternClusterConfig::example()),
+    }
+  }
+}
+
+/// Configuration for mutation pattern analysis. Detects private mutations matching biologically meaningful mutation
+/// type and reference-context rules. Pattern-specific clustering is independent from global `qc.snpClusters`.
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(example = "MutationPatternsConfig::example")]
+pub struct MutationPatternsConfig {
+  /// Mutation patterns evaluated independently for every analyzed sequence.
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub patterns: Vec<MutationPatternConfig>,
+}
+
+impl MutationPatternsConfig {
+  pub fn example() -> Self {
+    Self {
+      patterns: vec![
+        MutationPatternConfig::example(),
+        MutationPatternConfig {
+          id: o!("apobec"),
+          name: o!("APOBEC-like cytosine deamination"),
+          description: Some(o!(
+            "APOBEC-like cytosine deamination observed as C>T and complementary G>A"
+          )),
+          events: vec![MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution {
+            ref_nucs: vec![Nuc::C, Nuc::G],
+            qry: vec![Nuc::T, Nuc::A],
+            motifs: vec_of_owned!["TC[AT]", "[AT]GA"],
+          })],
+          cluster: Some(MutationPatternClusterConfig {
+            window_size: 50,
+            cutoff: 4,
+          }),
+        },
+      ],
+    }
   }
 }
 
@@ -94,6 +257,11 @@ pub struct VirusProperties {
   /// Quality control rule configuration. If absent, no QC checks are performed.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub qc: Option<QcConfig>,
+
+  /// Mutation pattern analysis configuration. When present, detects private mutation patterns such as enzyme-associated
+  /// clustered substitution signatures.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub mutation_patterns: Option<MutationPatternsConfig>,
 
   /// General analysis parameters (e.g. includeReference, inOrder, replaceUnknown).
   #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -416,6 +584,7 @@ impl VirusProperties {
       cds_order_preference: vec_of_owned!["HA1", "HA2"],
       mut_labels: LabelledMutationsConfig::example(),
       qc: Some(QcConfig::example()),
+      mutation_patterns: Some(MutationPatternsConfig::example()),
       general_params: None,
       alignment_params: None,
       tree_builder_params: None,

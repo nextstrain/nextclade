@@ -261,9 +261,9 @@ definitions:
           cutoff: 15.0
         snpClusters:
           enabled: true
+          scoreWeight: 50.0
           windowSize: 100
           clusterCutOff: 5
-          scoreWeight: 50.0
         frameShifts:
           enabled: true
           ignoredFrameShifts:
@@ -280,6 +280,42 @@ definitions:
           - cdsName: ORF3a
             codon: 238
           scoreWeight: 75.0
+      mutationPatterns:
+        patterns:
+        - id: adar
+          name: ADAR-like RNA editing
+          description: ADAR-mediated A-to-I editing observed as A>G and complementary T>C
+          events:
+          - type: nucSubstitution
+            ref:
+            - A
+            - T
+            qry:
+            - G
+            - C
+            motifs:
+            - A[ACGT]G
+            - T[ACGT]C
+          cluster:
+            windowSize: 100
+            cutoff: 5
+        - id: apobec
+          name: APOBEC-like cytosine deamination
+          description: APOBEC-like cytosine deamination observed as C>T and complementary G>A
+          events:
+          - type: nucSubstitution
+            ref:
+            - C
+            - G
+            qry:
+            - T
+            - A
+            motifs:
+            - TC[AT]
+            - '[AT]GA'
+          cluster:
+            windowSize: 50
+            cutoff: 4
       phenotypeData:
       - name: receptor_binding
         nameFriendly: Receptor Binding
@@ -358,6 +394,11 @@ definitions:
         description: Quality control rule configuration. If absent, no QC checks are performed.
         anyOf:
         - $ref: '#/definitions/QcConfig'
+        - type: 'null'
+      mutationPatterns:
+        description: Mutation pattern analysis configuration. When present, detects private mutation patterns such as enzyme-associated clustered substitution signatures.
+        anyOf:
+        - $ref: '#/definitions/MutationPatternsConfig'
         - type: 'null'
       generalParams:
         description: General analysis parameters (e.g. includeReference, inOrder, replaceUnknown).
@@ -543,9 +584,9 @@ definitions:
         cutoff: 15.0
       snpClusters:
         enabled: true
+        scoreWeight: 50.0
         windowSize: 100
         clusterCutOff: 5
-        scoreWeight: 50.0
       frameShifts:
         enabled: true
         ignoredFrameShifts:
@@ -597,9 +638,9 @@ definitions:
         description: Configuration for the "SNP clusters" (C) rule
         default:
           enabled: false
+          scoreWeight: 0.0
           windowSize: 0
           clusterCutOff: 0
-          scoreWeight: 0.0
         allOf:
         - $ref: '#/definitions/QcRulesConfigSnpClusters'
       frameShifts:
@@ -714,31 +755,31 @@ definitions:
     description: Configuration for QC rule "SNP clusters"
     examples:
     - enabled: true
+      scoreWeight: 50.0
       windowSize: 100
       clusterCutOff: 5
-      scoreWeight: 50.0
     type: object
     properties:
       enabled:
         default: false
         type: boolean
-      windowSize:
-        description: Size of the sliding window (in nucleotides) used to count private mutations
-        default: 0
-        type: integer
-        format: uint
-        minimum: 0.0
-      clusterCutOff:
-        description: Number of private mutations within a window above which the window is flagged as a cluster
-        default: 0
-        type: integer
-        format: uint
-        minimum: 0.0
       scoreWeight:
         description: QC score added per detected cluster
         default: 0.0
         type: number
         format: double
+      windowSize:
+        description: Size of the sliding nucleotide window for global SNP cluster detection
+        default: 0
+        type: integer
+        format: uint
+        minimum: 0.0
+      clusterCutOff:
+        description: Number of substitutions within a window required to count as a global SNP cluster
+        default: 0
+        type: integer
+        format: uint
+        minimum: 0.0
   QcRulesConfigFrameShifts:
     description: Configuration for QC rule "frame shifts"
     examples:
@@ -824,6 +865,195 @@ definitions:
         type: string
       codon:
         description: 0-indexed codon position of the stop codon within the CDS
+        type: integer
+        format: uint
+        minimum: 0.0
+  MutationPatternsConfig:
+    description: Configuration for mutation pattern analysis. Detects private mutations matching biologically meaningful mutation type and reference-context rules. Pattern-specific clustering is independent from global `qc.snpClusters`.
+    examples:
+    - patterns:
+      - id: adar
+        name: ADAR-like RNA editing
+        description: ADAR-mediated A-to-I editing observed as A>G and complementary T>C
+        events:
+        - type: nucSubstitution
+          ref:
+          - A
+          - T
+          qry:
+          - G
+          - C
+          motifs:
+          - A[ACGT]G
+          - T[ACGT]C
+        cluster:
+          windowSize: 100
+          cutoff: 5
+      - id: apobec
+        name: APOBEC-like cytosine deamination
+        description: APOBEC-like cytosine deamination observed as C>T and complementary G>A
+        events:
+        - type: nucSubstitution
+          ref:
+          - C
+          - G
+          qry:
+          - T
+          - A
+          motifs:
+          - TC[AT]
+          - '[AT]GA'
+        cluster:
+          windowSize: 50
+          cutoff: 4
+    type: object
+    properties:
+      patterns:
+        description: Mutation patterns evaluated independently for every analyzed sequence.
+        type: array
+        items:
+          $ref: '#/definitions/MutationPatternConfig'
+  MutationPatternConfig:
+    description: |-
+      Named mutation pattern: event filters, optional clustering, and display metadata.
+
+      Dataset authors can define multiple patterns to separate biologically different mutation processes, such as ADAR-like A-to-I editing and APOBEC-like cytosine deamination.
+    examples:
+    - id: adar
+      name: ADAR-like RNA editing
+      description: ADAR-mediated A-to-I editing observed as A>G and complementary T>C
+      events:
+      - type: nucSubstitution
+        ref:
+        - A
+        - T
+        qry:
+        - G
+        - C
+        motifs:
+        - A[ACGT]G
+        - T[ACGT]C
+      cluster:
+        windowSize: 100
+        cutoff: 5
+    type: object
+    required:
+    - id
+    - name
+    properties:
+      id:
+        description: Stable machine-readable identifier. This value appears in JSON and TSV output.
+        type: string
+      name:
+        description: Human-readable name shown in Nextclade Web tooltips and reports.
+        type: string
+      description:
+        description: Optional explanatory text shown together with the pattern result.
+        type:
+        - string
+        - 'null'
+      events:
+        description: Event filters included in this pattern. If empty, the pattern matches all private nucleotide substitutions.
+        type: array
+        items:
+          $ref: '#/definitions/MutationPatternEvent'
+      cluster:
+        description: Optional pattern-local clustering rule. If omitted, Nextclade reports matches and type counts, but no clusters for this pattern.
+        anyOf:
+        - $ref: '#/definitions/MutationPatternClusterConfig'
+        - type: 'null'
+  MutationPatternEvent:
+    description: |-
+      Mutation event filter in mutation pattern analysis.
+
+      Each event selects one class of private mutations to include in a pattern. More event variants can be added without changing the surrounding `mutationPatterns.patterns[]` structure.
+    examples:
+    - type: nucSubstitution
+      ref:
+      - A
+      - T
+      qry:
+      - G
+      - C
+      motifs:
+      - A[ACGT]G
+      - T[ACGT]C
+    oneOf:
+    - description: Nucleotide substitution event, selected by reference nucleotide, query nucleotide, and optional reference motifs.
+      examples:
+      - ref:
+        - A
+        - T
+        qry:
+        - G
+        - C
+        motifs:
+        - A[ACGT]G
+        - T[ACGT]C
+      type: object
+      required:
+      - qry
+      - ref
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - nucSubstitution
+        ref:
+          description: Reference nucleotides to match at the mutated position.
+          type: array
+          items:
+            $ref: '#/definitions/Nuc'
+        qry:
+          description: Query nucleotides to match at the mutated position.
+          type: array
+          items:
+            $ref: '#/definitions/Nuc'
+        motifs:
+          description: Regular expressions matched against the reference sequence. A mutation matches a motif when the regex match spans the mutated position. Use IUPAC nucleotide letters directly in the regex, for example `TC[AT]` for a TCW motif.
+          type: array
+          items:
+            type: string
+  Nuc:
+    description: A nucleotide
+    type: string
+    enum:
+    - T
+    - A
+    - W
+    - C
+    - Y
+    - M
+    - H
+    - G
+    - K
+    - R
+    - D
+    - S
+    - B
+    - V
+    - N
+    - '-'
+  MutationPatternClusterConfig:
+    description: |-
+      Clustering rule applied to events matching one mutation pattern.
+
+      Clustering is pattern-local. It decides which matched events are reported as dense clusters in this pattern. It does not change the global `qc.snpClusters` rule unless the QC rule itself is configured separately.
+    examples:
+    - windowSize: 100
+      cutoff: 5
+    type: object
+    properties:
+      windowSize:
+        description: Sliding nucleotide window size. A cluster is detected when `cutoff` matched events fall within this many reference nucleotides.
+        default: 100
+        type: integer
+        format: uint
+        minimum: 0.0
+      cutoff:
+        description: Minimum number of matched events in one sliding window required to report a cluster.
+        default: 5
         type: integer
         format: uint
         minimum: 0.0

@@ -26,6 +26,7 @@ pub enum CsvColumnCategory {
   RelMuts,
   ErrsWarns,
   Qc,
+  MutPatterns,
   Primers,
   Dynamic,
 }
@@ -35,12 +36,14 @@ pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>
 // Configuration for enabling/disabling CSV columns or categories of them
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::struct_excessive_bools)]
 pub struct CsvColumnConfig {
   pub categories: CsvColumnConfigMap,
   pub individual: Vec<String>,
   pub include_dynamic: bool,
   pub include_clade_founder_muts: bool,
   pub include_rel_muts: bool,
+  pub include_mut_patterns: bool,
 }
 
 impl CsvColumnConfig {
@@ -80,6 +83,8 @@ impl CsvColumnConfig {
 
       let include_clade_founder_muts = categories.contains(&CsvColumnCategory::CladeFounderMuts);
 
+      let include_mut_patterns = categories.contains(&CsvColumnCategory::MutPatterns);
+
       let categories = categories
         .into_iter()
         .filter_map(|category| {
@@ -94,6 +99,7 @@ impl CsvColumnConfig {
         include_dynamic,
         include_clade_founder_muts,
         include_rel_muts,
+        include_mut_patterns,
       })
     }
   }
@@ -107,6 +113,7 @@ impl Default for CsvColumnConfig {
       include_dynamic: true,
       include_clade_founder_muts: true,
       include_rel_muts: true,
+      include_mut_patterns: true,
     }
   }
 }

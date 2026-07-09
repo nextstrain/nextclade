@@ -220,6 +220,63 @@ In addition, a "default" value can be specified for amino acid mutations that ar
 
 If the score is only relevant for specific clades, you can specify which clades are to be ignored.
 
+#### Nucleotide mutation pattern detection (`mutationPatterns`)
+
+Nextclade can detect named groups of private nucleotide substitutions. This is useful for reporting mutation patterns such as RNA editing signatures separately from the generic SNP cluster QC rule.
+
+Pattern detection is configured with `mutationPatterns.patterns`. Each pattern has an `id`, a display `name`, optional `description`, one or more `events`, and optional clustering parameters. The only supported event type is currently `nucSubstitution`.
+
+```json
+  "mutationPatterns": {
+    "patterns": [
+      {
+        "id": "adar",
+        "name": "ADAR-like RNA editing",
+        "description": "ADAR-mediated A-to-I editing observed as A>G and complementary T>C",
+        "events": [
+          {
+            "type": "nucSubstitution",
+            "ref": ["A"],
+            "qry": ["G"]
+          },
+          {
+            "type": "nucSubstitution",
+            "ref": ["T"],
+            "qry": ["C"]
+          }
+        ],
+        "cluster": {
+          "windowSize": 50,
+          "cutoff": 3
+        }
+      },
+      {
+        "id": "apobec",
+        "name": "APOBEC-like cytosine deamination",
+        "description": "APOBEC-like cytosine deamination observed as G>A in a reference motif",
+        "events": [
+          {
+            "type": "nucSubstitution",
+            "ref": ["G"],
+            "qry": ["A"],
+            "motifs": ["[CT]G[ACT]"]
+          }
+        ],
+        "cluster": {
+          "windowSize": 50,
+          "cutoff": 3
+        }
+      }
+    ]
+  }
+```
+
+The `ref` and `qry` arrays use Nextclade nucleotide symbols, including IUPAC ambiguity codes such as `N`, `R`, and `Y`. A substitution matches when both the reference and query nucleotide match one of the configured symbols.
+
+The `motifs` array contains regular expressions matched against the reference sequence. A motif qualifies a substitution when the regex match interval contains the substituted reference position. Motifs are regular expressions over the reference letters, so use regex character classes such as `[CT]` instead of IUPAC ambiguity symbols when matching multiple reference letters inside a motif.
+
+The optional `cluster` object reports clusters within mutations matched by that pattern. It does not replace `qc.snpClusters`: `qc.snpClusters` remains the generic global SNP cluster QC rule over all private nucleotide substitutions.
+
 #### Amino acid motif detection (`aaMotifs`)
 
 Nextclade can detect and report specific motifs in translated amino acid sequences. This feature is currently being used to highlight changes in glycosylation or cleavage sites, but the feature itself is generic.

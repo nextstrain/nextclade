@@ -6,10 +6,12 @@ use crate::analyze::aa_sub::{AaSub, AaSubLabeled};
 use crate::analyze::find_aa_motifs::AaMotif;
 use crate::analyze::find_clade_founder::CladeNodeAttrFounderInfo;
 use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
+use crate::analyze::mutation_patterns::MutationPatternEventTypeCount;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::coord::range::NucRefGlobalRange;
+use crate::io::nextclade_csv::mut_pattern_cols;
 use crate::o;
 use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
@@ -66,6 +68,7 @@ impl NextcladeResultsCsvRow {
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      mutation_patterns,
       missing_cdses,
       // divergence,
       coverage,
@@ -429,6 +432,16 @@ impl NextcladeResultsCsvRow {
       "qc.stopCodons.status",
       qc.stop_codons.as_ref().map(|sc| sc.status.to_string()),
     )?;
+    for pattern in &mutation_patterns.results {
+      let [col_matches, col_clustered, col_clusters, col_event_type_counts] = mut_pattern_cols(&pattern.id);
+      self.add_entry(col_matches, &pattern.counts.matches)?;
+      self.add_entry(col_clustered, &pattern.counts.clustered)?;
+      self.add_entry(col_clusters, &pattern.counts.clusters)?;
+      self.add_entry(
+        col_event_type_counts,
+        &format_mutation_pattern_event_type_counts(&pattern.event_type_counts, ARRAY_ITEM_DELIMITER),
+      )?;
+    }
     self.add_entry("isReverseComplement", &is_reverse_complement.to_string())?;
     self.add_entry("failedCdses", &format_failed_cdses(missing_cdses, ARRAY_ITEM_DELIMITER))?;
     self.add_entry(
@@ -671,9 +684,26 @@ pub fn format_clustered_snps(snps: &[ClusteredSnp], delimiter: &str) -> String {
   snps
     .iter()
     .map(|snp| {
-      let range = NucRefGlobalRange::from_usize(snp.start, snp.end).to_string();
-      let number_of_snps = snp.number_of_snps;
-      format!("{range}:{number_of_snps}")
+      let range = NucRefGlobalRange::from_usize(snp.start, snp.end + 1).to_string();
+      let count = snp.number_of_snps;
+      format!("{range}:{count}")
+    })
+    .join(delimiter)
+}
+
+#[inline]
+pub fn format_mutation_pattern_event_type_counts(counts: &[MutationPatternEventTypeCount], delimiter: &str) -> String {
+  counts
+    .iter()
+    .map(|c| match c {
+      MutationPatternEventTypeCount::NucSubstitution(c) => {
+        format!(
+          "nucSubstitution:{}>{}:{}",
+          from_nuc(c.ref_nuc),
+          from_nuc(c.qry_nuc),
+          c.count
+        )
+      }
     })
     .join(delimiter)
 }

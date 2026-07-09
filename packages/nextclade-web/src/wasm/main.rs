@@ -229,6 +229,7 @@ impl NextcladeWasm {
     phenotype_attrs_json_str: &str,
     ref_nodes_json_str: &str,
     aa_motifs_keys_json_str: &str,
+    mutation_pattern_keys_json_str: &str,
     delimiter: char,
     csv_colum_config_json_str: &str,
   ) -> Result<String, JsError> {
@@ -260,6 +261,11 @@ impl NextcladeWasm {
         .wrap_err("When serializing results into CSV: When parsing AA motifs keys JSON internally"),
     )?;
 
+    let mutation_pattern_keys: Vec<String> = jserr(
+      json_parse(mutation_pattern_keys_json_str)
+        .wrap_err("When serializing results into CSV: When parsing mutation pattern keys JSON internally"),
+    )?;
+
     let phenotype_attr_keys = phenotype_attrs.into_iter().map(|attr| attr.name).collect_vec();
     let aa_motifs_keys = aa_motifs_descs.into_iter().map(|desc| desc.name).collect_vec();
 
@@ -275,6 +281,7 @@ impl NextcladeWasm {
       &phenotype_attr_keys,
       &ref_nodes,
       &aa_motifs_keys,
+      &mutation_pattern_keys,
       delimiter as u8,
       &csv_colum_config,
     ))
