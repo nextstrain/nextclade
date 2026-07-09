@@ -1,20 +1,20 @@
 # No minimum region length: alignment artifacts surface as high-confidence micro-calls
 
-> Records a false-positive mode driven by alignment noise. The decoder is correct; the reporting path applies no lower bound on region length, so a handful of clustered substitutions next to a coverage hole is emitted as a confident recombinant region.
+> False-positive mode: no minimum region length, so a handful of clustered substitutions next to a coverage hole produces a high-confidence micro-call.
 
 ## Context
 
 Decoded recombinant runs are extracted and trimmed to covered endpoints ([`packages/nextclade/src/analyze/recombination.rs#L34-L85`](packages/nextclade/src/analyze/recombination.rs#L34-L85)), then summarized into regions ([`packages/nextclade/src/analyze/recombination.rs#L313-L347`](packages/nextclade/src/analyze/recombination.rs#L313-L347)). There is no minimum-length filter: any run the Viterbi decoder marks recombinant, no matter how short, becomes a reported region.
 
-A biological recombination breakpoint delimits a segment of hundreds of nucleotides or more. A run of a few substitutions packed into a few adjacent positions is not recombination; it is almost always a local misalignment, typically at the edge of a deletion or a long `N` run where the aligner places a diverged stretch as dense substitutions.
+Biological recombination produces segments of hundreds of nucleotides or more. A few substitutions packed into adjacent positions is almost always a local misalignment -- typically at the edge of a deletion or long `N` run where the aligner places a diverged stretch as dense substitutions.
 
 ## Concern
 
-A short cluster of substitutions produces enough per-`Mut` evidence to open a recombinant interval, and forward-backward then scores it near 1.0 because the marginal is saturated inside the cluster. The result is a tiny region reported with high confidence, indistinguishable in the output from a genuine long-range call.
+A short substitution cluster produces enough per-`Mut` evidence to open a recombinant interval. Forward-backward scores it near 1.0 (the marginal saturates inside the cluster), so the output is indistinguishable from a genuine long-range call.
 
-Observed instance (SARS-CoV-2 orfs example sequence, data repository tree): `OU125106` reports a 62 nt region (`5283-5345`) at confidence 0.995. Its substitutions in that window are `5337, 5338, 5339, 5341, 5342, 5343, 5344`: seven substitutions in eight consecutive positions, immediately adjacent to a 962 nt missing run (`5345-6307`). Seven near-consecutive substitutions are an alignment artifact, not seven independent mutational events.
+Observed: `OU125106` (SC2 orfs) reports a 62 nt region (`5283-5345`) at confidence 0.995. Seven substitutions in eight consecutive positions, immediately adjacent to a 962 nt missing run (`5345-6307`). That's an alignment artifact, not seven independent mutations.
 
-The design notes raised a "minimal recombinant region length" as a possible parameter but it was not implemented, so there is no guard against this class of call.
+The design notes mentioned a "minimal recombinant region length" parameter but it was not implemented.
 
 ## Current state
 

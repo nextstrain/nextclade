@@ -1,25 +1,16 @@
-//! Golden-master tests for the recombination HMM against the `recomb_inference` Python prototype
-//! (https://github.com/mmolari/recomb_inference).
+//! Golden-master parity tests for the recombination HMM against the `recomb_inference` Python
+//! prototype (https://github.com/mmolari/recomb_inference).
 //!
-//! # Scope
+//! Pins `viterbi_decode` to `viterbi_recombination` and `compute_forward_backward_marginals` to
+//! `forward_backward_recombination_logexp`. Binary observations only (`0 = Ref`, `1 = Mut`);
+//! `Missing`-state handling is covered by unit and property tests.
 //!
-//! `viterbi_decode` vs `viterbi_recombination`, `compute_forward_backward_marginals` vs
-//! `forward_backward_recombination_logexp`. Only the binary observation subset shared by both
-//! implementations (`0 = Ref`, `1 = Mut`) is compared here; `Missing`-state handling is covered by
-//! the unit and property tests in `recombination.rs`.
+//! Fixtures in `__fixtures__/gm_recombination_{inputs,outputs}.json`; see the capture script header
+//! for regeneration.
 //!
-//! # Fixtures
-//!
-//! - `__fixtures__/gm_recombination_inputs.json` -- observation vectors + HMM params
-//! - `__fixtures__/gm_recombination_outputs.json` -- Viterbi paths + marginals (full precision)
-//! - `__fixtures__/gm_recombination_capture` -- regeneration script (see its header for steps)
-//!
-//! # Tolerance
-//!
-//! The prototype guards `log(0)` by adding `eps = 1e-10` to every probability before taking its log.
-//! The Rust port skips this because params are validated into `(0, 1)`. This `eps` perturbs the
-//! prototype's marginals, most visibly at genome scale (`muW = 5e-4`). Tolerances below are the
-//! tightest that absorb this perturbation. Viterbi has no such smoothing and matches exactly.
+//! The prototype adds `eps = 1e-10` before `log()` to guard `log(0)`. The Rust port validates params
+//! into `(0, 1)` instead. This perturbs prototype marginals, most at genome scale (`muW = 5e-4`).
+//! Tolerances below are the tightest that absorb the perturbation. Viterbi matches exactly.
 
 #[cfg(test)]
 mod tests {
@@ -57,7 +48,7 @@ mod tests {
     assert_eq!(expected_recombinant, decoded);
   }
 
-  // muW >= 0.01: prototype's `eps` smoothing is negligible, marginals match to near machine precision.
+  // muW >= 0.01: `eps` smoothing negligible, marginals match near machine precision.
   #[rustfmt::skip]
   #[rstest]
   #[case::test_all_ref("gm_test_all_ref")]
@@ -78,8 +69,8 @@ mod tests {
     );
   }
 
-  // muW = 5e-4: `eps` is a larger relative perturbation here, deviation grows to ~1e-8. Looser
-  // tolerance covers only the smoothing artifact, not a behavioral difference.
+  // muW = 5e-4: `eps` is a larger relative perturbation, deviation grows to ~1e-8.
+  // Looser tolerance covers the smoothing artifact only.
   #[rustfmt::skip]
   #[rstest]
   #[case::genome_all_ref("gm_genome_all_ref")]
@@ -103,7 +94,7 @@ mod tests {
     const INPUTS_JSON: &str = include_str!("__fixtures__/gm_recombination_inputs.json");
     const OUTPUTS_JSON: &str = include_str!("__fixtures__/gm_recombination_outputs.json");
 
-    /// HMM params + binary observation vector for one test case.
+    /// HMM params + binary observation vector for one case.
     #[derive(Deserialize)]
     pub struct GmInputCase {
       pub name: String,
@@ -112,7 +103,7 @@ mod tests {
       pub mutations: Vec<u8>,
     }
 
-    /// Prototype's Viterbi path + forward-backward marginals for one test case.
+    /// Prototype's Viterbi path + forward-backward marginals for one case.
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]
     pub struct GmOutputCase {
@@ -149,7 +140,7 @@ mod tests {
         .collect()
     }
 
-    /// Max absolute difference in forward-backward marginals vs prototype for one case.
+    /// Max absolute marginal difference vs prototype for one case.
     pub fn fb_max_diff(name: &str) -> f64 {
       let input = input_case(name);
       let expected = output_case(name);

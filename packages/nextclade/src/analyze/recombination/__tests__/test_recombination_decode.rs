@@ -1,6 +1,5 @@
-//! Viterbi decoding and region extraction: `find_recombinant_regions`, interval trimming to covered
-//! positions, the well-formedness helper, and decoder optimality against an independent brute-force
-//! oracle.
+//! Viterbi decoding and region extraction: interval trimming, well-formedness, and decoder
+//! optimality against brute-force oracle.
 
 #[cfg(test)]
 mod tests {
@@ -103,9 +102,8 @@ mod tests {
   #[case::with_missing("RRMMXXMMRR")]
   #[case::alternating("RMRMRMRM")]
   fn test_recombination_viterbi_matches_bruteforce_oracle(#[case] input: &str) {
-    // For short vectors, enumerate all 2^L hidden-state paths and confirm the Viterbi-decoded path
-    // achieves the maximum path log-probability. This pins decoder optimality (recurrence, backtrace,
-    // initialization) against an independent brute-force search, not against the decoder itself.
+    // Enumerate all 2^L paths and confirm Viterbi achieves the maximum. Pins decoder optimality
+    // against brute-force search, not against itself.
     let params = test_params();
     let observations = obs(input);
     let n = observations.len();
@@ -124,10 +122,8 @@ mod tests {
     pretty_assert_abs_diff_eq!(best_score, decoded_score, epsilon = 1e-9);
   }
 
-  // Two properties: structural invariants of the decoded regions hold for any observation vector and
-  // any valid parameters, and a planted recombinant block is recovered. Parameters are built valid by
-  // construction (gamma < 0.5, 0 < mu_w < mu_r < 1) and through `new().unwrap()` -- a failure there
-  // means the model preconditions drifted.
+  // Two properties: structural invariants hold for any observation/params, and a planted recombinant
+  // block is recovered. Parameters valid by construction (gamma < 0.5, 0 < mu_w < mu_r < 1).
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(1000))]
 
@@ -194,12 +190,9 @@ mod tests {
     }
   }
 
-  // Viterbi optimality as a property: over random short observation vectors AND random valid
-  // parameters, the decoded path attains the maximum log-probability among all 2^L hidden paths. The
-  // fixed-case oracle above pins a handful of vectors at one parameter set; randomizing both the
-  // observations and the transition/emission costs exercises the tie policy and recurrence across the
-  // whole parameter regime, not just the test-scale point. Brute force is an independent oracle (an
-  // exhaustive search, not the Viterbi recurrence), so agreement is a real correctness signal.
+  // Viterbi optimality as a property: random observations AND random params, the decoded path attains
+  // the maximum log-probability among all 2^L paths. Randomizing both exercises the recurrence across
+  // the whole parameter regime, not just the test-scale point.
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(256))]
 

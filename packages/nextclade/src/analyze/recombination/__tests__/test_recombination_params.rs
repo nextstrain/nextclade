@@ -1,5 +1,4 @@
-//! Validation and (de)serialization of [`RecombinationHmmParams`]: the single construction gate that
-//! enforces the model invariants, `is_hmm_probability`, and the serde/`TryFrom` path.
+//! `RecombinationHmmParams` validation, `is_hmm_probability`, and serde/`TryFrom` path.
 
 #[cfg(test)]
 mod tests {
@@ -45,9 +44,7 @@ mod tests {
 
   #[test]
   fn test_recombination_new_accepts_valid_params() {
-    // The struct only exposes its rates through getters (fields are private so construction is gated by
-    // `new`), so assert on the getters rather than reconstructing the value. `new` stores the inputs
-    // verbatim, so a 2-ulp bound compares them exactly.
+    // Private fields, so assert via getters. `new` stores inputs verbatim; 2-ulp bound is exact.
     let params = RecombinationHmmParams::new(5e-4, 0.005, 0.05).unwrap();
     pretty_assert_ulps_eq!(5e-4, params.gamma(), max_ulps = 2);
     pretty_assert_ulps_eq!(0.005, params.mu_w(), max_ulps = 2);
@@ -56,8 +53,7 @@ mod tests {
 
   #[test]
   fn test_recombination_hmm_params_deserialize_rejects_invalid() {
-    // The serde path enforces the same invariants as `new` (via `TryFrom`); `report_to_string`
-    // renders the model error message from the chain without serde_json's positional suffix.
+    // Serde enforces the same invariants via `TryFrom`.
     let json = r#"{"gamma":0.7,"muW":0.05,"muR":0.2}"#;
     let result = serde_json::from_str::<RecombinationHmmParams>(json).map_err(Report::from);
     assert_error!(
@@ -93,11 +89,9 @@ mod tests {
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(512))]
 
-    // Valid parameters survive a JSON round-trip, including the TryFrom validation on the way back in,
-    // recovering each rate to within a couple of ULPs. The round-trip is not bit-exact: serde_json's
-    // default float parser (the `float_roundtrip` feature is off) reparses the shortest decimal to
-    // within one ULP, so the correct invariant is ULP-bounded closeness, not equality. The fixed-value
-    // example pins one point; this covers the whole valid regime.
+    // Valid params survive JSON round-trip within 2 ULPs. Not bit-exact because serde_json reparses
+    // the shortest decimal to within one ULP. The fixed-value test pins one point; this covers the
+    // whole valid regime.
     #[test]
     fn test_prop_recombination_params_serde_roundtrip(
       gamma in 1e-6_f64..0.5,

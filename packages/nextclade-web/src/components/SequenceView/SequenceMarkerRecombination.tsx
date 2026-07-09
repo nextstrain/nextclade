@@ -36,7 +36,7 @@ function SequenceMarkerRecombinationUnmemoed({ index, seqName, region, confidenc
   const fillOpacity = Math.max(0.35, confidence ?? 1.0)
   const borderOpacity = Math.max(0.5, confidence ?? 1.0)
 
-  // Recombinant intervals may span multiple genes, so gene and codon labels are intentionally omitted.
+  // No gene/codon labels: recombinant intervals can span multiple genes.
   return (
     <g>
       <rect

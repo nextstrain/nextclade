@@ -1,8 +1,7 @@
 //! Forward-backward scoring of decoded intervals.
 //!
-//! The forward-backward algorithm in log-space computes per-site posterior marginals
-//! `P(recombinant | observations)` over the same observation vector and parameters used for decoding.
-//! Each Viterbi-decoded interval receives a confidence score: the mean posterior marginal within it.
+//! Log-space forward-backward computes per-site `P(recombinant | observations)`. Each decoded
+//! interval gets a confidence score: its mean posterior marginal.
 
 use crate::analyze::recombination::observations::RecombinationObs;
 use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE};
@@ -18,12 +17,10 @@ pub(crate) fn compute_log_sum_exp_2(a: f64, b: f64) -> f64 {
   max + (min - max).exp().ln_1p()
 }
 
-/// Forward-backward algorithm in log-space. Returns, per site, the full posterior distribution
-/// `[P(wildtype | observations), P(recombinant | observations)]`.
+/// Forward-backward in log-space. Returns per-site `[P(wildtype), P(recombinant)]`.
 ///
-/// Exposing both states (rather than only the recombinant marginal) keeps the alpha/beta recurrence
-/// in a single implementation and lets tests check the posteriors against an independent brute-force
-/// marginalization, instead of re-deriving the same math in the test.
+/// Exposing both states keeps the recurrence in one implementation and lets tests compare against
+/// brute-force marginalization.
 pub(crate) fn compute_forward_backward_posteriors(
   obs: &[RecombinationObs],
   params: &RecombinationHmmParams,
@@ -84,9 +81,8 @@ pub(crate) fn compute_forward_backward_posteriors(
   posteriors
 }
 
-/// Forward-backward algorithm in log-space. Returns per-site P(recombinant | observations), the
-/// recombinant marginal used to score decoded intervals. Thin projection of
-/// [`compute_forward_backward_posteriors`] so the recurrence has a single implementation.
+/// Per-site P(recombinant | observations). Thin projection of
+/// [`compute_forward_backward_posteriors`].
 pub(crate) fn compute_forward_backward_marginals(
   obs: &[RecombinationObs],
   params: &RecombinationHmmParams,

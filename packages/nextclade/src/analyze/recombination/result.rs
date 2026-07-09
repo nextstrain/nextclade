@@ -3,8 +3,7 @@
 use crate::coord::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
 
-/// A single putative recombinant interval with its range, nucleotide length, and optional
-/// forward-backward confidence score.
+/// A putative recombinant interval with optional forward-backward confidence.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecombinationRegion {
@@ -15,10 +14,7 @@ pub struct RecombinationRegion {
   pub confidence: Option<f64>,
 }
 
-/// Per-sequence recombination detection result: the detected regions and their summary statistics.
-///
-/// Always contains at least one region. When detection runs but finds no recombinant intervals the
-/// caller produces `None` rather than an empty `RecombinationResult`.
+/// Per-sequence detection result. Always has at least one region; empty results are `None`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecombinationResult {
@@ -36,8 +32,7 @@ pub struct RecombinationResult {
 }
 
 impl RecombinationResult {
-  /// Summarize decoded recombinant ranges with optional per-interval confidence scores.
-  /// Returns `None` when the list is empty (detection ran but found no recombinant intervals).
+  /// Summarize decoded ranges with optional confidences. `None` when empty.
   pub(crate) fn from_ranges(ranges: Vec<NucRefGlobalRange>, confidences: Option<&[f64]>) -> Option<Self> {
     if ranges.is_empty() {
       return None;

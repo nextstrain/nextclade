@@ -1,5 +1,4 @@
-//! [`RecombinationResult`] summarization and serde: region counts, total/longest length, optional
-//! confidences, and the `skip_serializing_if` behavior of the confidence field.
+//! `RecombinationResult` summarization and serde: counts, lengths, confidences.
 
 #[cfg(test)]
 mod tests {
@@ -113,9 +112,8 @@ mod tests {
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(512))]
 
-    // RecombinationResult summary fields are consistent with the input ranges: region count matches,
-    // total length is the sum of per-region lengths, each region length equals its range span, and the
-    // longest region has the maximum length. An empty range list produces None, not an empty result.
+    // Summary fields consistent with inputs: count matches, total is sum of spans, longest has max
+    // length. Empty ranges -> None.
     #[test]
     fn test_prop_recombination_result_summary_consistent(
       items in proptest::collection::vec((0_usize..1000, 1_usize..500, 0.0_f64..=1.0), 1..30),

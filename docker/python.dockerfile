@@ -2,7 +2,7 @@
 # check=experimental=all
 
 # Python container for scripts and notebooks. Scientific stack (numpy, scipy, pandas, matplotlib,
-# JupyterLab) via micromamba. Maps host user for file ownership. Extend via `requirements.txt`.
+# JupyterLab) via micromamba. Maps host user. Extend via `requirements.txt`.
 # Independent of docker/docker-dev.dockerfile. Wrapper: docker/python.
 
 FROM debian:12.8

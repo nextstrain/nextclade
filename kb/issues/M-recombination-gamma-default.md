@@ -1,6 +1,6 @@
 # Default gamma of 1/L vs specification guidance
 
-> For further investigation and discussion. This records a calibration choice that is documented and defensible; it is not a code defect.
+> Calibration question, not a code defect.
 
 ## Context
 
@@ -14,7 +14,7 @@ The sources disagree on the value:
 - The meeting notes state `gamma ~ 1/L`.
 - The reference prototype's worked example uses `gamma = 5e-4` at `L = 10000`, i.e. `5/L`.
 
-The implemented default `1/L` sits between the notes' `<< 1/L` guidance and the example's `5/L`, and is stickier than the example that produced the published figure. The choice is defensible but is not backed by an empirical calibration, and it materially controls which recombinant tracts are callable.
+The implemented `1/L` sits between the notes' `<< 1/L` and the example's `5/L`, stickier than the published figure. Defensible but not empirically calibrated, and it controls which tracts are callable.
 
 ## Current state
 
