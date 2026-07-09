@@ -134,7 +134,7 @@ Optional. Recombination detection configuration. Detection is enabled by default
 Fields (all optional):
 
 - `enabled`: whether recombination detection runs for this dataset. Defaults to `true`.
-- `minPrivateSubsToRun`: minimum number of private substitutions (relative to the inferred parent) a sequence must carry for detection to run on it. Defaults to `1`. Sequences below the threshold get no recombination result. A sequence with no private substitutions can never produce a recombinant call, so the default of `1` only skips those; raising the threshold trades sensitivity for speed.
+- `minPrivateSubsToRun`: minimum private substitutions a sequence must carry for detection to run. Defaults to `1` (zero-substitution sequences can never produce a call, so the default is an exact skip). Raising it trades sensitivity for speed.
 - `gamma`: HMM state transition rate. Defaults to `1 / L` (`L` = reference length).
 - `muW`: mutation emission probability in the wildtype state. Defaults to the mean terminal branch length of the reference tree.
 - `muR`: mutation emission probability in the recombinant state. Defaults to the median substitution distance between leaves of different clades (a tree-based proxy for inter-clade divergence).
@@ -145,7 +145,7 @@ When set explicitly, the three numeric parameters must satisfy the model constra
 - `gamma` must be less than 0.5 (state switching must be rarer than staying).
 - `muR` must be greater than `muW` (the recombinant state must carry elevated divergence).
 
-When `enabled` is set to `true` explicitly and the dataset cannot support detection (no reference tree, fewer than two clades, or a tree with no per-branch mutations), the dataset fails to load with an error explaining the cause. When detection is left on by default (`enabled` unset), those same conditions cause it to be skipped silently instead.
+Explicit `enabled: true` on a dataset that cannot support detection (no reference tree, fewer than two clades, or no per-branch mutations) is a load-time error. Default-on (`enabled` unset) skips silently instead.
 
 Any parameter left unset is estimated from the reference tree. Set parameters explicitly to override the estimate, or set `enabled` to `false` to turn the feature off:
 

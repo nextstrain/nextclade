@@ -1,9 +1,6 @@
-//! The two-state recombination HMM model: its three parameters and their invariants.
-//!
-//! `gamma` is the transition rate, `mu_w` and `mu_r` the wildtype and recombinant mutation emission
-//! probabilities. All three are probabilities in the open interval `(0, 1)`; the model is sticky
-//! (`gamma < 0.5`) and the recombinant emission rate is elevated (`mu_r > mu_w`). These invariants are
-//! enforced on every construction path, so the decoder can assume validity.
+//! Two-state recombination HMM: `gamma` (transition rate), `mu_w` and `mu_r` (emission
+//! probabilities). All in (0, 1); sticky (`gamma < 0.5`); elevated recombinant rate (`mu_r > mu_w`).
+//! Invariants enforced on every construction path.
 
 use crate::analyze::recombination::observations::RecombinationObs;
 use crate::make_error;
@@ -14,22 +11,15 @@ use serde::{Deserialize, Serialize};
 pub(crate) const WILDTYPE: usize = 0;
 pub(crate) const RECOMBINANT: usize = 1;
 
-/// Whether a value is a usable HMM probability: finite and strictly inside the open interval
-/// `(0, 1)`. The closed endpoints are excluded because they produce `log(0) = -inf` in the decoder.
-/// Single definition of the probability domain, shared by parameter validation and tree estimation.
+/// Finite and strictly in (0, 1). Endpoints produce `log(0) = -inf` in the decoder.
 pub(crate) fn is_hmm_probability(x: f64) -> bool {
   x.is_finite() && x > 0.0 && x < 1.0
 }
 
-/// Effective recombination HMM parameters used for a run.
-///
-/// All three are probabilities between 0 and 1 (exclusive). `gamma` is the transition rate, `muW` and
-/// `muR` are the wildtype and recombinant mutation emission probabilities, with `muR` greater than
-/// `muW`.
+/// Validated recombination HMM parameters. `gamma` (transition), `muW`/`muR` (emission),
+/// all in (0, 1), `muR > muW`.
 //
-// Fields are private and every construction path enforces the model invariants: `new` validates
-// directly, and deserialization routes through `RecombinationHmmParamsRaw` + `TryFrom` so a JSON
-// document cannot produce an invalid instance either. Read access is through the getters.
+// Private fields. `new` validates directly; deserialization routes through `TryFrom`.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase", try_from = "RecombinationHmmParamsRaw")]
 pub struct RecombinationHmmParams {
@@ -42,9 +32,7 @@ pub struct RecombinationHmmParams {
 }
 
 impl RecombinationHmmParams {
-  /// Construct validated parameters. This is the only sanctioned constructor: it enforces the model
-  /// invariants once, at resolution time, so the decoder can assume validity. See [`Self::validate`]
-  /// for the full contract.
+  /// Construct validated parameters. Only sanctioned constructor.
   pub fn new(gamma: f64, mu_w: f64, mu_r: f64) -> Result<Self, Report> {
     let params = Self { gamma, mu_w, mu_r };
     params.validate()?;
@@ -66,11 +54,7 @@ impl RecombinationHmmParams {
     self.mu_r
   }
 
-  /// Single source of truth for the model invariants. Every field must be a probability in the open
-  /// interval `(0, 1)` (the closed endpoints produce `log(0) = -inf`); the model must be sticky
-  /// (`gamma < 0.5`, so switching is rarer than staying, otherwise the states alternate and no stable
-  /// interval is decoded); and the recombinant emission rate must exceed the wildtype rate
-  /// (`mu_r > mu_w`), otherwise the two states are indistinguishable.
+  /// Model invariants: all fields in (0, 1), `gamma < 0.5` (sticky), `mu_r > mu_w` (elevated).
   fn validate(&self) -> Result<(), Report> {
     let Self { gamma, mu_w, mu_r } = *self;
     for (name, value) in [("gamma", gamma), ("muW", mu_w), ("muR", mu_r)] {
@@ -104,9 +88,7 @@ impl RecombinationHmmParams {
   }
 }
 
-/// Unvalidated wire form of [`RecombinationHmmParams`]. Deserialization goes through this type and the
-/// [`TryFrom`] below so the model invariants hold for values parsed from JSON, not only those built
-/// with [`RecombinationHmmParams::new`].
+/// Unvalidated wire form. Deserialization goes through this + `TryFrom` to enforce invariants.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct RecombinationHmmParamsRaw {

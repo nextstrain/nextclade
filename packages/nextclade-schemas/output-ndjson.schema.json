@@ -3008,7 +3008,7 @@
       }
     },
     "RecombinationResult": {
-      "description": "Per-sequence recombination detection result: the detected regions and their summary statistics.\n\nAlways contains at least one region. When detection runs but finds no recombinant intervals the caller produces `None` rather than an empty `RecombinationResult`.",
+      "description": "Per-sequence detection result. Always has at least one region; empty results are `None`.",
       "type": "object",
       "required": [
         "longestRegion",
@@ -3047,7 +3047,7 @@
       }
     },
     "RecombinationRegion": {
-      "description": "A single putative recombinant interval with its range, nucleotide length, and optional forward-backward confidence score.",
+      "description": "A putative recombinant interval with optional forward-backward confidence.",
       "type": "object",
       "required": [
         "length",

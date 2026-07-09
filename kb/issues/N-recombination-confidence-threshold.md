@@ -1,6 +1,6 @@
 # No confidence threshold on reported regions
 
-> Records a reporting-quality concern. Region membership is decided by Viterbi; the forward-backward confidence only annotates and never filters, so a near-ambiguous call is emitted identically to a near-certain one.
+> Confidence annotates but never filters. A coin-flip call is emitted identically to a near-certain one.
 
 ## Context
 
@@ -8,13 +8,13 @@ Region boundaries come from the hard Viterbi state assignment ([`packages/nextcl
 
 ## Concern
 
-Confidence near 0.5 means the posterior is split roughly evenly between wildtype and recombinant: the evidence is ambiguous. Such a region is emitted in the same shape as a confidence-0.99 region, in JSON, in the CSV/TSV columns, and in the web viewer. Downstream consumers cannot distinguish a coin-flip call from a strong one without applying their own cutoff, and the default output invites treating both as equally real.
+Confidence near 0.5 means the posterior is split evenly -- ambiguous evidence. Such a region is emitted identically to a confidence-0.99 region across all output formats. Consumers cannot distinguish a coin-flip from a strong call without applying their own cutoff.
 
 Observed instance (SARS-CoV-2 orfs example sequence, data repository tree): `USA/AR-CDC-ASC210377904/2021` reports a 4966 nt region at confidence 0.60, alongside a 216 nt region at confidence 0.9995 on the same sequence. Both are surfaced with equal prominence.
 
 ## Current state
 
-Correct against the specification: confidence was introduced as a reliability annotation, deliberately not as a filter. No cutoff is applied anywhere in the pipeline or output.
+Correct against spec: confidence was introduced as an annotation, not a filter.
 
 ## Directions to investigate
 

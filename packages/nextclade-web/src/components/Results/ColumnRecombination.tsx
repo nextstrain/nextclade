@@ -41,9 +41,7 @@ export function ColumnRecombination({ analysisResult }: ColumnRecombinationProps
 
   const { totalLength, totalRegions, longestRegion, regions } = recombination
 
-  // Build at most `RECOMBINATION_TOOLTIP_MAX_REGIONS` list items even when there are more regions:
-  // slice before mapping so the elements past the cap are never constructed, then append one overflow
-  // item summarizing the remainder.
+  // Cap rendered list items; overflow gets a single "...and N more" entry.
   const regionItems: ReactElement[] = regions.slice(0, RECOMBINATION_TOOLTIP_MAX_REGIONS).map((region) => {
     const rangeStr = formatRange(region.range)
     const confidenceStr =

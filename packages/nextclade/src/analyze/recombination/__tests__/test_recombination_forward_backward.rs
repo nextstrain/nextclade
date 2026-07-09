@@ -1,5 +1,5 @@
-//! Forward-backward scoring and confidence: the `compute_log_sum_exp_2` kernel, per-site marginals against an
-//! independent brute-force oracle, and mean-posterior interval confidences.
+//! Forward-backward scoring and confidence: `compute_log_sum_exp_2`, marginals vs brute-force
+//! oracle, and interval confidences.
 
 #[cfg(test)]
 mod tests {
@@ -48,9 +48,8 @@ mod tests {
   #[case::large_neg(-50.0, -51.0)]
   #[trace]
   fn test_recombination_compute_log_sum_exp_2_matches_naive(#[case] a: f64, #[case] b: f64) {
-    // Independent naive oracle: log(exp(a) + exp(b)) computed directly. Valid for operands where
-    // exp(a) and exp(b) neither overflow nor underflow, so it cross-checks the stable `max + ln_1p`
-    // form on well-conditioned inputs.
+    // Naive oracle: direct log(exp(a) + exp(b)). Valid where neither operand overflows/underflows,
+    // cross-checking the stable `max + ln_1p` form.
     let naive = (a.exp() + b.exp()).ln();
     pretty_assert_abs_diff_eq!(naive, compute_log_sum_exp_2(a, b), epsilon = 1e-10);
   }
@@ -60,11 +59,8 @@ mod tests {
     assert!(compute_forward_backward_marginals(&[], &test_params()).is_empty());
   }
 
-  // The thresholds in these four forward-backward tests (0.1, 0.9, 0.8, 0.2, 0.5) are loose
-  // qualitative sanity bands, not derived values: they assert the sign of the signal (Ref sites low,
-  // Mut sites high, Missing-bridged sites stay elevated), not exact posteriors. Exact per-site
-  // correctness is pinned by `test_recombination_forward_backward_matches_bruteforce_marginals`
-  // against an independent oracle.
+  // Loose qualitative bands (0.1, 0.9, etc.): assert signal direction (Ref low, Mut high, Missing
+  // bridged stays elevated). Exact correctness pinned by the brute-force marginal tests below.
   #[test]
   fn test_recombination_forward_backward_all_ref_near_zero() {
     let marginals = compute_forward_backward_marginals(&obs("RRRRRRRRRRRRRRRRRRRR"), &test_params());
@@ -120,11 +116,8 @@ mod tests {
   #[case::with_missing("RRMMXXMMRR")]
   #[case::alternating("RMRMRMRM")]
   fn test_recombination_forward_backward_matches_bruteforce_marginals(#[case] input: &str) {
-    // Compare the production forward-backward posteriors against an independent brute-force
-    // marginalization over all 2^L hidden-state paths. This pins the alpha/beta recurrence and its
-    // normalization against a different algorithm, not against a re-derivation of the same math (as a
-    // sum-to-one identity on the same normalizer would be). Normalization is covered transitively:
-    // brute-force marginals sum to 1, so matching them forces the production posteriors to as well.
+    // Pins alpha/beta recurrence against brute-force marginalization over all 2^L paths -- a
+    // different algorithm, not a re-derivation of the same math.
     let params = test_params();
     let observations = obs(input);
     assert!(
@@ -206,8 +199,7 @@ mod tests {
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(512))]
 
-    // compute_log_sum_exp_2 reproduces the naive log(exp(a) + exp(b)) on a range where the naive form does not
-    // overflow, so the numerically stable kernel is pinned to its mathematical definition.
+    // Pins the stable kernel to naive log(exp(a) + exp(b)) on a non-overflowing range.
     #[test]
     fn test_prop_recombination_compute_log_sum_exp_2_matches_naive(a in -30.0_f64..30.0, b in -30.0_f64..30.0) {
       let naive = (a.exp() + b.exp()).ln();
@@ -215,18 +207,15 @@ mod tests {
       proptest::prop_assert!((naive - lse).abs() < 1e-9, "naive={naive} lse={lse}");
     }
 
-    // compute_log_sum_exp_2 is symmetric in its arguments (bit-identical under swap) and never falls below the
-    // larger operand, both required for the forward-backward recursions that consume it.
+    // Symmetric (bit-identical under swap) and never below the larger operand.
     #[test]
     fn test_prop_recombination_compute_log_sum_exp_2_commutative_and_lower_bounded(a in -1e6_f64..1e6, b in -1e6_f64..1e6) {
       proptest::prop_assert_eq!(compute_log_sum_exp_2(a, b).to_bits(), compute_log_sum_exp_2(b, a).to_bits());
       proptest::prop_assert!(compute_log_sum_exp_2(a, b) >= a.max(b), "lse below max for a={a} b={b}");
     }
 
-    // An all-Missing observation vector carries no emission evidence, so with a uniform prior and
-    // symmetric transitions the posterior is exactly 0.5 at every site for any valid parameters. This
-    // is an analytic fixed point of forward-backward independent of length, complementing the bounded
-    // marginals property.
+    // All-Missing: no emission evidence, uniform prior, symmetric transitions -> posterior exactly 0.5
+    // at every site. Analytic fixed point, independent of length.
     #[test]
     fn test_prop_recombination_forward_backward_all_missing_marginals_half(
       len in 1_usize..200,
@@ -242,9 +231,8 @@ mod tests {
       }
     }
 
-    // A per-interval confidence is the mean posterior within the interval, so it must lie between the
-    // minimum and maximum marginal over that interval (and stay in [0, 1] when the marginals do). A
-    // summary that averaged the wrong slice would escape these bounds.
+    // Mean posterior must lie between min and max marginal within the interval. A summary averaging
+    // the wrong slice would escape these bounds.
     #[test]
     fn test_prop_recombination_compute_interval_confidences_bounded_by_slice(
       marginals in proptest::collection::vec(0.0_f64..=1.0, 1..200),
