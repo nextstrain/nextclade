@@ -94,7 +94,7 @@ impl RecombinationHmmParams {
   }
 
   /// Log-space emission scores `[wildtype, recombinant]` for one observation.
-  pub(crate) fn log_emission(&self, obs: RecombinationObs) -> [f64; 2] {
+  pub(crate) fn compute_log_emission(&self, obs: RecombinationObs) -> [f64; 2] {
     match obs {
       RecombinationObs::Ref => [(1.0 - self.mu_w).ln(), (1.0 - self.mu_r).ln()],
       RecombinationObs::Mut => [self.mu_w.ln(), self.mu_r.ln()],

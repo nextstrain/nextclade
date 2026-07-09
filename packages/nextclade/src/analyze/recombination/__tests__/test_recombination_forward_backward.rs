@@ -1,4 +1,4 @@
-//! Forward-backward scoring and confidence: the `log_sum_exp_2` kernel, per-site marginals against an
+//! Forward-backward scoring and confidence: the `compute_log_sum_exp_2` kernel, per-site marginals against an
 //! independent brute-force oracle, and mean-posterior interval confidences.
 
 #[cfg(test)]
@@ -8,7 +8,8 @@ mod tests {
   };
   use crate::analyze::recombination::decode::find_recombinant_regions;
   use crate::analyze::recombination::forward_backward::{
-    compute_interval_confidences, forward_backward_marginals, forward_backward_posteriors, log_sum_exp_2,
+    compute_forward_backward_marginals, compute_forward_backward_posteriors, compute_interval_confidences,
+    compute_log_sum_exp_2,
   };
   use crate::analyze::recombination::observations::RecombinationObs;
   use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE};
@@ -25,13 +26,13 @@ mod tests {
   #[case::one_neg_inf(5.0,   f64::NEG_INFINITY,  5.0                            )]
   #[case::symmetric(  3.0,   5.0,                5.0 + (-2.0_f64).exp().ln_1p() )]
   #[trace]
-  fn test_recombination_log_sum_exp_2(#[case] a: f64, #[case] b: f64, #[case] expected: f64) {
-    pretty_assert_abs_diff_eq!(expected, log_sum_exp_2(a, b), epsilon = 1e-12);
+  fn test_recombination_compute_log_sum_exp_2(#[case] a: f64, #[case] b: f64, #[case] expected: f64) {
+    pretty_assert_abs_diff_eq!(expected, compute_log_sum_exp_2(a, b), epsilon = 1e-12);
   }
 
   #[test]
-  fn test_recombination_log_sum_exp_2_both_neg_inf() {
-    let result = log_sum_exp_2(f64::NEG_INFINITY, f64::NEG_INFINITY);
+  fn test_recombination_compute_log_sum_exp_2_both_neg_inf() {
+    let result = compute_log_sum_exp_2(f64::NEG_INFINITY, f64::NEG_INFINITY);
     assert!(
       result.is_infinite() && result.is_sign_negative(),
       "expected -inf, got {result}"
@@ -46,17 +47,17 @@ mod tests {
   #[case::equal_ten( 10.0,  10.0)]
   #[case::large_neg(-50.0, -51.0)]
   #[trace]
-  fn test_recombination_log_sum_exp_2_matches_naive(#[case] a: f64, #[case] b: f64) {
+  fn test_recombination_compute_log_sum_exp_2_matches_naive(#[case] a: f64, #[case] b: f64) {
     // Independent naive oracle: log(exp(a) + exp(b)) computed directly. Valid for operands where
     // exp(a) and exp(b) neither overflow nor underflow, so it cross-checks the stable `max + ln_1p`
     // form on well-conditioned inputs.
     let naive = (a.exp() + b.exp()).ln();
-    pretty_assert_abs_diff_eq!(naive, log_sum_exp_2(a, b), epsilon = 1e-10);
+    pretty_assert_abs_diff_eq!(naive, compute_log_sum_exp_2(a, b), epsilon = 1e-10);
   }
 
   #[test]
   fn test_recombination_forward_backward_empty() {
-    assert!(forward_backward_marginals(&[], &test_params()).is_empty());
+    assert!(compute_forward_backward_marginals(&[], &test_params()).is_empty());
   }
 
   // The thresholds in these four forward-backward tests (0.1, 0.9, 0.8, 0.2, 0.5) are loose
@@ -66,7 +67,7 @@ mod tests {
   // against an independent oracle.
   #[test]
   fn test_recombination_forward_backward_all_ref_near_zero() {
-    let marginals = forward_backward_marginals(&obs("RRRRRRRRRRRRRRRRRRRR"), &test_params());
+    let marginals = compute_forward_backward_marginals(&obs("RRRRRRRRRRRRRRRRRRRR"), &test_params());
     for &m in &marginals {
       assert!(m < 0.1, "all-Ref site should have low P(recombinant), got {m}");
     }
@@ -74,7 +75,7 @@ mod tests {
 
   #[test]
   fn test_recombination_forward_backward_all_mut_near_one() {
-    let marginals = forward_backward_marginals(&obs("MMMMMMMMMMMMMMMMMMMM"), &test_params());
+    let marginals = compute_forward_backward_marginals(&obs("MMMMMMMMMMMMMMMMMMMM"), &test_params());
     for &m in &marginals {
       assert!(m > 0.9, "all-Mut site should have high P(recombinant), got {m}");
     }
@@ -82,7 +83,7 @@ mod tests {
 
   #[test]
   fn test_recombination_forward_backward_dense_block() {
-    let marginals = forward_backward_marginals(&obs("RRRRRRRRRRMMMMMMMMMMMMMMMRRRRRRRRRR"), &test_params());
+    let marginals = compute_forward_backward_marginals(&obs("RRRRRRRRRRMMMMMMMMMMMMMMMRRRRRRRRRR"), &test_params());
     // Interior of Mut block [12..23] should have high marginals.
     for &m in &marginals[12..23] {
       assert!(m > 0.8, "interior Mut site should be high, got {m}");
@@ -99,7 +100,8 @@ mod tests {
   #[test]
   fn test_recombination_forward_backward_missing_run_persists() {
     // Mut block with Missing run in the middle -- marginals should stay elevated across the hole.
-    let marginals = forward_backward_marginals(&obs("RRRRRMMMMMMMMMMMMMMMXXXXXMMMMMMMMMMMMMMMRRRRR"), &test_params());
+    let marginals =
+      compute_forward_backward_marginals(&obs("RRRRRMMMMMMMMMMMMMMMXXXXXMMMMMMMMMMMMMMMRRRRR"), &test_params());
     // Middle of the Missing run (positions 22-23) should still show elevated marginals.
     for &m in &marginals[22..24] {
       assert!(
@@ -130,7 +132,7 @@ mod tests {
       "brute-force marginals are only tractable for short vectors"
     );
 
-    let posteriors = forward_backward_posteriors(&observations, &params);
+    let posteriors = compute_forward_backward_posteriors(&observations, &params);
     let expected = bruteforce_marginals(&observations, &params);
     assert_eq!(expected.len(), posteriors.len());
 
@@ -166,7 +168,7 @@ mod tests {
     let params = test_params();
     let regions = find_recombinant_regions(&observations, &params);
     assert!(!regions.is_empty(), "should find at least one region");
-    let marginals = forward_backward_marginals(&observations, &params);
+    let marginals = compute_forward_backward_marginals(&observations, &params);
     let confidences = compute_interval_confidences(&marginals, &regions);
     assert_eq!(regions.len(), confidences.len());
     for &c in &confidences {
@@ -179,7 +181,7 @@ mod tests {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(500))]
 
     #[test]
-    fn test_prop_recombination_forward_backward_marginals_bounded(
+    fn test_prop_recombination_compute_forward_backward_marginals_bounded(
       observations in proptest::collection::vec(
         proptest::prop_oneof![
           proptest::prelude::Just(RecombinationObs::Ref),
@@ -193,7 +195,7 @@ mod tests {
       offset in 1e-6_f64..0.5,
     ) {
       let params = RecombinationHmmParams::new(gamma, mu_w, mu_w + offset).unwrap();
-      let marginals = forward_backward_marginals(&observations, &params);
+      let marginals = compute_forward_backward_marginals(&observations, &params);
       proptest::prop_assert_eq!(observations.len(), marginals.len());
       for (l, &m) in marginals.iter().enumerate() {
         proptest::prop_assert!((0.0..=1.0).contains(&m), "marginal at {l} out of [0,1]: {m}");
@@ -204,21 +206,21 @@ mod tests {
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(512))]
 
-    // log_sum_exp_2 reproduces the naive log(exp(a) + exp(b)) on a range where the naive form does not
+    // compute_log_sum_exp_2 reproduces the naive log(exp(a) + exp(b)) on a range where the naive form does not
     // overflow, so the numerically stable kernel is pinned to its mathematical definition.
     #[test]
-    fn test_prop_recombination_log_sum_exp_2_matches_naive(a in -30.0_f64..30.0, b in -30.0_f64..30.0) {
+    fn test_prop_recombination_compute_log_sum_exp_2_matches_naive(a in -30.0_f64..30.0, b in -30.0_f64..30.0) {
       let naive = (a.exp() + b.exp()).ln();
-      let lse = log_sum_exp_2(a, b);
+      let lse = compute_log_sum_exp_2(a, b);
       proptest::prop_assert!((naive - lse).abs() < 1e-9, "naive={naive} lse={lse}");
     }
 
-    // log_sum_exp_2 is symmetric in its arguments (bit-identical under swap) and never falls below the
+    // compute_log_sum_exp_2 is symmetric in its arguments (bit-identical under swap) and never falls below the
     // larger operand, both required for the forward-backward recursions that consume it.
     #[test]
-    fn test_prop_recombination_log_sum_exp_2_commutative_and_lower_bounded(a in -1e6_f64..1e6, b in -1e6_f64..1e6) {
-      proptest::prop_assert_eq!(log_sum_exp_2(a, b).to_bits(), log_sum_exp_2(b, a).to_bits());
-      proptest::prop_assert!(log_sum_exp_2(a, b) >= a.max(b), "lse below max for a={a} b={b}");
+    fn test_prop_recombination_compute_log_sum_exp_2_commutative_and_lower_bounded(a in -1e6_f64..1e6, b in -1e6_f64..1e6) {
+      proptest::prop_assert_eq!(compute_log_sum_exp_2(a, b).to_bits(), compute_log_sum_exp_2(b, a).to_bits());
+      proptest::prop_assert!(compute_log_sum_exp_2(a, b) >= a.max(b), "lse below max for a={a} b={b}");
     }
 
     // An all-Missing observation vector carries no emission evidence, so with a uniform prior and
@@ -234,7 +236,7 @@ mod tests {
     ) {
       let params = RecombinationHmmParams::new(gamma, mu_w, mu_w + offset).unwrap();
       let observations = vec![RecombinationObs::Missing; len];
-      let marginals = forward_backward_marginals(&observations, &params);
+      let marginals = compute_forward_backward_marginals(&observations, &params);
       for (l, &m) in marginals.iter().enumerate() {
         proptest::prop_assert!((m - 0.5).abs() < 1e-9, "all-Missing marginal at {} not 0.5: {}", l, m);
       }

@@ -6,9 +6,7 @@
 mod tests {
   use crate::analyze::nuc_del::NucDelRange;
   use crate::analyze::recombination::__tests__::recombination_test_helpers::{nuc_range, ranges};
-  use crate::analyze::recombination::observations::{
-    RecombinationObs, build_observations, recombination_missing_ranges,
-  };
+  use crate::analyze::recombination::observations::{RecombinationObs, build_observations, collect_missing_ranges};
   use crate::coord::position::{NucRefGlobalPosition, PositionLike};
   use crate::coord::range::NucRefGlobalRange;
   use pretty_assertions::assert_eq;
@@ -51,16 +49,16 @@ mod tests {
   }
 
   // The assembled missing set must contain every input range, including the placement-masked ranges.
-  // Dropping the `masked` term from `recombination_missing_ranges` would fail this test, so the mask
+  // Dropping the `masked` term from `collect_missing_ranges` would fail this test, so the mask
   // chaining cannot silently regress.
   #[test]
-  fn test_recombination_missing_ranges_includes_masked() {
+  fn test_collect_missing_ranges_includes_masked() {
     let missing = vec![nuc_range(0, 2)];
     let non_acgtns = vec![nuc_range(10, 11)];
     let deletions = vec![NucDelRange::from_usize(20, 22)];
     let masked = ranges(&[(30, 33)]);
 
-    let assembled = recombination_missing_ranges(&missing, &non_acgtns, &deletions, &masked);
+    let assembled = collect_missing_ranges(&missing, &non_acgtns, &deletions, &masked);
 
     // Order is missing, then non-ACGTN, then deletions, then masked.
     let expected = ranges(&[(0, 2), (10, 11), (20, 22), (30, 33)]);
@@ -81,7 +79,7 @@ mod tests {
     let ref_len = 10;
     let alignment_range = NucRefGlobalRange::from_usize(1, 9); // positions 0 and 9 outside the alignment
     let masked = ranges(&[(4, 5)]); // position 4 is placement-masked
-    let missing_ranges = recombination_missing_ranges(&[], &[], &[], &masked);
+    let missing_ranges = collect_missing_ranges(&[], &[], &[], &masked);
     // Position 4 is masked and mutated; position 6 is mutated but not masked.
     let mutated: Vec<NucRefGlobalPosition> = [4, 6]
       .into_iter()

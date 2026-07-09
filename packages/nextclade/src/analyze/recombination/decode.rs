@@ -30,7 +30,7 @@ pub(crate) fn find_recombinant_regions(
   // their endpoints carry evidence (are not `Missing`). These are the invariants downstream output and
   // the web viewer rely on; a violation is a decoder/extraction bug, not a bad input.
   debug_assert!(
-    intervals_sorted_disjoint_nonempty(&regions, obs.len()),
+    are_intervals_sorted_disjoint_nonempty(&regions, obs.len()),
     "recombinant regions must be non-empty, sorted, disjoint and within bounds: {regions:?}"
   );
   debug_assert!(
@@ -46,7 +46,7 @@ pub(crate) fn find_recombinant_regions(
 /// Whether a list of reference ranges is well-formed as a set of decoded regions: every range is
 /// non-empty (`begin < end`), stays within `[0, len)`, and the ranges are sorted and pairwise
 /// disjoint (`prev.end <= next.begin`). Debug-assertion helper only.
-pub(crate) fn intervals_sorted_disjoint_nonempty(intervals: &[NucRefGlobalRange], len: usize) -> bool {
+pub(crate) fn are_intervals_sorted_disjoint_nonempty(intervals: &[NucRefGlobalRange], len: usize) -> bool {
   let mut prev_end = 0;
   intervals.iter().all(|r| {
     let (begin, end) = (r.begin.as_usize(), r.end.as_usize());
@@ -76,11 +76,11 @@ pub(crate) fn viterbi_decode(obs: &[RecombinationObs], params: &RecombinationHmm
   let mut score = vec![[f64::NEG_INFINITY; 2]; n];
   let mut back = vec![[WILDTYPE; 2]; n];
 
-  let emit0 = params.log_emission(obs[0]);
+  let emit0 = params.compute_log_emission(obs[0]);
   score[0] = [log_prior + emit0[WILDTYPE], log_prior + emit0[RECOMBINANT]];
 
   for l in 1..n {
-    let emit = params.log_emission(obs[l]);
+    let emit = params.compute_log_emission(obs[l]);
     for to in [WILDTYPE, RECOMBINANT] {
       let from_wildtype = score[l - 1][WILDTYPE] + log_trans(WILDTYPE, to);
       let from_recombinant = score[l - 1][RECOMBINANT] + log_trans(RECOMBINANT, to);
@@ -136,7 +136,7 @@ fn extract_recombinant_intervals(is_recombinant: &[bool]) -> Vec<NucRefGlobalRan
 
   // Postcondition: maximal runs are non-empty, sorted, disjoint and within the decoded vector.
   debug_assert!(
-    intervals_sorted_disjoint_nonempty(&regions, is_recombinant.len()),
+    are_intervals_sorted_disjoint_nonempty(&regions, is_recombinant.len()),
     "extracted intervals must be non-empty, sorted, disjoint and within bounds: {regions:?}"
   );
   regions
