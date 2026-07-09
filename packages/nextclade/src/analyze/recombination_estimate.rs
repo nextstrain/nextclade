@@ -830,7 +830,6 @@ mod tests {
     );
   }
 
-  #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_all_overrides_bypass_unresolvable_tree() {
     // A single-clade tree cannot estimate muR, so with no overrides it would skip. Overriding all
@@ -875,7 +874,6 @@ mod tests {
     AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
   }
 
-  #[allow(clippy::float_cmp)]
   #[test]
   fn test_recombination_estimate_counts_insertions_as_mutations() {
     // The insertion "-10A" is counted (query base present), so B1's branch length is 2, not 1.
