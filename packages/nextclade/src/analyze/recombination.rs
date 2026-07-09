@@ -430,8 +430,13 @@ fn log_sum_exp_2(a: f64, b: f64) -> f64 {
   max + (min - max).exp().ln_1p()
 }
 
-/// Forward-backward algorithm in log-space. Returns per-site P(recombinant | observations).
-pub(crate) fn forward_backward_marginals(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<f64> {
+/// Forward-backward algorithm in log-space. Returns, per site, the full posterior distribution
+/// `[P(wildtype | observations), P(recombinant | observations)]`.
+///
+/// Exposing both states (rather than only the recombinant marginal) keeps the alpha/beta recurrence
+/// in a single implementation and lets tests check the posteriors against an independent brute-force
+/// marginalization, instead of re-deriving the same math in the test.
+pub(crate) fn forward_backward_posteriors(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<[f64; 2]> {
   let n = obs.len();
   if n == 0 {
     return vec![];
@@ -475,17 +480,27 @@ pub(crate) fn forward_backward_marginals(obs: &[RecombinationObs], params: &Reco
     );
   }
 
-  // Marginals: P(h_l = recombinant | s) = exp(log_alpha[l][R] + log_beta[l][R] - normalizer)
-  let mut marginals = vec![0.0; n];
+  // Posteriors: P(h_l = k | s) = exp(log_alpha[l][k] + log_beta[l][k] - normalizer)
+  let mut posteriors = vec![[0.0; 2]; n];
   for l in 0..n {
     let log_w = log_alpha[l][WILDTYPE] + log_beta[l][WILDTYPE];
     let log_r = log_alpha[l][RECOMBINANT] + log_beta[l][RECOMBINANT];
     let log_normalizer = log_sum_exp_2(log_w, log_r);
-    marginals[l] = (log_r - log_normalizer).exp();
+    posteriors[l] = [(log_w - log_normalizer).exp(), (log_r - log_normalizer).exp()];
   }
 
-  debug_assert_eq!(obs.len(), marginals.len(), "marginals must match observation length");
-  marginals
+  debug_assert_eq!(obs.len(), posteriors.len(), "posteriors must match observation length");
+  posteriors
+}
+
+/// Forward-backward algorithm in log-space. Returns per-site P(recombinant | observations), the
+/// recombinant marginal used to score decoded intervals. Thin projection of
+/// [`forward_backward_posteriors`] so the recurrence has a single implementation.
+pub(crate) fn forward_backward_marginals(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<f64> {
+  forward_backward_posteriors(obs, params)
+    .into_iter()
+    .map(|posterior| posterior[RECOMBINANT])
+    .collect()
 }
 
 /// Mean P(recombinant) within each interval, as a confidence score per region.
