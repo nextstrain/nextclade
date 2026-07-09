@@ -1327,4 +1327,198 @@ mod tests {
 
     pretty_assert_abs_diff_eq!(best_score, decoded_score, epsilon = 1e-9);
   }
+
+  // Viterbi optimality as a property: over random short observation vectors AND random valid
+  // parameters, the decoded path attains the maximum log-probability among all 2^L hidden paths. The
+  // fixed-case oracle above pins a handful of vectors at one parameter set; randomizing both the
+  // observations and the transition/emission costs exercises the tie policy and recurrence across the
+  // whole parameter regime, not just the test-scale point. Brute force is an independent oracle (an
+  // exhaustive search, not the Viterbi recurrence), so agreement is a real correctness signal.
+  proptest::proptest! {
+    #![proptest_config(proptest::prelude::ProptestConfig::with_cases(256))]
+
+    #[test]
+    fn test_prop_recombination_viterbi_matches_bruteforce(
+      observations in proptest::collection::vec(
+        proptest::prop_oneof![
+          proptest::prelude::Just(RecombinationObs::Ref),
+          proptest::prelude::Just(RecombinationObs::Mut),
+          proptest::prelude::Just(RecombinationObs::Missing),
+        ],
+        1..=12_usize,
+      ),
+      gamma in 1e-6_f64..0.5,
+      mu_w in 1e-6_f64..0.5,
+      offset in 1e-6_f64..0.5,
+    ) {
+      let params = RecombinationHmmParams::new(gamma, mu_w, mu_w + offset).unwrap();
+      let decoded = viterbi_decode(&observations, &params);
+      let decoded_score = path_log_prob(&observations, &decoded, &params);
+
+      let n = observations.len();
+      let best_score = (0..(1_u32 << n))
+        .map(|mask| {
+          let path: Vec<bool> = (0..n).map(|i| (mask >> i) & 1 == 1).collect();
+          path_log_prob(&observations, &path, &params)
+        })
+        .fold(f64::NEG_INFINITY, f64::max);
+
+      proptest::prop_assert!(
+        (best_score - decoded_score).abs() < 1e-9,
+        "viterbi path not optimal: decoded={decoded_score} best={best_score}"
+      );
+    }
+  }
+
+  proptest::proptest! {
+    #![proptest_config(proptest::prelude::ProptestConfig::with_cases(512))]
+
+    // log_sum_exp_2 reproduces the naive log(exp(a) + exp(b)) on a range where the naive form does not
+    // overflow, so the numerically stable kernel is pinned to its mathematical definition.
+    #[test]
+    fn test_prop_recombination_log_sum_exp_2_matches_naive(a in -30.0_f64..30.0, b in -30.0_f64..30.0) {
+      let naive = (a.exp() + b.exp()).ln();
+      let lse = log_sum_exp_2(a, b);
+      proptest::prop_assert!((naive - lse).abs() < 1e-9, "naive={naive} lse={lse}");
+    }
+
+    // log_sum_exp_2 is symmetric in its arguments (bit-identical under swap) and never falls below the
+    // larger operand, both required for the forward-backward recursions that consume it.
+    #[test]
+    fn test_prop_recombination_log_sum_exp_2_commutative_and_lower_bounded(a in -1e6_f64..1e6, b in -1e6_f64..1e6) {
+      proptest::prop_assert_eq!(log_sum_exp_2(a, b).to_bits(), log_sum_exp_2(b, a).to_bits());
+      proptest::prop_assert!(log_sum_exp_2(a, b) >= a.max(b), "lse below max for a={a} b={b}");
+    }
+
+    // build_observations always emits exactly one observation per reference position (so the decoded
+    // state vector stays in reference coordinates), and every position inside a missing range resolves
+    // to Missing regardless of any mutation mapped there -- missing data must not enter the likelihood.
+    // Out-of-range mutations and ranges are absorbed without panicking or growing the vector.
+    #[test]
+    fn test_prop_recombination_build_observations_length_and_missing_precedence(
+      ref_len in 1_usize..300,
+      align_a in 0_usize..300,
+      align_b in 0_usize..300,
+      missing in proptest::collection::vec((0_usize..350, 0_usize..350), 0..20),
+      muts in proptest::collection::vec(0_usize..350, 0..40),
+    ) {
+      let (lo, hi) = (align_a.min(align_b), align_a.max(align_b));
+      let alignment_range = NucRefGlobalRange::from_usize(lo, hi);
+      let missing_ranges: Vec<NucRefGlobalRange> = missing
+        .iter()
+        .map(|&(x, y)| NucRefGlobalRange::from_usize(x.min(y), x.max(y)))
+        .collect();
+      let mutated: Vec<NucRefGlobalPosition> = muts.iter().map(|&p| NucRefGlobalPosition::from(p as isize)).collect();
+
+      let observed = build_observations(ref_len, &alignment_range, &missing_ranges, &mutated);
+
+      proptest::prop_assert_eq!(observed.len(), ref_len);
+      for range in &missing_ranges {
+        // Clamp the range to the reference so an out-of-range missing range checks only its in-bounds part.
+        let end = range.end.as_usize().min(ref_len);
+        let begin = range.begin.as_usize().min(end);
+        for (offset, obs_at) in observed[begin..end].iter().enumerate() {
+          proptest::prop_assert_eq!(*obs_at, RecombinationObs::Missing, "missing precedence violated at {}", begin + offset);
+        }
+      }
+    }
+
+    // RecombinationResult summary fields are consistent with the input ranges: region count matches,
+    // total length is the sum of per-region lengths, each region length equals its range span, and the
+    // longest region has the maximum length. An empty range list produces None, not an empty result.
+    #[test]
+    fn test_prop_recombination_result_summary_consistent(
+      items in proptest::collection::vec((0_usize..1000, 1_usize..500, 0.0_f64..=1.0), 1..30),
+    ) {
+      let ranges: Vec<NucRefGlobalRange> = items
+        .iter()
+        .map(|&(begin, span, _)| NucRefGlobalRange::from_usize(begin, begin + span))
+        .collect();
+      let confidences: Vec<f64> = items.iter().map(|&(_, _, c)| c).collect();
+
+      let result = RecombinationResult::from_ranges(ranges.clone(), Some(&confidences)).unwrap();
+
+      proptest::prop_assert_eq!(result.total_regions, ranges.len());
+      proptest::prop_assert_eq!(result.regions.len(), ranges.len());
+      // Expected totals derive from the generated spans (each range is `begin..begin + span`, so its
+      // length is `span`), an oracle independent of the `NucRefGlobalRange::len` used in production.
+      let expected_total: usize = items.iter().map(|&(_, span, _)| span).sum();
+      proptest::prop_assert_eq!(result.total_length, expected_total);
+      let max_len = items.iter().map(|&(_, span, _)| span).max().unwrap();
+      proptest::prop_assert_eq!(result.longest_region.length, max_len);
+      for (region, range) in result.regions.iter().zip(&ranges) {
+        proptest::prop_assert_eq!(region.length, range.len());
+        proptest::prop_assert_eq!(&region.range, range);
+      }
+      proptest::prop_assert!(RecombinationResult::from_ranges(vec![], None).is_none());
+    }
+
+    // An all-Missing observation vector carries no emission evidence, so with a uniform prior and
+    // symmetric transitions the posterior is exactly 0.5 at every site for any valid parameters. This
+    // is an analytic fixed point of forward-backward independent of length, complementing the bounded
+    // marginals property.
+    #[test]
+    fn test_prop_recombination_forward_backward_all_missing_marginals_half(
+      len in 1_usize..200,
+      gamma in 1e-6_f64..0.5,
+      mu_w in 1e-6_f64..0.5,
+      offset in 1e-6_f64..0.5,
+    ) {
+      let params = RecombinationHmmParams::new(gamma, mu_w, mu_w + offset).unwrap();
+      let observations = vec![RecombinationObs::Missing; len];
+      let marginals = forward_backward_marginals(&observations, &params);
+      for (l, &m) in marginals.iter().enumerate() {
+        proptest::prop_assert!((m - 0.5).abs() < 1e-9, "all-Missing marginal at {} not 0.5: {}", l, m);
+      }
+    }
+
+    // A per-interval confidence is the mean posterior within the interval, so it must lie between the
+    // minimum and maximum marginal over that interval (and stay in [0, 1] when the marginals do). A
+    // summary that averaged the wrong slice would escape these bounds.
+    #[test]
+    fn test_prop_recombination_compute_interval_confidences_bounded_by_slice(
+      marginals in proptest::collection::vec(0.0_f64..=1.0, 1..200),
+      raw_intervals in proptest::collection::vec((proptest::prelude::any::<usize>(), proptest::prelude::any::<usize>()), 0..8),
+    ) {
+      let n = marginals.len();
+      let intervals: Vec<NucRefGlobalRange> = raw_intervals
+        .iter()
+        .map(|&(a, b)| {
+          let begin = a % n;
+          let end = begin + 1 + (b % (n - begin));
+          NucRefGlobalRange::from_usize(begin, end)
+        })
+        .collect();
+
+      let confidences = compute_interval_confidences(&marginals, &intervals);
+
+      proptest::prop_assert_eq!(confidences.len(), intervals.len());
+      for (conf, iv) in confidences.iter().zip(&intervals) {
+        let slice = &marginals[iv.begin.as_usize()..iv.end.as_usize()];
+        let mn = slice.iter().copied().fold(f64::INFINITY, f64::min);
+        let mx = slice.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        proptest::prop_assert!(*conf >= mn - 1e-12 && *conf <= mx + 1e-12, "conf {} outside [{}, {}]", conf, mn, mx);
+        proptest::prop_assert!((0.0..=1.0).contains(conf), "conf {} out of [0, 1]", conf);
+      }
+    }
+
+    // Valid parameters survive a JSON round-trip, including the TryFrom validation on the way back in,
+    // recovering each rate to within a couple of ULPs. The round-trip is not bit-exact: serde_json's
+    // default float parser (the `float_roundtrip` feature is off) reparses the shortest decimal to
+    // within one ULP, so the correct invariant is ULP-bounded closeness, not equality. The fixed-value
+    // example pins one point; this covers the whole valid regime.
+    #[test]
+    fn test_prop_recombination_params_serde_roundtrip(
+      gamma in 1e-6_f64..0.5,
+      mu_w in 1e-6_f64..0.5,
+      offset in 1e-6_f64..0.5,
+    ) {
+      let params = RecombinationHmmParams::new(gamma, mu_w, mu_w + offset).unwrap();
+      let json = serde_json::to_string(&params).unwrap();
+      let back: RecombinationHmmParams = serde_json::from_str(&json).unwrap();
+      proptest::prop_assert!(approx::ulps_eq!(params.gamma(), back.gamma(), max_ulps = 2), "gamma drift: {} vs {}", params.gamma(), back.gamma());
+      proptest::prop_assert!(approx::ulps_eq!(params.mu_w(), back.mu_w(), max_ulps = 2), "muW drift: {} vs {}", params.mu_w(), back.mu_w());
+      proptest::prop_assert!(approx::ulps_eq!(params.mu_r(), back.mu_r(), max_ulps = 2), "muR drift: {} vs {}", params.mu_r(), back.mu_r());
+    }
+  }
 }
