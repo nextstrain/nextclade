@@ -30,3 +30,6 @@ pub mod phenotype;
 pub mod recombination;
 pub mod recombination_estimate;
 pub mod virus_properties;
+
+#[cfg(test)]
+mod __tests__;

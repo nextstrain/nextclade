@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""Capture golden-master outputs for the recombination HMM.
+
+Runs `recomb_inference` (https://github.com/mmolari/recomb_inference) over the cases in
+`gm_recombination_inputs.json` and writes `gm_recombination_outputs.json`.
+
+Setup (before running):
+
+  1. Clone the prototype somewhere inside the repo tree (the container mounts the repo root):
+
+       git clone https://github.com/mmolari/recomb_inference <clone-dir>
+
+  2. Check out the pinned commit:
+
+       git -C <clone-dir> checkout 944ec48a93a1d2835857694bd3cdfe0d1af1e56c
+
+  3. Run inside the Python container:
+
+       ./docker/python python packages/nextclade/src/analyze/__tests__/__fixtures__/gm_recombination_capture <clone-dir>/code
+"""
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+FIXTURES_DIR = Path(__file__).resolve().parent
+# Column index of the recombinant state in the prototype's (L, 2) marginal array (0 = wildtype).
+RECOMBINANT = 1
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+        "prototype_code_dir",
+        type=Path,
+        help="Path to the directory containing the importable `recomb_inference` package "
+        "(the prototype's `code/` directory).",
+    )
+    args = parser.parse_args()
+
+    code_dir = args.prototype_code_dir.resolve()
+    if not (code_dir / "recomb_inference" / "__init__.py").is_file():
+        sys.exit(
+            f"`recomb_inference` package not found under {code_dir}. "
+            "Clone and check out the prototype first; see this script's header for the steps."
+        )
+
+    sys.path.insert(0, str(code_dir))
+    import numpy as np
+    from recomb_inference import (
+        RecombinationParameters,
+        forward_backward_recombination_logexp,
+        viterbi_recombination,
+    )
+
+    inputs = json.loads((FIXTURES_DIR / "gm_recombination_inputs.json").read_text())
+
+    cases = []
+    for case in inputs["cases"]:
+        p = case["params"]
+        params = RecombinationParameters(mu_w=p["muW"], mu_r=p["muR"], gamma=p["gamma"])
+        # 0 = Ref, 1 = Mut. Prototype has no Missing state; parity is on this binary subset only.
+        mutations = np.asarray(case["mutations"], dtype=int)
+
+        states = viterbi_recombination(mutations, params)
+        marginals = forward_backward_recombination_logexp(mutations, params)
+
+        cases.append(
+            {
+                "name": case["name"],
+                "viterbiStates": [int(s) for s in states],
+                "fbMarginals": [float(m) for m in marginals[:, RECOMBINANT]],
+            }
+        )
+
+    output = {"cases": cases}
+    out_path = FIXTURES_DIR / "gm_recombination_outputs.json"
+    out_path.write_text(json.dumps(output, indent=2) + "\n")
+    print(f"Wrote {len(cases)} cases to {out_path}")
+
+
+if __name__ == "__main__":
+    main()

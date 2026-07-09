@@ -505,7 +505,7 @@ pub(crate) fn compute_interval_confidences(marginals: &[f64], intervals: &[NucRe
 }
 
 /// Viterbi decoding in log-space. Returns, per site, whether the most likely state is recombinant.
-fn viterbi_decode(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<bool> {
+pub(crate) fn viterbi_decode(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<bool> {
   let n = obs.len();
   if n == 0 {
     return vec![];
