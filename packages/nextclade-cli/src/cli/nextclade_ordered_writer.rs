@@ -4,7 +4,7 @@ use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::{info, warn};
 use nextclade::alphabet::nuc::from_nuc_seq;
-use nextclade::analyze::recombination::RecombinationHmmParams;
+use nextclade::analyze::recombination::params::RecombinationHmmParams;
 use nextclade::analyze::virus_properties::PhenotypeAttrDesc;
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};

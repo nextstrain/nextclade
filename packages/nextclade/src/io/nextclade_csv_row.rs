@@ -9,7 +9,7 @@ use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
-use crate::analyze::recombination::RecombinationResult;
+use crate::analyze::recombination::result::RecombinationResult;
 use crate::coord::range::NucRefGlobalRange;
 use crate::o;
 use crate::qc::qc_config::StopCodonLocation;
@@ -782,7 +782,7 @@ fn format_aa_motifs(motifs: &[AaMotif]) -> String {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::analyze::recombination::RecombinationRegion;
+  use crate::analyze::recombination::result::RecombinationRegion;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 

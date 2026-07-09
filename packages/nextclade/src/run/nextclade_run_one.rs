@@ -31,10 +31,11 @@ use crate::analyze::nuc_changes::{FindNucChangesOutput, find_nuc_changes};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
-use crate::analyze::recombination::{
-  RecombinationConfig, RecombinationResult, build_observations, compute_interval_confidences, find_recombinant_regions,
-  forward_backward_marginals, recombination_missing_ranges,
-};
+use crate::analyze::recombination::config::RecombinationConfig;
+use crate::analyze::recombination::decode::find_recombinant_regions;
+use crate::analyze::recombination::forward_backward::{compute_interval_confidences, forward_backward_marginals};
+use crate::analyze::recombination::observations::{build_observations, recombination_missing_ranges};
+use crate::analyze::recombination::result::RecombinationResult;
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};

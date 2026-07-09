@@ -1,4 +1,4 @@
-use crate::analyze::recombination::RecombinationHmmParams;
+use crate::analyze::recombination::params::RecombinationHmmParams;
 use crate::analyze::virus_properties::PhenotypeAttrDesc;
 use crate::io::json::{JsonPretty, json_stringify, json_write};
 use crate::io::ndjson::NdjsonWriter;

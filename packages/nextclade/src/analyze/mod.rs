@@ -28,8 +28,4 @@ pub mod pcr_primer_changes;
 pub mod pcr_primers;
 pub mod phenotype;
 pub mod recombination;
-pub mod recombination_estimate;
 pub mod virus_properties;
-
-#[cfg(test)]
-mod __tests__;

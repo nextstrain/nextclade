@@ -3,8 +3,9 @@
 
 #[cfg(test)]
 mod tests {
-  use crate::analyze::__tests__::recombination_test_helpers::{obs, ranges, region, test_params};
-  use crate::analyze::recombination::{RecombinationResult, find_recombinant_regions};
+  use crate::analyze::recombination::__tests__::recombination_test_helpers::{obs, ranges, region, test_params};
+  use crate::analyze::recombination::decode::find_recombinant_regions;
+  use crate::analyze::recombination::result::RecombinationResult;
   use crate::coord::range::NucRefGlobalRange;
   use crate::io::json::{JsonPretty, json_stringify};
   use indoc::indoc;

@@ -4,11 +4,12 @@
 
 #[cfg(test)]
 mod tests {
-  use crate::analyze::__tests__::recombination_test_helpers::{obs, path_log_prob, ranges, test_params};
-  use crate::analyze::recombination::{
-    RecombinationHmmParams, RecombinationObs, find_recombinant_regions, intervals_sorted_disjoint_nonempty,
-    viterbi_decode,
+  use crate::analyze::recombination::__tests__::recombination_test_helpers::{obs, path_log_prob, ranges, test_params};
+  use crate::analyze::recombination::decode::{
+    find_recombinant_regions, intervals_sorted_disjoint_nonempty, viterbi_decode,
   };
+  use crate::analyze::recombination::observations::RecombinationObs;
+  use crate::analyze::recombination::params::RecombinationHmmParams;
   use crate::coord::position::PositionLike;
   use crate::coord::range::NucRefGlobalRange;
   use crate::pretty_assert_abs_diff_eq;

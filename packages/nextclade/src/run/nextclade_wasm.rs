@@ -6,10 +6,11 @@ use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
-use crate::analyze::recombination::{RecombinationConfig, RecombinationHmmParams};
-use crate::analyze::recombination_estimate::{
+use crate::analyze::recombination::config::RecombinationConfig;
+use crate::analyze::recombination::estimate::{
   RecombinationResolution, RecombinationSkipReason, resolve_recombination_params,
 };
+use crate::analyze::recombination::params::RecombinationHmmParams;
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::{GeneMap, filter_gene_map};
 use crate::graph::graph::Graph;
