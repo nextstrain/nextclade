@@ -4,13 +4,13 @@
 
 #[cfg(test)]
 mod tests {
-  use crate::analyze::__tests__::recombination_test_helpers::{
+  use crate::analyze::recombination::__tests__::recombination_test_helpers::{
     REF_LEN, external_tree_with_deletion, internal_only_second_clade_tree, nested_clade_tree, resolved,
     single_clade_tree, three_clade_tree, tree_with_insertion, tree_with_malformed_mutation,
     two_clade_no_mutations_tree, two_clade_tree,
   };
-  use crate::analyze::recombination::RecombinationConfig;
-  use crate::analyze::recombination_estimate::{
+  use crate::analyze::recombination::config::RecombinationConfig;
+  use crate::analyze::recombination::estimate::{
     RecombinationResolution, RecombinationSkipReason, as_probability, median, resolve_recombination_params,
   };
   use crate::{assert_error, pretty_assert_ulps_eq};

@@ -10,7 +10,7 @@ use crate::analyze::mutation_patterns::MutationPatternEventTypeCount;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
-use crate::analyze::recombination::RecombinationResult;
+use crate::analyze::recombination::result::RecombinationResult;
 use crate::coord::range::NucRefGlobalRange;
 use crate::io::nextclade_csv::mut_pattern_cols;
 use crate::o;
@@ -815,7 +815,7 @@ mod tests {
   use super::*;
   use crate::alphabet::nuc::Nuc;
   use crate::analyze::mutation_patterns::MutationPatternNucSubstitutionTypeCount;
-  use crate::analyze::recombination::RecombinationRegion;
+  use crate::analyze::recombination::result::RecombinationRegion;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 

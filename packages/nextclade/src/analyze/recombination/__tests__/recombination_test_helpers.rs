@@ -7,11 +7,12 @@
 
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::letter_ranges::NucRange;
-use crate::analyze::recombination::{
-  RECOMBINANT, RecombinationConfig, RecombinationHmmParams, RecombinationObs, RecombinationRegion, WILDTYPE,
-  log_sum_exp_2,
-};
-use crate::analyze::recombination_estimate::RecombinationResolution;
+use crate::analyze::recombination::config::RecombinationConfig;
+use crate::analyze::recombination::estimate::RecombinationResolution;
+use crate::analyze::recombination::forward_backward::log_sum_exp_2;
+use crate::analyze::recombination::observations::RecombinationObs;
+use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE};
+use crate::analyze::recombination::result::RecombinationRegion;
 use crate::coord::range::NucRefGlobalRange;
 use crate::tree::tree::{AuspiceGraph, AuspiceTree};
 use indoc::indoc;

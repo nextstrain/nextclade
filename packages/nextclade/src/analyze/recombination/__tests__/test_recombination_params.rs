@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-  use crate::analyze::recombination::{RecombinationHmmParams, is_hmm_probability};
+  use crate::analyze::recombination::params::{RecombinationHmmParams, is_hmm_probability};
   use crate::{assert_error, pretty_assert_ulps_eq};
   use eyre::Report;
   use pretty_assertions::assert_eq;

@@ -15,7 +15,8 @@
 
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::nuc_sub::NucSub;
-use crate::analyze::recombination::{RecombinationConfig, RecombinationHmmParams, is_hmm_probability};
+use crate::analyze::recombination::config::RecombinationConfig;
+use crate::analyze::recombination::params::{RecombinationHmmParams, is_hmm_probability};
 use crate::graph::node::GraphNodeKey;
 use crate::make_error;
 use crate::tree::tree::{AuspiceGraph, AuspiceGraphNodePayload};
