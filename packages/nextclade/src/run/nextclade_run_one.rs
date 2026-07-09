@@ -31,14 +31,10 @@ use crate::analyze::nuc_changes::{FindNucChangesOutput, find_nuc_changes};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
-use crate::analyze::recombination::config::RecombinationConfig;
-use crate::analyze::recombination::decode::find_recombinant_regions;
-use crate::analyze::recombination::forward_backward::{compute_interval_confidences, forward_backward_marginals};
-use crate::analyze::recombination::observations::{build_observations, recombination_missing_ranges};
-use crate::analyze::recombination::result::RecombinationResult;
+use crate::analyze::recombination::run::{RecombinationRunInput, run_recombination};
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
-use crate::coord::position::{NucRefGlobalPosition, PositionLike};
+use crate::coord::position::PositionLike;
 use crate::coord::range::{AaRefRange, NucRefGlobalRange, Range, intersect};
 use crate::gene::cds_segment::{CdsSegment, Truncation};
 use crate::gene::gene::GeneStrand;
@@ -441,30 +437,22 @@ pub fn nextclade_run_one(
     .unwrap_or_default();
 
   // Recombination detection: decode putative recombinant regions from the parent-relative mutation
-  // pattern. Runs only when parameters were resolved once per run (requires a reference tree), and
-  // only for sequences carrying at least the configured minimum number of private substitutions.
-  // A sequence below that threshold cannot produce a recombinant call, so both Viterbi and
-  // forward-backward are skipped and the sequence gets no recombination result.
-  let min_private_subs_to_run = RecombinationConfig::min_private_subs_to_run(virus_properties.recombination.as_ref());
+  // pattern. Runs only when parameters were resolved once per run (requires a reference tree). The
+  // per-sequence gate and step order live in `run_recombination`.
   let recombination = recombination_params.as_ref().and_then(|params| {
-    if private_nuc_mutations.private_substitutions.len() < min_private_subs_to_run {
-      return None;
-    }
-    let missing_ranges = recombination_missing_ranges(&missing, &non_acgtns, &deletions, masked_ranges);
-    let mutated_positions: Vec<NucRefGlobalPosition> = private_nuc_mutations
-      .private_substitutions
-      .iter()
-      .map(|sub| sub.pos)
-      .collect();
-    let observations = build_observations(ref_seq.len(), &alignment_range, &missing_ranges, &mutated_positions);
-    let regions = find_recombinant_regions(&observations, params);
-    let confidences = if regions.is_empty() {
-      None
-    } else {
-      let marginals = forward_backward_marginals(&observations, params);
-      Some(compute_interval_confidences(&marginals, &regions))
-    };
-    RecombinationResult::from_ranges(regions, confidences.as_deref())
+    run_recombination(
+      params,
+      virus_properties.recombination.as_ref(),
+      &RecombinationRunInput {
+        ref_len: ref_seq.len(),
+        alignment_range: &alignment_range,
+        private_substitutions: &private_nuc_mutations.private_substitutions,
+        missing: &missing,
+        non_acgtns: &non_acgtns,
+        deletions: &deletions,
+        masked_ranges,
+      },
+    )
   });
 
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;

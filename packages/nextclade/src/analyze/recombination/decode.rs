@@ -18,7 +18,10 @@ use crate::coord::range::NucRefGlobalRange;
 ///
 /// `params` are always valid: [`RecombinationHmmParams`] has private fields and can only be built
 /// through [`RecombinationHmmParams::new`], which enforces the model invariants.
-pub fn find_recombinant_regions(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<NucRefGlobalRange> {
+pub(crate) fn find_recombinant_regions(
+  obs: &[RecombinationObs],
+  params: &RecombinationHmmParams,
+) -> Vec<NucRefGlobalRange> {
   let is_recombinant = viterbi_decode(obs, params);
   let intervals = extract_recombinant_intervals(&is_recombinant);
   let regions = trim_intervals_to_covered(intervals, obs);
