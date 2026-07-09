@@ -1,0 +1,6 @@
+{
+    "defaultConfig": {
+        "highlightTrailingWhitespace": true,
+        "highlightWhitespace": true
+    }
+}

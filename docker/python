@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+#
+# Usage: $0 <command> [args...]
+#
+# Run a command in the Python container (docker/python.dockerfile). Separate from docker/dev.
+# Mounts the project at /workdir, maps the host user. Image tag is a content hash of build
+# inputs; rebuilds only when they change. DOCKER_FORCE_REBUILD=1 to force.
+#
+# Examples:
+#   $0 bash
+#   $0 python path/to/script.py
+#
+set -euo pipefail
+trap "exit" INT
+
+THIS_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+
+DOCKER_REPO="nextstrain/nextclade_builder"
+DOCKER_REPO_SAFE="${DOCKER_REPO//\//-}"
+CONTAINER_USER="user"
+CONTAINER_GROUP="user"
+
+# Content hash of build inputs -- tag changes when any input changes.
+image_tag() {
+  local inputs=("${THIS_DIR}/python.dockerfile" "${THIS_DIR}/../requirements.txt")
+  local f
+  while IFS= read -r f; do
+    inputs+=("${f}")
+  done < <(find "${THIS_DIR}/files" -type f | sort)
+
+  local hash
+  hash="$(cat "${inputs[@]}" | sha256sum | cut -c1-16)"
+  printf "python-%s" "${hash}"
+}
+
+build_image() {
+  local tag="${1}"
+  local project_root="${2}"
+
+  declare -A build_args=(
+    ["UID"]="$(id -u)"
+    ["GID"]="$(id -g)"
+    ["USER"]="${CONTAINER_USER}"
+    ["GROUP"]="${CONTAINER_GROUP}"
+  )
+  local build_arg_flags=()
+  local key
+  for key in "${!build_args[@]}"; do
+    build_arg_flags+=(--build-arg="${key}=${build_args[${key}]}")
+  done
+
+  export BUILDKIT_PROGRESS=plain
+  export PROGRESS_NO_TRUNC=1
+  docker buildx build \
+    --file="${THIS_DIR}/python.dockerfile" \
+    --tag="${DOCKER_REPO}:${tag}" \
+    --network=host \
+    "${build_arg_flags[@]}" \
+    --load \
+    "${project_root}" \
+    >/dev/null
+}
+
+run_container() {
+  local tag="${1}"
+  local project_root="${2}"
+  shift 2
+
+  declare -A env_vars=(
+    ["UID"]="$(id -u)"
+    ["GID"]="$(id -g)"
+    ["USER"]="${CONTAINER_USER}"
+    ["GROUP"]="${CONTAINER_GROUP}"
+    ["HOME"]="/home/${CONTAINER_USER}"
+    ["TERM"]="xterm-256color"
+    ["LANG"]="C.UTF-8"
+    ["JUPYTER_PORT"]="${JUPYTER_PORT:-10000}"
+  )
+  local env_flags=()
+  local key
+  for key in "${!env_vars[@]}"; do
+    env_flags+=(--env="${key}=${env_vars[${key}]}")
+  done
+
+  declare -A volumes=(
+    ["${project_root}"]="/workdir"
+    ["${project_root}/.cache/docker/python/jupyter"]="/home/${CONTAINER_USER}/.jupyter"
+  )
+  mkdir -p "${!volumes[@]}"
+  local volume_flags=()
+  local src
+  for src in "${!volumes[@]}"; do
+    volume_flags+=(--volume="${src}:${volumes[${src}]}")
+  done
+
+  local tty_flag=()
+  if [[ -t 0 ]]; then
+    tty_flag=(--tty)
+  fi
+
+  local container_name
+  container_name="${DOCKER_REPO_SAFE}-${tag}-$(date -u '+%Y-%m-%d_%H-%M-%S_%3NZ')"
+
+  docker run --rm --interactive "${tty_flag[@]}" \
+    --init \
+    --network=host \
+    --name="${container_name}" \
+    --hostname="${DOCKER_REPO_SAFE}" \
+    --user="$(id -u):$(id -g)" \
+    --workdir="/workdir" \
+    "${volume_flags[@]}" \
+    "${env_flags[@]}" \
+    --ulimit=core=0 \
+    "${DOCKER_REPO}:${tag}" \
+    "$@"
+}
+
+main() {
+  show_help() {
+    sed -n '2,${/^#/!q; s/^# \?//p}' "${BASH_SOURCE[0]}" | sed "s|\$0|${0##*/}|g"
+  }
+
+  [[ "${1:-}" =~ ^(-h|--help)$ ]] && {
+    show_help
+    exit 0
+  }
+
+  if [[ $# -eq 0 ]]; then
+    show_help >&2
+    exit 1
+  fi
+
+  local project_root
+  project_root="$(realpath "${THIS_DIR}/..")"
+
+  local tag
+  tag="$(image_tag)"
+
+  if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${tag}" &>/dev/null || [[ -n "${DOCKER_FORCE_REBUILD:-}" ]]; then
+    build_image "${tag}" "${project_root}"
+  fi
+
+  run_container "${tag}" "${project_root}" "$@"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
