@@ -3,8 +3,8 @@
 
 #[cfg(test)]
 mod tests {
-  use crate::analyze::__tests__::recombination_test_helpers::cfg_min_subs;
-  use crate::analyze::recombination::RecombinationConfig;
+  use crate::analyze::recombination::__tests__::recombination_test_helpers::cfg_min_subs;
+  use crate::analyze::recombination::config::RecombinationConfig;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 

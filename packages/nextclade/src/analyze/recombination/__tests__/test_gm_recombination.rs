@@ -23,7 +23,7 @@
 
 #[cfg(test)]
 mod tests {
-  use crate::analyze::recombination::viterbi_decode;
+  use crate::analyze::recombination::decode::viterbi_decode;
   use helpers::{fb_max_diff, input_case, observations, output_case};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
@@ -95,7 +95,9 @@ mod tests {
   }
 
   mod helpers {
-    use crate::analyze::recombination::{RecombinationHmmParams, RecombinationObs, forward_backward_marginals};
+    use crate::analyze::recombination::forward_backward::forward_backward_marginals;
+    use crate::analyze::recombination::observations::RecombinationObs;
+    use crate::analyze::recombination::params::RecombinationHmmParams;
     use serde::Deserialize;
 
     const INPUTS_JSON: &str = include_str!("__fixtures__/gm_recombination_inputs.json");

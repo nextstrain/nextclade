@@ -3,7 +3,7 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_changes_find_for_cds::AaChangesParamsOptional;
 use crate::analyze::aa_sub::AaGenotype;
-use crate::analyze::recombination::RecombinationConfig;
+use crate::analyze::recombination::config::RecombinationConfig;
 use crate::coord::position::AaRefPosition;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::AaRefRange;

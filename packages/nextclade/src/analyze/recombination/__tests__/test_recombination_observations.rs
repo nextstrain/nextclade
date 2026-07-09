@@ -4,9 +4,11 @@
 
 #[cfg(test)]
 mod tests {
-  use crate::analyze::__tests__::recombination_test_helpers::{nuc_range, ranges};
   use crate::analyze::nuc_del::NucDelRange;
-  use crate::analyze::recombination::{RecombinationObs, build_observations, recombination_missing_ranges};
+  use crate::analyze::recombination::__tests__::recombination_test_helpers::{nuc_range, ranges};
+  use crate::analyze::recombination::observations::{
+    RecombinationObs, build_observations, recombination_missing_ranges,
+  };
   use crate::coord::position::{NucRefGlobalPosition, PositionLike};
   use crate::coord::range::NucRefGlobalRange;
   use pretty_assertions::assert_eq;

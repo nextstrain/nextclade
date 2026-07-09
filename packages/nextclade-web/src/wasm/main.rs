@@ -1,7 +1,7 @@
 use crate::wasm::jserr::jserr;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use nextclade::analyze::recombination::RecombinationHmmParams;
+use nextclade::analyze::recombination::params::RecombinationHmmParams;
 use nextclade::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc};
 use nextclade::io::csv::{CsvVecWriter, VecWriter};
 use nextclade::io::fasta::{FastaReader, FastaRecord, read_one_fasta_from_str};

@@ -3,11 +3,15 @@
 
 #[cfg(test)]
 mod tests {
-  use crate::analyze::__tests__::recombination_test_helpers::{bruteforce_marginals, obs, ranges, test_params};
-  use crate::analyze::recombination::{
-    RECOMBINANT, RecombinationHmmParams, RecombinationObs, WILDTYPE, compute_interval_confidences,
-    find_recombinant_regions, forward_backward_marginals, forward_backward_posteriors, log_sum_exp_2,
+  use crate::analyze::recombination::__tests__::recombination_test_helpers::{
+    bruteforce_marginals, obs, ranges, test_params,
   };
+  use crate::analyze::recombination::decode::find_recombinant_regions;
+  use crate::analyze::recombination::forward_backward::{
+    compute_interval_confidences, forward_backward_marginals, forward_backward_posteriors, log_sum_exp_2,
+  };
+  use crate::analyze::recombination::observations::RecombinationObs;
+  use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE};
   use crate::coord::position::PositionLike;
   use crate::coord::range::NucRefGlobalRange;
   use crate::pretty_assert_abs_diff_eq;

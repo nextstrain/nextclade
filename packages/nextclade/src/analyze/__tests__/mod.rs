@@ -1,13 +1,4 @@
-mod recombination_test_helpers;
 mod test_find_aa_motifs;
 mod test_find_lost_start_codons;
-mod test_gm_recombination;
 mod test_mutation_patterns;
 mod test_prop_mutation_patterns;
-mod test_recombination_config;
-mod test_recombination_decode;
-mod test_recombination_estimate;
-mod test_recombination_forward_backward;
-mod test_recombination_observations;
-mod test_recombination_params;
-mod test_recombination_result;

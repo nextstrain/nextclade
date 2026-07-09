@@ -14,7 +14,7 @@ use crate::analyze::mutation_patterns::MutationPatternsResults;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
-use crate::analyze::recombination::RecombinationResult;
+use crate::analyze::recombination::result::RecombinationResult;
 use crate::coord::range::{AaRefRange, NucRefGlobalRange};
 use crate::gene::gene_map::GeneMap;
 use crate::graph::node::GraphNodeKey;
