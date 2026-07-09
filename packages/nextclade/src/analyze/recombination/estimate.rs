@@ -159,7 +159,7 @@ fn validate_override(name: &str, value: OrderedFloat<f64>) -> Result<f64, Report
 /// divergence-based rate estimates are undefined (all counts are zero).
 fn has_any_branch_mutations(graph: &AuspiceGraph) -> Result<bool, Report> {
   for node in graph.iter_nodes() {
-    if nuc_mutation_count(node.payload())? > 0 {
+    if count_nuc_mutations(node.payload())? > 0 {
       return Ok(true);
     }
   }
@@ -183,7 +183,7 @@ fn count_clades(graph: &AuspiceGraph) -> usize {
 
 /// Transition rate fallback: one expected state switch per genome length.
 fn estimate_gamma(ref_len: usize) -> Option<f64> {
-  as_probability(1.0 / ref_len as f64)
+  accept_as_probability(1.0 / ref_len as f64)
 }
 
 /// Wildtype emission fallback: mean terminal branch length (substitutions) per site.
@@ -191,7 +191,7 @@ fn estimate_mu_w(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
   let branch_lengths: Vec<usize> = graph
     .iter_nodes()
     .filter(|node| node.is_leaf())
-    .map(|node| nuc_mutation_count(node.payload()))
+    .map(|node| count_nuc_mutations(node.payload()))
     .try_collect()?;
 
   if branch_lengths.is_empty() {
@@ -199,7 +199,7 @@ fn estimate_mu_w(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
   }
 
   let mean = branch_lengths.iter().sum::<usize>() as f64 / branch_lengths.len() as f64;
-  Ok(as_probability(mean / ref_len as f64))
+  Ok(accept_as_probability(mean / ref_len as f64))
 }
 
 /// Recombinant emission fallback: median pairwise inter-clade leaf distance (substitutions) per site.
@@ -223,7 +223,7 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
   // quadratic pair count is the dominant cost.
   let root_dists: BTreeMap<GraphNodeKey, usize> = graph
     .iter_nodes()
-    .map(|node| root_distance(graph, node.key()).map(|d| (node.key(), d)))
+    .map(|node| compute_root_distance(graph, node.key()).map(|d| (node.key(), d)))
     .try_collect()?;
 
   // Exhaustive pairwise distances between leaves of different clades.
@@ -235,10 +235,10 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
       for &a in *leaves_a {
         // `a` is fixed across the inner loop, so compute its ancestor set once and reuse it for every
         // `b` rather than rebuilding (and reallocating) it per pair.
-        let ancestors_a = ancestors_inclusive(graph, a);
+        let ancestors_a = collect_ancestors_inclusive(graph, a);
         let rd_a = root_dists[&a];
         for &b in *leaves_b {
-          let mrca = mrca_with_ancestors(graph, &ancestors_a, b)?;
+          let mrca = find_mrca_with_ancestors(graph, &ancestors_a, b)?;
           let d = rd_a + root_dists[&b] - 2 * root_dists[&mrca];
           distances.push(d as f64);
         }
@@ -246,7 +246,7 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
     }
   }
 
-  Ok(median(&distances).and_then(|d| as_probability(d / ref_len as f64)))
+  Ok(compute_median(&distances).and_then(|d| accept_as_probability(d / ref_len as f64)))
 }
 
 /// Number of nucleotide substitutions on the branch leading to this node, excluding deletions.
@@ -258,7 +258,7 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
 /// that does not parse is a malformed tree annotation and surfaces as an error rather than being
 /// silently miscounted. Nextclade-built trees carry substitutions only; deletions appear on externally
 /// produced trees (augur/TreeTime) as `"A15-"`.
-fn nuc_mutation_count(payload: &AuspiceGraphNodePayload) -> Result<usize, Report> {
+fn count_nuc_mutations(payload: &AuspiceGraphNodePayload) -> Result<usize, Report> {
   let Some(muts) = payload.branch_attrs.mutations.get(NUC_MUTATIONS_KEY) else {
     return Ok(0);
   };
@@ -275,11 +275,11 @@ fn nuc_mutation_count(payload: &AuspiceGraphNodePayload) -> Result<usize, Report
 }
 
 /// Cumulative substitution count from the root to a node (sum of branch mutation counts).
-fn root_distance(graph: &AuspiceGraph, key: GraphNodeKey) -> Result<usize, Report> {
+fn compute_root_distance(graph: &AuspiceGraph, key: GraphNodeKey) -> Result<usize, Report> {
   let mut total = 0;
   let mut current = Some(key);
   while let Some(node_key) = current {
-    total += nuc_mutation_count(graph.get_node(node_key)?.payload())?;
+    total += count_nuc_mutations(graph.get_node(node_key)?.payload())?;
     current = graph.parent_key_of_by_key(node_key);
   }
   Ok(total)
@@ -288,7 +288,7 @@ fn root_distance(graph: &AuspiceGraph, key: GraphNodeKey) -> Result<usize, Repor
 /// Most recent common ancestor of node `b` and the node whose inclusive ancestor set is `ancestors_a`.
 /// Walks `b` toward the root until it reaches a node in `ancestors_a`. The caller precomputes
 /// `ancestors_a` once per `a` so it is not rebuilt for every `b`.
-fn mrca_with_ancestors(
+fn find_mrca_with_ancestors(
   graph: &AuspiceGraph,
   ancestors_a: &IndexSet<GraphNodeKey>,
   b: GraphNodeKey,
@@ -310,7 +310,7 @@ fn mrca_with_ancestors(
 }
 
 /// A node and all of its ancestors up to and including the root.
-fn ancestors_inclusive(graph: &AuspiceGraph, key: GraphNodeKey) -> IndexSet<GraphNodeKey> {
+fn collect_ancestors_inclusive(graph: &AuspiceGraph, key: GraphNodeKey) -> IndexSet<GraphNodeKey> {
   let mut ancestors = IndexSet::new();
   let mut current = Some(key);
   while let Some(node_key) = current {
@@ -321,7 +321,7 @@ fn ancestors_inclusive(graph: &AuspiceGraph, key: GraphNodeKey) -> IndexSet<Grap
 }
 
 /// Median of a slice of values, or `None` when empty.
-pub(crate) fn median(values: &[f64]) -> Option<f64> {
+pub(crate) fn compute_median(values: &[f64]) -> Option<f64> {
   if values.is_empty() {
     return None;
   }
@@ -335,6 +335,6 @@ pub(crate) fn median(values: &[f64]) -> Option<f64> {
 }
 
 /// Accept a value only if it is a valid emission/transition probability in the open interval `(0, 1)`.
-pub(crate) fn as_probability(x: f64) -> Option<f64> {
+pub(crate) fn accept_as_probability(x: f64) -> Option<f64> {
   is_hmm_probability(x).then_some(x)
 }
