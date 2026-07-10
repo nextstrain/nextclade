@@ -4,7 +4,7 @@
 
 ## Context
 
-`muW` = `P(site mutated | wildtype)`, estimated as mean terminal branch length / reference length in `fn estimate_mu_w()` ([`packages/nextclade/src/analyze/recombination_estimate.rs#L189-L201`](packages/nextclade/src/analyze/recombination_estimate.rs#L189-L201)).
+`muW` = `P(site mutated | wildtype)`, estimated as mean terminal branch length / reference length in `fn estimate_mu_w()` ([`packages/nextclade/src/analyze/recombination/estimate.rs`](packages/nextclade/src/analyze/recombination/estimate.rs)).
 
 ## Concern
 

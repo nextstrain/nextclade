@@ -4,7 +4,7 @@
 
 ## Context
 
-The HMM transition rate `gamma` defaults to `1 / ref_len` in `fn estimate_gamma()` ([`packages/nextclade/src/analyze/recombination_estimate.rs#L184-L186`](packages/nextclade/src/analyze/recombination_estimate.rs#L184-L186)). In the Viterbi decoder each state switch costs `ln((1 - gamma) / gamma)` nats, so `gamma` sets the minimum accumulated mutation evidence needed to open (and close) a recombinant interval, and therefore the minimum detectable tract length.
+The HMM transition rate `gamma` defaults to `1 / ref_len` in `fn estimate_gamma()` ([`packages/nextclade/src/analyze/recombination/estimate.rs`](packages/nextclade/src/analyze/recombination/estimate.rs)). In the Viterbi decoder each state switch costs `ln((1 - gamma) / gamma)` nats, so `gamma` sets the minimum accumulated mutation evidence needed to open (and close) a recombinant interval, and therefore the minimum detectable tract length.
 
 ## Concern
 

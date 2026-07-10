@@ -28,4 +28,4 @@ Keep median unless profiling on real Enterovirus datasets shows that the median 
 
 ## Scope
 
-`packages/nextclade/src/analyze/recombination_estimate.rs`: `estimate_mu_r`, call to `median()`.
+`packages/nextclade/src/analyze/recombination/estimate.rs`: `estimate_mu_r`, call to `median()`.

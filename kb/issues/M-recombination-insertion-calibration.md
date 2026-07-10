@@ -4,9 +4,9 @@
 
 ## Context
 
-`muW` and `muR` are calibrated from per-branch mutation counts on the reference tree. `fn nuc_mutation_count()` counts substitutions and insertions, excluding only deletions ([`packages/nextclade/src/analyze/recombination_estimate.rs#L251-L274`](../../packages/nextclade/src/analyze/recombination_estimate.rs#L251-L274)).
+`muW` and `muR` are calibrated from per-branch mutation counts on the reference tree. `fn nuc_mutation_count()` counts substitutions and insertions, excluding only deletions ([`packages/nextclade/src/analyze/recombination/estimate.rs`](../../packages/nextclade/src/analyze/recombination/estimate.rs)).
 
-The decoder sees a different event set. `Mut` comes from `private_substitutions` only ([`packages/nextclade/src/run/nextclade_run_one.rs#L447-L453`](../../packages/nextclade/src/run/nextclade_run_one.rs#L447-L453)), and `fn build_observations()` emits `Ref`, `Mut`, or `Missing` per reference position -- no insertion channel ([`packages/nextclade/src/analyze/recombination.rs#L128-L171`](../../packages/nextclade/src/analyze/recombination.rs#L128-L171)). The upstream prototype is the same: binary substitution vector, no insertions.
+The decoder sees a different event set. `Mut` comes from `private_substitutions` only ([`packages/nextclade/src/run/nextclade_run_one.rs#L447-L453`](../../packages/nextclade/src/run/nextclade_run_one.rs#L447-L453)), and `fn build_observations()` emits `Ref`, `Mut`, or `Missing` per reference position -- no insertion channel ([`packages/nextclade/src/analyze/recombination/observations.rs`](../../packages/nextclade/src/analyze/recombination/observations.rs)). The upstream prototype is the same: binary substitution vector, no insertions.
 
 ## Concern
 

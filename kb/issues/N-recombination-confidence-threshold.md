@@ -4,7 +4,7 @@
 
 ## Context
 
-Region boundaries come from the hard Viterbi state assignment ([`packages/nextclade/src/analyze/recombination.rs#L508-L565`](packages/nextclade/src/analyze/recombination.rs#L508-L565)). Forward-backward then computes a per-region mean posterior `P(recombinant)` as a confidence score ([`packages/nextclade/src/analyze/recombination.rs#L491-L505`](packages/nextclade/src/analyze/recombination.rs#L491-L505)), attached to each region ([`packages/nextclade/src/analyze/recombination.rs#L313-L347`](packages/nextclade/src/analyze/recombination.rs#L313-L347)). Every Viterbi-decoded region is reported regardless of its confidence ([`packages/nextclade/src/run/nextclade_run_one.rs#L442-L467`](packages/nextclade/src/run/nextclade_run_one.rs#L442-L467)).
+Region boundaries come from the hard Viterbi state assignment ([`packages/nextclade/src/analyze/recombination/decode.rs`](packages/nextclade/src/analyze/recombination/decode.rs)). Forward-backward then computes a per-region mean posterior `P(recombinant)` as a confidence score ([`packages/nextclade/src/analyze/recombination/forward_backward.rs`](packages/nextclade/src/analyze/recombination/forward_backward.rs)), attached to each region ([`packages/nextclade/src/analyze/recombination/result.rs`](packages/nextclade/src/analyze/recombination/result.rs)). Every Viterbi-decoded region is reported regardless of its confidence ([`packages/nextclade/src/run/nextclade_run_one.rs#L442-L467`](packages/nextclade/src/run/nextclade_run_one.rs#L442-L467)).
 
 ## Concern
 
