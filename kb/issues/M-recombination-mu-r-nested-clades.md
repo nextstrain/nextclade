@@ -32,4 +32,4 @@ O1 (no filtering). The median is robust to a small number of short-distance outl
 
 ## Scope
 
-`packages/nextclade/src/analyze/recombination_estimate.rs`: `estimate_mu_r`, leaf grouping logic.
+`packages/nextclade/src/analyze/recombination/estimate.rs`: `estimate_mu_r`, leaf grouping logic.

@@ -4,7 +4,7 @@
 
 ## Context
 
-The detector decodes recombinant intervals with a two-state Viterbi decoder under a uniform state prior and symmetric transitions ([`packages/nextclade/src/analyze/recombination.rs#L508-L565`](packages/nextclade/src/analyze/recombination.rs#L508-L565)). Per-site emission evidence is `ln(muR/muW)` toward recombinant for a `Mut` and `ln((1-muW)/(1-muR))` toward wildtype for a `Ref` ([`packages/nextclade/src/analyze/recombination.rs#L271-L278`](packages/nextclade/src/analyze/recombination.rs#L271-L278)).
+The detector decodes recombinant intervals with a two-state Viterbi decoder under a uniform state prior and symmetric transitions ([`packages/nextclade/src/analyze/recombination/decode.rs`](packages/nextclade/src/analyze/recombination/decode.rs)). Per-site emission evidence is `ln(muR/muW)` toward recombinant for a `Mut` and `ln((1-muW)/(1-muR))` toward wildtype for a `Ref` ([`packages/nextclade/src/analyze/recombination/params.rs`](packages/nextclade/src/analyze/recombination/params.rs)).
 
 Recombination is a _localized_ elevation: a segment from a different parent, flanked by wildtype. The model encodes no flanking requirement. An all-recombinant path pays no switch cost.
 
