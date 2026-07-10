@@ -819,7 +819,10 @@ mod tests {
   // is a comma-delimited list of per-region confidences at 3 decimal places.
   #[test]
   fn test_nextclade_csv_row_format_recombinant_region_confidences_three_decimals() {
-    let regions: Vec<_> = ranges(&[(100, 200), (300, 350)]).into_iter().zip([Some(0.95), Some(0.5)]).collect();
+    let regions: Vec<_> = ranges(&[(100, 200), (300, 350)])
+      .into_iter()
+      .zip([Some(0.95), Some(0.5)])
+      .collect();
     let result = RecombinationResult::from_ranges(regions).unwrap();
     assert_eq!(
       "0.950,0.500",

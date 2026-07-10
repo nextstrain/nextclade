@@ -12,7 +12,8 @@ mod tests {
 
   #[test]
   fn test_recombination_result_summary() {
-    let result = RecombinationResult::from_ranges(helpers::with_confidences(ranges(&[(10, 25), (40, 50)]), None)).unwrap();
+    let result =
+      RecombinationResult::from_ranges(helpers::with_confidences(ranges(&[(10, 25), (40, 50)]), None)).unwrap();
     let expected = RecombinationResult {
       regions: vec![region(10, 25, None), region(40, 50, None)],
       total_regions: 2,
@@ -29,8 +30,11 @@ mod tests {
 
   #[test]
   fn test_recombination_result_with_confidences() {
-    let result =
-      RecombinationResult::from_ranges(helpers::with_confidences(ranges(&[(10, 25), (40, 50)]), Some(&[0.95, 0.82]))).unwrap();
+    let result = RecombinationResult::from_ranges(helpers::with_confidences(
+      ranges(&[(10, 25), (40, 50)]),
+      Some(&[0.95, 0.82]),
+    ))
+    .unwrap();
     let expected = RecombinationResult {
       regions: vec![region(10, 25, Some(0.95)), region(40, 50, Some(0.82))],
       total_regions: 2,
@@ -42,7 +46,8 @@ mod tests {
 
   #[test]
   fn test_recombination_result_serde_round_trip_with_confidences() {
-    let result = RecombinationResult::from_ranges(helpers::with_confidences(ranges(&[(10, 25)]), Some(&[0.95]))).unwrap();
+    let result =
+      RecombinationResult::from_ranges(helpers::with_confidences(ranges(&[(10, 25)]), Some(&[0.95]))).unwrap();
     let json = json_stringify(&result, JsonPretty(true)).unwrap();
     let expected = indoc! {r#"{
       "regions": [

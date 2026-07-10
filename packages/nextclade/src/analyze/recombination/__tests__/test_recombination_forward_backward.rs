@@ -80,12 +80,21 @@ mod tests {
     let marginals = compute_forward_backward_marginals(&obs("RRRRRRRRRRMMMMMMMMMMMMMMMRRRRRRRRRR"), &test_params());
     // Interior of Mut block [12..23] should have high marginals.
     let interior_min = marginals[12..23].iter().copied().fold(f64::INFINITY, f64::min);
-    assert!(interior_min > 0.8, "interior Mut min should be high, got {interior_min}");
+    assert!(
+      interior_min > 0.8,
+      "interior Mut min should be high, got {interior_min}"
+    );
     // Ref flanks [0..5] and [29..34] should have low marginals.
     let left_flank_max = marginals[0..5].iter().copied().fold(f64::NEG_INFINITY, f64::max);
-    assert!(left_flank_max < 0.2, "left Ref flank max should be low, got {left_flank_max}");
+    assert!(
+      left_flank_max < 0.2,
+      "left Ref flank max should be low, got {left_flank_max}"
+    );
     let right_flank_max = marginals[29..34].iter().copied().fold(f64::NEG_INFINITY, f64::max);
-    assert!(right_flank_max < 0.2, "right Ref flank max should be low, got {right_flank_max}");
+    assert!(
+      right_flank_max < 0.2,
+      "right Ref flank max should be low, got {right_flank_max}"
+    );
   }
 
   #[test]
@@ -95,7 +104,10 @@ mod tests {
       compute_forward_backward_marginals(&obs("RRRRRMMMMMMMMMMMMMMMXXXXXMMMMMMMMMMMMMMMRRRRR"), &test_params());
     // Middle of the Missing run (positions 22-23) should still show elevated marginals.
     let mid_min = marginals[22..24].iter().copied().fold(f64::INFINITY, f64::min);
-    assert!(mid_min > 0.5, "Missing-bridged min marginal should stay elevated, got {mid_min}");
+    assert!(
+      mid_min > 0.5,
+      "Missing-bridged min marginal should stay elevated, got {mid_min}"
+    );
   }
 
   #[rstest]
@@ -161,7 +173,10 @@ mod tests {
     let confidences = compute_interval_confidences(&marginals, &regions);
     assert_eq!(regions.len(), confidences.len());
     let min_confidence = confidences.iter().copied().fold(f64::INFINITY, f64::min);
-    assert!(min_confidence > 0.5, "min confidence for a strong Mut block should be high, got {min_confidence}");
+    assert!(
+      min_confidence > 0.5,
+      "min confidence for a strong Mut block should be high, got {min_confidence}"
+    );
   }
 
   // Property: forward-backward marginals are always in [0, 1] for any valid params and observations.

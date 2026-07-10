@@ -100,7 +100,10 @@ pub(crate) fn compute_interval_confidences(marginals: &[f64], intervals: &[NucRe
     .map(|r| {
       let (begin, end) = (r.begin.as_usize(), r.end.as_usize());
       let count = end - begin;
-      debug_assert!(count > 0, "interval must be non-empty (decoder postcondition), got empty {begin}..{end}");
+      debug_assert!(
+        count > 0,
+        "interval must be non-empty (decoder postcondition), got empty {begin}..{end}"
+      );
       let sum: f64 = marginals[begin..end].iter().sum();
       sum / count as f64
     })
