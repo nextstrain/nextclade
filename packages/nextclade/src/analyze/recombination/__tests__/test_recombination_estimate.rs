@@ -304,11 +304,12 @@ mod tests {
   }
 
   #[test]
-  fn test_recombination_estimate_counts_insertions_as_mutations() {
-    // The insertion "-10A" is counted (query base present), so B1's branch length is 2, not 1.
+  fn test_recombination_estimate_excludes_insertions() {
+    // The insertion "-10A" (gap reference) is an indel the decoder never observes, so it is not
+    // counted: B1's branch length is 1 (substitution "A40C" only), A1's is 2, mean (2+1)/2 = 1.5.
     let graph = tree_with_insertion();
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
-    pretty_assert_ulps_eq!(2.0 / 100.0, params.mu_w(), max_ulps = 2);
+    pretty_assert_ulps_eq!(1.5 / 100.0, params.mu_w(), max_ulps = 2);
   }
 
   #[test]
