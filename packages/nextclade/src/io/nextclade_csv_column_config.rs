@@ -39,6 +39,9 @@ pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
+// Fill missing fields from `Default` (the single source of truth) so an older serialized config
+// lacking a newer toggle (e.g. `includeRecombination`) still deserializes with its established value.
+#[serde(default)]
 pub struct CsvColumnConfig {
   pub categories: CsvColumnConfigMap,
   pub individual: Vec<String>,
