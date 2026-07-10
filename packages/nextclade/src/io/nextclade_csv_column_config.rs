@@ -37,13 +37,15 @@ pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>
 // Configuration for enabling/disabling CSV columns or categories of them.
 // The `include_*` fields are independent per-category toggles, so a flat set of bools is the natural
 // representation rather than a state machine.
-#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[allow(
   clippy::struct_excessive_bools,
   reason = "each flag toggles one independent group of dynamic columns and maps to one checkbox in Nextclade Web"
 )]
+// Fill missing fields from `Default` (the single source of truth) so an older serialized config
+// lacking a newer toggle (e.g. `includeRecombination`) still deserializes with its established value.
+#[serde(default)]
 pub struct CsvColumnConfig {
   pub categories: CsvColumnConfigMap,
   pub individual: Vec<String>,
