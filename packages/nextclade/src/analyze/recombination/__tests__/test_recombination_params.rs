@@ -2,8 +2,9 @@
 
 #[cfg(test)]
 mod tests {
-  use crate::analyze::recombination::params::{RecombinationHmmParams, is_hmm_probability};
-  use crate::{assert_error, pretty_assert_ulps_eq};
+  use crate::analyze::recombination::observations::RecombinationObs;
+  use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE, is_hmm_probability};
+  use crate::{assert_error, pretty_assert_abs_diff_eq, pretty_assert_ulps_eq};
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
@@ -51,6 +52,23 @@ mod tests {
     pretty_assert_ulps_eq!(0.05, params.mu_r(), max_ulps = 2);
   }
 
+  // Emission log-probabilities at muW=0.1, muR=0.2, with expected values hand-derived from `ln`.
+  // Independent of the brute-force oracles (which reuse `compute_log_emission`): this pins the
+  // observation-to-column mapping and the `Missing = [0, 0]` marginalization, so a Ref/Mut or
+  // wildtype/recombinant column swap is caught here rather than cancelling in both SUT and oracle.
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::ref_obs(RecombinationObs::Ref,     [-0.10536051565782628, -0.2231435513142097])]  // [ln 0.9, ln 0.8]
+  #[case::mut_obs(RecombinationObs::Mut,     [-2.302585092994046,   -1.6094379124341003])]  // [ln 0.1, ln 0.2]
+  #[case::missing(RecombinationObs::Missing, [ 0.0,                  0.0])]
+  #[trace]
+  fn test_recombination_compute_log_emission(#[case] obs: RecombinationObs, #[case] expected: [f64; 2]) {
+    let params = RecombinationHmmParams::new(5e-4, 0.1, 0.2).unwrap();
+    let actual = params.compute_log_emission(obs);
+    pretty_assert_abs_diff_eq!(expected[WILDTYPE], actual[WILDTYPE], epsilon = 1e-12);
+    pretty_assert_abs_diff_eq!(expected[RECOMBINANT], actual[RECOMBINANT], epsilon = 1e-12);
+  }
+
   #[test]
   fn test_recombination_hmm_params_deserialize_rejects_invalid() {
     // Serde enforces the same invariants via `TryFrom`.
@@ -89,9 +107,11 @@ mod tests {
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(512))]
 
-    // Valid params survive JSON round-trip within 2 ULPs. Not bit-exact because serde_json reparses
-    // the shortest decimal to within one ULP. The fixed-value test pins one point; this covers the
-    // whole valid regime.
+    // Valid params survive a JSON round-trip within 2 ULPs. serde_json's *default* float parser is
+    // best-effort, not bit-exact -- its `float_roundtrip` feature would guarantee exactness at ~2x
+    // parse cost, but without it `f64 -> string -> f64` can differ by ~1 ULP. That is serde_json
+    // behavior, not a defect in these params; a bit-exact comparison here flakes. The fixed-value
+    // `new` test pins one exact point; this covers the whole valid regime.
     #[test]
     fn test_prop_recombination_params_serde_roundtrip(
       gamma in 1e-6_f64..0.5,

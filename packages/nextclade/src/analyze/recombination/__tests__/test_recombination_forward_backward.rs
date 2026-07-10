@@ -64,33 +64,28 @@ mod tests {
   #[test]
   fn test_recombination_forward_backward_all_ref_near_zero() {
     let marginals = compute_forward_backward_marginals(&obs("RRRRRRRRRRRRRRRRRRRR"), &test_params());
-    for &m in &marginals {
-      assert!(m < 0.1, "all-Ref site should have low P(recombinant), got {m}");
-    }
+    let max = marginals.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    assert!(max < 0.1, "all-Ref max P(recombinant) should be low, got {max}");
   }
 
   #[test]
   fn test_recombination_forward_backward_all_mut_near_one() {
     let marginals = compute_forward_backward_marginals(&obs("MMMMMMMMMMMMMMMMMMMM"), &test_params());
-    for &m in &marginals {
-      assert!(m > 0.9, "all-Mut site should have high P(recombinant), got {m}");
-    }
+    let min = marginals.iter().copied().fold(f64::INFINITY, f64::min);
+    assert!(min > 0.9, "all-Mut min P(recombinant) should be high, got {min}");
   }
 
   #[test]
   fn test_recombination_forward_backward_dense_block() {
     let marginals = compute_forward_backward_marginals(&obs("RRRRRRRRRRMMMMMMMMMMMMMMMRRRRRRRRRR"), &test_params());
     // Interior of Mut block [12..23] should have high marginals.
-    for &m in &marginals[12..23] {
-      assert!(m > 0.8, "interior Mut site should be high, got {m}");
-    }
+    let interior_min = marginals[12..23].iter().copied().fold(f64::INFINITY, f64::min);
+    assert!(interior_min > 0.8, "interior Mut min should be high, got {interior_min}");
     // Ref flanks [0..5] and [29..34] should have low marginals.
-    for &m in &marginals[0..5] {
-      assert!(m < 0.2, "Ref flank site should be low, got {m}");
-    }
-    for &m in &marginals[29..34] {
-      assert!(m < 0.2, "Ref flank site should be low, got {m}");
-    }
+    let left_flank_max = marginals[0..5].iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    assert!(left_flank_max < 0.2, "left Ref flank max should be low, got {left_flank_max}");
+    let right_flank_max = marginals[29..34].iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    assert!(right_flank_max < 0.2, "right Ref flank max should be low, got {right_flank_max}");
   }
 
   #[test]
@@ -99,12 +94,8 @@ mod tests {
     let marginals =
       compute_forward_backward_marginals(&obs("RRRRRMMMMMMMMMMMMMMMXXXXXMMMMMMMMMMMMMMMRRRRR"), &test_params());
     // Middle of the Missing run (positions 22-23) should still show elevated marginals.
-    for &m in &marginals[22..24] {
-      assert!(
-        m > 0.5,
-        "Missing-bridged site should maintain elevated marginal, got {m}"
-      );
-    }
+    let mid_min = marginals[22..24].iter().copied().fold(f64::INFINITY, f64::min);
+    assert!(mid_min > 0.5, "Missing-bridged min marginal should stay elevated, got {mid_min}");
   }
 
   #[rstest]
@@ -129,10 +120,15 @@ mod tests {
     let expected = bruteforce_marginals(&observations, &params);
     assert_eq!(expected.len(), posteriors.len());
 
-    for (post, exp) in posteriors.iter().zip(&expected) {
-      pretty_assert_abs_diff_eq!(exp[WILDTYPE], post[WILDTYPE], epsilon = 1e-9);
-      pretty_assert_abs_diff_eq!(exp[RECOMBINANT], post[RECOMBINANT], epsilon = 1e-9);
-    }
+    // Compare each state column as a whole slice (`approx` implements `AbsDiffEq` for `[f64]`); the
+    // failure diff shows the whole vectors, localizing the differing site. `[f64; 2]` has no such impl,
+    // so the two columns are projected to flat `Vec<f64>` first.
+    let exp_w: Vec<f64> = expected.iter().map(|p| p[WILDTYPE]).collect();
+    let act_w: Vec<f64> = posteriors.iter().map(|p| p[WILDTYPE]).collect();
+    let exp_r: Vec<f64> = expected.iter().map(|p| p[RECOMBINANT]).collect();
+    let act_r: Vec<f64> = posteriors.iter().map(|p| p[RECOMBINANT]).collect();
+    pretty_assert_abs_diff_eq!(exp_w[..], act_w[..], epsilon = 1e-9);
+    pretty_assert_abs_diff_eq!(exp_r[..], act_r[..], epsilon = 1e-9);
   }
 
   #[test]
@@ -164,9 +160,8 @@ mod tests {
     let marginals = compute_forward_backward_marginals(&observations, &params);
     let confidences = compute_interval_confidences(&marginals, &regions);
     assert_eq!(regions.len(), confidences.len());
-    for &c in &confidences {
-      assert!(c > 0.5, "confidence for a strong Mut block should be high, got {c}");
-    }
+    let min_confidence = confidences.iter().copied().fold(f64::INFINITY, f64::min);
+    assert!(min_confidence > 0.5, "min confidence for a strong Mut block should be high, got {min_confidence}");
   }
 
   // Property: forward-backward marginals are always in [0, 1] for any valid params and observations.

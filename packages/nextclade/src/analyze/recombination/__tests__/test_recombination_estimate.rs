@@ -165,6 +165,23 @@ mod tests {
   }
 
   #[test]
+  fn test_recombination_estimate_errors_on_out_of_range_mu_w_override() {
+    let graph = two_clade_tree();
+    // Per-field validation names the offending field, so a bad muW override is not misreported as gamma.
+    let config = RecombinationConfig {
+      enabled: Some(true),
+      min_private_subs_to_run: None,
+      gamma: None,
+      mu_w: Some(OrderedFloat(1.5)),
+      mu_r: None,
+    };
+    assert_error!(
+      resolve_recombination_params(Some(&config), &graph, REF_LEN),
+      "Recombination parameter `muW` in pathogen.json must be in the open interval (0, 1), but got 1.5"
+    );
+  }
+
+  #[test]
   fn test_recombination_estimate_three_clades_uses_nonroot_mrca() {
     // A1 and B1 share non-root MRCA `I`, exercising `- 2 * compute_root_distance(mrca)`.
     // Leaf distances: A1<->B1=6, A1<->C1=9, B1<->C1=11; median=9 -> mu_r=0.09.
