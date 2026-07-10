@@ -1,6 +1,7 @@
 //! `RecombinationHmmParams` validation, `is_hmm_probability`, and serde/`TryFrom` path.
 
 #[cfg(test)]
+#[allow(clippy::approx_constant)]
 mod tests {
   use crate::analyze::recombination::observations::RecombinationObs;
   use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE, is_hmm_probability};
@@ -58,7 +59,6 @@ mod tests {
   // wildtype/recombinant column swap is caught here rather than cancelling in both SUT and oracle.
   // `ln(0.1)` equals `-LN_10`; these are deliberate hand-derived `ln` oracle values, not an
   // approximation of a named constant, so the `approx_constant` lint is a false positive here.
-  #[allow(clippy::approx_constant)]
   #[rustfmt::skip]
   #[rstest]
   #[case::ref_obs(RecombinationObs::Ref,     [-0.10536051565782628, -0.2231435513142097])]  // [ln 0.9, ln 0.8]
