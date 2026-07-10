@@ -9,8 +9,12 @@ use crate::analyze::recombination::observations::RecombinationObs;
 use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE};
 use crate::analyze::recombination::result::RecombinationRegion;
 use crate::coord::range::NucRefGlobalRange;
-use crate::tree::tree::{AuspiceGraph, AuspiceTree};
+use crate::tree::tree::{
+  AuspiceGraph, AuspiceGraphMeta, AuspiceGraphNodePayload, AuspiceTree, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs,
+};
+use crate::{o, vec_of_owned};
 use indoc::indoc;
+use maplit::btreemap;
 
 /// Reference length for estimate tests. Rates are simple `count / REF_LEN` fractions.
 pub const REF_LEN: usize = 100;
@@ -262,6 +266,35 @@ pub fn nested_clade_tree() -> AuspiceGraph {
     }
   }"#};
   AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
+}
+
+pub fn disconnected_clade_tree() -> AuspiceGraph {
+  let mut graph = AuspiceGraph::new(AuspiceGraphMeta::default());
+  graph.add_node(AuspiceGraphNodePayload {
+    name: o!("A1"),
+    branch_attrs: TreeBranchAttrs {
+      mutations: btreemap! { o!("nuc") => vec_of_owned!["A1C"] },
+      ..TreeBranchAttrs::default()
+    },
+    node_attrs: TreeNodeAttrs {
+      clade_membership: Some(TreeNodeAttr::new("A")),
+      ..TreeNodeAttrs::default()
+    },
+    ..AuspiceGraphNodePayload::default()
+  });
+  graph.add_node(AuspiceGraphNodePayload {
+    name: o!("B1"),
+    branch_attrs: TreeBranchAttrs {
+      mutations: btreemap! { o!("nuc") => vec_of_owned!["A2C"] },
+      ..TreeBranchAttrs::default()
+    },
+    node_attrs: TreeNodeAttrs {
+      clade_membership: Some(TreeNodeAttr::new("B")),
+      ..TreeNodeAttrs::default()
+    },
+    ..AuspiceGraphNodePayload::default()
+  });
+  graph
 }
 
 pub fn single_clade_tree() -> AuspiceGraph {
