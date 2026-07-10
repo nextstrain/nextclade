@@ -4,6 +4,7 @@ import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { formatRange } from 'src/helpers/formatRange'
+import { formatPercentage } from 'src/helpers/formatPercentage'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 
@@ -80,7 +81,7 @@ function SequenceMarkerRecombinationUnmemoed({ index, seqName, region, confidenc
               {confidence !== undefined && (
                 <tr>
                   <td>{t('Confidence')}</td>
-                  <td>{`${(confidence * 100).toFixed(1)}%`}</td>
+                  <td>{formatPercentage(confidence)}</td>
                 </tr>
               )}
             </tbody>

@@ -8,19 +8,13 @@ import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { genomeSizeAtom } from 'src/state/results.state'
 import { formatRange } from 'src/helpers/formatRange'
+import { formatPercentageOfTotal } from 'src/helpers/formatPercentage'
 import { Li, Ul } from 'src/components/Common/List'
 
 const RECOMBINATION_TOOLTIP_MAX_REGIONS = 20 as const
 
 export interface ColumnRecombinationProps {
   analysisResult: AnalysisResult
-}
-
-function formatPercent(value: number, total: number): string {
-  if (total === 0) {
-    return '0%'
-  }
-  return `${((value / total) * 100).toFixed(1)}%`
 }
 
 export function ColumnRecombination({ analysisResult }: ColumnRecombinationProps) {
@@ -73,14 +67,14 @@ export function ColumnRecombination({ analysisResult }: ColumnRecombinationProps
             <tr>
               <td>{t('Total length')}</td>
               <td>
-                {t('{{n}} nt', { n: totalLength })} ({formatPercent(totalLength, genomeSize)})
+                {t('{{n}} nt', { n: totalLength })} ({formatPercentageOfTotal(totalLength, genomeSize)})
               </td>
             </tr>
             <tr>
               <td>{t('Longest region')}</td>
               <td>
                 {formatRange(longestRegion.range)} ({t('{{n}} nt', { n: longestRegion.length })},{' '}
-                {formatPercent(longestRegion.length, genomeSize)})
+                {formatPercentageOfTotal(longestRegion.length, genomeSize)})
               </td>
             </tr>
           </tbody>
