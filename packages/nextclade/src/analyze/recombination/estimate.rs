@@ -230,9 +230,12 @@ pub(super) fn compute_inter_clade_leaf_distances(graph: &AuspiceGraph) -> Result
     .try_collect()
 }
 
-/// Nucleotide substitutions on this branch, excluding deletions (gap query = missing data, not
-/// mutation, matching `build_observations`). Insertions count (query base present). Malformed
-/// tokens surface as errors. Deletions appear on external trees (augur/TreeTime) as `"A15-"`.
+/// Nucleotide substitutions on this branch: only true substitutions, where both the reference and
+/// query bases are present (non-gap). Indels are excluded because the decoder never observes them --
+/// its `Mut` emissions come from `private_substitutions` alone, and `build_observations` has no
+/// insertion channel -- so counting indels here would calibrate `mu_w`/`mu_r` against events the HMM
+/// cannot score. Deletions carry a gap query (`"A15-"`); insertions carry a gap reference (`"-10A"`);
+/// both appear on externally produced trees (augur/TreeTime). Malformed tokens surface as errors.
 fn count_nuc_mutations(payload: &AuspiceGraphNodePayload) -> Result<usize, Report> {
   let Some(muts) = payload.branch_attrs.mutations.get(NUC_MUTATIONS_KEY) else {
     return Ok(0);
@@ -242,7 +245,7 @@ fn count_nuc_mutations(payload: &AuspiceGraphNodePayload) -> Result<usize, Repor
     let sub: NucSub = m
       .parse()
       .wrap_err_with(|| format!("When counting recombination branch mutations from tree annotation '{m}'"))?;
-    if sub.qry_nuc != Nuc::Gap {
+    if sub.ref_nuc != Nuc::Gap && sub.qry_nuc != Nuc::Gap {
       count += 1;
     }
   }

@@ -399,8 +399,8 @@ pub fn two_clade_no_mutations_tree() -> AuspiceGraph {
   AuspiceGraph::from_auspice_tree(AuspiceTree::from_str(json).unwrap()).unwrap()
 }
 
-// B1 carries a substitution and an insertion ("-10A"). Insertions count (query base present):
-// A1=2, B1=2 -> mean 2 -> mu_w=0.02.
+// B1 carries a substitution and an insertion ("-10A"). Insertions are indels the decoder never
+// observes, so they are not counted: A1=2, B1=1 -> mean 1.5 -> mu_w=0.015.
 pub fn tree_with_insertion() -> AuspiceGraph {
   let json = indoc! {r#"{
     "version": "v2",
