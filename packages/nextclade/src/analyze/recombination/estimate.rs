@@ -18,7 +18,7 @@ use eyre::{Report, WrapErr};
 use indexmap::IndexSet;
 use itertools::Itertools;
 use ordered_float::OrderedFloat;
-use statrs::statistics::Statistics;
+use statrs::statistics::{Data, OrderStatistics, Statistics};
 use std::collections::BTreeMap;
 
 /// Key under which nucleotide (as opposed to per-gene) mutations are stored in branch attributes.
@@ -182,11 +182,12 @@ pub(super) fn estimate_mu_w(graph: &AuspiceGraph, ref_len: usize) -> Result<Opti
 
 /// Recombinant emission fallback: median pairwise inter-clade leaf distance (substitutions) per site.
 fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Report> {
-  let distances = compute_inter_clade_leaf_distances(graph)?
-    .into_iter()
-    .map(|distance| distance as f64)
-    .collect_vec();
-  Ok(compute_median(&distances).and_then(|distance| accept_as_probability(distance / ref_len as f64)))
+  let distances = compute_inter_clade_leaf_distances(graph)?;
+  if distances.is_empty() {
+    return Ok(None); // No cross-clade leaf pairs: the recombinant rate is undefined.
+  }
+  let median = Data::new(distances.into_iter().map(|distance| distance as f64).collect_vec()).median();
+  Ok(accept_as_probability(median / ref_len as f64))
 }
 
 /// Pairwise substitution distances between all leaves belonging to different clades.
@@ -254,20 +255,6 @@ fn compute_root_distance(graph: &AuspiceGraph, key: GraphNodeKey) -> Result<usiz
     .iter_ancestor_keys_inclusive(key)
     .map(|node_key| count_nuc_mutations(graph.get_node(node_key)?.payload()))
     .sum()
-}
-
-/// Median of a slice of values, or `None` when empty.
-pub(crate) fn compute_median(values: &[f64]) -> Option<f64> {
-  if values.is_empty() {
-    return None;
-  }
-  let sorted: Vec<f64> = values.iter().copied().sorted_by_key(|&x| OrderedFloat(x)).collect();
-  let mid = sorted.len() / 2;
-  Some(if sorted.len() % 2 == 1 {
-    sorted[mid]
-  } else {
-    f64::midpoint(sorted[mid - 1], sorted[mid])
-  })
 }
 
 /// Accept a value only if it is a valid emission/transition probability in the open interval `(0, 1)`.
