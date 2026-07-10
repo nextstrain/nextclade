@@ -97,7 +97,6 @@ pub(crate) fn viterbi_decode(obs: &[RecombinationObs], params: &RecombinationHmm
     is_recombinant[l] = state == RECOMBINANT;
   }
 
-  // Postcondition: exactly one decoded state per observation.
   debug_assert_eq!(
     obs.len(),
     is_recombinant.len(),
@@ -124,7 +123,6 @@ fn extract_recombinant_intervals(is_recombinant: &[bool]) -> Vec<NucRefGlobalRan
     regions.push(NucRefGlobalRange::from_usize(start, is_recombinant.len()));
   }
 
-  // Postcondition: maximal runs are non-empty, sorted, disjoint and within the decoded vector.
   debug_assert!(
     are_intervals_sorted_disjoint_nonempty(&regions, is_recombinant.len()),
     "extracted intervals must be non-empty, sorted, disjoint and within bounds: {regions:?}"

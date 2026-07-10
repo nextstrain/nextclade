@@ -65,7 +65,6 @@ pub(crate) fn build_observations(
     }
   }
 
-  // Postcondition: one observation per reference position.
   debug_assert_eq!(
     ref_len,
     obs.len(),
