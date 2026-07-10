@@ -12,7 +12,7 @@ mod tests {
 
   #[test]
   fn test_recombination_result_summary() {
-    let result = RecombinationResult::from_ranges(ranges(&[(10, 25), (40, 50)]), None).unwrap();
+    let result = RecombinationResult::from_ranges(helpers::with_confidences(ranges(&[(10, 25), (40, 50)]), None)).unwrap();
     let expected = RecombinationResult {
       regions: vec![region(10, 25, None), region(40, 50, None)],
       total_regions: 2,
@@ -24,12 +24,13 @@ mod tests {
 
   #[test]
   fn test_recombination_result_empty_returns_none() {
-    assert!(RecombinationResult::from_ranges(vec![], None).is_none());
+    assert!(RecombinationResult::from_ranges(helpers::with_confidences(vec![], None)).is_none());
   }
 
   #[test]
   fn test_recombination_result_with_confidences() {
-    let result = RecombinationResult::from_ranges(ranges(&[(10, 25), (40, 50)]), Some(&[0.95, 0.82])).unwrap();
+    let result =
+      RecombinationResult::from_ranges(helpers::with_confidences(ranges(&[(10, 25), (40, 50)]), Some(&[0.95, 0.82]))).unwrap();
     let expected = RecombinationResult {
       regions: vec![region(10, 25, Some(0.95)), region(40, 50, Some(0.82))],
       total_regions: 2,
@@ -41,7 +42,7 @@ mod tests {
 
   #[test]
   fn test_recombination_result_serde_round_trip_with_confidences() {
-    let result = RecombinationResult::from_ranges(ranges(&[(10, 25)]), Some(&[0.95])).unwrap();
+    let result = RecombinationResult::from_ranges(helpers::with_confidences(ranges(&[(10, 25)]), Some(&[0.95]))).unwrap();
     let json = json_stringify(&result, JsonPretty(true)).unwrap();
     let expected = indoc! {r#"{
       "regions": [
@@ -73,7 +74,7 @@ mod tests {
   #[test]
   fn test_recombination_result_serde_round_trip_without_confidences() {
     // `confidence` is `skip_serializing_if = "Option::is_none"`, so the key is absent when unset.
-    let result = RecombinationResult::from_ranges(ranges(&[(10, 25)]), None).unwrap();
+    let result = RecombinationResult::from_ranges(helpers::with_confidences(ranges(&[(10, 25)]), None)).unwrap();
     let json = json_stringify(&result, JsonPretty(true)).unwrap();
     let expected = indoc! {r#"{
       "regions": [
@@ -106,7 +107,7 @@ mod tests {
     let params = test_params();
     let regions = find_recombinant_regions(&observations, &params);
     assert!(regions.is_empty());
-    assert!(RecombinationResult::from_ranges(regions, None).is_none());
+    assert!(RecombinationResult::from_ranges(helpers::with_confidences(regions, None)).is_none());
   }
 
   proptest::proptest! {
@@ -124,7 +125,7 @@ mod tests {
         .collect();
       let confidences: Vec<f64> = items.iter().map(|&(_, _, c)| c).collect();
 
-      let result = RecombinationResult::from_ranges(ranges.clone(), Some(&confidences)).unwrap();
+      let result = RecombinationResult::from_ranges(helpers::with_confidences(ranges.clone(), Some(&confidences))).unwrap();
 
       proptest::prop_assert_eq!(result.total_regions, ranges.len());
       proptest::prop_assert_eq!(result.regions.len(), ranges.len());
@@ -138,7 +139,26 @@ mod tests {
         proptest::prop_assert_eq!(region.length, range.len());
         proptest::prop_assert_eq!(&region.range, range);
       }
-      proptest::prop_assert!(RecombinationResult::from_ranges(vec![], None).is_none());
+      proptest::prop_assert!(RecombinationResult::from_ranges(helpers::with_confidences(vec![], None)).is_none());
+    }
+  }
+
+  mod helpers {
+    use crate::coord::range::NucRefGlobalRange;
+
+    /// Pair each range with an optional confidence for `RecombinationResult::from_ranges`. `None`
+    /// leaves every region unscored; `Some(cs)` zips one confidence per range (equal lengths).
+    pub fn with_confidences(
+      ranges: Vec<NucRefGlobalRange>,
+      confidences: Option<&[f64]>,
+    ) -> Vec<(NucRefGlobalRange, Option<f64>)> {
+      match confidences {
+        Some(cs) => {
+          assert_eq!(ranges.len(), cs.len(), "test setup: one confidence per range");
+          ranges.into_iter().zip(cs.iter().copied().map(Some)).collect()
+        }
+        None => ranges.into_iter().map(|r| (r, None)).collect(),
+      }
     }
   }
 }

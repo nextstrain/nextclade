@@ -61,10 +61,13 @@ pub fn run_recombination(
   );
 
   let regions = find_recombinant_regions(&observations, params);
-  let confidences = (!regions.is_empty()).then(|| {
+  let regions_with_confidence: Vec<(NucRefGlobalRange, Option<f64>)> = if regions.is_empty() {
+    Vec::new()
+  } else {
     let marginals = compute_forward_backward_marginals(&observations, params);
-    compute_interval_confidences(&marginals, &regions)
-  });
+    let confidences = compute_interval_confidences(&marginals, &regions);
+    regions.into_iter().zip(confidences.into_iter().map(Some)).collect()
+  };
 
-  RecombinationResult::from_ranges(regions, confidences.as_deref())
+  RecombinationResult::from_ranges(regions_with_confidence)
 }
