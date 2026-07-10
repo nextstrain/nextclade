@@ -18,6 +18,7 @@ use eyre::{Report, WrapErr};
 use indexmap::IndexSet;
 use itertools::Itertools;
 use ordered_float::OrderedFloat;
+use statrs::statistics::Statistics;
 use std::collections::BTreeMap;
 
 /// Key under which nucleotide (as opposed to per-gene) mutations are stored in branch attributes.
@@ -169,23 +170,27 @@ fn estimate_gamma(ref_len: usize) -> Option<f64> {
 }
 
 /// Wildtype emission fallback: mean terminal branch length (substitutions) per site.
-fn estimate_mu_w(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Report> {
-  let branch_lengths: Vec<usize> = graph
+pub(super) fn estimate_mu_w(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Report> {
+  let mean = graph
     .iter_nodes()
     .filter(|node| node.is_leaf())
     .map(|node| count_nuc_mutations(node.payload()))
-    .try_collect()?;
+    .process_results(|branch_lengths| branch_lengths.map(|length| length as f64).mean())?;
 
-  if branch_lengths.is_empty() {
-    return Ok(None);
-  }
-
-  let mean = branch_lengths.iter().sum::<usize>() as f64 / branch_lengths.len() as f64;
   Ok(accept_as_probability(mean / ref_len as f64))
 }
 
 /// Recombinant emission fallback: median pairwise inter-clade leaf distance (substitutions) per site.
 fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Report> {
+  let distances = compute_inter_clade_leaf_distances(graph)?
+    .into_iter()
+    .map(|distance| distance as f64)
+    .collect_vec();
+  Ok(compute_median(&distances).and_then(|distance| accept_as_probability(distance / ref_len as f64)))
+}
+
+/// Pairwise substitution distances between all leaves belonging to different clades.
+pub(super) fn compute_inter_clade_leaf_distances(graph: &AuspiceGraph) -> Result<Vec<usize>, Report> {
   let mut clade_leaves: BTreeMap<String, Vec<GraphNodeKey>> = BTreeMap::new();
   for node in graph.iter_nodes() {
     if node.is_leaf()
@@ -196,7 +201,7 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
   }
 
   if clade_leaves.len() < 2 {
-    return Ok(None);
+    return Ok(vec![]);
   }
 
   // Precompute root distances for all nodes so inter-clade distance needs no second tree walk.
@@ -206,25 +211,22 @@ fn estimate_mu_r(graph: &AuspiceGraph, ref_len: usize) -> Result<Option<f64>, Re
     .try_collect()?;
 
   // Exhaustive pairwise distances between leaves of different clades.
-  let clade_groups: Vec<&Vec<GraphNodeKey>> = clade_leaves.values().collect();
-  let mut distances: Vec<f64> = Vec::new();
+  let clade_leaves = clade_leaves
+    .into_values()
+    .map(|leaves| {
+      leaves
+        .into_iter()
+        .map(|key| LeafPath::new(graph, key, root_dists[&key]))
+        .collect_vec()
+    })
+    .collect_vec();
 
-  for (i, leaves_a) in clade_groups.iter().enumerate() {
-    for leaves_b in &clade_groups[i + 1..] {
-      for &a in *leaves_a {
-        // Compute `a`'s ancestor set once, reuse for every `b`.
-        let ancestors_a = collect_ancestors_inclusive(graph, a);
-        let rd_a = root_dists[&a];
-        for &b in *leaves_b {
-          let mrca = find_mrca_with_ancestors(graph, &ancestors_a, b)?;
-          let d = rd_a + root_dists[&b] - 2 * root_dists[&mrca];
-          distances.push(d as f64);
-        }
-      }
-    }
-  }
-
-  Ok(compute_median(&distances).and_then(|d| accept_as_probability(d / ref_len as f64)))
+  clade_leaves
+    .iter()
+    .tuple_combinations()
+    .flat_map(|(leaves_a, leaves_b)| leaves_a.iter().cartesian_product(leaves_b))
+    .map(|(a, b)| a.distance_to(b, &root_dists))
+    .try_collect()
 }
 
 /// Nucleotide substitutions on this branch, excluding deletions (gap query = missing data, not
@@ -248,47 +250,10 @@ fn count_nuc_mutations(payload: &AuspiceGraphNodePayload) -> Result<usize, Repor
 
 /// Cumulative substitution count from the root to a node (sum of branch mutation counts).
 fn compute_root_distance(graph: &AuspiceGraph, key: GraphNodeKey) -> Result<usize, Report> {
-  let mut total = 0;
-  let mut current = Some(key);
-  while let Some(node_key) = current {
-    total += count_nuc_mutations(graph.get_node(node_key)?.payload())?;
-    current = graph.parent_key_of_by_key(node_key);
-  }
-  Ok(total)
-}
-
-/// MRCA of `b` and the node whose inclusive ancestor set is `ancestors_a`. Walks `b` toward the
-/// root until it hits `ancestors_a`.
-fn find_mrca_with_ancestors(
-  graph: &AuspiceGraph,
-  ancestors_a: &IndexSet<GraphNodeKey>,
-  b: GraphNodeKey,
-) -> Result<GraphNodeKey, Report> {
-  let mut current = b;
-  loop {
-    if ancestors_a.contains(&current) {
-      return Ok(current);
-    }
-    match graph.parent_key_of_by_key(current) {
-      Some(parent) => current = parent,
-      None => {
-        return make_error!(
-          "Recombination parameter estimation: node {b:?} has no common ancestor with the compared leaf"
-        );
-      }
-    }
-  }
-}
-
-/// A node and all of its ancestors up to and including the root.
-fn collect_ancestors_inclusive(graph: &AuspiceGraph, key: GraphNodeKey) -> IndexSet<GraphNodeKey> {
-  let mut ancestors = IndexSet::new();
-  let mut current = Some(key);
-  while let Some(node_key) = current {
-    ancestors.insert(node_key);
-    current = graph.parent_key_of_by_key(node_key);
-  }
-  ancestors
+  graph
+    .iter_ancestor_keys_inclusive(key)
+    .map(|node_key| count_nuc_mutations(graph.get_node(node_key)?.payload()))
+    .sum()
 }
 
 /// Median of a slice of values, or `None` when empty.
@@ -308,4 +273,30 @@ pub(crate) fn compute_median(values: &[f64]) -> Option<f64> {
 /// Accept a value only if it is a valid emission/transition probability in the open interval `(0, 1)`.
 pub(crate) fn accept_as_probability(x: f64) -> Option<f64> {
   is_hmm_probability(x).then_some(x)
+}
+
+struct LeafPath {
+  key: GraphNodeKey,
+  root_distance: usize,
+  ancestors: IndexSet<GraphNodeKey>,
+}
+
+impl LeafPath {
+  fn new(graph: &AuspiceGraph, key: GraphNodeKey, root_distance: usize) -> Self {
+    Self {
+      key,
+      root_distance,
+      ancestors: graph.iter_ancestor_keys_inclusive(key).collect(),
+    }
+  }
+
+  fn distance_to(&self, other: &Self, root_distances: &BTreeMap<GraphNodeKey, usize>) -> Result<usize, Report> {
+    let Some(mrca) = other.ancestors.iter().find(|key| self.ancestors.contains(*key)) else {
+      return make_error!(
+        "Recombination parameter estimation: node {:?} has no common ancestor with the compared leaf",
+        other.key
+      );
+    };
+    Ok(self.root_distance + other.root_distance - 2 * root_distances[mrca])
+  }
 }

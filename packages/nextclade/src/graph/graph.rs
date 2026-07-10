@@ -12,6 +12,7 @@ use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::iter::successors;
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[allow(clippy::partial_pub_fields)]
@@ -83,6 +84,11 @@ where
   pub fn parent_key_of_by_key(&self, node_key: GraphNodeKey) -> Option<GraphNodeKey> {
     let node = self.get_node(node_key).unwrap(); // FIXME
     self.parent_key_of(node)
+  }
+
+  /// Iterate from a node toward the root, including the node itself.
+  pub fn iter_ancestor_keys_inclusive(&self, node_key: GraphNodeKey) -> impl Iterator<Item = GraphNodeKey> + '_ {
+    successors(Some(node_key), |&node_key| self.parent_key_of_by_key(node_key))
   }
 
   /// Retrieve parent of a given node
