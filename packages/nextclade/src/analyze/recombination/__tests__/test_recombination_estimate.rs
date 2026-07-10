@@ -4,16 +4,18 @@
 #[cfg(test)]
 mod tests {
   use crate::analyze::recombination::__tests__::recombination_test_helpers::{
-    REF_LEN, external_tree_with_deletion, internal_only_second_clade_tree, nested_clade_tree, resolved,
-    single_clade_tree, three_clade_tree, tree_with_insertion, tree_with_malformed_mutation,
+    REF_LEN, disconnected_clade_tree, external_tree_with_deletion, internal_only_second_clade_tree, nested_clade_tree,
+    resolved, single_clade_tree, three_clade_tree, tree_with_insertion, tree_with_malformed_mutation,
     two_clade_no_mutations_tree, two_clade_tree,
   };
   use crate::analyze::recombination::config::RecombinationConfig;
   use crate::analyze::recombination::estimate::{
-    RecombinationResolution, RecombinationSkipReason, accept_as_probability, compute_median,
-    resolve_recombination_params,
+    RecombinationResolution, RecombinationSkipReason, accept_as_probability, compute_inter_clade_leaf_distances,
+    compute_median, estimate_mu_w, resolve_recombination_params,
   };
+  use crate::tree::tree::{AuspiceGraph, AuspiceGraphMeta};
   use crate::{assert_error, pretty_assert_ulps_eq};
+  use itertools::Itertools;
   use ordered_float::OrderedFloat;
   use pretty_assertions::assert_eq;
   use rand::SeedableRng;
@@ -30,6 +32,22 @@ mod tests {
     pretty_assert_ulps_eq!(1.0 / 100.0, params.gamma(), max_ulps = 2);
     pretty_assert_ulps_eq!(2.0 / 100.0, params.mu_w(), max_ulps = 2);
     pretty_assert_ulps_eq!(5.0 / 100.0, params.mu_r(), max_ulps = 2);
+  }
+
+  #[test]
+  fn test_recombination_estimate_mu_w_empty_graph() {
+    let graph = AuspiceGraph::new(AuspiceGraphMeta::default());
+
+    // There are no terminal branch lengths from which to estimate the fallback.
+    assert_eq!(None, estimate_mu_w(&graph, REF_LEN).unwrap());
+  }
+
+  #[test]
+  fn test_recombination_estimate_mu_w_zero_reference_length() {
+    let graph = two_clade_tree();
+
+    // Dividing the finite mean by zero is non-finite and therefore not a valid probability.
+    assert_eq!(None, estimate_mu_w(&graph, 0).unwrap());
   }
 
   #[test]
@@ -170,6 +188,48 @@ mod tests {
     let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
     pretty_assert_ulps_eq!(4.0 / 100.0, params.mu_w(), max_ulps = 2);
     pretty_assert_ulps_eq!(9.0 / 100.0, params.mu_r(), max_ulps = 2);
+  }
+
+  #[test]
+  fn test_recombination_estimate_inter_clade_leaf_distances_are_exhaustive() {
+    let graph = nested_clade_tree();
+
+    let actual = compute_inter_clade_leaf_distances(&graph).unwrap();
+    let actual = actual.into_iter().sorted().collect_vec();
+
+    // Manual oracle from the fixture's branch mutations and d(a,b) = rd(a) + rd(b) - 2*rd(MRCA).
+    let expected = vec![6, 6, 8, 8, 10, 10, 12, 14];
+    assert_eq!(expected, actual);
+  }
+
+  #[test]
+  fn test_recombination_estimate_disconnected_clades_error() {
+    let graph = disconnected_clade_tree();
+
+    assert_error!(
+      compute_inter_clade_leaf_distances(&graph),
+      "Recombination parameter estimation: node 1 has no common ancestor with the compared leaf"
+    );
+  }
+
+  #[test]
+  fn test_recombination_estimate_zero_reference_length_rejects_mu_r() {
+    let graph = two_clade_tree();
+    let config = RecombinationConfig {
+      gamma: Some(OrderedFloat(0.01)),
+      mu_w: Some(OrderedFloat(0.01)),
+      ..RecombinationConfig::default()
+    };
+
+    let resolution = resolve_recombination_params(Some(&config), &graph, 0).unwrap();
+
+    assert!(
+      matches!(
+        resolution,
+        RecombinationResolution::Skipped(RecombinationSkipReason::TreeEstimateUnavailable)
+      ),
+      "got {resolution:?}"
+    );
   }
 
   #[test]
