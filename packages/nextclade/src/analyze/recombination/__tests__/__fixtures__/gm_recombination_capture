@@ -16,7 +16,7 @@ Setup (before running):
 
   3. Run inside the Python container:
 
-       ./docker/python python packages/nextclade/src/analyze/__tests__/__fixtures__/gm_recombination_capture <clone-dir>/code
+       ./docker/python python packages/nextclade/src/analyze/recombination/__tests__/__fixtures__/gm_recombination_capture <clone-dir>/code
 """
 
 import argparse

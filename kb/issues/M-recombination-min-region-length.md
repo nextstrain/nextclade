@@ -4,7 +4,7 @@
 
 ## Context
 
-Decoded recombinant runs are extracted and trimmed to covered endpoints ([`packages/nextclade/src/analyze/recombination.rs#L34-L85`](packages/nextclade/src/analyze/recombination.rs#L34-L85)), then summarized into regions ([`packages/nextclade/src/analyze/recombination.rs#L313-L347`](packages/nextclade/src/analyze/recombination.rs#L313-L347)). There is no minimum-length filter: any run the Viterbi decoder marks recombinant, no matter how short, becomes a reported region.
+Decoded recombinant runs are extracted and trimmed to covered endpoints ([`packages/nextclade/src/analyze/recombination/decode.rs`](packages/nextclade/src/analyze/recombination/decode.rs)), then summarized into regions ([`packages/nextclade/src/analyze/recombination/result.rs`](packages/nextclade/src/analyze/recombination/result.rs)). There is no minimum-length filter: any run the Viterbi decoder marks recombinant, no matter how short, becomes a reported region.
 
 Biological recombination produces segments of hundreds of nucleotides or more. A few substitutions packed into adjacent positions is almost always a local misalignment -- typically at the edge of a deletion or long `N` run where the aligner places a diverged stretch as dense substitutions.
 

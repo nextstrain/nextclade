@@ -4,7 +4,7 @@
 
 Recombination detection runs once per query sequence, inside the parallel analysis loop (`nextclade_run_one`). For every tree-backed dataset with detection enabled, `find_recombinant_regions` decodes a Viterbi path over the full reference length. Nextclade routinely processes up to millions of sequences per run, so constant-factor cost and per-call allocation on this path are multiplied across the whole batch.
 
-The current decoder in `packages/nextclade/src/analyze/recombination.rs` is correct and linear in reference length, but leaves two avoidable costs on that hot path:
+The current decoder in `packages/nextclade/src/analyze/recombination/decode.rs` is correct and linear in reference length, but leaves two avoidable costs on that hot path:
 
 1. A loop-invariant `ln()` is recomputed at every site. `viterbi_decode` calls `params.log_emission(obs[l])` for each of the `L` sites, and `log_emission` evaluates `.ln()` on each call. The emission log-probabilities depend only on the run-constant parameters and take four distinct values (`(1 - mu_w).ln()`, `(1 - mu_r).ln()`, `mu_w.ln()`, `mu_r.ln()`). `f64::ln` is roughly 20-50 cycles, several times the cost of the rest of the per-site body.
 
@@ -12,7 +12,7 @@ The current decoder in `packages/nextclade/src/analyze/recombination.rs` is corr
 
 ## Background
 
-`viterbi_decode` (`packages/nextclade/src/analyze/recombination.rs`):
+`viterbi_decode` (`packages/nextclade/src/analyze/recombination/decode.rs`):
 
 - `let mut score = vec![[f64::NEG_INFINITY; 2]; n];` then the forward loop reads `score[l - 1]` and writes `score[l]`.
 - `let mut back = vec![[WILDTYPE; 2]; n];` is walked in reverse during backtrace and needs full length.
@@ -46,7 +46,7 @@ Recommended: C1, but only with a measurement confirming the backtrace is cache-b
 
 ## Scope
 
-- `packages/nextclade/src/analyze/recombination.rs`: `viterbi_decode` only. No change to the public interface, outputs, or decoded result.
+- `packages/nextclade/src/analyze/recombination/decode.rs`: `viterbi_decode` only. No change to the public interface, outputs, or decoded result.
 
 ## Validation
 
