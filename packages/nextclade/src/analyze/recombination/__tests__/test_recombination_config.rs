@@ -4,6 +4,7 @@
 mod tests {
   use crate::analyze::recombination::__tests__::recombination_test_helpers::cfg_min_subs;
   use crate::analyze::recombination::config::RecombinationConfig;
+  use ordered_float::OrderedFloat;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -50,5 +51,28 @@ mod tests {
   #[case::explicit_zero(  Some(cfg_min_subs(0)),                  0)]
   fn test_recombination_config_min_private_subs_to_run(#[case] config: Option<RecombinationConfig>, #[case] expected: usize) {
     assert_eq!(expected, RecombinationConfig::min_private_subs_to_run(config.as_ref()));
+  }
+
+  #[test]
+  fn test_recombination_config_serde_full_roundtrip() {
+    // Every camelCase field deserializes into its Rust field, and reserializes to the same shape
+    // (fields declared in struct order; unset optionals stay omitted via skip_serializing_if).
+    let json = r#"{"enabled":true,"minPrivateSubsToRun":3,"gamma":0.01,"muW":0.005,"muR":0.05}"#;
+    let config: RecombinationConfig = serde_json::from_str(json).unwrap();
+    let expected = RecombinationConfig {
+      enabled: Some(true),
+      min_private_subs_to_run: Some(3),
+      gamma: Some(OrderedFloat(0.01)),
+      mu_w: Some(OrderedFloat(0.005)),
+      mu_r: Some(OrderedFloat(0.05)),
+    };
+    assert_eq!(expected, config);
+    assert_eq!(json, serde_json::to_string(&config).unwrap());
+  }
+
+  #[test]
+  fn test_recombination_config_serde_default_is_empty_object() {
+    // All fields unset -> `{}` (every field is `skip_serializing_if`), the shape an absent config takes.
+    assert_eq!("{}", serde_json::to_string(&RecombinationConfig::default()).unwrap());
   }
 }

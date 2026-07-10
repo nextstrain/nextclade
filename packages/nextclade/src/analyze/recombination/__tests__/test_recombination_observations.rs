@@ -56,13 +56,10 @@ mod tests {
 
     let assembled = collect_missing_ranges(&missing, &non_acgtns, &deletions, &masked);
 
-    // Order is missing, then non-ACGTN, then deletions, then masked.
+    // Order is missing, then non-ACGTN, then deletions, then masked. Whole-vector equality already
+    // pins that the placement-masked range is present and last.
     let expected = ranges(&[(0, 2), (10, 11), (20, 22), (30, 33)]);
     assert_eq!(expected, assembled);
-    assert!(
-      assembled.contains(&NucRefGlobalRange::from_usize(30, 33)),
-      "assembled missing set must contain the placement-masked range"
-    );
   }
 
   // Masked+mutated -> Missing; unmasked mutation -> Mut; outside alignment -> Missing; length = ref_len.
@@ -84,7 +81,19 @@ mod tests {
 
     let expected = vec![Missing, Ref, Ref, Ref, Missing, Ref, Mut, Ref, Ref, Missing];
     assert_eq!(expected, observed);
-    assert_eq!(ref_len, observed.len());
+  }
+
+  #[test]
+  fn test_recombination_build_observations_zero_reference_length() {
+    // Zero-length reference: no positions to observe. Out-of-range alignment, missing ranges, and
+    // mutations must all be absorbed without panicking, yielding an empty observation vector.
+    let observed = build_observations(
+      0,
+      &NucRefGlobalRange::from_usize(0, 0),
+      &ranges(&[(0, 5)]),
+      &[NucRefGlobalPosition::from(2_isize)],
+    );
+    assert_eq!(Vec::<RecombinationObs>::new(), observed);
   }
 
   proptest::proptest! {

@@ -69,8 +69,9 @@ mod tests {
     );
   }
 
-  // muW = 5e-4: `eps` is a larger relative perturbation, deviation grows to ~1e-8.
-  // Looser tolerance covers the smoothing artifact only.
+  // muW = 5e-4: `eps` is a larger relative perturbation. The measured max |Δ P(recombinant)| is
+  // 3.19e-8 (gm_genome_planted_block), so 1e-8 does not pass; 1e-7 is the tightest 1e-N here. This
+  // bounds the prototype's `log(0)` smoothing artifact only, not a divergence from another cause.
   #[rustfmt::skip]
   #[rstest]
   #[case::genome_all_ref("gm_genome_all_ref")]
@@ -89,6 +90,7 @@ mod tests {
     use crate::analyze::recombination::forward_backward::compute_forward_backward_marginals;
     use crate::analyze::recombination::observations::RecombinationObs;
     use crate::analyze::recombination::params::RecombinationHmmParams;
+    use crate::io::json::json_parse;
     use serde::Deserialize;
 
     const INPUTS_JSON: &str = include_str!("__fixtures__/gm_recombination_inputs.json");
@@ -120,12 +122,12 @@ mod tests {
     }
 
     pub fn input_case(name: &str) -> GmInputCase {
-      let inputs: GmCases<GmInputCase> = serde_json::from_str(INPUTS_JSON).unwrap();
+      let inputs: GmCases<GmInputCase> = json_parse(INPUTS_JSON).unwrap();
       inputs.cases.into_iter().find(|c| c.name == name).unwrap()
     }
 
     pub fn output_case(name: &str) -> GmOutputCase {
-      let outputs: GmCases<GmOutputCase> = serde_json::from_str(OUTPUTS_JSON).unwrap();
+      let outputs: GmCases<GmOutputCase> = json_parse(OUTPUTS_JSON).unwrap();
       outputs.cases.into_iter().find(|c| c.name == name).unwrap()
     }
 
