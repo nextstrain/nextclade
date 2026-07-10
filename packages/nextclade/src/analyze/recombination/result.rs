@@ -32,21 +32,19 @@ pub struct RecombinationResult {
 }
 
 impl RecombinationResult {
-  /// Summarize decoded ranges with optional confidences. `None` when empty.
-  pub(crate) fn from_ranges(ranges: Vec<NucRefGlobalRange>, confidences: Option<&[f64]>) -> Option<Self> {
-    if ranges.is_empty() {
+  /// Summarize decoded regions, each paired with its optional confidence. `None` when empty.
+  ///
+  /// Pairing range and confidence at the input makes a per-region confidence count mismatch
+  /// unrepresentable: every region carries exactly its own confidence, so no length invariant
+  /// needs enforcing.
+  pub(crate) fn from_ranges(regions: Vec<(NucRefGlobalRange, Option<f64>)>) -> Option<Self> {
+    if regions.is_empty() {
       return None;
     }
-    debug_assert!(
-      confidences.is_none_or(|c| c.len() == ranges.len()),
-      "confidences length must match ranges length"
-    );
-    let regions: Vec<RecombinationRegion> = ranges
+    let regions: Vec<RecombinationRegion> = regions
       .into_iter()
-      .enumerate()
-      .map(|(i, range)| {
+      .map(|(range, confidence)| {
         let length = range.len();
-        let confidence = confidences.map(|c| c[i]);
         RecombinationRegion {
           range,
           length,
@@ -56,7 +54,11 @@ impl RecombinationResult {
       .collect();
     let total_regions = regions.len();
     let total_length = regions.iter().map(|r| r.length).sum();
-    let longest_region = regions.iter().max_by_key(|r| r.length).unwrap().clone();
+    let longest_region = regions
+      .iter()
+      .max_by_key(|r| r.length)
+      .expect("regions is non-empty: empty case returns None above")
+      .clone();
     Some(Self {
       regions,
       total_regions,
