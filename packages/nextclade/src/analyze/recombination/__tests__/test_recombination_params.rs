@@ -56,6 +56,9 @@ mod tests {
   // Independent of the brute-force oracles (which reuse `compute_log_emission`): this pins the
   // observation-to-column mapping and the `Missing = [0, 0]` marginalization, so a Ref/Mut or
   // wildtype/recombinant column swap is caught here rather than cancelling in both SUT and oracle.
+  // `ln(0.1)` equals `-LN_10`; these are deliberate hand-derived `ln` oracle values, not an
+  // approximation of a named constant, so the `approx_constant` lint is a false positive here.
+  #[allow(clippy::approx_constant)]
   #[rustfmt::skip]
   #[rstest]
   #[case::ref_obs(RecombinationObs::Ref,     [-0.10536051565782628, -0.2231435513142097])]  // [ln 0.9, ln 0.8]
