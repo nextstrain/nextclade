@@ -27,7 +27,7 @@ pub struct RecombinationConfig {
 
   /// State transition rate override. Absent = `1 / ref_len`. Must be in (0, 0.5).
   #[serde(skip_serializing_if = "Option::is_none")]
-  #[schemars(range(min = 0.0, max = 1.0))]
+  #[schemars(range(min = 0.0, max = 0.5))]
   pub gamma: Option<OrderedFloat<f64>>,
 
   /// Wildtype emission probability override. Absent = estimated from tree. Must be in (0, 1).
