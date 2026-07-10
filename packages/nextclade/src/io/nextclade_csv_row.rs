@@ -825,7 +825,6 @@ mod tests {
     );
   }
 
-  // A `None` result renders as an empty cell.
   #[test]
   fn test_nextclade_csv_row_format_recombinant_region_confidences_none_is_empty() {
     assert_eq!("", format_recombinant_region_confidences(None, ARRAY_ITEM_DELIMITER));
