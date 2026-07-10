@@ -857,7 +857,7 @@ definitions:
         - number
         - 'null'
         format: double
-        maximum: 1.0
+        maximum: 0.5
         minimum: 0.0
       muW:
         description: Wildtype emission probability override. Absent = estimated from tree. Must be in (0, 1).
