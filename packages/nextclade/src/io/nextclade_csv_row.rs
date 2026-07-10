@@ -804,7 +804,8 @@ mod tests {
   #[case::single_position( &[(100, 101)],              "101")]
   #[trace]
   fn test_nextclade_csv_row_format_recombinant_regions_some(#[case] pairs: &[(usize, usize)], #[case] expected: &str) {
-    let result = RecombinationResult::from_ranges(ranges(pairs), None).unwrap();
+    let regions: Vec<_> = ranges(pairs).into_iter().map(|r| (r, None)).collect();
+    let result = RecombinationResult::from_ranges(regions).unwrap();
     assert_eq!(expected, format_recombinant_regions(Some(&result), ARRAY_ITEM_DELIMITER));
   }
 
@@ -818,7 +819,8 @@ mod tests {
   // is a comma-delimited list of per-region confidences at 3 decimal places.
   #[test]
   fn test_nextclade_csv_row_format_recombinant_region_confidences_three_decimals() {
-    let result = RecombinationResult::from_ranges(ranges(&[(100, 200), (300, 350)]), Some(&[0.95, 0.5])).unwrap();
+    let regions: Vec<_> = ranges(&[(100, 200), (300, 350)]).into_iter().zip([Some(0.95), Some(0.5)]).collect();
+    let result = RecombinationResult::from_ranges(regions).unwrap();
     assert_eq!(
       "0.950,0.500",
       format_recombinant_region_confidences(Some(&result), ARRAY_ITEM_DELIMITER)
@@ -834,7 +836,8 @@ mod tests {
   // cell is empty rather than listing placeholder values.
   #[test]
   fn test_nextclade_csv_row_format_recombinant_region_confidences_absent_is_empty() {
-    let result = RecombinationResult::from_ranges(ranges(&[(100, 200)]), None).unwrap();
+    let regions: Vec<_> = ranges(&[(100, 200)]).into_iter().map(|r| (r, None)).collect();
+    let result = RecombinationResult::from_ranges(regions).unwrap();
     assert_eq!(
       "",
       format_recombinant_region_confidences(Some(&result), ARRAY_ITEM_DELIMITER)
