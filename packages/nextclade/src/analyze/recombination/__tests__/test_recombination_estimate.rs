@@ -1,5 +1,5 @@
 //! Resolving HMM parameters: `pathogen.json` override precedence, skip reasons, hard errors, and
-//! the `compute_median`/`accept_as_probability` helpers.
+//! the `accept_as_probability` helper.
 
 #[cfg(test)]
 mod tests {
@@ -11,16 +11,13 @@ mod tests {
   use crate::analyze::recombination::config::RecombinationConfig;
   use crate::analyze::recombination::estimate::{
     RecombinationResolution, RecombinationSkipReason, accept_as_probability, compute_inter_clade_leaf_distances,
-    compute_median, estimate_mu_w, resolve_recombination_params,
+    estimate_mu_w, resolve_recombination_params,
   };
   use crate::tree::tree::{AuspiceGraph, AuspiceGraphMeta};
   use crate::{assert_error, pretty_assert_ulps_eq};
   use itertools::Itertools;
   use ordered_float::OrderedFloat;
   use pretty_assertions::assert_eq;
-  use rand::SeedableRng;
-  use rand::rngs::StdRng;
-  use rand::seq::SliceRandom;
   use rstest::rstest;
 
   // Deterministic integer arithmetic: results are bit-identical. max_ulps = 2 guards against future
@@ -327,17 +324,6 @@ mod tests {
 
   #[rustfmt::skip]
   #[rstest]
-  #[case::empty(  &[],                    None)]
-  #[case::single( &[3.0],                 Some(3.0))]
-  #[case::odd(    &[5.0, 1.0, 3.0],       Some(3.0))]      // sorted {1,3,5}, middle 3
-  #[case::even(   &[1.0, 4.0, 2.0, 3.0],  Some(2.5))]      // sorted {1,2,3,4}, midpoint(2,3)
-  #[trace]
-  fn test_recombination_estimate_compute_median(#[case] values: &[f64], #[case] expected: Option<f64>) {
-    assert_eq!(expected, compute_median(values));
-  }
-
-  #[rustfmt::skip]
-  #[rstest]
   // accept_as_probability accepts only the open interval (0, 1); the closed endpoints and non-finite values
   // are rejected (they would produce log(0) = -inf in the decoder).
   #[case::zero( 0.0,      None)]
@@ -351,32 +337,6 @@ mod tests {
 
   proptest::proptest! {
     #![proptest_config(proptest::prelude::ProptestConfig::with_cases(512))]
-
-    // Permutation-invariant, within [min, max], and for odd length is one of the inputs.
-    #[test]
-    fn test_prop_recombination_estimate_median_invariants(
-      values in proptest::collection::vec(-1e6_f64..1e6, 1..50_usize),
-      seed in proptest::prelude::any::<u64>(),
-    ) {
-      let m = compute_median(&values).unwrap();
-
-      let mn = values.iter().copied().fold(f64::INFINITY, f64::min);
-      let mx = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-      proptest::prop_assert!(m >= mn && m <= mx, "median {} outside [{}, {}]", m, mn, mx);
-
-      let mut shuffled = values.clone();
-      let mut rng = StdRng::seed_from_u64(seed);
-      shuffled.shuffle(&mut rng);
-      proptest::prop_assert_eq!(compute_median(&values).map(f64::to_bits), compute_median(&shuffled).map(f64::to_bits));
-
-      if values.len() % 2 == 1 {
-        proptest::prop_assert!(
-          values.iter().any(|&v| v.to_bits() == m.to_bits()),
-          "odd-length median {} is not an input element",
-          m
-        );
-      }
-    }
 
     // All three params supplied -> estimator not consulted, resolved values bit-identical to overrides.
     #[test]
