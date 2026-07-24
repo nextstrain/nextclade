@@ -45,7 +45,7 @@ Ambiguous nucleotides (such as `R`, `Y`, etc) are often indicative of contaminat
 
 ### Mutation clusters (C)
 
-To be more sensitive for quality problems in a narrow area of a genome, the mutation cluster rule counts the number of private within all possible 100-nucleotide windows (`windowSize`).
+To be more sensitive for quality problems in a narrow area of a genome, the mutation cluster rule counts the number of private mutations within all possible 100-nucleotide windows (`windowSize`).
 If that number exceeds 6 (`clusterCutOff`), this counts as an SNP cluster.
 The quality score is the number of clusters times 50 (`scoreWeight`), hence 1 cluster will cause the cluster rule to be mediocre.
 
