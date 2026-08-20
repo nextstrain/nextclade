@@ -137,6 +137,36 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
     [onRelMutsColumnsStateChange, relMutsColumnsState, t],
   )
 
+  const mutPatternsColumnsState = useMemo(
+    () => csvColumnConfig?.includeMutPatterns ?? false,
+    [csvColumnConfig?.includeMutPatterns],
+  )
+
+  const onMutPatternsColumnsStateChange = useCallback(() => {
+    setCsvColumnConfig((config) =>
+      config
+        ? {
+            ...config,
+            includeMutPatterns: !config.includeMutPatterns,
+          }
+        : undefined,
+    )
+  }, [setCsvColumnConfig])
+
+  const mutPatterns = useMemo(
+    () => (
+      <FormGroup inline check>
+        <Label check>
+          <Input type="checkbox" checked={mutPatternsColumnsState} onChange={onMutPatternsColumnsStateChange} />
+          <TextWithHelp title={t('Mutation pattern analysis results (if defined in the dataset)')}>
+            {t('Mutation patterns')}
+          </TextWithHelp>
+        </Label>
+      </FormGroup>
+    ),
+    [mutPatternsColumnsState, onMutPatternsColumnsStateChange, t],
+  )
+
   const dynamicColumnsState = useMemo(() => csvColumnConfig?.includeDynamic ?? false, [csvColumnConfig?.includeDynamic])
 
   const onDynamicColumnsStateChange = useCallback(() => {
@@ -179,6 +209,7 @@ export function ExportTabColumnConfig({ setActiveTabId }: { setActiveTabId(id: s
           {categories}
           <CategoryCard header={cladeFounderMuts} />
           <CategoryCard header={relMuts} />
+          <CategoryCard header={mutPatterns} />
           <CategoryCard header={dynamic} />
         </Form>
       </Main>

@@ -44,6 +44,7 @@ impl NextcladeOrderedWriter {
     phenotype_attr_key_desc: &[PhenotypeAttrDesc],
     ref_nodes: &AuspiceRefNodesDesc,
     aa_motifs_keys: &[String],
+    mutation_pattern_keys: &[String],
     csv_column_config: &CsvColumnConfig,
     output_params: &NextcladeRunOutputArgs,
     params: &NextcladeInputParams,
@@ -73,6 +74,7 @@ impl NextcladeOrderedWriter {
         &phenotype_attr_keys,
         ref_nodes,
         aa_motifs_keys,
+        mutation_pattern_keys,
         csv_column_config,
       )
     })?;
@@ -85,6 +87,7 @@ impl NextcladeOrderedWriter {
         &phenotype_attr_keys,
         ref_nodes,
         aa_motifs_keys,
+        mutation_pattern_keys,
         csv_column_config,
       )
     })?;

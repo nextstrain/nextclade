@@ -11,6 +11,7 @@ import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerAmbiguous } from './SequenceMarkerAmbiguous'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
+import { SequenceMarkerCluster } from './SequenceMarkerCluster'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
@@ -23,7 +24,7 @@ export interface SequenceViewRelativeProps {
 }
 
 export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceViewRelativeProps) {
-  const { index, seqName, missing, alignmentRange, frameShifts, insertions, nucToAaMuts, nonACGTNs } = sequence
+  const { index, seqName, missing, alignmentRange, frameShifts, insertions, nucToAaMuts, nonACGTNs, mutationPatterns } = sequence
 
   const { t } = useTranslationSafe()
   const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
@@ -93,6 +94,19 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
     />
   ))
 
+  const clusterViews = (mutationPatterns?.results ?? []).flatMap((pattern, patternIndex) =>
+    (pattern.clusters ?? []).map((cluster) => (
+      <SequenceMarkerCluster
+        key={`cluster_${patternIndex}_${cluster.start}_${cluster.end}`}
+        index={index}
+        seqName={seqName}
+        cluster={cluster}
+        pixelsPerBase={pixelsPerBase}
+        description={pattern.description}
+      />
+    )),
+  )
+
   const frameShiftMarkers = frameShifts.map((frameShift) => (
     <SequenceMarkerFrameShift
       key={`${frameShift.cdsName}_${frameShift.nucAbs.map((na) => na.begin).join('-')}`}
@@ -104,7 +118,7 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
   ))
 
   const totalMarkers =
-    mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length + insertionViews.length
+    mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length + insertionViews.length + clusterViews.length
 
   if (totalMarkers > maxNucMarkers) {
     return (
@@ -155,6 +169,7 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
         pixelsPerBase={pixelsPerBase}
       />
       {frameShiftMarkers}
+      {clusterViews}
     </SequenceViewSVG>
   )
 }

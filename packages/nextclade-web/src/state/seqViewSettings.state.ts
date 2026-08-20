@@ -77,6 +77,12 @@ export const seqMarkerUnsequencedHeightStateAtom = atom<SeqMarkerHeightState>({
   effects: [persistAtom],
 })
 
+export const seqMarkerClusterHeightStateAtom = atom<SeqMarkerHeightState>({
+  key: 'seqMarkerClusterHeight',
+  default: SeqMarkerHeightState.Bottom,
+  effects: [persistAtom],
+})
+
 export enum SeqMarkerState {
   Off = 'Off',
   On = 'On',

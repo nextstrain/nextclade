@@ -1,12 +1,8 @@
-use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::analyze::nuc_sub::NucSub;
-use crate::coord::position::PositionLike;
+use crate::analyze::mutation_patterns::MutationPatternCluster;
 use crate::qc::qc_config::QcRulesConfigSnpClusters;
 use crate::qc::qc_run::{QcRule, QcStatus};
-use itertools::Itertools;
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
-use std::collections::VecDeque;
 
 /// A cluster of private nucleotide substitutions within a genomic window.
 ///
@@ -51,22 +47,24 @@ impl QcRule for QcResultSnpClusters {
 }
 
 pub fn rule_snp_clusters(
-  private_nuc_mutations: &PrivateNucMutations,
+  qc_clusters: &[MutationPatternCluster],
   config: &QcRulesConfigSnpClusters,
 ) -> Option<QcResultSnpClusters> {
   if !config.enabled {
     return None;
   }
 
-  let mut snp_clusters = find_snp_clusters(&private_nuc_mutations.private_substitutions, config);
-  for cluster in &mut snp_clusters {
-    cluster.sort_unstable();
-  }
+  let clustered_snps: Vec<ClusteredSnp> = qc_clusters
+    .iter()
+    .map(|c| ClusteredSnp {
+      start: c.start,
+      end: c.end,
+      number_of_snps: c.count,
+    })
+    .collect();
 
-  let total_clusters = snp_clusters.len();
-
-  let clustered_snps = process_snp_clusters(snp_clusters);
-  let total_snps = clustered_snps.iter().map(|cluster| cluster.number_of_snps).sum();
+  let total_clusters = clustered_snps.len();
+  let total_snps = clustered_snps.iter().map(|c| c.number_of_snps).sum();
 
   let score = clamp_min(total_clusters as f64 * *config.score_weight, 0.0);
   let status = QcStatus::from_score(score);
@@ -79,49 +77,68 @@ pub fn rule_snp_clusters(
   })
 }
 
-fn find_snp_clusters(private_nuc_mutations: &[NucSub], config: &QcRulesConfigSnpClusters) -> Vec<Vec<isize>> {
-  let mut current_cluster = VecDeque::<isize>::new();
-  let mut all_clusters = Vec::<Vec<isize>>::new();
-  let mut previous_pos: isize = -1;
-  for mutation in private_nuc_mutations {
-    let pos = mutation.pos.as_isize();
-    current_cluster.push_back(pos);
+#[cfg(test)]
+#[allow(
+  clippy::float_cmp,
+  reason = "SNP cluster QC scores are exact products of integer cluster counts and fixed score weights"
+)]
+mod tests {
+  use super::*;
+  use ordered_float::OrderedFloat;
+  use pretty_assertions::assert_eq;
 
-    while current_cluster[0] < (pos - config.window_size as isize) {
-      current_cluster.pop_front();
+  fn make_config(enabled: bool, score_weight: f64) -> QcRulesConfigSnpClusters {
+    QcRulesConfigSnpClusters {
+      enabled,
+      score_weight: OrderedFloat(score_weight),
+      window_size: 0,
+      cluster_cut_off: 0,
     }
-
-    if current_cluster.len() > config.cluster_cut_off {
-      let n_clusters = all_clusters.len();
-
-      if !all_clusters.is_empty() && current_cluster.len() > 1 {
-        let i = n_clusters - 1;
-        let j = all_clusters[i].len() - 1;
-        let p = all_clusters[i][j];
-
-        if p == previous_pos {
-          all_clusters[i].push(pos);
-        } else {
-          all_clusters.push(current_cluster.iter().copied().collect_vec());
-        }
-      } else {
-        all_clusters.push(current_cluster.iter().copied().collect_vec());
-      }
-    }
-    previous_pos = pos;
   }
 
-  all_clusters
-}
-
-fn process_snp_clusters(snp_clusters: Vec<Vec<isize>>) -> Vec<ClusteredSnp> {
-  let mut result = Vec::with_capacity(snp_clusters.len());
-  for cluster in snp_clusters {
-    result.push(ClusteredSnp {
-      start: cluster[0] as usize,
-      end: cluster[cluster.len() - 1] as usize,
-      number_of_snps: cluster.len(),
-    });
+  fn make_cluster(start: usize, end: usize, n: usize) -> MutationPatternCluster {
+    MutationPatternCluster {
+      start,
+      end,
+      count: n,
+      ..MutationPatternCluster::default()
+    }
   }
-  result
+
+  #[test]
+  fn test_rule_snp_clusters_disabled() {
+    let result = rule_snp_clusters(&[], &make_config(false, 50.0));
+    assert!(result.is_none());
+  }
+
+  #[test]
+  fn test_rule_snp_clusters_empty() {
+    let result = rule_snp_clusters(&[], &make_config(true, 50.0)).expect("should be Some");
+    assert_eq!(0.0, result.score);
+    assert!(matches!(result.status, QcStatus::Good));
+    assert_eq!(0, result.total_snps);
+    assert!(result.clustered_snps.is_empty());
+  }
+
+  #[test]
+  fn test_rule_snp_clusters_one_cluster() {
+    let clusters = vec![make_cluster(100, 200, 6)];
+    let result = rule_snp_clusters(&clusters, &make_config(true, 50.0)).expect("should be Some");
+    assert_eq!(50.0, result.score);
+    assert!(matches!(result.status, QcStatus::Mediocre));
+    assert_eq!(6, result.total_snps);
+    assert_eq!(1, result.clustered_snps.len());
+    assert_eq!(100, result.clustered_snps[0].start);
+    assert_eq!(200, result.clustered_snps[0].end);
+    assert_eq!(6, result.clustered_snps[0].number_of_snps);
+  }
+
+  #[test]
+  fn test_rule_snp_clusters_two_clusters_bad() {
+    let clusters = vec![make_cluster(100, 200, 6), make_cluster(500, 600, 8)];
+    let result = rule_snp_clusters(&clusters, &make_config(true, 50.0)).expect("should be Some");
+    assert_eq!(100.0, result.score);
+    assert!(matches!(result.status, QcStatus::Bad));
+    assert_eq!(14, result.total_snps);
+  }
 }

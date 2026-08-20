@@ -24,6 +24,7 @@ pub fn results_to_excel_sheet(
     &initial_data.phenotype_attr_keys,
     &initial_data.ref_nodes,
     &initial_data.aa_motif_keys,
+    &initial_data.mutation_pattern_keys,
     column_config,
   );
 

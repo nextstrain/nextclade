@@ -1,5 +1,6 @@
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
+use crate::analyze::mutation_patterns::MutationPatternCluster;
 use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_rule_frame_shifts::{QcResultFrameShifts, rule_frame_shifts};
 use crate::qc::qc_rule_missing_data::{QcResultMissingData, rule_missing_data};
@@ -82,6 +83,7 @@ pub trait QcRule {
 
 pub fn qc_run(
   private_nuc_mutations: &PrivateNucMutations,
+  qc_clusters: &[MutationPatternCluster],
   nucleotide_composition: &BTreeMap<Nuc, usize>,
   total_missing: usize,
   translation: &Translation,
@@ -92,7 +94,7 @@ pub fn qc_run(
     missing_data: rule_missing_data(total_missing, &config.missing_data),
     mixed_sites: rule_mixed_sites(nucleotide_composition, &config.mixed_sites),
     private_mutations: rule_private_mutations(private_nuc_mutations, &config.private_mutations),
-    snp_clusters: rule_snp_clusters(private_nuc_mutations, &config.snp_clusters),
+    snp_clusters: rule_snp_clusters(qc_clusters, &config.snp_clusters),
     frame_shifts: rule_frame_shifts(frame_shifts, &config.frame_shifts),
     stop_codons: rule_stop_codons(translation, &config.stop_codons),
     overall_score: 0.0,

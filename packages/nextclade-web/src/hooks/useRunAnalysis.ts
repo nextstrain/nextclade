@@ -68,6 +68,7 @@ import {
   allCurrentRefNodeNameAtom,
   initialDataAtom,
   allInitialDataAtom,
+  mutationPatternKeysAtom,
 } from 'src/state/results.state'
 import { numThreadsAtom } from 'src/state/settings.state'
 import { launchAnalysis, LaunchAnalysisCallbacks, DatasetFilesOverrides } from 'src/workers/launchAnalysis'
@@ -122,6 +123,7 @@ export function useRunAnalysis() {
               phenotypeAttrDescs,
               refNodes,
               aaMotifsDescs,
+              mutationPatternKeys,
               csvColumnConfigDefault,
             } = initialData
 
@@ -155,6 +157,7 @@ export function useRunAnalysis() {
             set(currentRefNodeNameAtom({ datasetName }), preselectedRefNode)
 
             set(aaMotifsDescsAtom({ datasetName }), aaMotifsDescs)
+            set(mutationPatternKeysAtom({ datasetName }), mutationPatternKeys)
             set(csvColumnConfigAtom, csvColumnConfigDefault)
           },
           onAnalysisResult(result) {
