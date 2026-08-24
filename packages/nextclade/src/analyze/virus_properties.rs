@@ -150,6 +150,10 @@ pub struct MinimizerIndexConfig {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub references: Vec<String>,
 
+  /// Minimizer acceptance threshold given as an exponent: the retained fraction of k-mers is `2^cutoff / 2^32`. When absent, a default cutoff is used.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub cutoff: Option<i64>,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
@@ -482,12 +486,13 @@ mod tests {
 
   #[test]
   fn test_virus_properties_parses_minimizer_index() {
-    let json = r#"{"schemaVersion":"3.0.0","minimizerIndex":{"references":["minimizer_refs/additional_refs.fasta"]}}"#;
+    let json = r#"{"schemaVersion":"3.0.0","minimizerIndex":{"references":["minimizer_refs/additional_refs.fasta"],"cutoff":31}}"#;
     let props = VirusProperties::from_str(&json).unwrap();
     let mi = props
       .minimizer_index
       .expect("minimizerIndex should parse into the typed field");
     assert_eq!(vec_of_owned!["minimizer_refs/additional_refs.fasta"], mi.references);
+    assert_eq!(Some(31), mi.cutoff);
     assert!(props.other.get("minimizerIndex").is_none());
   }
 

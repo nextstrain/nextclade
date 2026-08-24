@@ -464,6 +464,14 @@
           "items": {
             "type": "string"
           }
+        },
+        "cutoff": {
+          "description": "Minimizer acceptance threshold given as an exponent: the retained fraction of k-mers is `2^cutoff / 2^32`. When absent, a default cutoff is used.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int64"
         }
       }
     },
