@@ -10,6 +10,7 @@ lto = "off"
 inherits = "release"
 debug = 1
 strip = false
+lto = "off"
 
 # Optimize dependencies even in debug mode
 [profile.dev.package."*"]
