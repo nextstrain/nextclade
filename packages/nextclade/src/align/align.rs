@@ -565,6 +565,33 @@ mod tests {
   }
 
   #[rstest]
+  fn aligns_ambiguous_gap_placing_case_reversed_left(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let qry_seq = to_nuc_seq("ACATAGTCTTG")?;
+    let ref_seq = to_nuc_seq("ACATCTTG")?;
+    let ref_aln = to_nuc_seq("ACAT---CTTG")?;
+
+    let params = AlignPairwiseParams {
+      gap_alignment_side: GapAlignmentSide::Left,
+      ..ctx.params
+    };
+
+    let result = align_nuc(
+      0,
+      "",
+      &qry_seq,
+      &ref_seq,
+      &CodonSpacedIndex::from_sequence(&ref_seq),
+      &ctx.gap_open_close,
+      &params,
+    )?;
+
+    assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
+    assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));
+    Ok(())
+  }
+
+  #[rstest]
   fn aligns_minimal_overlap_qry_first(ctx: Context) -> Result<(), Report> {
     #[rustfmt::skip]
     let qry_seq = to_nuc_seq("AAAAAAAAAAAA")?;
@@ -644,6 +671,229 @@ mod tests {
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
+    Ok(())
+  }
+
+  // Ambiguous gaps next to a CDS. The codon-aware gap cost applies only where a gap starts, so the tie-break can select a
+  // gap that ends inside the CDS. See kb/issues/M-align-gap-end-cost-in-cds.md
+  mod cds_boundary {
+    use std::ops::Range;
+
+    #[derive(Debug)]
+    pub struct Case {
+      /// Optimal alignment with the gap outside of the CDS. The input sequences are these strings without gaps
+      pub ref_aln: &'static str,
+      pub qry_aln: &'static str,
+      pub gff: &'static str,
+    }
+
+    /// 8-nt UTR deletion before the CDS start (CVA10 VP4): the query `A` after the gap matches the last UTR base or
+    /// the first CDS base
+    #[rustfmt::skip]
+    pub const SHORT_TIE: Case = Case {
+      //                 0         1         2         3
+      //                 012345678901234567890123456789012345678
+      ref_aln:          "TTTGAACACAAGAAAATGGGGGCTCAAGTGTCAACACAG",
+      //                 |||||||        ||||||||||||||||||||||||
+      qry_aln:          "TTTGAAC--------ATGGGGGCTCAAGTGTCAACACAG",
+      //                                [---------CDS1---------]
+      //
+      // Left gives:     TTTGAACA--------TGGGGGCTCAAGTGTCAACACAG
+      //
+      //  Match:  |  identical  (space) gap
+      //  [--label--]  CDS span
+      gff: r#"##gff-version 3
+ref	.	CDS	16	39	.	+	0	Name=CDS1
+"#,
+    };
+
+    /// Tandem repeat `ATGAAG` across the CDS start (mpox OPG204): the query has one repeat unit less
+    #[rustfmt::skip]
+    pub const TANDEM_REPEAT: Case = Case {
+      //                 0         1         2         3         4         5
+      //                 01234567890123456789012345678901234567890123456789012345
+      ref_aln:          "ATCTTAGTACCTATGATGAAGATGAAGATGAAGATGAAGATGATGGTCCGTATATA",
+      //                 ||||||||||||||      ||||||||||||||||||||||||||||||||||||
+      qry_aln:          "ATCTTAGTACCTAT------GATGAAGATGAAGATGAAGATGATGGTCCGTATATA",
+      //                                >>>>>>>>>>>>>>>>>>>>>>>>
+      //                                            [----------CDS1-----------]
+      //
+      // Left gives:     ATCTTAGTACCTATGATGAAGATGAA------GATGAAGATGATGGTCCGTATATA
+      //
+      //  Match:  |  identical  (space) gap
+      //  >  tandem repeat ATGAAG
+      //  [--label--]  CDS span
+      gff: r#"##gff-version 3
+ref	.	CDS	28	54	.	+	0	Name=CDS1
+"#,
+    };
+
+    /// Deletion next to a run of `N` before the CDS start (EV-D68 VP4, GenBank MF045417): `N` matches every base with
+    /// the same score, so the deletion moves across the `N` run with no change in score
+    #[rustfmt::skip]
+    pub const N_RUN: Case = Case {
+      //                 0         1         2         3         4         5         6         7         8
+      //                 01234567890123456789012345678901234567890123456789012345678901234567890123456789012
+      ref_aln:          "ACTTCACCTCAAAACCTCCAGTACATAAAATTTGAAAAGTTTAAACTTATTTATAATAATGGGAGCTCAAGTTACTAGACAGC",
+      //                 ||||                       .|::::::::::::::::::::::::::::||||||||||||.|||||||||||.|
+      qry_aln:          "ACTT-----------------------TANNNNNNNNNNNNNNNNNNNNNNNNNNNNAATGGGAGCTCAGGTTACTAGACAAC",
+      //                                                                           [---------CDS1---------]
+      //
+      // Left gives:     ACTTTANNNNNNNNNNNNNNNNNNNNNNNNNNNNAA-----------------------TGGGAGCTCAGGTTACTAGACAAC
+      //
+      //  Match:  |  identical  .  substitution  :  N  (space) gap
+      //  [--label--]  CDS span
+      gff: r#"##gff-version 3
+ref	.	CDS	59	82	.	+	0	Name=CDS1
+"#,
+    };
+
+    /// Query that starts near the CDS start (dengue C, GenBank KY586941): an unaligned 5' end and an internal deletion
+    /// that ends inside the CDS have the same score
+    #[rustfmt::skip]
+    pub const UNALIGNED_5_END: Case = Case {
+      //                 0         1         2         3         4         5         6
+      //                 0123456789012345678901234567890123456789012345678901234567890123
+      ref_aln:          "TCTAACAGTTTTTTTAATTAGAGAGCAGATCTCTGAGATGAACAACCAACGGAAAAAGGCGGGA",
+      //                                                     .|..|..||||||||.|||||||.||..
+      qry_aln:          "------------------------------------AAAAATGAACCAACGAAAAAAGGTGGTT",
+      //                                                         [---------CDS1---------]
+      //
+      // Left gives:     ---AAAAATG---------------------------------AACCAACGAAAAAAGGTGGTT
+      //
+      //  Match:  |  identical  .  substitution  (space) gap
+      //  [--label--]  CDS span
+      gff: r#"##gff-version 3
+ref	.	CDS	41	64	.	+	0	Name=CDS1
+"#,
+    };
+
+    /// Insertion in an `A` run next to the CDS start: an insertion pays the cost of the reference base after it, so the
+    /// CDS cost keeps it outside of the CDS with both gap sides
+    #[rustfmt::skip]
+    pub const INSERTION: Case = Case {
+      //                 0         1         2         3
+      //                 0123456789012345678901234567890123456789
+      ref_aln:          "TTTGAACACAAG-AAAATGGGGGCTCAAGTGTCAACACAG",
+      //                 |||||||||||| |||||||||||||||||||||||||||
+      qry_aln:          "TTTGAACACAAGAAAAATGGGGGCTCAAGTGTCAACACAG",
+      //                                 [---------CDS1---------]
+      //
+      //  Match:  |  identical  (space) gap
+      //  [--label--]  CDS span
+      gff: r#"##gff-version 3
+ref	.	CDS	16	39	.	+	0	Name=CDS1
+"#,
+    };
+
+    /// `SHORT_TIE` as reverse complement, with a reverse-strand CDS: the start codon (`CAT`) is at the 3' end of the
+    /// reference range. The tied gap that removes it starts inside the CDS and pays the CDS cost
+    #[rustfmt::skip]
+    pub const REVERSE_STRAND_START: Case = Case {
+      //                 0         1         2         3
+      //                 012345678901234567890123456789012345678
+      ref_aln:          "CTGTGTTGACACTTGAGCCCCCATTTTCTTGTGTTCAAA",
+      //                 ||||||||||||||||||||||||        |||||||
+      qry_aln:          "CTGTGTTGACACTTGAGCCCCCAT--------GTTCAAA",
+      //                 [-----CDS1 reverse-----]
+      //
+      //  Match:  |  identical  (space) gap
+      //  [--label--]  CDS span
+      gff: r#"##gff-version 3
+ref	.	CDS	1	24	.	-	0	Name=CDS1
+"#,
+    };
+
+    /// `SHORT_TIE` with a reverse-strand CDS: the tied gap removes the first CDS base in reference coordinates, which is
+    /// the last base of the reverse-strand CDS
+    #[rustfmt::skip]
+    pub const REVERSE_STRAND_END: Case = Case {
+      //                 0         1         2         3
+      //                 012345678901234567890123456789012345678
+      ref_aln:          "TTTGAACACAAGAAAATGGGGGCTCAAGTGTCAACACAG",
+      //                 |||||||        ||||||||||||||||||||||||
+      qry_aln:          "TTTGAAC--------ATGGGGGCTCAAGTGTCAACACAG",
+      //                                [-----CDS1 reverse-----]
+      //
+      // Left gives:     TTTGAACA--------TGGGGGCTCAAGTGTCAACACAG
+      //
+      //  Match:  |  identical  (space) gap
+      //  [--label--]  CDS span
+      gff: r#"##gff-version 3
+ref	.	CDS	16	39	.	-	0	Name=CDS1
+"#,
+    };
+
+    /// Aligned query from the first to the last CDS column, with insertions inside of the CDS
+    pub fn qry_aln_in_cds(ref_aln: &str, qry_aln: &str, cds: Range<usize>) -> String {
+      let ref_cols = ref_aln
+        .chars()
+        .enumerate()
+        .filter(|(_, c)| *c != '-')
+        .map(|(col, _)| col)
+        .collect::<Vec<_>>();
+      let cds_cols = ref_cols[cds.start]..=ref_cols[cds.end - 1];
+      qry_aln
+        .chars()
+        .enumerate()
+        .filter(|(col, _)| cds_cols.contains(col))
+        .map(|(_, c)| c)
+        .collect()
+    }
+  }
+
+  #[rstest]
+  #[rustfmt::skip]
+  #[ignore = "gap that ends inside a CDS has no cost: kb/issues/M-align-gap-end-cost-in-cds.md"]
+  #[case::short_tie_left(             cds_boundary::SHORT_TIE,             GapAlignmentSide::Left  )]
+  #[case::short_tie_right(            cds_boundary::SHORT_TIE,             GapAlignmentSide::Right )]
+  #[ignore = "gap that ends inside a CDS has no cost: kb/issues/M-align-gap-end-cost-in-cds.md"]
+  #[case::tandem_repeat_left(         cds_boundary::TANDEM_REPEAT,         GapAlignmentSide::Left  )]
+  #[case::tandem_repeat_right(        cds_boundary::TANDEM_REPEAT,         GapAlignmentSide::Right )]
+  #[ignore = "gap that ends inside a CDS has no cost: kb/issues/M-align-gap-end-cost-in-cds.md"]
+  #[case::n_run_left(                 cds_boundary::N_RUN,                 GapAlignmentSide::Left  )]
+  #[case::n_run_right(                cds_boundary::N_RUN,                 GapAlignmentSide::Right )]
+  #[ignore = "gap that ends inside a CDS has no cost: kb/issues/M-align-gap-end-cost-in-cds.md"]
+  #[case::unaligned_5_end_left(       cds_boundary::UNALIGNED_5_END,       GapAlignmentSide::Left  )]
+  #[case::unaligned_5_end_right(      cds_boundary::UNALIGNED_5_END,       GapAlignmentSide::Right )]
+  #[case::insertion_left(             cds_boundary::INSERTION,             GapAlignmentSide::Left  )]
+  #[case::insertion_right(            cds_boundary::INSERTION,             GapAlignmentSide::Right )]
+  #[case::reverse_strand_start_left(  cds_boundary::REVERSE_STRAND_START,  GapAlignmentSide::Left  )]
+  #[case::reverse_strand_start_right( cds_boundary::REVERSE_STRAND_START,  GapAlignmentSide::Right )]
+  #[ignore = "gap that ends inside a CDS has no cost: kb/issues/M-align-gap-end-cost-in-cds.md"]
+  #[case::reverse_strand_end_left(    cds_boundary::REVERSE_STRAND_END,    GapAlignmentSide::Left  )]
+  #[case::reverse_strand_end_right(   cds_boundary::REVERSE_STRAND_END,    GapAlignmentSide::Right )]
+  #[trace]
+  fn aligns_ambiguous_gap_outside_of_cds(
+    #[case] case: cds_boundary::Case,
+    #[case] gap_alignment_side: GapAlignmentSide,
+  ) -> Result<(), Report> {
+    let ref_seq = to_nuc_seq(&case.ref_aln.replace('-', ""))?;
+    let qry_seq = to_nuc_seq(&case.qry_aln.replace('-', ""))?;
+    let gene_map = GeneMap::from_str(case.gff)?;
+
+    // Seed settings for short sequences, and gap penalties of the dengue dataset, with which `UNALIGNED_5_END` ties
+    let params = AlignPairwiseParams {
+      min_length: 3,
+      min_match_length: 5,
+      min_seed_cover: 0.01.into(),
+      kmer_length: 6,
+      kmer_distance: 3,
+      penalty_gap_open: 8,
+      penalty_gap_open_in_frame: 12,
+      penalty_gap_open_out_of_frame: 14,
+      gap_alignment_side,
+      ..AlignPairwiseParams::default()
+    };
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &params);
+
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &CodonSpacedIndex::from_sequence(&ref_seq), &gap_open_close, &params)?;
+
+    // All placements of the gap outside of the CDS give the same aligned query inside of the CDS
+    let cds = gene_map.iter_cdses().next().unwrap().segments[0].range.to_std();
+    let expected_qry_aln_in_cds = cds_boundary::qry_aln_in_cds(case.ref_aln, case.qry_aln, cds.clone());
+    let actual_qry_aln_in_cds = cds_boundary::qry_aln_in_cds(&from_nuc_seq(&result.ref_seq), &from_nuc_seq(&result.qry_seq), cds);
+    assert_eq!(expected_qry_aln_in_cds, actual_qry_aln_in_cds);
     Ok(())
   }
 }
