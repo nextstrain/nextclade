@@ -90,6 +90,8 @@ zstd = { workspace = true }
 approx = { workspace = true }
 assert2 = { workspace = true }
 criterion = { workspace = true }
+indoc = { workspace = true }
+proptest = { workspace = true }
 rstest = { workspace = true }
 
 [build-dependencies]

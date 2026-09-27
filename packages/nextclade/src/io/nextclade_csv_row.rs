@@ -760,6 +760,8 @@ fn format_aa_motifs(motifs: &[AaMotif]) -> String {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::alphabet::nuc::Nuc;
+  use crate::analyze::mutation_patterns::MutationPatternNucSubstitutionTypeCount;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -777,5 +779,24 @@ mod tests {
       .map(|&(start, end, number_of_snps)| ClusteredSnp { start, end, number_of_snps })
       .collect_vec();
     assert_eq!(expected, format_clustered_snps(&snps, ","));
+  }
+
+  #[test]
+  fn test_format_mutation_pattern_event_type_counts() {
+    let counts = vec![
+      MutationPatternEventTypeCount::NucSubstitution(MutationPatternNucSubstitutionTypeCount {
+        ref_nuc: Nuc::A,
+        qry_nuc: Nuc::G,
+        count: 8,
+      }),
+      MutationPatternEventTypeCount::NucSubstitution(MutationPatternNucSubstitutionTypeCount {
+        ref_nuc: Nuc::T,
+        qry_nuc: Nuc::C,
+        count: 6,
+      }),
+    ];
+    // Documented TSV format `nucSubstitution:<ref>><qry>:<count>` (docs/user/output-files/04-results-tsv.md)
+    let expected = "nucSubstitution:A>G:8,nucSubstitution:T>C:6";
+    assert_eq!(expected, format_mutation_pattern_event_type_counts(&counts, ","));
   }
 }
