@@ -75,22 +75,30 @@ impl MutationPatternEvent {
 
 /// Filter for selecting nucleotide substitutions in mutation pattern analysis.
 ///
-/// A substitution matches this event when its reference nucleotide is in `ref`, its query nucleotide is in `qry`, and at
-/// least one motif matches the surrounding reference sequence. If `motifs` is empty, the event matches without a sequence
-/// context restriction.
+/// A substitution matches this event when its reference nucleotide matches one of `ref`, its query nucleotide matches one
+/// of `qry`, and at least one motif site contains the substituted position. If `motifs` is empty, the event matches without
+/// a sequence context restriction.
+///
+/// `ref` and `qry` are checked independently: `ref: [A, T], qry: [G, C]` also matches A>C and T>G. Use one event per
+/// substitution type to select only A>G and T>C.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "MutationPatternNucSubstitution::example")]
 pub struct MutationPatternNucSubstitution {
-  /// Reference nucleotides to match at the mutated position.
+  /// Reference nucleotides to match at the mutated position. Must not be empty. IUPAC ambiguity codes match every
+  /// nucleotide they share a base with: `R` matches `A`, `G` and `R`.
   #[serde(rename = "ref")]
   pub ref_nucs: Vec<Nuc>,
 
-  /// Query nucleotides to match at the mutated position.
+  /// Query nucleotides to match at the mutated position. Must not be empty. IUPAC ambiguity codes match every nucleotide
+  /// they share a base with, in both directions: filter `G` also matches the ambiguous query nucleotide `R`.
   pub qry: Vec<Nuc>,
 
-  /// Regular expressions matched against the reference sequence. A mutation matches a motif when the regex match spans
-  /// the mutated position. Use IUPAC nucleotide letters directly in the regex, for example `TC[AT]` for a TCW motif.
+  /// Regular expressions matched against the reference sequence. A motif site is the leftmost-first regex match that
+  /// starts at a given reference position. Sites are found at every start position, so sites can overlap. A substitution
+  /// qualifies when a site contains the substituted position, at any offset within the site: write motifs in which the
+  /// reference nucleotide occurs at one offset only, for example `TC[AT]` for C>T in a TCW context. Letters are matched
+  /// literally, so write IUPAC ambiguity codes as character classes: `[AT]` for `W`.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub motifs: Vec<String>,
 }
@@ -98,9 +106,9 @@ pub struct MutationPatternNucSubstitution {
 impl MutationPatternNucSubstitution {
   pub fn example() -> Self {
     Self {
-      ref_nucs: vec![Nuc::A, Nuc::T],
-      qry: vec![Nuc::G, Nuc::C],
-      motifs: vec_of_owned!["A[ACGT]G", "T[ACGT]C"],
+      ref_nucs: vec![Nuc::C],
+      qry: vec![Nuc::T],
+      motifs: vec_of_owned!["TC[AT]"],
     }
   }
 }
@@ -114,12 +122,13 @@ impl MutationPatternNucSubstitution {
 #[serde(default)]
 #[schemars(example = "MutationPatternClusterConfig::example")]
 pub struct MutationPatternClusterConfig {
-  /// Sliding nucleotide window size. A cluster is detected when `cutoff` matched events fall within this many reference
-  /// nucleotides.
+  /// Size of the sliding window, in reference nucleotides. Matched events at most `windowSize` nucleotides apart are in one
+  /// window. Must be at least 1.
   #[default = 100]
   pub window_size: usize,
 
-  /// Minimum number of matched events in one sliding window required to report a cluster.
+  /// A window that holds more than `cutoff` matched events is reported as a cluster: with `cutoff: 5`, a cluster has at
+  /// least 6 events.
   #[default = 5]
   pub cutoff: usize,
 }
@@ -141,7 +150,8 @@ impl MutationPatternClusterConfig {
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "MutationPatternConfig::example")]
 pub struct MutationPatternConfig {
-  /// Stable machine-readable identifier. This value appears in JSON and TSV output.
+  /// Stable machine-readable identifier. This value appears in JSON output and in TSV column names such as
+  /// `mutationPatterns['<id>'].counts.matches`. Must be non-empty, unique, and free of the characters `'`, `[` and `]`.
   pub id: String,
 
   /// Human-readable name shown in Nextclade Web tooltips and reports.
@@ -167,9 +177,18 @@ impl MutationPatternConfig {
       id: o!("adar"),
       name: o!("ADAR-like RNA editing"),
       description: Some(o!("ADAR-mediated A-to-I editing observed as A>G and complementary T>C")),
-      events: vec![MutationPatternEvent::NucSubstitution(
-        MutationPatternNucSubstitution::example(),
-      )],
+      events: vec![
+        MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution {
+          ref_nucs: vec![Nuc::A],
+          qry: vec![Nuc::G],
+          motifs: vec![],
+        }),
+        MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution {
+          ref_nucs: vec![Nuc::T],
+          qry: vec![Nuc::C],
+          motifs: vec![],
+        }),
+      ],
       cluster: Some(MutationPatternClusterConfig::example()),
     }
   }
@@ -197,11 +216,14 @@ impl MutationPatternsConfig {
           description: Some(o!(
             "APOBEC-like cytosine deamination observed as C>T and complementary G>A"
           )),
-          events: vec![MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution {
-            ref_nucs: vec![Nuc::C, Nuc::G],
-            qry: vec![Nuc::T, Nuc::A],
-            motifs: vec_of_owned!["TC[AT]", "[AT]GA"],
-          })],
+          events: vec![
+            MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution::example()),
+            MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution {
+              ref_nucs: vec![Nuc::G],
+              qry: vec![Nuc::A],
+              motifs: vec_of_owned!["[AT]GA"],
+            }),
+          ],
           cluster: Some(MutationPatternClusterConfig {
             window_size: 50,
             cutoff: 4,

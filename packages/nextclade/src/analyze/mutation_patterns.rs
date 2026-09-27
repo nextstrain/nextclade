@@ -17,7 +17,8 @@ use regex_automata::{Anchored, Input};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
-/// Cluster of mutation pattern events detected within one sliding nucleotide window.
+/// Cluster of matched events. A cluster grows while consecutive sliding windows each hold more than `cutoff` events;
+/// adjacent clusters can share events.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "MutationPatternCluster::example")]
@@ -121,7 +122,7 @@ pub struct MutationPatternMotifMatch {
 impl MutationPatternMotifMatch {
   pub fn example() -> Self {
     Self {
-      motif: "A[ACGT]G".to_owned(),
+      motif: "TC[AT]".to_owned(),
       start: 5002,
       end: 5005,
     }
@@ -159,11 +160,7 @@ impl MutationPatternEventMatch {
         },
         ref_context: vec![Nuc::A, ref_nuc, Nuc::G],
       },
-      motif_matches: vec![MutationPatternMotifMatch {
-        motif: "A[ACGT]G".to_owned(),
-        start: pos.saturating_sub(1),
-        end: pos + 2,
-      }],
+      motif_matches: vec![],
     })
   }
 }
@@ -177,7 +174,7 @@ pub struct MutationPatternNucSubstitutionMatch {
   #[serde(flatten)]
   pub substitution: NucSubWithContext,
 
-  /// Motif matches that spanned the substituted position. Empty when the pattern event had no motif restriction.
+  /// Motif sites that contain the substituted position. Empty when the matching pattern event has no motifs.
   pub motif_matches: Vec<MutationPatternMotifMatch>,
 }
 
@@ -197,7 +194,7 @@ pub struct MutationPatternCounts {
   /// Number of private mutation events matching the pattern.
   pub matches: usize,
 
-  /// Number of matching events that belong to reported clusters.
+  /// Number of distinct matched events that belong to reported clusters. Clusters can share events; each event counts once.
   pub clustered: usize,
 
   /// Number of clusters reported for this pattern.

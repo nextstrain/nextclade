@@ -1818,13 +1818,7 @@
                     "A",
                     "G"
                   ],
-                  "motifMatches": [
-                    {
-                      "motif": "A[ACGT]G",
-                      "start": 5002,
-                      "end": 5005
-                    }
-                  ]
+                  "motifMatches": []
                 },
                 {
                   "type": "nucSubstitution",
@@ -1836,13 +1830,7 @@
                     "A",
                     "G"
                   ],
-                  "motifMatches": [
-                    {
-                      "motif": "A[ACGT]G",
-                      "start": 5032,
-                      "end": 5035
-                    }
-                  ]
+                  "motifMatches": []
                 }
               ],
               "eventTypeCounts": [
@@ -1869,13 +1857,7 @@
                         "A",
                         "G"
                       ],
-                      "motifMatches": [
-                        {
-                          "motif": "A[ACGT]G",
-                          "start": 5002,
-                          "end": 5005
-                        }
-                      ]
+                      "motifMatches": []
                     },
                     {
                       "type": "nucSubstitution",
@@ -1887,13 +1869,7 @@
                         "A",
                         "G"
                       ],
-                      "motifMatches": [
-                        {
-                          "motif": "A[ACGT]G",
-                          "start": 5032,
-                          "end": 5035
-                        }
-                      ]
+                      "motifMatches": []
                     }
                   ],
                   "eventTypeCounts": [
@@ -1944,13 +1920,7 @@
                 "A",
                 "G"
               ],
-              "motifMatches": [
-                {
-                  "motif": "A[ACGT]G",
-                  "start": 5002,
-                  "end": 5005
-                }
-              ]
+              "motifMatches": []
             },
             {
               "type": "nucSubstitution",
@@ -1962,13 +1932,7 @@
                 "A",
                 "G"
               ],
-              "motifMatches": [
-                {
-                  "motif": "A[ACGT]G",
-                  "start": 5032,
-                  "end": 5035
-                }
-              ]
+              "motifMatches": []
             }
           ],
           "eventTypeCounts": [
@@ -1995,13 +1959,7 @@
                     "A",
                     "G"
                   ],
-                  "motifMatches": [
-                    {
-                      "motif": "A[ACGT]G",
-                      "start": 5002,
-                      "end": 5005
-                    }
-                  ]
+                  "motifMatches": []
                 },
                 {
                   "type": "nucSubstitution",
@@ -2013,13 +1971,7 @@
                     "A",
                     "G"
                   ],
-                  "motifMatches": [
-                    {
-                      "motif": "A[ACGT]G",
-                      "start": 5032,
-                      "end": 5035
-                    }
-                  ]
+                  "motifMatches": []
                 }
               ],
               "eventTypeCounts": [
@@ -2109,13 +2061,7 @@
             "A",
             "G"
           ],
-          "motifMatches": [
-            {
-              "motif": "A[ACGT]G",
-              "start": 5002,
-              "end": 5005
-            }
-          ]
+          "motifMatches": []
         }
       ],
       "oneOf": [
@@ -2131,13 +2077,7 @@
                 "A",
                 "G"
               ],
-              "motifMatches": [
-                {
-                  "motif": "A[ACGT]G",
-                  "start": 5002,
-                  "end": 5005
-                }
-              ]
+              "motifMatches": []
             }
           ],
           "type": "object",
@@ -2157,7 +2097,7 @@
               ]
             },
             "motifMatches": {
-              "description": "Motif matches that spanned the substituted position. Empty when the pattern event had no motif restriction.",
+              "description": "Motif sites that contain the substituted position. Empty when the matching pattern event has no motifs.",
               "type": "array",
               "items": {
                 "$ref": "#/definitions/MutationPatternMotifMatch"
@@ -2202,7 +2142,7 @@
       "description": "Reference motif match that overlapped a mutation pattern event.",
       "examples": [
         {
-          "motif": "A[ACGT]G",
+          "motif": "TC[AT]",
           "start": 5002,
           "end": 5005
         }
@@ -2293,7 +2233,7 @@
       ]
     },
     "MutationPatternCluster": {
-      "description": "Cluster of mutation pattern events detected within one sliding nucleotide window.",
+      "description": "Cluster of matched events. A cluster grows while consecutive sliding windows each hold more than `cutoff` events; adjacent clusters can share events.",
       "examples": [
         {
           "start": 5003,
@@ -2310,13 +2250,7 @@
                 "A",
                 "G"
               ],
-              "motifMatches": [
-                {
-                  "motif": "A[ACGT]G",
-                  "start": 5002,
-                  "end": 5005
-                }
-              ]
+              "motifMatches": []
             },
             {
               "type": "nucSubstitution",
@@ -2328,13 +2262,7 @@
                 "A",
                 "G"
               ],
-              "motifMatches": [
-                {
-                  "motif": "A[ACGT]G",
-                  "start": 5032,
-                  "end": 5035
-                }
-              ]
+              "motifMatches": []
             }
           ],
           "eventTypeCounts": [
@@ -2413,7 +2341,7 @@
           "minimum": 0.0
         },
         "clustered": {
-          "description": "Number of matching events that belong to reported clusters.",
+          "description": "Number of distinct matched events that belong to reported clusters. Clusters can share events; each event counts once.",
           "type": "integer",
           "format": "uint",
           "minimum": 0.0

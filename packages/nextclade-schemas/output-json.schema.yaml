@@ -1273,10 +1273,7 @@ definitions:
           - A
           - A
           - G
-          motifMatches:
-          - motif: A[ACGT]G
-            start: 5002
-            end: 5005
+          motifMatches: []
         - type: nucSubstitution
           pos: 5033
           refNuc: A
@@ -1285,10 +1282,7 @@ definitions:
           - A
           - A
           - G
-          motifMatches:
-          - motif: A[ACGT]G
-            start: 5032
-            end: 5035
+          motifMatches: []
         eventTypeCounts:
         - type: nucSubstitution
           refNuc: A
@@ -1307,10 +1301,7 @@ definitions:
             - A
             - A
             - G
-            motifMatches:
-            - motif: A[ACGT]G
-              start: 5002
-              end: 5005
+            motifMatches: []
           - type: nucSubstitution
             pos: 5033
             refNuc: A
@@ -1319,10 +1310,7 @@ definitions:
             - A
             - A
             - G
-            motifMatches:
-            - motif: A[ACGT]G
-              start: 5032
-              end: 5035
+            motifMatches: []
           eventTypeCounts:
           - type: nucSubstitution
             refNuc: A
@@ -1354,10 +1342,7 @@ definitions:
         - A
         - A
         - G
-        motifMatches:
-        - motif: A[ACGT]G
-          start: 5002
-          end: 5005
+        motifMatches: []
       - type: nucSubstitution
         pos: 5033
         refNuc: A
@@ -1366,10 +1351,7 @@ definitions:
         - A
         - A
         - G
-        motifMatches:
-        - motif: A[ACGT]G
-          start: 5032
-          end: 5035
+        motifMatches: []
       eventTypeCounts:
       - type: nucSubstitution
         refNuc: A
@@ -1388,10 +1370,7 @@ definitions:
           - A
           - A
           - G
-          motifMatches:
-          - motif: A[ACGT]G
-            start: 5002
-            end: 5005
+          motifMatches: []
         - type: nucSubstitution
           pos: 5033
           refNuc: A
@@ -1400,10 +1379,7 @@ definitions:
           - A
           - A
           - G
-          motifMatches:
-          - motif: A[ACGT]G
-            start: 5032
-            end: 5035
+          motifMatches: []
         eventTypeCounts:
         - type: nucSubstitution
           refNuc: A
@@ -1464,10 +1440,7 @@ definitions:
       - A
       - A
       - G
-      motifMatches:
-      - motif: A[ACGT]G
-        start: 5002
-        end: 5005
+      motifMatches: []
     oneOf:
     - description: Matched nucleotide substitution event.
       examples:
@@ -1478,10 +1451,7 @@ definitions:
         - A
         - A
         - G
-        motifMatches:
-        - motif: A[ACGT]G
-          start: 5002
-          end: 5005
+        motifMatches: []
       type: object
       required:
       - motifMatches
@@ -1496,7 +1466,7 @@ definitions:
           enum:
           - nucSubstitution
         motifMatches:
-          description: Motif matches that spanned the substituted position. Empty when the pattern event had no motif restriction.
+          description: Motif sites that contain the substituted position. Empty when the matching pattern event has no motifs.
           type: array
           items:
             $ref: '#/definitions/MutationPatternMotifMatch'
@@ -1520,7 +1490,7 @@ definitions:
   MutationPatternMotifMatch:
     description: Reference motif match that overlapped a mutation pattern event.
     examples:
-    - motif: A[ACGT]G
+    - motif: TC[AT]
       start: 5002
       end: 5005
     type: object
@@ -1580,7 +1550,7 @@ definitions:
           format: uint
           minimum: 0.0
   MutationPatternCluster:
-    description: Cluster of mutation pattern events detected within one sliding nucleotide window.
+    description: Cluster of matched events. A cluster grows while consecutive sliding windows each hold more than `cutoff` events; adjacent clusters can share events.
     examples:
     - start: 5003
       end: 5033
@@ -1594,10 +1564,7 @@ definitions:
         - A
         - A
         - G
-        motifMatches:
-        - motif: A[ACGT]G
-          start: 5002
-          end: 5005
+        motifMatches: []
       - type: nucSubstitution
         pos: 5033
         refNuc: A
@@ -1606,10 +1573,7 @@ definitions:
         - A
         - A
         - G
-        motifMatches:
-        - motif: A[ACGT]G
-          start: 5032
-          end: 5035
+        motifMatches: []
       eventTypeCounts:
       - type: nucSubstitution
         refNuc: A
@@ -1666,7 +1630,7 @@ definitions:
         format: uint
         minimum: 0.0
       clustered:
-        description: Number of matching events that belong to reported clusters.
+        description: Number of distinct matched events that belong to reported clusters. Clusters can share events; each event counts once.
         type: integer
         format: uint
         minimum: 0.0

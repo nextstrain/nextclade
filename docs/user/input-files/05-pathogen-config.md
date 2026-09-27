@@ -246,7 +246,9 @@ If the score is only relevant for specific clades, you can specify which clades 
 
 Nextclade can detect named groups of private nucleotide substitutions. This is useful for reporting mutation patterns such as RNA editing signatures separately from the generic SNP cluster QC rule.
 
-Pattern detection is configured with `mutationPatterns.patterns`. Each pattern has an `id`, a display `name`, optional `description`, one or more `events`, and optional clustering parameters. The only supported event type is currently `nucSubstitution`.
+Pattern detection is configured with `mutationPatterns.patterns`. Each pattern has an `id`, a display `name`, optional `description`, a list of `events`, and optional clustering parameters. A pattern with an empty or omitted `events` list matches all private nucleotide substitutions. The only supported event type is currently `nucSubstitution`.
+
+The `id` appears in JSON output and in the TSV column names `mutationPatterns['<id>'].*`. It must be non-empty, unique among the patterns, and must not contain the characters `'`, `[` or `]`.
 
 ```json
   "mutationPatterns": {
@@ -275,13 +277,19 @@ Pattern detection is configured with `mutationPatterns.patterns`. Each pattern h
       {
         "id": "apobec",
         "name": "APOBEC-like cytosine deamination",
-        "description": "APOBEC-like cytosine deamination observed as G>A in a reference motif",
+        "description": "APOBEC-like cytosine deamination observed as C>T in TCW context and complementary G>A in WGA context",
         "events": [
+          {
+            "type": "nucSubstitution",
+            "ref": ["C"],
+            "qry": ["T"],
+            "motifs": ["TC[AT]"]
+          },
           {
             "type": "nucSubstitution",
             "ref": ["G"],
             "qry": ["A"],
-            "motifs": ["[CT]G[ACT]"]
+            "motifs": ["[AT]GA"]
           }
         ],
         "cluster": {
@@ -293,11 +301,13 @@ Pattern detection is configured with `mutationPatterns.patterns`. Each pattern h
   }
 ```
 
-The `ref` and `qry` arrays use Nextclade nucleotide symbols, including IUPAC ambiguity codes such as `N`, `R`, and `Y`. A substitution matches when both the reference and query nucleotide match one of the configured symbols.
+The `ref` and `qry` arrays use Nextclade nucleotide symbols, including IUPAC ambiguity codes such as `N`, `R`, and `Y`, and must not be empty. A substitution matches when both the reference and query nucleotide match one of the configured symbols. Two symbols match when they share at least one base: `R` in `ref` matches `A` and `G`, and `G` in `qry` also matches an ambiguous query nucleotide `R`. The two arrays are checked independently, so `"ref": ["A", "T"], "qry": ["G", "C"]` also matches A>C and T>G. Use one event per substitution type, as in the example above, to select only A>G and T>C.
 
-The `motifs` array contains regular expressions matched against the reference sequence. A motif qualifies a substitution when the regex match interval contains the substituted reference position. Motifs are regular expressions over the reference letters, so use regex character classes such as `[CT]` instead of IUPAC ambiguity symbols when matching multiple reference letters inside a motif.
+The `motifs` array contains regular expressions matched against the reference sequence. A motif site is the leftmost-first regex match that starts at a given reference position. Sites are found at every start position, so sites can overlap. A motif qualifies a substitution when one of its sites contains the substituted reference position. The substituted nucleotide can be at any offset within the site, so write motifs in which the reference nucleotide occurs at one offset only: in `TC[AT]`, a C can only be the second letter. Letters are matched literally, so use regex character classes such as `[AT]` instead of IUPAC ambiguity symbols such as `W`.
 
-The optional `cluster` object reports clusters within mutations matched by that pattern. It does not replace `qc.snpClusters`: `qc.snpClusters` remains the generic global SNP cluster QC rule over all private nucleotide substitutions.
+The optional `cluster` object reports clusters within mutations matched by that pattern. Matched mutations at most `windowSize` nucleotides apart share a sliding window, and a window with more than `cutoff` matched mutations is reported as a cluster: with `"cutoff": 3`, a cluster has at least 4 mutations. `windowSize` must be at least 1. Clusters use the same algorithm as the `qc.snpClusters` rule, and adjacent clusters can share mutations.
+
+Mutation patterns do not change QC. `qc.snpClusters` remains the generic SNP cluster QC rule over all private nucleotide substitutions, including the substitutions matched by mutation patterns.
 
 #### Amino acid motif detection (`aaMotifs`)
 

@@ -365,13 +365,13 @@ definitions:
           - type: nucSubstitution
             ref:
             - A
-            - T
             qry:
             - G
+          - type: nucSubstitution
+            ref:
+            - T
+            qry:
             - C
-            motifs:
-            - A[ACGT]G
-            - T[ACGT]C
           cluster:
             windowSize: 100
             cutoff: 5
@@ -382,12 +382,16 @@ definitions:
           - type: nucSubstitution
             ref:
             - C
-            - G
             qry:
             - T
-            - A
             motifs:
             - TC[AT]
+          - type: nucSubstitution
+            ref:
+            - G
+            qry:
+            - A
+            motifs:
             - '[AT]GA'
           cluster:
             windowSize: 50
@@ -969,13 +973,13 @@ definitions:
         - type: nucSubstitution
           ref:
           - A
-          - T
           qry:
           - G
+        - type: nucSubstitution
+          ref:
+          - T
+          qry:
           - C
-          motifs:
-          - A[ACGT]G
-          - T[ACGT]C
         cluster:
           windowSize: 100
           cutoff: 5
@@ -986,12 +990,16 @@ definitions:
         - type: nucSubstitution
           ref:
           - C
-          - G
           qry:
           - T
-          - A
           motifs:
           - TC[AT]
+        - type: nucSubstitution
+          ref:
+          - G
+          qry:
+          - A
+          motifs:
           - '[AT]GA'
         cluster:
           windowSize: 50
@@ -1016,13 +1024,13 @@ definitions:
       - type: nucSubstitution
         ref:
         - A
-        - T
         qry:
         - G
+      - type: nucSubstitution
+        ref:
+        - T
+        qry:
         - C
-        motifs:
-        - A[ACGT]G
-        - T[ACGT]C
       cluster:
         windowSize: 100
         cutoff: 5
@@ -1032,7 +1040,7 @@ definitions:
     - name
     properties:
       id:
-        description: Stable machine-readable identifier. This value appears in JSON and TSV output.
+        description: Stable machine-readable identifier. This value appears in JSON output and in TSV column names such as `mutationPatterns['<id>'].counts.matches`. Must be non-empty, unique, and free of the characters `'`, `[` and `]`.
         type: string
       name:
         description: Human-readable name shown in Nextclade Web tooltips and reports.
@@ -1060,26 +1068,20 @@ definitions:
     examples:
     - type: nucSubstitution
       ref:
-      - A
-      - T
-      qry:
-      - G
       - C
+      qry:
+      - T
       motifs:
-      - A[ACGT]G
-      - T[ACGT]C
+      - TC[AT]
     oneOf:
     - description: Nucleotide substitution event, selected by reference nucleotide, query nucleotide, and optional reference motifs.
       examples:
       - ref:
-        - A
-        - T
-        qry:
-        - G
         - C
+        qry:
+        - T
         motifs:
-        - A[ACGT]G
-        - T[ACGT]C
+        - TC[AT]
       type: object
       required:
       - qry
@@ -1091,17 +1093,17 @@ definitions:
           enum:
           - nucSubstitution
         ref:
-          description: Reference nucleotides to match at the mutated position.
+          description: 'Reference nucleotides to match at the mutated position. Must not be empty. IUPAC ambiguity codes match every nucleotide they share a base with: `R` matches `A`, `G` and `R`.'
           type: array
           items:
             $ref: '#/definitions/Nuc'
         qry:
-          description: Query nucleotides to match at the mutated position.
+          description: 'Query nucleotides to match at the mutated position. Must not be empty. IUPAC ambiguity codes match every nucleotide they share a base with, in both directions: filter `G` also matches the ambiguous query nucleotide `R`.'
           type: array
           items:
             $ref: '#/definitions/Nuc'
         motifs:
-          description: Regular expressions matched against the reference sequence. A mutation matches a motif when the regex match spans the mutated position. Use IUPAC nucleotide letters directly in the regex, for example `TC[AT]` for a TCW motif.
+          description: 'Regular expressions matched against the reference sequence. A motif site is the leftmost-first regex match that starts at a given reference position. Sites are found at every start position, so sites can overlap. A substitution qualifies when a site contains the substituted position, at any offset within the site: write motifs in which the reference nucleotide occurs at one offset only, for example `TC[AT]` for C>T in a TCW context. Letters are matched literally, so write IUPAC ambiguity codes as character classes: `[AT]` for `W`.'
           type: array
           items:
             type: string
@@ -1136,13 +1138,13 @@ definitions:
     type: object
     properties:
       windowSize:
-        description: Sliding nucleotide window size. A cluster is detected when `cutoff` matched events fall within this many reference nucleotides.
+        description: Size of the sliding window, in reference nucleotides. Matched events at most `windowSize` nucleotides apart are in one window. Must be at least 1.
         default: 100
         type: integer
         format: uint
         minimum: 0.0
       cutoff:
-        description: Minimum number of matched events in one sliding window required to report a cluster.
+        description: 'A window that holds more than `cutoff` matched events is reported as a cluster: with `cutoff: 5`, a cluster has at least 6 events.'
         default: 5
         type: integer
         format: uint
