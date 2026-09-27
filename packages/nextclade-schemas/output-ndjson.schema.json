@@ -30,7 +30,6 @@
     "lenUnaligned",
     "missing",
     "missingCdses",
-    "mutationPatterns",
     "nearestNodeId",
     "nearestNodeName",
     "nonACGTNs",
@@ -333,7 +332,7 @@
       }
     },
     "mutationPatterns": {
-      "description": "Per-type mutation statistics, local reference context, and detected mutation clusters",
+      "description": "Results of mutation pattern analysis. Omitted when the dataset configures no `mutationPatterns`",
       "allOf": [
         {
           "$ref": "#/definitions/MutationPatternsResults"
@@ -1424,7 +1423,7 @@
       "type": "object",
       "properties": {
         "results": {
-          "description": "Results for each configured mutation pattern. Empty when mutation pattern analysis is not configured and no global SNP cluster compatibility output is needed.",
+          "description": "Results for each configured mutation pattern, in configuration order. Empty when no patterns are configured.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/MutationPatternResults"

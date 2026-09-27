@@ -138,7 +138,8 @@ pub struct NextcladeOutputs {
   pub private_nuc_mutations: PrivateNucMutations,
   /// Per-CDS amino acid mutations not shared with the nearest reference tree node
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
-  /// Per-type mutation statistics, local reference context, and detected mutation clusters
+  /// Results of mutation pattern analysis. Omitted when the dataset configures no `mutationPatterns`
+  #[serde(default, skip_serializing_if = "MutationPatternsResults::is_empty")]
   pub mutation_patterns: MutationPatternsResults,
   /// Mutations relative to the clade founder node
   pub clade_founder_info: Option<CladeNodeAttrFounderInfo>,

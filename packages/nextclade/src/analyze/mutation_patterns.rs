@@ -263,13 +263,16 @@ impl MutationPatternResults {
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "MutationPatternsResults::example")]
 pub struct MutationPatternsResults {
-  /// Results for each configured mutation pattern. Empty when mutation pattern analysis is not configured and no global
-  /// SNP cluster compatibility output is needed.
+  /// Results for each configured mutation pattern, in configuration order. Empty when no patterns are configured.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub results: Vec<MutationPatternResults>,
 }
 
 impl MutationPatternsResults {
+  pub fn is_empty(&self) -> bool {
+    self.results.is_empty()
+  }
+
   pub fn example() -> Self {
     Self {
       results: vec![MutationPatternResults::example()],
@@ -304,7 +307,6 @@ pub fn analyze_mutation_patterns(
     .cloned()
     .map(MutationPatternEventMatch::unmatched_nuc_substitution)
     .collect_vec();
-  let event_type_counts = compute_event_type_counts(&all_events);
 
   let patterns = config.map_or(&[][..], |c| &c.patterns);
 
@@ -313,27 +315,7 @@ pub fn analyze_mutation_patterns(
     .map(|qc| find_clusters(&all_events, qc.window_size, qc.cluster_cut_off))
     .unwrap_or_default();
 
-  let results = if patterns.is_empty() {
-    if qc_clusters.is_empty() {
-      vec![]
-    } else {
-      let total_clusters = qc_clusters.len();
-      let total_clustered = qc_clusters.iter().map(|c| c.count).sum();
-      vec![MutationPatternResults {
-        id: "snp_clusters".to_owned(),
-        name: "SNP clusters".to_owned(),
-        matches: all_events,
-        event_type_counts,
-        clusters: qc_clusters.clone(),
-        counts: MutationPatternCounts {
-          matches: context_subs.len(),
-          clustered: total_clustered,
-          clusters: total_clusters,
-        },
-        description: None,
-      }]
-    }
-  } else {
+  let results =
     patterns
       .iter()
       .map(|cfg| {
@@ -371,8 +353,7 @@ pub fn analyze_mutation_patterns(
           description: cfg.description.clone(),
         })
       })
-      .collect::<Result<Vec<_>, Report>>()?
-  };
+      .collect::<Result<Vec<_>, Report>>()?;
 
   Ok(MutationPatternAnalysis {
     results: MutationPatternsResults { results },
@@ -1028,9 +1009,7 @@ mod tests {
       cluster_cut_off: 5,
     };
     let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, None, Some(&legacy))?;
-    assert_eq!(1, analysis.results.results.len());
-    assert_eq!(1, analysis.results.results[0].counts.clusters);
-    assert_eq!(10, analysis.results.results[0].counts.clustered);
+    assert!(analysis.results.is_empty());
     assert_eq!(1, analysis.qc_clusters.len());
     assert_eq!(10, analysis.qc_clusters[0].count);
     Ok(())
