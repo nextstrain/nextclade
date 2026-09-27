@@ -5,14 +5,14 @@ import styled from 'styled-components'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 
 import { Tooltip } from 'src/components/Results/Tooltip'
-import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
+import { MutationPatternEventBadge, mutationPatternEventKey } from 'src/components/Common/MutationPatternEventBadge'
 import { getSafeId } from 'src/helpers/getSafeId'
 import {
   SeqMarkerHeightState,
   getSeqMarkerDims,
   seqMarkerClusterHeightStateAtom,
 } from 'src/state/seqViewSettings.state'
-import type { MutationPatternEventMatch } from 'src/gen/_SchemaRoot'
+import type { MutationPatternEventMatch, MutationPatternsResults } from 'src/gen/_SchemaRoot'
 
 const CLUSTER_FILL = 'rgba(255, 140, 0, 0.12)'
 const CLUSTER_STROKE = '#e06000'
@@ -28,7 +28,7 @@ const ClusterBadgeGrid = styled.div`
 const ClusterDescription = styled.div`
   margin-top: 4px;
   font-size: 0.85em;
-  color: #666;
+  color: ${(props) => props.theme.gray600};
 `
 
 interface ClusterProps {
@@ -92,7 +92,7 @@ function SequenceMarkerClusterUnmemoed({
       <Tooltip target={id} isOpen={showTooltip}>
         <div>
           <b>
-            {t('Mutation cluster: {{start}}-{{end}} ({{count}} events)', {
+            {t('Cluster of private mutations: {{start}}-{{end}} ({{count}} mutations)', {
               start: start + 1,
               end: end + 1,
               count,
@@ -114,17 +114,35 @@ function SequenceMarkerClusterUnmemoed({
 
 export const SequenceMarkerCluster = React.memo(SequenceMarkerClusterUnmemoed)
 
-function MutationPatternEventBadge({ event }: { event: MutationPatternEventMatch }) {
-  switch (event.type) {
-    case 'nucSubstitution':
-      return <NucleotideMutationBadge mutation={event} />
-  }
+export interface SequenceMarkerMutationPatternClustersProps {
+  index: number
+  seqName: string
+  mutationPatterns?: MutationPatternsResults
+  pixelsPerBase: number
 }
 
-function mutationPatternEventKey(event: MutationPatternEventMatch): string {
-  switch (event.type) {
-    case 'nucSubstitution':
-      return `${event.type}:${event.pos}:${event.refNuc}:${event.qryNuc}`
-  }
-  throw new Error(`Unknown mutation pattern event type: ${event.type}`)
+/** Markers for the clusters of all mutation patterns. Clusters are drawn around markers of other kinds, so they do not
+ * count toward the marker limit. */
+export function SequenceMarkerMutationPatternClusters({
+  index,
+  seqName,
+  mutationPatterns,
+  pixelsPerBase,
+}: SequenceMarkerMutationPatternClustersProps) {
+  return (
+    <>
+      {(mutationPatterns?.results ?? []).flatMap((pattern) =>
+        pattern.clusters.map((cluster) => (
+          <SequenceMarkerCluster
+            key={`cluster_${pattern.id}_${cluster.start}_${cluster.end}`}
+            index={index}
+            seqName={seqName}
+            cluster={cluster}
+            pixelsPerBase={pixelsPerBase}
+            description={pattern.description}
+          />
+        )),
+      )}
+    </>
+  )
 }

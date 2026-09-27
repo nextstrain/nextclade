@@ -33,6 +33,9 @@ import {
 } from 'src/state/results.state'
 import { ExportWorker } from 'src/workers/ExportThread'
 
+// Stable fallback, so that hook dependencies do not change on every render
+const NO_MUTATION_PATTERN_KEYS: string[] = []
+
 const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? 'unknown'
 
 export interface ExportParams {
@@ -429,7 +432,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
   const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
   const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
-  const mutationPatternKeys = useRecoilValue(mutationPatternKeysAtom({ datasetName })) ?? []
+  const mutationPatternKeys = useRecoilValue(mutationPatternKeysAtom({ datasetName })) ?? NO_MUTATION_PATTERN_KEYS
   const csvColumnConfig = useRecoilValue(csvColumnConfigAtom)
   const tree = useRecoilValue(treeAtom(datasetName))
   const treeNwk = useRecoilValue(treeNwkAtom({ datasetName }))
@@ -516,7 +519,7 @@ function createCsvExportHook(delimiter: string, mimeType: string) {
     const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
     const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
     const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
-    const mutationPatternKeys = useRecoilValue(mutationPatternKeysAtom({ datasetName })) ?? []
+    const mutationPatternKeys = useRecoilValue(mutationPatternKeysAtom({ datasetName })) ?? NO_MUTATION_PATTERN_KEYS
     const csvColumnConfig = useRecoilValue(csvColumnConfigAtom)
 
     const exportFn = useCallback(

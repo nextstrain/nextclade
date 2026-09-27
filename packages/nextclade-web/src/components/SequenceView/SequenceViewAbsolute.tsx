@@ -11,7 +11,7 @@ import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
-import { SequenceMarkerCluster } from './SequenceMarkerCluster'
+import { SequenceMarkerMutationPatternClusters } from './SequenceMarkerCluster'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
 import { SequenceViewCoverageWrapper, SequenceViewCoverageText, SequenceViewSVG } from './SequenceViewStyles'
@@ -105,19 +105,6 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
     )
   })
 
-  const clusterViews = (mutationPatterns?.results ?? []).flatMap((pattern, patternIndex) =>
-    (pattern.clusters ?? []).map((cluster) => (
-      <SequenceMarkerCluster
-        key={`cluster_${patternIndex}_${cluster.start}_${cluster.end}`}
-        index={index}
-        seqName={seqName}
-        cluster={cluster}
-        pixelsPerBase={pixelsPerBase}
-        description={pattern.description}
-      />
-    )),
-  )
-
   const frameShiftMarkers = frameShifts.map((frameShift) => (
     <SequenceMarkerFrameShift
       key={`${frameShift.cdsName}_${frameShift.nucAbs.map((na) => na.begin).join('-')}`}
@@ -129,7 +116,7 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
   ))
 
   const totalMarkers =
-    mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length + insertionViews.length + clusterViews.length
+    mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length + insertionViews.length
   if (totalMarkers > maxNucMarkers) {
     return (
       <SequenceViewCoverageWrapper>
@@ -179,7 +166,12 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
         pixelsPerBase={pixelsPerBase}
       />
       {frameShiftMarkers}
-      {clusterViews}
+      <SequenceMarkerMutationPatternClusters
+        index={index}
+        seqName={seqName}
+        mutationPatterns={mutationPatterns}
+        pixelsPerBase={pixelsPerBase}
+      />
     </SequenceViewSVG>
   )
 }

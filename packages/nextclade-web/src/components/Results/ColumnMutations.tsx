@@ -11,19 +11,18 @@ import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfNucMuts } from 'src/components/Results/ListOfNucMuts'
 import { ListOfAaMuts } from 'src/components/Results/ListOfAaMuts'
-import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
+import { MutationPatternEventBadge, mutationPatternEventKey } from 'src/components/Common/MutationPatternEventBadge'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { TableSlim } from 'src/components/Common/TableSlim'
-import type { MutationPatternEventMatch } from 'src/gen/_SchemaRoot'
 
 const PatternList = styled.div`
-  border-top: 1px solid #dee2e6;
+  border-top: 1px solid ${(props) => props.theme.gray300};
   margin-top: 0.5rem;
   padding-top: 0.5rem;
 `
 
 const PatternSection = styled.section`
-  border-top: 1px solid #343a40;
+  border-top: 1px solid ${(props) => props.theme.gray800};
   margin-top: 0.7rem;
   padding-top: 0.6rem;
 
@@ -69,13 +68,7 @@ const ClusterBadgeGrid = styled.div`
 
 function MutationPatternsSection({ analysisResult }: { analysisResult: AnalysisResult }) {
   const { t } = useTranslationSafe()
-  const { mutationPatterns, privateNucMutations } = analysisResult
-
-  if (!mutationPatterns?.results?.length || privateNucMutations.privateSubstitutions.length === 0) {
-    return null
-  }
-
-  const visiblePatterns = mutationPatterns.results.filter((pattern) => pattern.clusters.length > 0)
+  const visiblePatterns = (analysisResult.mutationPatterns?.results ?? []).filter((pattern) => pattern.clusters.length > 0)
 
   if (visiblePatterns.length === 0) {
     return null
@@ -108,21 +101,6 @@ function MutationPatternsSection({ analysisResult }: { analysisResult: AnalysisR
       ))}
     </PatternList>
   )
-}
-
-function MutationPatternEventBadge({ event }: { event: MutationPatternEventMatch }) {
-  switch (event.type) {
-    case 'nucSubstitution':
-      return <NucleotideMutationBadge mutation={event} />
-  }
-}
-
-function mutationPatternEventKey(event: MutationPatternEventMatch): string {
-  switch (event.type) {
-    case 'nucSubstitution':
-      return `${event.type}:${event.pos}:${event.refNuc}:${event.qryNuc}`
-  }
-  throw new Error(`Unknown mutation pattern event type: ${event.type}`)
 }
 
 export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
