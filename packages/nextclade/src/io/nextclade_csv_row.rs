@@ -684,9 +684,9 @@ pub fn format_clustered_snps(snps: &[ClusteredSnp], delimiter: &str) -> String {
   snps
     .iter()
     .map(|snp| {
-      let range = NucRefGlobalRange::from_usize(snp.start, snp.end + 1).to_string();
-      let count = snp.number_of_snps;
-      format!("{range}:{count}")
+      let range = NucRefGlobalRange::from_usize(snp.start, snp.end).to_string();
+      let number_of_snps = snp.number_of_snps;
+      format!("{range}:{number_of_snps}")
     })
     .join(delimiter)
 }
@@ -755,4 +755,27 @@ fn format_aa_motifs(motifs: &[AaMotif]) -> String {
     .iter()
     .map(|AaMotif { cds, position, seq, .. }| format!("{}:{}:{seq}", cds, position + 1))
     .join(";")
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  // The shipped format passes the inclusive `end` as an exclusive range end, so the last clustered position is not
+  // included in the printed range. See kb/issues/M-qc-snp-clusters-range-excludes-last-position.md
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::one_cluster(  &[(5, 29, 8)],              "6-29:8")]
+  #[case::two_clusters( &[(5, 29, 8), (99, 150, 6)], "6-29:8,100-150:6")]
+  #[case::no_clusters(  &[],                        "")]
+  #[trace]
+  fn test_format_clustered_snps(#[case] clusters: &[(usize, usize, usize)], #[case] expected: &str) {
+    let snps = clusters
+      .iter()
+      .map(|&(start, end, number_of_snps)| ClusteredSnp { start, end, number_of_snps })
+      .collect_vec();
+    assert_eq!(expected, format_clustered_snps(&snps, ","));
+  }
 }
