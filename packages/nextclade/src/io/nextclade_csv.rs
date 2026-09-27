@@ -37,14 +37,14 @@ pub fn prepare_headers(
 
   headers = sort_headers_by_canonical_order(headers);
 
-  if column_config.include_dynamic {
-    // Insert dynamic columns after this column index
-    let mut insert_custom_cols_at_index = headers
-      .iter()
-      .position(|header| header == "clade")
-      .unwrap_or_else(|| headers.len().saturating_sub(1))
-      .clamp(0, headers.len());
+  // Dynamic columns, then mutation pattern columns, are inserted after this column index
+  let mut insert_custom_cols_at_index = headers
+    .iter()
+    .position(|header| header == "clade")
+    .unwrap_or_else(|| headers.len().saturating_sub(1))
+    .clamp(0, headers.len());
 
+  if column_config.include_dynamic {
     custom_node_attr_descs.iter().rev().for_each(|desc| {
       insert_after(&mut headers, insert_custom_cols_at_index, desc.name.clone());
       insert_custom_cols_at_index += 1;
@@ -62,12 +62,6 @@ pub fn prepare_headers(
   }
 
   if column_config.include_mut_patterns {
-    let mut insert_custom_cols_at_index = headers
-      .iter()
-      .position(|header| header == "clade")
-      .unwrap_or_else(|| headers.len().saturating_sub(1))
-      .clamp(0, headers.len());
-
     for pattern_key in mutation_pattern_keys {
       for col in &mut_pattern_cols(pattern_key) {
         insert_after(&mut headers, insert_custom_cols_at_index, col.to_owned());
@@ -472,6 +466,48 @@ mod tests {
     assert_eq!(mut_cols.len(), 8);
     assert_eq!(mut_cols[0], "mutationPatterns['adar'].counts.matches");
     assert_eq!(mut_cols[4], "mutationPatterns['apobec'].counts.matches");
+  }
+
+  #[test]
+  fn test_nextclade_csv_prepare_headers_patterns_after_dynamic_columns() {
+    let column_config = CsvColumnConfig {
+      categories: indexmap! {
+        CsvColumnCategory::General => indexmap! {
+          o!("seqName") => true,
+          o!("clade") => true,
+          o!("qc.overallScore") => true,
+        },
+      },
+      individual: vec![],
+      include_dynamic: true,
+      include_rel_muts: false,
+      include_clade_founder_muts: false,
+      include_mut_patterns: true,
+    };
+
+    let headers = prepare_headers(
+      &[],
+      &[o!("ace2_binding")],
+      &AuspiceRefNodesDesc::default(),
+      &[o!("glycosylation")],
+      &[o!("adar")],
+      &column_config,
+    );
+
+    assert_eq!(
+      headers,
+      vec![
+        "seqName",
+        "clade",
+        "ace2_binding",
+        "glycosylation",
+        "mutationPatterns['adar'].counts.matches",
+        "mutationPatterns['adar'].counts.clustered",
+        "mutationPatterns['adar'].counts.clusters",
+        "mutationPatterns['adar'].eventTypeCounts",
+        "qc.overallScore",
+      ]
+    );
   }
 
   #[test]
