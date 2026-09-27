@@ -514,9 +514,9 @@
             },
             "snpClusters": {
               "enabled": true,
-              "scoreWeight": 50.0,
               "windowSize": 100,
-              "clusterCutOff": 5
+              "clusterCutOff": 5,
+              "scoreWeight": 50.0
             },
             "frameShifts": {
               "enabled": true,
@@ -1059,9 +1059,9 @@
           },
           "snpClusters": {
             "enabled": true,
-            "scoreWeight": 50.0,
             "windowSize": 100,
-            "clusterCutOff": 5
+            "clusterCutOff": 5,
+            "scoreWeight": 50.0
           },
           "frameShifts": {
             "enabled": true,
@@ -1142,9 +1142,9 @@
           "description": "Configuration for the \"SNP clusters\" (C) rule",
           "default": {
             "enabled": false,
-            "scoreWeight": 0.0,
             "windowSize": 0,
-            "clusterCutOff": 0
+            "clusterCutOff": 0,
+            "scoreWeight": 0.0
           },
           "allOf": [
             {
@@ -1306,9 +1306,9 @@
       "examples": [
         {
           "enabled": true,
-          "scoreWeight": 50.0,
           "windowSize": 100,
-          "clusterCutOff": 5
+          "clusterCutOff": 5,
+          "scoreWeight": 50.0
         }
       ],
       "type": "object",
@@ -1317,25 +1317,25 @@
           "default": false,
           "type": "boolean"
         },
-        "scoreWeight": {
-          "description": "QC score added per detected cluster",
-          "default": 0.0,
-          "type": "number",
-          "format": "double"
-        },
         "windowSize": {
-          "description": "Size of the sliding nucleotide window for global SNP cluster detection",
+          "description": "Size of the sliding window (in nucleotides) used to count private mutations",
           "default": 0,
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
         },
         "clusterCutOff": {
-          "description": "Number of substitutions within a window required to count as a global SNP cluster",
+          "description": "Number of private mutations within a window above which the window is flagged as a cluster",
           "default": 0,
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
+        },
+        "scoreWeight": {
+          "description": "QC score added per detected cluster",
+          "default": 0.0,
+          "type": "number",
+          "format": "double"
         }
       }
     },

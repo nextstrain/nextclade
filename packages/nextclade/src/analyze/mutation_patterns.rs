@@ -308,13 +308,10 @@ pub fn analyze_mutation_patterns(
 
   let patterns = config.map_or(&[][..], |c| &c.patterns);
 
-  let (qc_window_size, qc_cluster_cut_off) = resolve_qc_config(qc_snp_clusters_config);
-
-  let qc_clusters = if qc_window_size > 0 && qc_cluster_cut_off > 0 {
-    find_clusters(&all_events, qc_window_size, qc_cluster_cut_off)
-  } else {
-    vec![]
-  };
+  let qc_clusters = qc_snp_clusters_config
+    .filter(|qc| qc.enabled)
+    .map(|qc| find_clusters(&all_events, qc.window_size, qc.cluster_cut_off))
+    .unwrap_or_default();
 
   let results = if patterns.is_empty() {
     if qc_clusters.is_empty() {
@@ -532,18 +529,6 @@ impl CompiledMotif {
         end: m.end(),
       })
       .collect_vec()
-  }
-}
-
-const fn resolve_qc_config(qc_snp_clusters_config: Option<&QcRulesConfigSnpClusters>) -> (usize, usize) {
-  if let Some(qc_snp_clusters) = qc_snp_clusters_config {
-    if qc_snp_clusters.enabled {
-      (qc_snp_clusters.window_size, qc_snp_clusters.cluster_cut_off)
-    } else {
-      (0, 0)
-    }
-  } else {
-    (0, 0)
   }
 }
 
