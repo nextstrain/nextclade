@@ -4,6 +4,7 @@ use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::{Nuc, to_nuc_seq, to_nuc_seq_replacing};
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
+use crate::analyze::mutation_patterns::MutationPatterns;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
@@ -290,6 +291,9 @@ pub struct Nextclade {
   pub aa_motifs_descs: Vec<AaMotifsDesc>,
   pub aa_motifs_keys: Vec<String>,
 
+  // If mutation patterns are configured
+  pub mutation_patterns: MutationPatterns,
+
   // If ref tree is provided
   pub graph: Option<AuspiceGraph>,
   pub clade_attr_descs: Vec<CladeNodeAttrKeyDesc>,
@@ -395,6 +399,9 @@ impl Nextclade {
       .cloned()
       .unwrap_or_default();
 
+    let mutation_patterns = MutationPatterns::new(virus_properties.mutation_patterns.as_ref(), &ref_seq)
+      .wrap_err("When preparing mutation patterns")?;
+
     Ok(Self {
       dataset_name,
       ref_record,
@@ -410,6 +417,7 @@ impl Nextclade {
       aa_motifs_ref,
       aa_motifs_descs,
       aa_motifs_keys,
+      mutation_patterns,
       graph,
       clade_attr_descs,
       phenotype_attr_descs,

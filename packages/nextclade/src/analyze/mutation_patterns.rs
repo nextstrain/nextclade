@@ -3,16 +3,19 @@ use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::nuc_sub_context::NucSubWithContext;
 use crate::analyze::virus_properties::{
-  MutationPatternClusterConfig, MutationPatternEvent, MutationPatternNucSubstitution, MutationPatternsConfig,
+  MutationPatternClusterConfig, MutationPatternConfig, MutationPatternEvent, MutationPatternNucSubstitution,
+  MutationPatternsConfig,
 };
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
+use crate::make_error;
 use crate::qc::qc_config::QcRulesConfigSnpClusters;
+use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use regex::Regex;
+use regex_automata::meta::Regex as MetaRegex;
+use regex_automata::{Anchored, Input};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-use std::collections::VecDeque;
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 /// Cluster of mutation pattern events detected within one sliding nucleotide window.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, schemars::JsonSchema)]
@@ -269,7 +272,7 @@ pub struct MutationPatternsResults {
 }
 
 impl MutationPatternsResults {
-  pub fn is_empty(&self) -> bool {
+  pub const fn is_empty(&self) -> bool {
     self.results.is_empty()
   }
 
@@ -280,85 +283,140 @@ impl MutationPatternsResults {
   }
 }
 
-/// Internal result containing both filtered (for output) and unfiltered (for QC) clusters.
+/// Mutation pattern analysis of one sequence: per-pattern results for output, and SNP clusters for the QC rule.
 pub struct MutationPatternAnalysis {
   pub results: MutationPatternsResults,
-  pub qc_clusters: Vec<MutationPatternCluster>,
+  pub qc_clusters: Vec<ClusteredSnp>,
 }
 
-/// Trinucleotide context uses the global reference sequence, not the parent tree node state.
-/// This matches mutational signature conventions: the enzyme acts on the physical genome,
-/// and context is defined by the reference genome flanking the substituted position.
-pub fn analyze_mutation_patterns(
-  private_nuc_mutations: &PrivateNucMutations,
-  ref_seq: &[Nuc],
-  config: Option<&MutationPatternsConfig>,
-  qc_snp_clusters_config: Option<&QcRulesConfigSnpClusters>,
-) -> Result<MutationPatternAnalysis, Report> {
-  let ref_seq_str = from_nuc_seq(ref_seq);
-  let context_subs: Vec<NucSubWithContext> = private_nuc_mutations
-    .private_substitutions
-    .iter()
-    .map(|sub| NucSubWithContext::from_sub(sub, ref_seq))
-    .collect_vec();
+/// Mutation pattern configuration, validated and prepared for one reference sequence.
+///
+/// Built once per dataset. Motif sites are located in the reference sequence in advance, so the analysis of each
+/// sequence only looks up the sites around each substitution.
+#[derive(Clone, Debug, Default)]
+pub struct MutationPatterns {
+  patterns: Vec<PreparedPattern>,
+}
 
-  let all_events = context_subs
-    .iter()
-    .cloned()
-    .map(MutationPatternEventMatch::unmatched_nuc_substitution)
-    .collect_vec();
+impl MutationPatterns {
+  pub fn new(config: Option<&MutationPatternsConfig>, ref_seq: &[Nuc]) -> Result<Self, Report> {
+    let Some(config) = config else {
+      return Ok(Self::default());
+    };
 
-  let patterns = config.map_or(&[][..], |c| &c.patterns);
+    let mut ids = BTreeSet::new();
+    for pattern in &config.patterns {
+      if !ids.insert(pattern.id.as_str()) {
+        return make_error!("Mutation pattern id '{}' is used more than once", pattern.id);
+      }
+    }
 
-  let qc_clusters = qc_snp_clusters_config
-    .filter(|qc| qc.enabled)
-    .map(|qc| find_clusters(&all_events, qc.window_size, qc.cluster_cut_off))
-    .unwrap_or_default();
-
-  let results =
-    patterns
+    let ref_seq_str = from_nuc_seq(ref_seq);
+    let patterns = config
+      .patterns
       .iter()
-      .map(|cfg| {
-        let compiled_events = compile_events(&cfg.events)?;
-        let matches = if compiled_events.is_empty() {
-          context_subs
-            .iter()
-            .cloned()
-            .map(MutationPatternEventMatch::unmatched_nuc_substitution)
-            .collect_vec()
-        } else {
-          context_subs
-            .iter()
-            .filter_map(|s| match_event(s, &compiled_events, &ref_seq_str))
-            .collect_vec()
-        };
-        let clusters = if let Some(cluster) = &cfg.cluster {
-          find_clusters_with_config(&matches, cluster)
-        } else {
-          vec![]
-        };
-        let total_clusters = clusters.len();
-        let total_clustered = clusters.iter().map(|c| c.count).sum();
-        Ok(MutationPatternResults {
-          id: cfg.id.clone(),
-          name: cfg.name.clone(),
-          event_type_counts: compute_event_type_counts(&matches),
-          counts: MutationPatternCounts {
-            matches: matches.len(),
-            clustered: total_clustered,
-            clusters: total_clusters,
-          },
-          matches,
-          clusters,
-          description: cfg.description.clone(),
-        })
+      .map(|pattern| {
+        PreparedPattern::new(pattern, &ref_seq_str)
+          .wrap_err_with(|| format!("When preparing mutation pattern '{}'", pattern.id))
       })
       .collect::<Result<Vec<_>, Report>>()?;
 
-  Ok(MutationPatternAnalysis {
+    Ok(Self { patterns })
+  }
+
+  pub const fn is_empty(&self) -> bool {
+    self.patterns.is_empty()
+  }
+}
+
+/// Find mutation pattern matches and clusters among private nucleotide substitutions of one sequence, and the SNP
+/// clusters used by the `qc.snpClusters` rule.
+///
+/// Reference context and motifs use the global reference sequence, not the sequence of the nearest tree node.
+pub fn analyze_mutation_patterns(
+  private_nuc_mutations: &PrivateNucMutations,
+  ref_seq: &[Nuc],
+  patterns: &MutationPatterns,
+  qc_snp_clusters_config: Option<&QcRulesConfigSnpClusters>,
+) -> MutationPatternAnalysis {
+  let subs = &private_nuc_mutations.private_substitutions;
+
+  let qc_clusters = qc_snp_clusters_config
+    .filter(|qc| qc.enabled)
+    .map(|qc| {
+      find_clusters(subs, |sub| sub.pos.as_usize(), qc.window_size, qc.cluster_cut_off)
+        .into_iter()
+        .map(|cluster| ClusteredSnp {
+          start: cluster[0].pos.as_usize(),
+          end: cluster[cluster.len() - 1].pos.as_usize(),
+          number_of_snps: cluster.len(),
+        })
+        .collect_vec()
+    })
+    .unwrap_or_default();
+
+  let results = if patterns.is_empty() {
+    vec![]
+  } else {
+    let context_subs = subs
+      .iter()
+      .map(|sub| NucSubWithContext::from_sub(sub, ref_seq))
+      .collect_vec();
+    patterns
+      .patterns
+      .iter()
+      .map(|pattern| pattern.analyze(&context_subs))
+      .collect_vec()
+  };
+
+  MutationPatternAnalysis {
     results: MutationPatternsResults { results },
     qc_clusters,
-  })
+  }
+}
+
+/// Group items, sorted by unique position, into clusters of more than `cluster_cut_off` items within `window_size`
+/// nucleotides.
+///
+/// Sliding-window scan. Each item enters the window, and items more than `window_size` positions upstream of it leave
+/// the window. When the window holds more than `cluster_cut_off` items, the item extends the previous cluster if the
+/// previous item is the last member of that cluster. Otherwise all items of the window start a new cluster, which can
+/// share items with the previous cluster. This is the algorithm of the `qc.snpClusters` rule.
+fn find_clusters<T>(
+  items: &[T],
+  position: impl Fn(&T) -> usize,
+  window_size: usize,
+  cluster_cut_off: usize,
+) -> Vec<Vec<&T>> {
+  let mut window = VecDeque::<&T>::new();
+  let mut clusters: Vec<Vec<&T>> = Vec::new();
+  let mut previous_pos: Option<usize> = None;
+
+  for item in items {
+    let pos = position(item);
+    window.push_back(item);
+
+    while position(window[0]) + window_size < pos {
+      window.pop_front();
+    }
+
+    if window.len() > cluster_cut_off {
+      let extends_last_cluster = window.len() > 1
+        && clusters
+          .last()
+          .and_then(|cluster| cluster.last())
+          .is_some_and(|last| Some(position(last)) == previous_pos);
+
+      if extends_last_cluster {
+        clusters.last_mut().expect("checked above").push(item);
+      } else {
+        clusters.push(window.iter().copied().collect_vec());
+      }
+    }
+    previous_pos = Some(pos);
+  }
+
+  clusters
 }
 
 fn compute_event_type_counts(events: &[MutationPatternEventMatch]) -> Vec<MutationPatternEventTypeCount> {
@@ -387,72 +445,156 @@ fn event_match_position(event: &MutationPatternEventMatch) -> usize {
   }
 }
 
-fn compile_events(events: &[MutationPatternEvent]) -> Result<Vec<CompiledEvent>, Report> {
-  events
-    .iter()
-    .map(CompiledEvent::new)
-    .collect::<Result<Vec<_>, Report>>()
+#[derive(Clone, Debug)]
+struct PreparedPattern {
+  id: String,
+  name: String,
+  description: Option<String>,
+  events: Vec<PreparedEvent>,
+  cluster: Option<MutationPatternClusterConfig>,
 }
 
-fn match_event(
-  sub: &NucSubWithContext,
-  events: &[CompiledEvent],
-  ref_seq_str: &str,
-) -> Option<MutationPatternEventMatch> {
-  events
-    .iter()
-    .find_map(|event| event.match_substitution(sub, ref_seq_str))
-}
+impl PreparedPattern {
+  fn new(config: &MutationPatternConfig, ref_seq_str: &str) -> Result<Self, Report> {
+    validate_pattern_id(&config.id)?;
 
-fn find_clusters_with_config(
-  events: &[MutationPatternEventMatch],
-  config: &MutationPatternClusterConfig,
-) -> Vec<MutationPatternCluster> {
-  if config.window_size > 0 && config.cutoff > 0 {
-    find_clusters(events, config.window_size, config.cutoff)
-  } else {
-    vec![]
+    if let Some(cluster) = &config.cluster
+      && cluster.window_size == 0
+    {
+      return make_error!("Mutation pattern cluster `windowSize` must be at least 1");
+    }
+
+    let events = config
+      .events
+      .iter()
+      .map(|event| PreparedEvent::new(event, ref_seq_str))
+      .collect::<Result<Vec<_>, Report>>()?;
+
+    Ok(Self {
+      id: config.id.clone(),
+      name: config.name.clone(),
+      description: config.description.clone(),
+      events,
+      cluster: config.cluster.clone(),
+    })
+  }
+
+  fn analyze(&self, subs: &[NucSubWithContext]) -> MutationPatternResults {
+    let matches = if self.events.is_empty() {
+      subs
+        .iter()
+        .cloned()
+        .map(MutationPatternEventMatch::unmatched_nuc_substitution)
+        .collect_vec()
+    } else {
+      subs
+        .iter()
+        .filter_map(|sub| self.events.iter().find_map(|event| event.match_substitution(sub)))
+        .collect_vec()
+    };
+
+    let clusters = self
+      .cluster
+      .as_ref()
+      .map(|cluster| {
+        find_clusters(&matches, event_match_position, cluster.window_size, cluster.cutoff)
+          .into_iter()
+          .map(|events| {
+            let events = events.into_iter().cloned().collect_vec();
+            MutationPatternCluster {
+              start: event_match_position(&events[0]),
+              end: event_match_position(&events[events.len() - 1]),
+              count: events.len(),
+              event_type_counts: compute_event_type_counts(&events),
+              events,
+            }
+          })
+          .collect_vec()
+      })
+      .unwrap_or_default();
+
+    // Clusters can share events, so count each clustered event once
+    let clustered = clusters
+      .iter()
+      .flat_map(|cluster| cluster.events.iter().map(event_match_position))
+      .unique()
+      .count();
+
+    MutationPatternResults {
+      id: self.id.clone(),
+      name: self.name.clone(),
+      event_type_counts: compute_event_type_counts(&matches),
+      counts: MutationPatternCounts {
+        matches: matches.len(),
+        clustered,
+        clusters: clusters.len(),
+      },
+      matches,
+      clusters,
+      description: self.description.clone(),
+    }
   }
 }
 
-enum CompiledEvent {
-  NucSubstitution(CompiledNucSubstitution),
+/// Reject ids that cannot be written unambiguously in TSV column names such as `mutationPatterns['<id>'].counts.matches`
+fn validate_pattern_id(id: &str) -> Result<(), Report> {
+  if id.is_empty() {
+    return make_error!("Mutation pattern id cannot be empty");
+  }
+  if let Some(c) = id.chars().find(|c| matches!(c, '\'' | '[' | ']')) {
+    return make_error!("Mutation pattern id '{id}' contains the character '{c}', which is not allowed");
+  }
+  Ok(())
 }
 
-impl CompiledEvent {
-  fn new(event: &MutationPatternEvent) -> Result<Self, Report> {
+#[derive(Clone, Debug)]
+enum PreparedEvent {
+  NucSubstitution(PreparedNucSubstitution),
+}
+
+impl PreparedEvent {
+  fn new(event: &MutationPatternEvent, ref_seq_str: &str) -> Result<Self, Report> {
     match event {
-      MutationPatternEvent::NucSubstitution(event) => Ok(Self::NucSubstitution(CompiledNucSubstitution::new(event)?)),
+      MutationPatternEvent::NucSubstitution(event) => {
+        Ok(Self::NucSubstitution(PreparedNucSubstitution::new(event, ref_seq_str)?))
+      }
     }
   }
 
-  fn match_substitution(&self, sub: &NucSubWithContext, ref_seq_str: &str) -> Option<MutationPatternEventMatch> {
+  fn match_substitution(&self, sub: &NucSubWithContext) -> Option<MutationPatternEventMatch> {
     match self {
-      Self::NucSubstitution(event) => event.match_substitution(sub, ref_seq_str),
+      Self::NucSubstitution(event) => event.match_substitution(sub),
     }
   }
 }
 
-struct CompiledNucSubstitution {
+#[derive(Clone, Debug)]
+struct PreparedNucSubstitution {
   ref_nucs: Vec<Nuc>,
   qry: Vec<Nuc>,
-  motifs: Vec<CompiledMotif>,
+  motifs: Vec<MotifSites>,
 }
 
-impl CompiledNucSubstitution {
-  fn new(event: &MutationPatternNucSubstitution) -> Result<Self, Report> {
+impl PreparedNucSubstitution {
+  fn new(event: &MutationPatternNucSubstitution, ref_seq_str: &str) -> Result<Self, Report> {
+    if event.ref_nucs.is_empty() {
+      return make_error!("Mutation pattern event `ref` must list at least one nucleotide");
+    }
+    if event.qry.is_empty() {
+      return make_error!("Mutation pattern event `qry` must list at least one nucleotide");
+    }
     Ok(Self {
       ref_nucs: event.ref_nucs.clone(),
       qry: event.qry.clone(),
       motifs: event
         .motifs
         .iter()
-        .map(|motif| CompiledMotif::new(motif))
+        .map(|motif| MotifSites::new(motif, ref_seq_str))
         .collect::<Result<Vec<_>, Report>>()?,
     })
   }
 
-  fn match_substitution(&self, sub: &NucSubWithContext, ref_seq_str: &str) -> Option<MutationPatternEventMatch> {
+  fn match_substitution(&self, sub: &NucSubWithContext) -> Option<MutationPatternEventMatch> {
     if !self.ref_nucs.iter().any(|nuc| is_nuc_match(*nuc, sub.sub.ref_nuc)) {
       return None;
     }
@@ -464,10 +606,11 @@ impl CompiledNucSubstitution {
       return Some(MutationPatternEventMatch::unmatched_nuc_substitution(sub.clone()));
     }
 
+    let pos = sub.sub.pos.as_usize();
     let motif_matches = self
       .motifs
       .iter()
-      .flat_map(|motif| motif.find_matches_containing(ref_seq_str, sub.sub.pos.as_usize()))
+      .flat_map(|motif| motif.matches_containing(pos))
       .collect_vec();
 
     if motif_matches.is_empty() {
@@ -483,94 +626,57 @@ impl CompiledNucSubstitution {
   }
 }
 
-struct CompiledMotif {
+/// All sites of the reference sequence where a motif regex matches.
+///
+/// A site is the leftmost-first match anchored at a given start position. Sites are collected for every start position,
+/// so sites can overlap.
+#[derive(Clone, Debug)]
+struct MotifSites {
   motif: String,
-  regex: Regex,
+  /// Half-open `[start, end)` ranges, sorted by start
+  sites: Vec<(usize, usize)>,
+  max_site_len: usize,
 }
 
-impl CompiledMotif {
-  fn new(motif: &str) -> Result<Self, Report> {
+impl MotifSites {
+  fn new(motif: &str, ref_seq_str: &str) -> Result<Self, Report> {
     if motif.is_empty() {
-      eyre::bail!("Mutation pattern motif cannot be empty");
+      return make_error!("Mutation pattern motif cannot be empty");
     }
+    let regex = MetaRegex::new(motif).wrap_err_with(|| format!("When compiling mutation pattern motif '{motif}'"))?;
+
+    let sites = (0..ref_seq_str.len())
+      .filter_map(|start| {
+        let input = Input::new(ref_seq_str).range(start..).anchored(Anchored::Yes);
+        regex
+          .search(&input)
+          .filter(|m| !m.is_empty())
+          .map(|m| (m.start(), m.end()))
+      })
+      .collect_vec();
+
+    let max_site_len = sites.iter().map(|(start, end)| end - start).max().unwrap_or_default();
+
     Ok(Self {
       motif: motif.to_owned(),
-      regex: Regex::new(motif).wrap_err_with(|| format!("When compiling mutation pattern motif '{motif}'"))?,
+      sites,
+      max_site_len,
     })
   }
 
-  fn find_matches_containing(&self, ref_seq_str: &str, pos: usize) -> Vec<MutationPatternMotifMatch> {
-    self
-      .regex
-      .find_iter(ref_seq_str)
-      .filter(|m| m.start() <= pos && pos < m.end())
-      .map(|m| MutationPatternMotifMatch {
+  fn matches_containing(&self, pos: usize) -> impl Iterator<Item = MutationPatternMotifMatch> + '_ {
+    let min_start = (pos + 1).saturating_sub(self.max_site_len);
+    let lo = self.sites.partition_point(|(start, _)| *start < min_start);
+    let hi = self.sites.partition_point(|(start, _)| *start <= pos);
+    self.sites[lo..hi]
+      .iter()
+      .filter(move |(_, end)| pos < *end)
+      .map(|&(start, end)| MutationPatternMotifMatch {
         motif: self.motif.clone(),
-        start: m.start(),
-        end: m.end(),
-      })
-      .collect_vec()
-  }
-}
-
-fn find_clusters(
-  events: &[MutationPatternEventMatch],
-  window_size: usize,
-  cluster_cut_off: usize,
-) -> Vec<MutationPatternCluster> {
-  let mut current_window = VecDeque::<&MutationPatternEventMatch>::new();
-  let mut all_clusters: Vec<Vec<&MutationPatternEventMatch>> = Vec::new();
-  let mut previous_pos: isize = -1;
-
-  for event in events {
-    let pos = event_match_position(event) as isize;
-    current_window.push_back(event);
-
-    while (event_match_position(current_window[0]) as isize) < (pos - window_size as isize) {
-      current_window.pop_front();
-    }
-
-    if current_window.len() > cluster_cut_off {
-      let n_clusters = all_clusters.len();
-
-      if !all_clusters.is_empty() && current_window.len() > 1 {
-        let last_cluster = &all_clusters[n_clusters - 1];
-        let last_pos = event_match_position(last_cluster[last_cluster.len() - 1]) as isize;
-
-        if last_pos == previous_pos {
-          all_clusters[n_clusters - 1].push(event);
-        } else {
-          all_clusters.push(current_window.iter().copied().collect_vec());
-        }
-      } else {
-        all_clusters.push(current_window.iter().copied().collect_vec());
-      }
-    }
-    previous_pos = pos;
-  }
-
-  for cluster in &mut all_clusters {
-    cluster.sort_by_key(|event| event_match_position(event));
-    cluster.dedup_by_key(|event| event_match_position(event));
-  }
-
-  all_clusters
-    .into_iter()
-    .map(|cluster_events| {
-      let start = event_match_position(cluster_events[0]);
-      let end = event_match_position(cluster_events[cluster_events.len() - 1]);
-      let events: Vec<MutationPatternEventMatch> = cluster_events.into_iter().cloned().collect();
-      let event_type_counts = compute_event_type_counts(&events);
-      let count = events.len();
-      MutationPatternCluster {
         start,
         end,
-        count,
-        events,
-        event_type_counts,
-      }
-    })
-    .collect_vec()
+      })
+  }
 }
 
 #[cfg(test)]
@@ -585,6 +691,16 @@ mod tests {
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use serde_json::Value;
+
+  fn analyze(
+    private_nuc_mutations: &PrivateNucMutations,
+    ref_seq: &[Nuc],
+    config: Option<&MutationPatternsConfig>,
+    qc: Option<&QcRulesConfigSnpClusters>,
+  ) -> Result<MutationPatternAnalysis, Report> {
+    let patterns = MutationPatterns::new(config, ref_seq)?;
+    Ok(analyze_mutation_patterns(private_nuc_mutations, ref_seq, &patterns, qc))
+  }
 
   fn make_sub(pos: usize, ref_nuc: Nuc, qry_nuc: Nuc) -> NucSub {
     NucSub {
@@ -686,7 +802,7 @@ mod tests {
   fn test_mutation_patterns_empty_input() -> Result<(), Report> {
     let private_muts = make_private_muts(vec![]);
     let ref_seq = ref_seq_acgt(100);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, None, None)?;
+    let analysis = analyze(&private_muts, &ref_seq, None, None)?;
     assert!(analysis.results.results.is_empty());
     assert!(analysis.qc_clusters.is_empty());
     Ok(())
@@ -704,7 +820,7 @@ mod tests {
     let ref_seq = ref_seq_acgt(100);
     let config = wrap(vec![pattern_all(100, 5)]);
     let qc = qc_cluster(100, 5);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
     let result = &analysis.results.results[0];
 
     let counts = event_type_counts_map(&result.event_type_counts);
@@ -721,7 +837,7 @@ mod tests {
     let subs: Vec<NucSub> = (0..10).map(|i| make_sub(i * 5, Nuc::T, Nuc::C)).collect();
     let private_muts = make_private_muts(subs);
     let ref_seq = ref_seq_acgt(100);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, None, None)?;
+    let analysis = analyze(&private_muts, &ref_seq, None, None)?;
     assert!(analysis.results.results.is_empty());
     assert!(analysis.qc_clusters.is_empty());
     Ok(())
@@ -739,7 +855,7 @@ mod tests {
     let private_muts = make_private_muts(subs);
     let config = wrap(vec![pattern_all(100, 5)]);
     let qc = qc_cluster(100, 3);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
     let result = &analysis.results.results[0];
     assert_eq!(1, result.counts.clusters);
     assert_eq!(10, result.counts.clustered);
@@ -771,7 +887,7 @@ mod tests {
     let private_muts = make_private_muts(subs);
     let config = wrap(vec![pattern_all(100, 5)]);
     let qc = qc_cluster(100, 5);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
     let result = &analysis.results.results[0];
     assert_eq!(2, result.counts.clusters);
     assert!(result.clusters[0].end < result.clusters[1].start);
@@ -790,7 +906,7 @@ mod tests {
     let private_muts = make_private_muts(subs);
     let config = wrap(vec![pattern_all(100, 5)]);
     let qc = qc_cluster(100, 3);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
     assert_eq!(0, analysis.results.results[0].counts.clusters);
     Ok(())
   }
@@ -806,7 +922,7 @@ mod tests {
       .collect();
     let private_muts = make_private_muts(subs);
     let config = wrap(vec![pattern_all(100, 5)]);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), None)?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), None)?;
     assert_eq!(1, analysis.results.results[0].counts.clusters);
     assert_eq!(6, analysis.results.results[0].counts.clustered);
     Ok(())
@@ -836,7 +952,7 @@ mod tests {
       5,
     )]);
     let qc = qc_cluster(100, 5);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
     let result = &analysis.results.results[0];
     assert_eq!(1, result.counts.clusters);
     for cluster in &result.clusters {
@@ -869,10 +985,10 @@ mod tests {
       5,
     )]);
     let qc = qc_cluster(100, 5);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
     assert_eq!(0, analysis.results.results[0].counts.clusters);
     assert_eq!(1, analysis.qc_clusters.len());
-    assert_eq!(6, analysis.qc_clusters[0].count);
+    assert_eq!(6, analysis.qc_clusters[0].number_of_snps);
     Ok(())
   }
 
@@ -918,7 +1034,7 @@ mod tests {
       }"#,
     )?;
     let qc = qc_cluster(100, 3);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), Some(&qc))?;
     let result = &analysis.results.results[0];
     assert_eq!(1, result.counts.clusters);
     assert_eq!(6, result.matches.len());
@@ -927,7 +1043,7 @@ mod tests {
       MutationPatternEventMatch::NucSubstitution(m) => m.motif_matches.iter().any(|m| m.motif == "[ACGT]CG"),
     }));
     assert_eq!(1, analysis.qc_clusters.len());
-    assert_eq!(7, analysis.qc_clusters[0].count);
+    assert_eq!(7, analysis.qc_clusters[0].number_of_snps);
     Ok(())
   }
 
@@ -944,7 +1060,7 @@ mod tests {
       100,
       1,
     )]);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), None)?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), None)?;
     let actual = json_stringify(&analysis.results, JsonPretty(true))?;
     let actual = json_parse::<Value>(&actual)?;
 
@@ -988,12 +1104,12 @@ mod tests {
       qry: vec![Nuc::N],
       motifs: vec![],
     });
-    let compiled = compile_events(&[filter])?;
-    let ref_seq = to_nuc_seq("AAA")?;
-    let sub_a = NucSubWithContext::from_sub(&make_sub(1, Nuc::A, Nuc::G), &ref_seq);
+    let ref_seq = to_nuc_seq("ACA")?;
+    let event = PreparedEvent::new(&filter, &from_nuc_seq(&ref_seq))?;
+    let sub_a = NucSubWithContext::from_sub(&make_sub(0, Nuc::A, Nuc::G), &ref_seq);
     let sub_c = NucSubWithContext::from_sub(&make_sub(1, Nuc::C, Nuc::G), &ref_seq);
-    assert!(match_event(&sub_a, &compiled, "AAA").is_some());
-    assert!(match_event(&sub_c, &compiled, "ACA").is_none());
+    assert!(event.match_substitution(&sub_a).is_some());
+    assert!(event.match_substitution(&sub_c).is_none());
     Ok(())
   }
 
@@ -1008,10 +1124,10 @@ mod tests {
       window_size: 100,
       cluster_cut_off: 5,
     };
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, None, Some(&legacy))?;
+    let analysis = analyze(&private_muts, &ref_seq, None, Some(&legacy))?;
     assert!(analysis.results.is_empty());
     assert_eq!(1, analysis.qc_clusters.len());
-    assert_eq!(10, analysis.qc_clusters[0].count);
+    assert_eq!(10, analysis.qc_clusters[0].number_of_snps);
     Ok(())
   }
 
@@ -1026,7 +1142,7 @@ mod tests {
       window_size: 100,
       cluster_cut_off: 5,
     };
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, None, Some(&legacy))?;
+    let analysis = analyze(&private_muts, &ref_seq, None, Some(&legacy))?;
     assert!(analysis.results.results.is_empty());
     assert!(analysis.qc_clusters.is_empty());
     Ok(())
@@ -1050,7 +1166,7 @@ mod tests {
       100,
       1,
     )]);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), None)?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), None)?;
     assert_eq!(
       2,
       event_type_counts_total(&analysis.results.results[0].event_type_counts)
@@ -1071,12 +1187,12 @@ mod tests {
       window_size: 100,
       cluster_cut_off: 5,
     };
-    let with_new = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), Some(&legacy))?;
-    let without_new = analyze_mutation_patterns(&private_muts, &ref_seq, None, Some(&legacy))?;
+    let with_new = analyze(&private_muts, &ref_seq, Some(&config), Some(&legacy))?;
+    let without_new = analyze(&private_muts, &ref_seq, None, Some(&legacy))?;
     assert_eq!(without_new.qc_clusters.len(), with_new.qc_clusters.len());
     assert_eq!(without_new.qc_clusters[0].start, with_new.qc_clusters[0].start);
     assert_eq!(without_new.qc_clusters[0].end, with_new.qc_clusters[0].end);
-    assert_eq!(without_new.qc_clusters[0].count, with_new.qc_clusters[0].count);
+    assert_eq!(without_new.qc_clusters[0].number_of_snps, with_new.qc_clusters[0].number_of_snps);
     assert_eq!(0, with_new.results.results[0].counts.clusters);
     assert_eq!(1, with_new.qc_clusters.len());
     Ok(())
@@ -1106,7 +1222,7 @@ mod tests {
         ..pattern_substitution("ag", "A>G", vec![Nuc::A], vec![Nuc::G], vec![], 100, 1)
       },
     ]);
-    let analysis = analyze_mutation_patterns(&private_muts, &ref_seq, Some(&config), None)?;
+    let analysis = analyze(&private_muts, &ref_seq, Some(&config), None)?;
     let results = &analysis.results.results;
     assert_eq!(2, results.len());
     assert_eq!(1, results[0].counts.clusters);

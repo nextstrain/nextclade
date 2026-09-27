@@ -2146,6 +2146,7 @@ dependencies = [
  "pretty_assertions",
  "rayon",
  "regex",
+ "regex-automata",
  "rstest",
  "rust_xlsxwriter",
  "schemars",

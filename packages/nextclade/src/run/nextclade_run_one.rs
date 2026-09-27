@@ -119,6 +119,7 @@ pub fn nextclade_run_one(
     graph,
     primers,
     ref_nodes,
+    mutation_patterns,
     ..
   } = &state;
 
@@ -432,9 +433,9 @@ pub fn nextclade_run_one(
   let mutation_pattern_analysis = analyze_mutation_patterns(
     &private_nuc_mutations,
     ref_seq,
-    virus_properties.mutation_patterns.as_ref(),
+    mutation_patterns,
     virus_properties.qc.as_ref().map(|qc| &qc.snp_clusters),
-  )?;
+  );
   let mutation_patterns = mutation_pattern_analysis.results;
 
   let qc = virus_properties

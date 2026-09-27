@@ -1,4 +1,3 @@
-use crate::analyze::mutation_patterns::MutationPatternCluster;
 use crate::qc::qc_config::QcRulesConfigSnpClusters;
 use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;
@@ -8,7 +7,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Clusters indicate localized quality problems, such as contamination or sequencing artifacts
 /// in a narrow region of the genome.
-#[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteredSnp {
   /// 0-based position of the first substitution in the cluster
@@ -47,22 +46,14 @@ impl QcRule for QcResultSnpClusters {
 }
 
 pub fn rule_snp_clusters(
-  qc_clusters: &[MutationPatternCluster],
+  qc_clusters: &[ClusteredSnp],
   config: &QcRulesConfigSnpClusters,
 ) -> Option<QcResultSnpClusters> {
   if !config.enabled {
     return None;
   }
 
-  let clustered_snps: Vec<ClusteredSnp> = qc_clusters
-    .iter()
-    .map(|c| ClusteredSnp {
-      start: c.start,
-      end: c.end,
-      number_of_snps: c.count,
-    })
-    .collect();
-
+  let clustered_snps = qc_clusters.to_vec();
   let total_clusters = clustered_snps.len();
   let total_snps = clustered_snps.iter().map(|c| c.number_of_snps).sum();
 
@@ -96,12 +87,11 @@ mod tests {
     }
   }
 
-  fn make_cluster(start: usize, end: usize, n: usize) -> MutationPatternCluster {
-    MutationPatternCluster {
+  fn make_cluster(start: usize, end: usize, number_of_snps: usize) -> ClusteredSnp {
+    ClusteredSnp {
       start,
       end,
-      count: n,
-      ..MutationPatternCluster::default()
+      number_of_snps,
     }
   }
 

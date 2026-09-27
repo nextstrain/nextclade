@@ -1,12 +1,11 @@
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::analyze::mutation_patterns::MutationPatternCluster;
 use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_rule_frame_shifts::{QcResultFrameShifts, rule_frame_shifts};
 use crate::qc::qc_rule_missing_data::{QcResultMissingData, rule_missing_data};
 use crate::qc::qc_rule_mixed_sites::{QcResultMixedSites, rule_mixed_sites};
 use crate::qc::qc_rule_private_mutations::{QcResultPrivateMutations, rule_private_mutations};
-use crate::qc::qc_rule_snp_clusters::{QcResultSnpClusters, rule_snp_clusters};
+use crate::qc::qc_rule_snp_clusters::{ClusteredSnp, QcResultSnpClusters, rule_snp_clusters};
 use crate::qc::qc_rule_stop_codons::{QcResultStopCodons, rule_stop_codons};
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::Translation;
@@ -83,7 +82,7 @@ pub trait QcRule {
 
 pub fn qc_run(
   private_nuc_mutations: &PrivateNucMutations,
-  qc_clusters: &[MutationPatternCluster],
+  qc_clusters: &[ClusteredSnp],
   nucleotide_composition: &BTreeMap<Nuc, usize>,
   total_missing: usize,
   translation: &Translation,

@@ -61,6 +61,7 @@ percent-encoding = { workspace = true }
 pretty_assertions = { workspace = true }
 rayon = { workspace = true }
 regex = { workspace = true }
+regex-automata = { workspace = true }
 rust_xlsxwriter = { workspace = true }
 schemars = { workspace = true }
 semver = { workspace = true }
