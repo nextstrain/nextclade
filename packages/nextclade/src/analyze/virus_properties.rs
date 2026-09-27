@@ -71,12 +71,6 @@ impl MutationPatternEvent {
   pub fn example() -> Self {
     Self::NucSubstitution(MutationPatternNucSubstitution::example())
   }
-
-  pub const fn matches_all_contexts(&self) -> bool {
-    match self {
-      Self::NucSubstitution(event) => event.motifs.is_empty(),
-    }
-  }
 }
 
 /// Filter for selecting nucleotide substitutions in mutation pattern analysis.
