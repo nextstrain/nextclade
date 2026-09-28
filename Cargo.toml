@@ -56,6 +56,7 @@ gcollections = "=1.5.0"
 getrandom = { version = "=0.3.4", features = ["wasm_js"] }
 indexmap = { version = "=1.9.3", features = ["serde"] }
 intervallum = "=1.4.4"
+indoc = "=2.0.7"
 itertools = "=0.14.0"
 js-sys = { version = "=0.3.83", features = [] }
 log = "=0.4.29"
@@ -69,8 +70,13 @@ ordered-float = { version = "=5.1.0", features = ["rand", "serde", "schemars"] }
 owo-colors = { version = "=4.2.3", features = ["supports-colors"] }
 percent-encoding = "=2.3.2"
 pretty_assertions = "=1.4.1"
+proptest = "=1.11.0"
 rayon = "=1.11.0"
+# `regex`, `regex-automata` and `regex-syntax` are one family: `regex` and `regex-automata` depend on the others.
+# Update the three pins together, so that the build contains one version of each.
 regex = "=1.12.2"
+regex-automata = "=0.4.13"
+regex-syntax = "=0.8.8"
 reqwest = { version = "=0.13.1", default-features = false, features = ["blocking", "socks", "gzip", "deflate", "brotli", "zstd", "rustls", "rustls-native-certs"] }
 rstest = "=0.26.1"
 rust_xlsxwriter = { version = "=0.92.2", features = ["wasm"] }
@@ -82,6 +88,7 @@ serde_json = { version = "=1.0.148", features = ["preserve_order", "indexmap", "
 serde_repr = "=0.1.20"
 serde_stacker = { version = "=0.1.14" }
 serde_yaml = "=0.9.34"
+smart-default = "=0.7.1"
 strsim = "=0.11.1"
 strum = "=0.27.2"
 strum_macros = "=0.27.2"

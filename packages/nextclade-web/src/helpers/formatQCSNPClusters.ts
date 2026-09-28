@@ -20,10 +20,17 @@ export function formatQCSNPClusters<TFunction extends TFunctionInterface>(
     message = t('Too many mutation clusters found')
   }
 
-  return t('{{message}}. Seen {{nClusters}} mutation clusters with total of {{total}} mutations. QC score: {{score}}', {
+  const summary = t('{{message}}. Seen {{nClusters}} mutation clusters with total of {{total}} mutations. QC score: {{score}}', {
     message,
     total: totalSNPs,
     nClusters: clusteredSNPs.length,
     score: round(score),
   })
+
+  if (clusteredSNPs.length === 0) {
+    return summary
+  }
+
+  const clusterRanges = clusteredSNPs.map((c) => `${c.start + 1}-${c.end + 1}:${c.numberOfSnps}`).join(', ')
+  return `${summary}. ${t('Cluster positions: {{clusterRanges}}', { clusterRanges })}`
 }

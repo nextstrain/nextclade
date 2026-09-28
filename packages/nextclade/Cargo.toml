@@ -61,6 +61,8 @@ percent-encoding = { workspace = true }
 pretty_assertions = { workspace = true }
 rayon = { workspace = true }
 regex = { workspace = true }
+regex-automata = { workspace = true }
+regex-syntax = { workspace = true }
 rust_xlsxwriter = { workspace = true }
 schemars = { workspace = true }
 semver = { workspace = true }
@@ -69,6 +71,7 @@ serde_json = { workspace = true }
 serde_repr = { workspace = true }
 serde_stacker = { workspace = true }
 serde_yaml = { workspace = true }
+smart-default = { workspace = true }
 strsim = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
@@ -88,6 +91,8 @@ zstd = { workspace = true }
 approx = { workspace = true }
 assert2 = { workspace = true }
 criterion = { workspace = true }
+indoc = { workspace = true }
+proptest = { workspace = true }
 rstest = { workspace = true }
 
 [build-dependencies]

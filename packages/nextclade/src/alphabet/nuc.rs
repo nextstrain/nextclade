@@ -4,11 +4,24 @@ use crate::make_error;
 use eyre::{Report, WrapErr, eyre};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+use strum_macros::EnumIter;
 
 /// A nucleotide
 #[repr(u8)]
 #[derive(
-  Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema, Hash, Default,
+  Debug,
+  Clone,
+  Copy,
+  Eq,
+  PartialEq,
+  PartialOrd,
+  Ord,
+  Serialize,
+  Deserialize,
+  schemars::JsonSchema,
+  Hash,
+  Default,
+  EnumIter,
 )]
 pub enum Nuc {
   T,
@@ -99,6 +112,42 @@ pub fn is_nuc_match(x: Nuc, y: Nuc) -> bool {
   lookup_nuc_scoring_matrix(x, y) > 0
 }
 
+/// Checks whether every base that `nuc` stands for is also a base of `filter`, according to the IUPAC table.
+///
+/// Filter `N` accepts every nucleotide. Filter `R` accepts `A`, `G` and `R`. Filter `G` accepts `G`, but not the
+/// ambiguous `R`, which can also be `A`. A gap is a subset only of a gap.
+pub const fn is_nuc_subset(nuc: Nuc, filter: Nuc) -> bool {
+  let nuc = nuc_base_set(nuc);
+  nuc & nuc_base_set(filter) == nuc
+}
+
+/// Bases that a nucleotide code stands for, as a bit set of `A`, `C`, `G`, `T` and gap
+const fn nuc_base_set(nuc: Nuc) -> u8 {
+  const A: u8 = 1;
+  const C: u8 = 2;
+  const G: u8 = 4;
+  const T: u8 = 8;
+  const GAP: u8 = 16;
+  match nuc {
+    Nuc::A => A,
+    Nuc::C => C,
+    Nuc::G => G,
+    Nuc::T => T,
+    Nuc::R => A | G,
+    Nuc::Y => C | T,
+    Nuc::S => C | G,
+    Nuc::W => A | T,
+    Nuc::K => G | T,
+    Nuc::M => A | C,
+    Nuc::B => C | G | T,
+    Nuc::D => A | G | T,
+    Nuc::H => A | C | T,
+    Nuc::V => A | C | G,
+    Nuc::N => A | C | G | T,
+    Nuc::Gap => GAP,
+  }
+}
+
 #[inline]
 pub fn to_nuc(letter: char) -> Result<Nuc, Report> {
   match letter {
@@ -155,4 +204,31 @@ pub fn to_nuc_seq_replacing(str: &str) -> Vec<Nuc> {
 
 pub fn from_nuc_seq(seq: &[Nuc]) -> String {
   seq.iter().map(|nuc| from_nuc(*nuc)).collect()
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  // Base sets from the IUPAC-IUB nomenclature for incompletely specified bases (1985)
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::same_base(              (Nuc::A,   Nuc::A),   true)]
+  #[case::other_base(             (Nuc::A,   Nuc::C),   false)]
+  #[case::base_in_code(           (Nuc::G,   Nuc::R),   true)]
+  #[case::code_wider_than_base(   (Nuc::R,   Nuc::G),   false)]
+  #[case::code_in_wider_code(     (Nuc::W,   Nuc::D),   true)]
+  #[case::disjoint_codes(         (Nuc::S,   Nuc::W),   false)]
+  #[case::overlapping_codes(      (Nuc::R,   Nuc::M),   false)]
+  #[case::any_in_n(               (Nuc::V,   Nuc::N),   true)]
+  #[case::n_in_narrower_code(     (Nuc::N,   Nuc::B),   false)]
+  #[case::gap_in_gap(             (Nuc::Gap, Nuc::Gap), true)]
+  #[case::gap_not_in_n(           (Nuc::Gap, Nuc::N),   false)]
+  #[case::base_not_in_gap(        (Nuc::A,   Nuc::Gap), false)]
+  #[trace]
+  fn test_nuc_is_nuc_subset(#[case] (nuc, filter): (Nuc, Nuc), #[case] expected: bool) {
+    assert_eq!(expected, is_nuc_subset(nuc, filter));
+  }
 }

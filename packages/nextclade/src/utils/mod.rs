@@ -17,6 +17,8 @@ pub mod num_human;
 pub mod option;
 pub mod stats;
 pub mod string;
+#[cfg(test)]
+pub mod testing;
 pub mod vec;
 pub mod vec2d;
 pub mod wraparound;

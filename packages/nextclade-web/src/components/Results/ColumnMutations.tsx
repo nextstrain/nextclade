@@ -1,16 +1,107 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
+import styled from 'styled-components'
 import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/constants'
 import { findCladeNodeAttrFounderInfo, getAaMutations, getNucMutations } from 'src/helpers/relativeMuts'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { currentRefNodeNameAtom, refNodesAtom } from 'src/state/results.state'
 import type { ColumnCladeProps } from 'src/components/Results/ColumnClade'
+import type { AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
-import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfNucMuts } from 'src/components/Results/ListOfNucMuts'
 import { ListOfAaMuts } from 'src/components/Results/ListOfAaMuts'
+import { MutationPatternEventBadge, mutationPatternEventKey } from 'src/components/Common/MutationPatternEventBadge'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { TableSlim } from 'src/components/Common/TableSlim'
+
+const PatternList = styled.div`
+  border-top: 1px solid ${(props) => props.theme.gray300};
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+`
+
+const PatternSection = styled.section`
+  border-top: 1px solid ${(props) => props.theme.gray800};
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
+
+  &:first-child {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+  }
+`
+
+const PatternName = styled.div`
+  font-weight: 700;
+`
+
+const PatternDescription = styled.div`
+  color: ${(props) => props.theme.gray600};
+  font-size: 0.85em;
+  margin-bottom: 0.35rem;
+`
+
+const ClusterCard = styled.div`
+  background: rgba(255, 140, 0, 0.06);
+  border: 1px solid rgba(255, 140, 0, 0.2);
+  border-radius: 3px;
+  padding: 0.25rem 0.4rem;
+
+  &:not(:last-child) {
+    margin-bottom: 0.35rem;
+  }
+`
+
+const ClusterTitle = styled.div`
+  font-weight: 700;
+  font-size: 0.85em;
+  margin-bottom: 2px;
+`
+
+const ClusterBadgeGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+`
+
+function MutationPatternsSection({ analysisResult }: { analysisResult: AnalysisResult }) {
+  const { t } = useTranslationSafe()
+  const visiblePatterns = (analysisResult.mutationPatterns?.results ?? []).filter((pattern) => pattern.clusters.length > 0)
+
+  if (visiblePatterns.length === 0) {
+    return null
+  }
+
+  return (
+    <PatternList>
+      {visiblePatterns.map((pattern) => (
+        <PatternSection key={pattern.id}>
+          <PatternName>{pattern.name || t('Mutation pattern')}</PatternName>
+          {pattern.description && <PatternDescription>{pattern.description}</PatternDescription>}
+
+          {pattern.clusters.map((cluster) => (
+            <ClusterCard key={`${cluster.start}-${cluster.end}`}>
+              <ClusterTitle>
+                {t('{{start}}-{{end}} ({{count}} mutations)', {
+                  start: cluster.start + 1,
+                  end: cluster.end + 1,
+                  count: cluster.count,
+                })}
+              </ClusterTitle>
+              <ClusterBadgeGrid>
+                {cluster.events.map((event) => (
+                  <MutationPatternEventBadge key={mutationPatternEventKey(event)} event={event} />
+                ))}
+              </ClusterBadgeGrid>
+            </ClusterCard>
+          ))}
+        </PatternSection>
+      ))}
+    </PatternList>
+  )
+}
 
 export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
   const { t } = useTranslationSafe()
@@ -117,6 +208,8 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
             </tr>
           </tbody>
         </TableSlim>
+
+        <MutationPatternsSection analysisResult={analysisResult} />
       </Tooltip>
     </div>
   )

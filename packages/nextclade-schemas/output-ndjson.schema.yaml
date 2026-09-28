@@ -261,6 +261,10 @@ properties:
     type: object
     additionalProperties:
       $ref: '#/definitions/PrivateAaMutations'
+  mutationPatterns:
+    description: Results of mutation pattern analysis. Omitted when the dataset configures no `mutationPatterns`
+    allOf:
+    - $ref: '#/definitions/MutationPatternsResults'
   cladeFounderInfo:
     description: Mutations relative to the clade founder node
     anyOf:
@@ -931,6 +935,387 @@ definitions:
         type: array
         items:
           type: string
+  MutationPatternsResults:
+    description: Mutation pattern analysis output. Contains per-pattern results.
+    examples:
+    - results:
+      - id: adar
+        name: ADAR-like RNA editing
+        matches:
+        - type: nucSubstitution
+          pos: 5003
+          refNuc: A
+          qryNuc: G
+          refContext:
+          - A
+          - A
+          - G
+          motifMatches: []
+        - type: nucSubstitution
+          pos: 5033
+          refNuc: A
+          qryNuc: G
+          refContext:
+          - A
+          - A
+          - G
+          motifMatches: []
+        eventTypeCounts:
+        - type: nucSubstitution
+          refNuc: A
+          qryNuc: G
+          count: 2
+        clusters:
+        - start: 5003
+          end: 5033
+          count: 2
+          events:
+          - type: nucSubstitution
+            pos: 5003
+            refNuc: A
+            qryNuc: G
+            refContext:
+            - A
+            - A
+            - G
+            motifMatches: []
+          - type: nucSubstitution
+            pos: 5033
+            refNuc: A
+            qryNuc: G
+            refContext:
+            - A
+            - A
+            - G
+            motifMatches: []
+          eventTypeCounts:
+          - type: nucSubstitution
+            refNuc: A
+            qryNuc: G
+            count: 2
+        counts:
+          matches: 2
+          clustered: 2
+          clusters: 1
+        description: ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand
+    type: object
+    properties:
+      results:
+        description: Results for each configured mutation pattern, in configuration order. Empty when no patterns are configured.
+        type: array
+        items:
+          $ref: '#/definitions/MutationPatternResults'
+  MutationPatternResults:
+    description: Results for a single mutation pattern.
+    examples:
+    - id: adar
+      name: ADAR-like RNA editing
+      matches:
+      - type: nucSubstitution
+        pos: 5003
+        refNuc: A
+        qryNuc: G
+        refContext:
+        - A
+        - A
+        - G
+        motifMatches: []
+      - type: nucSubstitution
+        pos: 5033
+        refNuc: A
+        qryNuc: G
+        refContext:
+        - A
+        - A
+        - G
+        motifMatches: []
+      eventTypeCounts:
+      - type: nucSubstitution
+        refNuc: A
+        qryNuc: G
+        count: 2
+      clusters:
+      - start: 5003
+        end: 5033
+        count: 2
+        events:
+        - type: nucSubstitution
+          pos: 5003
+          refNuc: A
+          qryNuc: G
+          refContext:
+          - A
+          - A
+          - G
+          motifMatches: []
+        - type: nucSubstitution
+          pos: 5033
+          refNuc: A
+          qryNuc: G
+          refContext:
+          - A
+          - A
+          - G
+          motifMatches: []
+        eventTypeCounts:
+        - type: nucSubstitution
+          refNuc: A
+          qryNuc: G
+          count: 2
+      counts:
+        matches: 2
+        clustered: 2
+        clusters: 1
+      description: ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand
+    type: object
+    required:
+    - clusters
+    - counts
+    - eventTypeCounts
+    - id
+    - matches
+    - name
+    properties:
+      id:
+        description: Stable machine-readable pattern identifier copied from pathogen.json.
+        type: string
+      name:
+        description: Human-readable pattern name copied from pathogen.json.
+        type: string
+      matches:
+        description: All private mutation events matching this pattern.
+        type: array
+        items:
+          $ref: '#/definitions/MutationPatternEventMatch'
+      eventTypeCounts:
+        description: Counts of matched event types across all `matches`.
+        type: array
+        items:
+          $ref: '#/definitions/MutationPatternEventTypeCount'
+      clusters:
+        description: Pattern-local clusters detected among `matches`.
+        type: array
+        items:
+          $ref: '#/definitions/MutationPatternCluster'
+      counts:
+        description: Summary counts for matches and clusters.
+        allOf:
+        - $ref: '#/definitions/MutationPatternCounts'
+      description:
+        description: Optional explanatory text copied from pathogen.json.
+        type:
+        - string
+        - 'null'
+  MutationPatternEventMatch:
+    description: Matched mutation pattern event.
+    examples:
+    - type: nucSubstitution
+      pos: 5003
+      refNuc: A
+      qryNuc: G
+      refContext:
+      - A
+      - A
+      - G
+      motifMatches: []
+    oneOf:
+    - description: Matched nucleotide substitution event.
+      examples:
+      - pos: 5003
+        refNuc: A
+        qryNuc: G
+        refContext:
+        - A
+        - A
+        - G
+        motifMatches: []
+      type: object
+      required:
+      - motifMatches
+      - pos
+      - qryNuc
+      - refContext
+      - refNuc
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - nucSubstitution
+        motifMatches:
+          description: Motif sites of all matching pattern events that have their group at the substituted position, sorted by position. Empty when the matching events have no motifs.
+          type: array
+          items:
+            $ref: '#/definitions/MutationPatternMotifMatch'
+        refContext:
+          description: 'Nucleotides of the nearest tree node around the substituted position: `[upstream, current, downstream]`.'
+          type: array
+          items:
+            $ref: '#/definitions/Nuc'
+        pos:
+          description: 0-based position in the reference sequence
+          allOf:
+          - $ref: '#/definitions/Position'
+        refNuc:
+          description: Nucleotide in the reference at this position
+          allOf:
+          - $ref: '#/definitions/Nuc'
+        qryNuc:
+          description: Nucleotide in the query at this position
+          allOf:
+          - $ref: '#/definitions/Nuc'
+  MutationPatternMotifMatch:
+    description: Motif site that has its group in parentheses at the substituted position.
+    examples:
+    - motif: T(C)W
+      start: 5002
+      end: 5005
+    type: object
+    required:
+    - end
+    - motif
+    - start
+    properties:
+      motif:
+        description: Motif as written in the pattern configuration. For the opposite-strand event of an event with `bothStrands`, the reverse-complemented motif, in upper case.
+        type: string
+      start:
+        description: 0-based first reference position included in the motif site.
+        type: integer
+        format: uint
+        minimum: 0.0
+      end:
+        description: 0-based position after the end of the motif site.
+        type: integer
+        format: uint
+        minimum: 0.0
+  MutationPatternEventTypeCount:
+    description: Count of matched mutation pattern events of one event type.
+    examples:
+    - type: nucSubstitution
+      refNuc: A
+      qryNuc: G
+      count: 8
+    oneOf:
+    - description: Count of nucleotide substitutions with the same reference and query nucleotide.
+      examples:
+      - refNuc: A
+        qryNuc: G
+        count: 8
+      type: object
+      required:
+      - count
+      - qryNuc
+      - refNuc
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - nucSubstitution
+        refNuc:
+          description: Reference nucleotide at the substituted position.
+          allOf:
+          - $ref: '#/definitions/Nuc'
+        qryNuc:
+          description: Query nucleotide at the substituted position.
+          allOf:
+          - $ref: '#/definitions/Nuc'
+        count:
+          description: Number of matching substitutions with this reference and query nucleotide pair.
+          type: integer
+          format: uint
+          minimum: 0.0
+  MutationPatternCluster:
+    description: Cluster of matched events. A cluster grows while consecutive sliding windows each hold more than `cutoff` events; adjacent clusters can share events.
+    examples:
+    - start: 5003
+      end: 5033
+      count: 2
+      events:
+      - type: nucSubstitution
+        pos: 5003
+        refNuc: A
+        qryNuc: G
+        refContext:
+        - A
+        - A
+        - G
+        motifMatches: []
+      - type: nucSubstitution
+        pos: 5033
+        refNuc: A
+        qryNuc: G
+        refContext:
+        - A
+        - A
+        - G
+        motifMatches: []
+      eventTypeCounts:
+      - type: nucSubstitution
+        refNuc: A
+        qryNuc: G
+        count: 2
+    type: object
+    required:
+    - count
+    - end
+    - eventTypeCounts
+    - events
+    - start
+    properties:
+      start:
+        description: 0-based first reference position included in this cluster.
+        type: integer
+        format: uint
+        minimum: 0.0
+      end:
+        description: 0-based last reference position included in this cluster.
+        type: integer
+        format: uint
+        minimum: 0.0
+      count:
+        description: Number of matched events in this cluster.
+        type: integer
+        format: uint
+        minimum: 0.0
+      events:
+        description: Matched events belonging to this cluster, sorted by reference position.
+        type: array
+        items:
+          $ref: '#/definitions/MutationPatternEventMatch'
+      eventTypeCounts:
+        description: Counts of event types within this cluster.
+        type: array
+        items:
+          $ref: '#/definitions/MutationPatternEventTypeCount'
+  MutationPatternCounts:
+    description: Summary counts for one mutation pattern.
+    examples:
+    - matches: 14
+      clustered: 14
+      clusters: 2
+    type: object
+    required:
+    - clustered
+    - clusters
+    - matches
+    properties:
+      matches:
+        description: Number of private mutation events matching the pattern.
+        type: integer
+        format: uint
+        minimum: 0.0
+      clustered:
+        description: Number of distinct matched events that belong to reported clusters. Clusters can share events; each event counts once.
+        type: integer
+        format: uint
+        minimum: 0.0
+      clusters:
+        description: Number of clusters reported for this pattern.
+        type: integer
+        format: uint
+        minimum: 0.0
   CladeNodeAttrFounderInfo:
     description: Information about a clade-like node attribute founder
     type: object

@@ -546,6 +546,55 @@
               "scoreWeight": 75.0
             }
           },
+          "mutationPatterns": {
+            "patterns": [
+              {
+                "id": "adar",
+                "name": "ADAR-like RNA editing",
+                "description": "ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand",
+                "events": [
+                  {
+                    "type": "nucSubstitution",
+                    "ref": [
+                      "A"
+                    ],
+                    "qry": [
+                      "G"
+                    ],
+                    "bothStrands": true
+                  }
+                ],
+                "cluster": {
+                  "windowSize": 100,
+                  "cutoff": 5
+                }
+              },
+              {
+                "id": "apobec",
+                "name": "APOBEC3-like cytosine deamination",
+                "description": "APOBEC3-like cytosine deamination, observed as C>T in TCW context, and as G>A in WGA context on the opposite strand",
+                "events": [
+                  {
+                    "type": "nucSubstitution",
+                    "ref": [
+                      "C"
+                    ],
+                    "qry": [
+                      "T"
+                    ],
+                    "motifs": [
+                      "T(C)W"
+                    ],
+                    "bothStrands": true
+                  }
+                ],
+                "cluster": {
+                  "windowSize": 50,
+                  "cutoff": 4
+                }
+              }
+            ]
+          },
           "phenotypeData": [
             {
               "name": "receptor_binding",
@@ -685,6 +734,17 @@
           "anyOf": [
             {
               "$ref": "#/definitions/QcConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mutationPatterns": {
+          "description": "Mutation pattern analysis configuration. When present, detects private mutation patterns such as enzyme-associated clustered substitution signatures.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/MutationPatternsConfig"
             },
             {
               "type": "null"
@@ -1401,6 +1461,261 @@
         },
         "codon": {
           "description": "0-indexed codon position of the stop codon within the CDS",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "MutationPatternsConfig": {
+      "description": "Configuration for mutation pattern analysis. Reports private nucleotide substitutions that match mutation type and sequence context rules, such as signatures of RNA editing enzymes, and clusters of them. Results are reported only: they do not change QC scores, and `qc.snpClusters` is independent of them.",
+      "examples": [
+        {
+          "patterns": [
+            {
+              "id": "adar",
+              "name": "ADAR-like RNA editing",
+              "description": "ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand",
+              "events": [
+                {
+                  "type": "nucSubstitution",
+                  "ref": [
+                    "A"
+                  ],
+                  "qry": [
+                    "G"
+                  ],
+                  "bothStrands": true
+                }
+              ],
+              "cluster": {
+                "windowSize": 100,
+                "cutoff": 5
+              }
+            },
+            {
+              "id": "apobec",
+              "name": "APOBEC3-like cytosine deamination",
+              "description": "APOBEC3-like cytosine deamination, observed as C>T in TCW context, and as G>A in WGA context on the opposite strand",
+              "events": [
+                {
+                  "type": "nucSubstitution",
+                  "ref": [
+                    "C"
+                  ],
+                  "qry": [
+                    "T"
+                  ],
+                  "motifs": [
+                    "T(C)W"
+                  ],
+                  "bothStrands": true
+                }
+              ],
+              "cluster": {
+                "windowSize": 50,
+                "cutoff": 4
+              }
+            }
+          ]
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "patterns": {
+          "description": "Mutation patterns evaluated independently for every analyzed sequence.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MutationPatternConfig"
+          }
+        }
+      }
+    },
+    "MutationPatternConfig": {
+      "description": "Named mutation pattern: event filters, optional clustering, and display metadata.\n\nDataset authors can define multiple patterns to separate biologically different mutation processes, such as ADAR-like A-to-I editing and APOBEC-like cytosine deamination.",
+      "examples": [
+        {
+          "id": "adar",
+          "name": "ADAR-like RNA editing",
+          "description": "ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand",
+          "events": [
+            {
+              "type": "nucSubstitution",
+              "ref": [
+                "A"
+              ],
+              "qry": [
+                "G"
+              ],
+              "bothStrands": true
+            }
+          ],
+          "cluster": {
+            "windowSize": 100,
+            "cutoff": 5
+          }
+        }
+      ],
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "description": "Stable machine-readable identifier. This value appears in JSON output and in TSV column names such as `mutationPatterns['<id>'].counts.matches`. Must be non-empty, unique, and free of the characters `'`, `[` and `]`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "Human-readable name shown in Nextclade Web tooltips and reports.",
+          "type": "string"
+        },
+        "description": {
+          "description": "Optional explanatory text shown together with the pattern result.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "events": {
+          "description": "Event filters included in this pattern. A substitution matches the pattern when at least one event matches it. If empty, the pattern matches all private nucleotide substitutions.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MutationPatternEvent"
+          }
+        },
+        "cluster": {
+          "description": "Optional pattern-local clustering rule. If omitted, Nextclade reports matches and type counts, but no clusters for this pattern.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/MutationPatternClusterConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "MutationPatternEvent": {
+      "description": "Mutation event filter in mutation pattern analysis.\n\nEach event selects one class of private mutations to include in a pattern. More event variants can be added without changing the surrounding `mutationPatterns.patterns[]` structure.",
+      "examples": [
+        {
+          "type": "nucSubstitution",
+          "ref": [
+            "C"
+          ],
+          "qry": [
+            "T"
+          ],
+          "motifs": [
+            "T(C)W"
+          ],
+          "bothStrands": true
+        }
+      ],
+      "oneOf": [
+        {
+          "description": "Nucleotide substitution event, selected by reference nucleotide, query nucleotide, and optional sequence motifs.",
+          "examples": [
+            {
+              "ref": [
+                "C"
+              ],
+              "qry": [
+                "T"
+              ],
+              "motifs": [
+                "T(C)W"
+              ],
+              "bothStrands": true
+            }
+          ],
+          "type": "object",
+          "required": [
+            "qry",
+            "ref",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "nucSubstitution"
+              ]
+            },
+            "ref": {
+              "description": "Reference nucleotides to match at the mutated position. Must not be empty. A nucleotide matches an IUPAC code when every base it can stand for is a base of the code: `R` matches `A`, `G` and `R`, `N` matches every nucleotide, and `G` does not match the ambiguous `R`.",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Nuc"
+              }
+            },
+            "qry": {
+              "description": "Query nucleotides to match at the mutated position. Must not be empty. Matched like `ref`. Ambiguous query calls such as `R` are not substitutions, so they never match.",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Nuc"
+              }
+            },
+            "motifs": {
+              "description": "Sequence contexts in which the substitution counts, written in IUPAC notation with the mutated nucleotide in parentheses: `T(C)W` is a `C` preceded by `T` and followed by `A` or `T`. Each motif must contain exactly one group in parentheses, the group must match exactly one nucleotide, and it must accept at least one of the `ref` nucleotides.\n\nMotifs are regular expressions (Rust `regex` syntax) matched against the sequence of the nearest node of the reference tree. Letters are case-insensitive, and each IUPAC code matches every code whose bases are a subset of its bases: `W` matches `A`, `T` and `W`. `[..]` lists choices and `.` matches any nucleotide. Character ranges such as `[A-C]` are not allowed. A motif site is the leftmost-first match that starts at a given position; the substitution qualifies when a site has its group at the substituted position.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "bothStrands": {
+              "description": "Also match the same event on the opposite strand: complemented `ref` and `qry`, and reverse-complemented motifs. C>T with motif `T(C)W` then also matches G>A with motif `W(G)A`. Motifs of such events cannot contain assertions (`^`, `$`, `\\b`), inline flags such as `(?i)`, or named classes such as `\\w` or `[[:alpha:]]`.",
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "Nuc": {
+      "description": "A nucleotide",
+      "type": "string",
+      "enum": [
+        "T",
+        "A",
+        "W",
+        "C",
+        "Y",
+        "M",
+        "H",
+        "G",
+        "K",
+        "R",
+        "D",
+        "S",
+        "B",
+        "V",
+        "N",
+        "-"
+      ]
+    },
+    "MutationPatternClusterConfig": {
+      "description": "Clustering rule applied to events matching one mutation pattern.\n\nClustering is pattern-local. It decides which matched events are reported as dense clusters in this pattern. It does not change the `qc.snpClusters` rule or any other QC score.",
+      "examples": [
+        {
+          "windowSize": 100,
+          "cutoff": 5
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "windowSize": {
+          "description": "Size of the sliding window, in reference nucleotides. Matched events at most `windowSize` nucleotides apart are in one window. Must be at least 1.",
+          "default": 100,
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "cutoff": {
+          "description": "A window that holds more than `cutoff` matched events is reported as a cluster: with `cutoff: 5`, a cluster has at least 6 events.",
+          "default": 5,
           "type": "integer",
           "format": "uint",
           "minimum": 0.0

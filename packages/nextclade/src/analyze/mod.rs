@@ -20,11 +20,17 @@ pub mod group_adjacent_deletions;
 pub mod is_sequenced;
 pub mod letter_composition;
 pub mod letter_ranges;
+pub mod mutation_patterns;
 pub mod nuc_alignment;
 pub mod nuc_changes;
 pub mod nuc_del;
 pub mod nuc_sub;
+pub mod nuc_sub_context;
 pub mod pcr_primer_changes;
 pub mod pcr_primers;
 pub mod phenotype;
+pub mod sliding_window_clusters;
 pub mod virus_properties;
+
+#[cfg(test)]
+mod __tests__;

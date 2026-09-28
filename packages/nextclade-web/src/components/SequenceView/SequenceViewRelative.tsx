@@ -11,6 +11,7 @@ import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerAmbiguous } from './SequenceMarkerAmbiguous'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
+import { SequenceMarkerMutationPatternClusters, countMutationPatternClusters } from './SequenceMarkerCluster'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
@@ -23,7 +24,7 @@ export interface SequenceViewRelativeProps {
 }
 
 export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceViewRelativeProps) {
-  const { index, seqName, missing, alignmentRange, frameShifts, insertions, nucToAaMuts, nonACGTNs } = sequence
+  const { index, seqName, missing, alignmentRange, frameShifts, insertions, nucToAaMuts, nonACGTNs, mutationPatterns } = sequence
 
   const { t } = useTranslationSafe()
   const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
@@ -104,7 +105,12 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
   ))
 
   const totalMarkers =
-    mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length + insertionViews.length
+    mutationViews.length +
+    deletionViews.length +
+    missingViews.length +
+    frameShiftMarkers.length +
+    insertionViews.length +
+    countMutationPatternClusters(mutationPatterns)
 
   if (totalMarkers > maxNucMarkers) {
     return (
@@ -155,6 +161,12 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
         pixelsPerBase={pixelsPerBase}
       />
       {frameShiftMarkers}
+      <SequenceMarkerMutationPatternClusters
+        index={index}
+        seqName={seqName}
+        mutationPatterns={mutationPatterns}
+        pixelsPerBase={pixelsPerBase}
+      />
     </SequenceViewSVG>
   )
 }

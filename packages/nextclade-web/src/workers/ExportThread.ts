@@ -58,6 +58,7 @@ export class ExportWorker {
     phenotypeAttrs: PhenotypeAttrDesc[],
     refNodes: AuspiceRefNodesDesc,
     aaMotifsDescs: AaMotifsDesc[],
+    mutationPatternKeys: string[],
     delimiter: string,
     csvColumnConfig: CsvColumnConfig,
   ) {
@@ -68,6 +69,7 @@ export class ExportWorker {
       phenotypeAttrs,
       refNodes,
       aaMotifsDescs,
+      mutationPatternKeys,
       delimiter,
       csvColumnConfig,
     )

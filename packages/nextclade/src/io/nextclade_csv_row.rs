@@ -6,10 +6,12 @@ use crate::analyze::aa_sub::{AaSub, AaSubLabeled};
 use crate::analyze::find_aa_motifs::AaMotif;
 use crate::analyze::find_clade_founder::CladeNodeAttrFounderInfo;
 use crate::analyze::letter_ranges::{CdsAaRange, NucRange};
+use crate::analyze::mutation_patterns::MutationPatternEventTypeCount;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::coord::range::NucRefGlobalRange;
+use crate::io::nextclade_csv::mut_pattern_cols;
 use crate::o;
 use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
@@ -66,6 +68,7 @@ impl NextcladeResultsCsvRow {
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      mutation_patterns,
       missing_cdses,
       // divergence,
       coverage,
@@ -429,6 +432,16 @@ impl NextcladeResultsCsvRow {
       "qc.stopCodons.status",
       qc.stop_codons.as_ref().map(|sc| sc.status.to_string()),
     )?;
+    for pattern in &mutation_patterns.results {
+      let [col_matches, col_clustered, col_clusters, col_event_type_counts] = mut_pattern_cols(&pattern.id);
+      self.add_entry(col_matches, &pattern.counts.matches)?;
+      self.add_entry(col_clustered, &pattern.counts.clustered)?;
+      self.add_entry(col_clusters, &pattern.counts.clusters)?;
+      self.add_entry(
+        col_event_type_counts,
+        &format_mutation_pattern_event_type_counts(&pattern.event_type_counts, ARRAY_ITEM_DELIMITER),
+      )?;
+    }
     self.add_entry("isReverseComplement", &is_reverse_complement.to_string())?;
     self.add_entry("failedCdses", &format_failed_cdses(missing_cdses, ARRAY_ITEM_DELIMITER))?;
     self.add_entry(
@@ -671,9 +684,27 @@ pub fn format_clustered_snps(snps: &[ClusteredSnp], delimiter: &str) -> String {
   snps
     .iter()
     .map(|snp| {
-      let range = NucRefGlobalRange::from_usize(snp.start, snp.end).to_string();
+      // `end` is the inclusive position of the last substitution
+      let range = NucRefGlobalRange::from_usize(snp.start, snp.end + 1).to_string();
       let number_of_snps = snp.number_of_snps;
       format!("{range}:{number_of_snps}")
+    })
+    .join(delimiter)
+}
+
+#[inline]
+pub fn format_mutation_pattern_event_type_counts(counts: &[MutationPatternEventTypeCount], delimiter: &str) -> String {
+  counts
+    .iter()
+    .map(|c| match c {
+      MutationPatternEventTypeCount::NucSubstitution(c) => {
+        format!(
+          "nucSubstitution:{}>{}:{}",
+          from_nuc(c.ref_nuc),
+          from_nuc(c.qry_nuc),
+          c.count
+        )
+      }
     })
     .join(delimiter)
 }
@@ -725,4 +756,49 @@ fn format_aa_motifs(motifs: &[AaMotif]) -> String {
     .iter()
     .map(|AaMotif { cds, position, seq, .. }| format!("{}:{}:{seq}", cds, position + 1))
     .join(";")
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::alphabet::nuc::Nuc;
+  use crate::analyze::mutation_patterns::MutationPatternNucSubstitutionTypeCount;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  // 0-based inclusive `(start, end)` print as 1-based inclusive ranges
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::one_cluster(   &[(5, 29, 8)],               "6-30:8")]
+  #[case::two_clusters(  &[(5, 29, 8), (99, 149, 6)], "6-30:8,100-150:6")]
+  #[case::one_position(  &[(5, 5, 1)],                "6:1")]
+  #[case::first_position(&[(0, 3, 2)],                "1-4:2")]
+  #[case::no_clusters(   &[],                         "")]
+  #[trace]
+  fn test_format_clustered_snps(#[case] clusters: &[(usize, usize, usize)], #[case] expected: &str) {
+    let snps = clusters
+      .iter()
+      .map(|&(start, end, number_of_snps)| ClusteredSnp { start, end, number_of_snps })
+      .collect_vec();
+    assert_eq!(expected, format_clustered_snps(&snps, ","));
+  }
+
+  #[test]
+  fn test_format_mutation_pattern_event_type_counts() {
+    let counts = vec![
+      MutationPatternEventTypeCount::NucSubstitution(MutationPatternNucSubstitutionTypeCount {
+        ref_nuc: Nuc::A,
+        qry_nuc: Nuc::G,
+        count: 8,
+      }),
+      MutationPatternEventTypeCount::NucSubstitution(MutationPatternNucSubstitutionTypeCount {
+        ref_nuc: Nuc::T,
+        qry_nuc: Nuc::C,
+        count: 6,
+      }),
+    ];
+    // Documented TSV format `nucSubstitution:<ref>><qry>:<count>` (docs/user/output-files/04-results-tsv.md)
+    let expected = "nucSubstitution:A>G:8,nucSubstitution:T>C:6";
+    assert_eq!(expected, format_mutation_pattern_event_type_counts(&counts, ","));
+  }
 }
