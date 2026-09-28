@@ -2164,6 +2164,7 @@ dependencies = [
  "rayon",
  "regex",
  "regex-automata",
+ "regex-syntax",
  "rstest",
  "rust_xlsxwriter",
  "schemars",

@@ -90,7 +90,7 @@
           {
             "id": "adar",
             "name": "ADAR-like RNA editing",
-            "description": "ADAR-mediated A-to-I editing observed as A>G and complementary T>C",
+            "description": "ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand",
             "events": [
               {
                 "type": "nucSubstitution",
@@ -99,16 +99,8 @@
                 ],
                 "qry": [
                   "G"
-                ]
-              },
-              {
-                "type": "nucSubstitution",
-                "ref": [
-                  "T"
                 ],
-                "qry": [
-                  "C"
-                ]
+                "bothStrands": true
               }
             ],
             "cluster": {
@@ -118,8 +110,8 @@
           },
           {
             "id": "apobec",
-            "name": "APOBEC-like cytosine deamination",
-            "description": "APOBEC-like cytosine deamination observed as C>T and complementary G>A",
+            "name": "APOBEC3-like cytosine deamination",
+            "description": "APOBEC3-like cytosine deamination, observed as C>T in TCW context, and as G>A in WGA context on the opposite strand",
             "events": [
               {
                 "type": "nucSubstitution",
@@ -130,20 +122,9 @@
                   "T"
                 ],
                 "motifs": [
-                  "TC[AT]"
-                ]
-              },
-              {
-                "type": "nucSubstitution",
-                "ref": [
-                  "G"
+                  "T(C)W"
                 ],
-                "qry": [
-                  "A"
-                ],
-                "motifs": [
-                  "[AT]GA"
-                ]
+                "bothStrands": true
               }
             ],
             "cluster": {
@@ -1046,14 +1027,14 @@
       }
     },
     "MutationPatternsConfig": {
-      "description": "Configuration for mutation pattern analysis. Detects private mutations matching biologically meaningful mutation type and reference-context rules. Pattern-specific clustering is independent from global `qc.snpClusters`.",
+      "description": "Configuration for mutation pattern analysis. Reports private nucleotide substitutions that match mutation type and sequence context rules, such as signatures of RNA editing enzymes, and clusters of them. Results are reported only: they do not change QC scores, and `qc.snpClusters` is independent of them.",
       "examples": [
         {
           "patterns": [
             {
               "id": "adar",
               "name": "ADAR-like RNA editing",
-              "description": "ADAR-mediated A-to-I editing observed as A>G and complementary T>C",
+              "description": "ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand",
               "events": [
                 {
                   "type": "nucSubstitution",
@@ -1062,16 +1043,8 @@
                   ],
                   "qry": [
                     "G"
-                  ]
-                },
-                {
-                  "type": "nucSubstitution",
-                  "ref": [
-                    "T"
                   ],
-                  "qry": [
-                    "C"
-                  ]
+                  "bothStrands": true
                 }
               ],
               "cluster": {
@@ -1081,8 +1054,8 @@
             },
             {
               "id": "apobec",
-              "name": "APOBEC-like cytosine deamination",
-              "description": "APOBEC-like cytosine deamination observed as C>T and complementary G>A",
+              "name": "APOBEC3-like cytosine deamination",
+              "description": "APOBEC3-like cytosine deamination, observed as C>T in TCW context, and as G>A in WGA context on the opposite strand",
               "events": [
                 {
                   "type": "nucSubstitution",
@@ -1093,20 +1066,9 @@
                     "T"
                   ],
                   "motifs": [
-                    "TC[AT]"
-                  ]
-                },
-                {
-                  "type": "nucSubstitution",
-                  "ref": [
-                    "G"
+                    "T(C)W"
                   ],
-                  "qry": [
-                    "A"
-                  ],
-                  "motifs": [
-                    "[AT]GA"
-                  ]
+                  "bothStrands": true
                 }
               ],
               "cluster": {
@@ -1134,7 +1096,7 @@
         {
           "id": "adar",
           "name": "ADAR-like RNA editing",
-          "description": "ADAR-mediated A-to-I editing observed as A>G and complementary T>C",
+          "description": "ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand",
           "events": [
             {
               "type": "nucSubstitution",
@@ -1143,16 +1105,8 @@
               ],
               "qry": [
                 "G"
-              ]
-            },
-            {
-              "type": "nucSubstitution",
-              "ref": [
-                "T"
               ],
-              "qry": [
-                "C"
-              ]
+              "bothStrands": true
             }
           ],
           "cluster": {
@@ -1183,7 +1137,7 @@
           ]
         },
         "events": {
-          "description": "Event filters included in this pattern. If empty, the pattern matches all private nucleotide substitutions.",
+          "description": "Event filters included in this pattern. A substitution matches the pattern when at least one event matches it. If empty, the pattern matches all private nucleotide substitutions.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/MutationPatternEvent"
@@ -1214,13 +1168,14 @@
             "T"
           ],
           "motifs": [
-            "TC[AT]"
-          ]
+            "T(C)W"
+          ],
+          "bothStrands": true
         }
       ],
       "oneOf": [
         {
-          "description": "Nucleotide substitution event, selected by reference nucleotide, query nucleotide, and optional reference motifs.",
+          "description": "Nucleotide substitution event, selected by reference nucleotide, query nucleotide, and optional sequence motifs.",
           "examples": [
             {
               "ref": [
@@ -1230,8 +1185,9 @@
                 "T"
               ],
               "motifs": [
-                "TC[AT]"
-              ]
+                "T(C)W"
+              ],
+              "bothStrands": true
             }
           ],
           "type": "object",
@@ -1248,25 +1204,30 @@
               ]
             },
             "ref": {
-              "description": "Reference nucleotides to match at the mutated position. Must not be empty. IUPAC ambiguity codes match every nucleotide they share a base with: `R` matches `A`, `G` and `R`.",
+              "description": "Reference nucleotides to match at the mutated position. Must not be empty. A nucleotide matches an IUPAC code when every base it can stand for is a base of the code: `R` matches `A`, `G` and `R`, `N` matches every nucleotide, and `G` does not match the ambiguous `R`.",
               "type": "array",
               "items": {
                 "$ref": "#/definitions/Nuc"
               }
             },
             "qry": {
-              "description": "Query nucleotides to match at the mutated position. Must not be empty. IUPAC ambiguity codes match every nucleotide they share a base with, in both directions: filter `G` also matches the ambiguous query nucleotide `R`.",
+              "description": "Query nucleotides to match at the mutated position. Must not be empty. Matched like `ref`: filter `G` does not match the ambiguous query nucleotide `R`, so mixed calls are not counted.",
               "type": "array",
               "items": {
                 "$ref": "#/definitions/Nuc"
               }
             },
             "motifs": {
-              "description": "Regular expressions matched against the reference sequence. A motif site is the leftmost-first regex match that starts at a given reference position. Sites are found at every start position, so sites can overlap. A substitution qualifies when a site contains the substituted position, at any offset within the site: write motifs in which the reference nucleotide occurs at one offset only, for example `TC[AT]` for C>T in a TCW context. Letters are matched literally, so write IUPAC ambiguity codes as character classes: `[AT]` for `W`.",
+              "description": "Sequence contexts in which the substitution counts, written in IUPAC notation with the mutated nucleotide in parentheses: `T(C)W` is a `C` preceded by `T` and followed by `A` or `T`. Each motif must contain exactly one group in parentheses, the group must match exactly one nucleotide, and it must accept at least one of the `ref` nucleotides.\n\nMotifs are regular expressions (Rust `regex` syntax) matched against the sequence of the nearest node of the reference tree. Letters are case-insensitive, and each IUPAC code matches every code whose bases are a subset of its bases: `W` matches `A`, `T` and `W`. `[..]` lists choices and `.` matches any nucleotide. Character ranges such as `[A-C]` are not allowed. A motif site is the leftmost-first match that starts at a given position; the substitution qualifies when a site has its group at the substituted position.",
               "type": "array",
               "items": {
                 "type": "string"
               }
+            },
+            "bothStrands": {
+              "description": "Also match the same event on the opposite strand: complemented `ref` and `qry`, and reverse-complemented motifs. C>T with motif `T(C)W` then also matches G>A with motif `W(G)A`. Motifs of such events cannot contain assertions (`^`, `$`, `\\b`), inline flags such as `(?i)`, or named classes such as `\\w` or `[[:alpha:]]`.",
+              "default": false,
+              "type": "boolean"
             }
           }
         }
@@ -1295,7 +1256,7 @@
       ]
     },
     "MutationPatternClusterConfig": {
-      "description": "Clustering rule applied to events matching one mutation pattern.\n\nClustering is pattern-local. It decides which matched events are reported as dense clusters in this pattern. It does not change the global `qc.snpClusters` rule unless the QC rule itself is configured separately.",
+      "description": "Clustering rule applied to events matching one mutation pattern.\n\nClustering is pattern-local. It decides which matched events are reported as dense clusters in this pattern. It does not change the `qc.snpClusters` rule or any other QC score.",
       "examples": [
         {
           "windowSize": 100,

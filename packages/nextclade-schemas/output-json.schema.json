@@ -1887,7 +1887,7 @@
                 "clustered": 2,
                 "clusters": 1
               },
-              "description": "ADAR-mediated A-to-I editing observed as A>G and complementary T>C"
+              "description": "ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand"
             }
           ]
         }
@@ -1989,7 +1989,7 @@
             "clustered": 2,
             "clusters": 1
           },
-          "description": "ADAR-mediated A-to-I editing observed as A>G and complementary T>C"
+          "description": "ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand"
         }
       ],
       "type": "object",
@@ -2097,14 +2097,14 @@
               ]
             },
             "motifMatches": {
-              "description": "Motif sites that contain the substituted position. Empty when the matching pattern event has no motifs.",
+              "description": "Motif sites of all matching pattern events that have their group at the substituted position, sorted by position. Empty when the matching events have no motifs.",
               "type": "array",
               "items": {
                 "$ref": "#/definitions/MutationPatternMotifMatch"
               }
             },
             "refContext": {
-              "description": "Reference nucleotide context around the substituted position.",
+              "description": "Nucleotides of the nearest tree node around the substituted position: `[upstream, current, downstream]`.",
               "type": "array",
               "items": {
                 "$ref": "#/definitions/Nuc"
@@ -2139,10 +2139,10 @@
       ]
     },
     "MutationPatternMotifMatch": {
-      "description": "Reference motif match that overlapped a mutation pattern event.",
+      "description": "Motif site that has its group in parentheses at the substituted position.",
       "examples": [
         {
-          "motif": "TC[AT]",
+          "motif": "T(C)W",
           "start": 5002,
           "end": 5005
         }
@@ -2155,17 +2155,17 @@
       ],
       "properties": {
         "motif": {
-          "description": "Regular expression from the pattern configuration that matched the reference sequence.",
+          "description": "Motif as written in the pattern configuration. For the opposite-strand event of an event with `bothStrands`, the reverse-complemented motif, in upper case.",
           "type": "string"
         },
         "start": {
-          "description": "0-based first reference position included in the motif match.",
+          "description": "0-based first reference position included in the motif site.",
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
         },
         "end": {
-          "description": "0-based position after the end of the motif match.",
+          "description": "0-based position after the end of the motif site.",
           "type": "integer",
           "format": "uint",
           "minimum": 0.0

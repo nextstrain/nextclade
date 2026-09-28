@@ -430,13 +430,20 @@ pub fn nextclade_run_one(
   let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;
   let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_translation, &translation)?;
 
-  let mutation_pattern_analysis = analyze_mutation_patterns(
+  let nearest_node_mutations = graph
+    .as_ref()
+    .map(|graph| {
+      graph
+        .get_node(nearest_node_id)
+        .map(|node| &node.payload().tmp.mutations)
+    })
+    .transpose()?;
+  let mutation_patterns = analyze_mutation_patterns(
     &private_nuc_mutations,
     ref_seq,
+    nearest_node_mutations,
     mutation_patterns,
-    virus_properties.qc.as_ref().map(|qc| &qc.snp_clusters),
   );
-  let mutation_patterns = mutation_pattern_analysis.results;
 
   let qc = virus_properties
     .qc
@@ -444,7 +451,6 @@ pub fn nextclade_run_one(
     .map(|qc_config| {
       qc_run(
         &private_nuc_mutations,
-        &mutation_pattern_analysis.qc_clusters,
         &nucleotide_composition,
         total_missing,
         &translation,

@@ -399,7 +399,7 @@ impl Nextclade {
       .cloned()
       .unwrap_or_default();
 
-    let mutation_patterns = MutationPatterns::new(virus_properties.mutation_patterns.as_ref(), &ref_seq)
+    let mutation_patterns = MutationPatterns::new(virus_properties.mutation_patterns.as_ref())
       .wrap_err("When preparing mutation patterns")?;
 
     Ok(Self {
@@ -439,12 +439,7 @@ impl Nextclade {
       ref_nodes: self.ref_nodes.clone(),
       aa_motifs_descs: self.aa_motifs_descs.clone(),
       aa_motif_keys: self.aa_motifs_keys.clone(),
-      mutation_pattern_keys: self
-        .virus_properties
-        .mutation_patterns
-        .as_ref()
-        .map(|mp| mp.patterns.iter().map(|p| p.id.clone()).collect())
-        .unwrap_or_default(),
+      mutation_pattern_keys: self.mutation_patterns.ids().map(ToOwned::to_owned).collect(),
       csv_column_config_default: CsvColumnConfig::default(),
     }
   }

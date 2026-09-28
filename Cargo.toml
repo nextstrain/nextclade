@@ -72,8 +72,11 @@ percent-encoding = "=2.3.2"
 pretty_assertions = "=1.4.1"
 proptest = "=1.11.0"
 rayon = "=1.11.0"
+# `regex`, `regex-automata` and `regex-syntax` are one family: `regex` and `regex-automata` depend on the others.
+# Update the three pins together, so that the build contains one version of each.
 regex = "=1.12.2"
 regex-automata = "=0.4.13"
+regex-syntax = "=0.8.8"
 reqwest = { version = "=0.13.1", default-features = false, features = ["blocking", "socks", "gzip", "deflate", "brotli", "zstd", "rustls", "rustls-native-certs"] }
 rstest = "=0.26.1"
 rust_xlsxwriter = { version = "=0.92.2", features = ["wasm"] }

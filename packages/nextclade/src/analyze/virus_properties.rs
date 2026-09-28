@@ -63,7 +63,7 @@ impl PathogenAttributes {
 #[serde(tag = "type", rename_all = "camelCase")]
 #[schemars(example = "MutationPatternEvent::example")]
 pub enum MutationPatternEvent {
-  /// Nucleotide substitution event, selected by reference nucleotide, query nucleotide, and optional reference motifs.
+  /// Nucleotide substitution event, selected by reference nucleotide, query nucleotide, and optional sequence motifs.
   NucSubstitution(MutationPatternNucSubstitution),
 }
 
@@ -76,39 +76,52 @@ impl MutationPatternEvent {
 /// Filter for selecting nucleotide substitutions in mutation pattern analysis.
 ///
 /// A substitution matches this event when its reference nucleotide matches one of `ref`, its query nucleotide matches one
-/// of `qry`, and at least one motif site contains the substituted position. If `motifs` is empty, the event matches without
-/// a sequence context restriction.
+/// of `qry`, and, if `motifs` is not empty, at least one motif marks the substituted position. The reference nucleotide
+/// of a private substitution is the nucleotide of the nearest node of the reference tree.
 ///
 /// `ref` and `qry` are checked independently: `ref: [A, T], qry: [G, C]` also matches A>C and T>G. Use one event per
-/// substitution type to select only A>G and T>C.
+/// substitution type, or `bothStrands`, to select only A>G and T>C.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "MutationPatternNucSubstitution::example")]
 pub struct MutationPatternNucSubstitution {
-  /// Reference nucleotides to match at the mutated position. Must not be empty. IUPAC ambiguity codes match every
-  /// nucleotide they share a base with: `R` matches `A`, `G` and `R`.
+  /// Reference nucleotides to match at the mutated position. Must not be empty. A nucleotide matches an IUPAC code when
+  /// every base it can stand for is a base of the code: `R` matches `A`, `G` and `R`, `N` matches every nucleotide, and
+  /// `G` does not match the ambiguous `R`.
   #[serde(rename = "ref")]
   pub ref_nucs: Vec<Nuc>,
 
-  /// Query nucleotides to match at the mutated position. Must not be empty. IUPAC ambiguity codes match every nucleotide
-  /// they share a base with, in both directions: filter `G` also matches the ambiguous query nucleotide `R`.
-  pub qry: Vec<Nuc>,
+  /// Query nucleotides to match at the mutated position. Must not be empty. Matched like `ref`: filter `G` does not match
+  /// the ambiguous query nucleotide `R`, so mixed calls are not counted.
+  #[serde(rename = "qry")]
+  pub qry_nucs: Vec<Nuc>,
 
-  /// Regular expressions matched against the reference sequence. A motif site is the leftmost-first regex match that
-  /// starts at a given reference position. Sites are found at every start position, so sites can overlap. A substitution
-  /// qualifies when a site contains the substituted position, at any offset within the site: write motifs in which the
-  /// reference nucleotide occurs at one offset only, for example `TC[AT]` for C>T in a TCW context. Letters are matched
-  /// literally, so write IUPAC ambiguity codes as character classes: `[AT]` for `W`.
+  /// Sequence contexts in which the substitution counts, written in IUPAC notation with the mutated nucleotide in
+  /// parentheses: `T(C)W` is a `C` preceded by `T` and followed by `A` or `T`. Each motif must contain exactly one group in
+  /// parentheses, the group must match exactly one nucleotide, and it must accept at least one of the `ref` nucleotides.
+  ///
+  /// Motifs are regular expressions (Rust `regex` syntax) matched against the sequence of the nearest node of the
+  /// reference tree. Letters are case-insensitive, and each IUPAC code matches every code whose bases are a subset of its
+  /// bases: `W` matches `A`, `T` and `W`. `[..]` lists choices and `.` matches any nucleotide. Character ranges such as
+  /// `[A-C]` are not allowed. A motif site is the leftmost-first match that starts at a given position; the substitution
+  /// qualifies when a site has its group at the substituted position.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub motifs: Vec<String>,
+
+  /// Also match the same event on the opposite strand: complemented `ref` and `qry`, and reverse-complemented motifs.
+  /// C>T with motif `T(C)W` then also matches G>A with motif `W(G)A`. Motifs of such events cannot contain assertions
+  /// (`^`, `$`, `\b`), inline flags such as `(?i)`, or named classes such as `\w` or `[[:alpha:]]`.
+  #[serde(default)]
+  pub both_strands: bool,
 }
 
 impl MutationPatternNucSubstitution {
   pub fn example() -> Self {
     Self {
       ref_nucs: vec![Nuc::C],
-      qry: vec![Nuc::T],
-      motifs: vec_of_owned!["TC[AT]"],
+      qry_nucs: vec![Nuc::T],
+      motifs: vec_of_owned!["T(C)W"],
+      both_strands: true,
     }
   }
 }
@@ -116,7 +129,7 @@ impl MutationPatternNucSubstitution {
 /// Clustering rule applied to events matching one mutation pattern.
 ///
 /// Clustering is pattern-local. It decides which matched events are reported as dense clusters in this pattern. It does
-/// not change the global `qc.snpClusters` rule unless the QC rule itself is configured separately.
+/// not change the `qc.snpClusters` rule or any other QC score.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, SmartDefault, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
@@ -161,7 +174,8 @@ pub struct MutationPatternConfig {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub description: Option<String>,
 
-  /// Event filters included in this pattern. If empty, the pattern matches all private nucleotide substitutions.
+  /// Event filters included in this pattern. A substitution matches the pattern when at least one event matches it. If
+  /// empty, the pattern matches all private nucleotide substitutions.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub events: Vec<MutationPatternEvent>,
 
@@ -176,26 +190,23 @@ impl MutationPatternConfig {
     Self {
       id: o!("adar"),
       name: o!("ADAR-like RNA editing"),
-      description: Some(o!("ADAR-mediated A-to-I editing observed as A>G and complementary T>C")),
-      events: vec![
-        MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution {
-          ref_nucs: vec![Nuc::A],
-          qry: vec![Nuc::G],
-          motifs: vec![],
-        }),
-        MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution {
-          ref_nucs: vec![Nuc::T],
-          qry: vec![Nuc::C],
-          motifs: vec![],
-        }),
-      ],
+      description: Some(o!(
+        "ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand"
+      )),
+      events: vec![MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution {
+        ref_nucs: vec![Nuc::A],
+        qry_nucs: vec![Nuc::G],
+        motifs: vec![],
+        both_strands: true,
+      })],
       cluster: Some(MutationPatternClusterConfig::example()),
     }
   }
 }
 
-/// Configuration for mutation pattern analysis. Detects private mutations matching biologically meaningful mutation
-/// type and reference-context rules. Pattern-specific clustering is independent from global `qc.snpClusters`.
+/// Configuration for mutation pattern analysis. Reports private nucleotide substitutions that match mutation type and
+/// sequence context rules, such as signatures of RNA editing enzymes, and clusters of them. Results are reported only:
+/// they do not change QC scores, and `qc.snpClusters` is independent of them.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "MutationPatternsConfig::example")]
@@ -212,18 +223,13 @@ impl MutationPatternsConfig {
         MutationPatternConfig::example(),
         MutationPatternConfig {
           id: o!("apobec"),
-          name: o!("APOBEC-like cytosine deamination"),
+          name: o!("APOBEC3-like cytosine deamination"),
           description: Some(o!(
-            "APOBEC-like cytosine deamination observed as C>T and complementary G>A"
+            "APOBEC3-like cytosine deamination, observed as C>T in TCW context, and as G>A in WGA context on the opposite strand"
           )),
-          events: vec![
-            MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution::example()),
-            MutationPatternEvent::NucSubstitution(MutationPatternNucSubstitution {
-              ref_nucs: vec![Nuc::G],
-              qry: vec![Nuc::A],
-              motifs: vec_of_owned!["[AT]GA"],
-            }),
-          ],
+          events: vec![MutationPatternEvent::NucSubstitution(
+            MutationPatternNucSubstitution::example(),
+          )],
           cluster: Some(MutationPatternClusterConfig {
             window_size: 50,
             cutoff: 4,

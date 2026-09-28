@@ -1,21 +1,32 @@
-use crate::alphabet::nuc::{Nuc, from_nuc_seq, is_nuc_match};
+use crate::alphabet::letter::Letter;
+use crate::alphabet::nuc::{Nuc, from_nuc, from_nuc_seq, is_nuc_subset, to_nuc};
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::nuc_sub_context::NucSubWithContext;
+use crate::analyze::sliding_window_clusters::find_clusters;
 use crate::analyze::virus_properties::{
   MutationPatternClusterConfig, MutationPatternConfig, MutationPatternEvent, MutationPatternNucSubstitution,
   MutationPatternsConfig,
 };
 use crate::coord::position::{NucRefGlobalPosition, PositionLike};
-use crate::make_error;
-use crate::qc::qc_config::QcRulesConfigSnpClusters;
-use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
+use crate::translate::complement::complement;
+use crate::{make_error, make_internal_report};
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use regex_automata::meta::Regex as MetaRegex;
 use regex_automata::{Anchored, Input};
+use regex_syntax::ast::parse::Parser;
+use regex_syntax::ast::print::Printer;
+use regex_syntax::ast::{
+  Alternation, Ast, ClassBracketed, ClassSet, ClassSetBinaryOp, ClassSetItem, ClassSetUnion, Concat, Group, Literal,
+  LiteralKind, Repetition, Span,
+};
+use regex_syntax::hir;
+use regex_syntax::hir::translate::Translator;
+use regex_syntax::hir::{Capture, Class, ClassUnicode, ClassUnicodeRange, Hir, HirKind};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet};
+use strum::IntoEnumIterator;
 
 /// Cluster of matched events. A cluster grows while consecutive sliding windows each hold more than `cutoff` events;
 /// adjacent clusters can share events.
@@ -104,25 +115,26 @@ impl MutationPatternNucSubstitutionTypeCount {
   }
 }
 
-/// Reference motif match that overlapped a mutation pattern event.
+/// Motif site that has its group in parentheses at the substituted position.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "MutationPatternMotifMatch::example")]
 pub struct MutationPatternMotifMatch {
-  /// Regular expression from the pattern configuration that matched the reference sequence.
+  /// Motif as written in the pattern configuration. For the opposite-strand event of an event with `bothStrands`, the
+  /// reverse-complemented motif, in upper case.
   pub motif: String,
 
-  /// 0-based first reference position included in the motif match.
+  /// 0-based first reference position included in the motif site.
   pub start: usize,
 
-  /// 0-based position after the end of the motif match.
+  /// 0-based position after the end of the motif site.
   pub end: usize,
 }
 
 impl MutationPatternMotifMatch {
   pub fn example() -> Self {
     Self {
-      motif: "TC[AT]".to_owned(),
+      motif: "T(C)W".to_owned(),
       start: 5002,
       end: 5005,
     }
@@ -143,7 +155,7 @@ impl MutationPatternEventMatch {
     Self::example_nuc_substitution(5003, Nuc::A, Nuc::G)
   }
 
-  const fn unmatched_nuc_substitution(substitution: NucSubWithContext) -> Self {
+  const fn without_motif_matches(substitution: NucSubWithContext) -> Self {
     Self::NucSubstitution(MutationPatternNucSubstitutionMatch {
       substitution,
       motif_matches: vec![],
@@ -151,30 +163,28 @@ impl MutationPatternEventMatch {
   }
 
   fn example_nuc_substitution(pos: usize, ref_nuc: Nuc, qry_nuc: Nuc) -> Self {
-    Self::NucSubstitution(MutationPatternNucSubstitutionMatch {
-      substitution: NucSubWithContext {
-        sub: NucSub {
-          pos: NucRefGlobalPosition::from(pos),
-          ref_nuc,
-          qry_nuc,
-        },
-        ref_context: vec![Nuc::A, ref_nuc, Nuc::G],
+    Self::without_motif_matches(NucSubWithContext {
+      sub: NucSub {
+        pos: NucRefGlobalPosition::from(pos),
+        ref_nuc,
+        qry_nuc,
       },
-      motif_matches: vec![],
+      ref_context: vec![Nuc::A, ref_nuc, Nuc::G],
     })
   }
 }
 
-/// Matched nucleotide substitution and the reference motifs that accepted it.
+/// Matched nucleotide substitution and the motif sites that accepted it.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[schemars(example = "MutationPatternNucSubstitutionMatch::example")]
 pub struct MutationPatternNucSubstitutionMatch {
-  /// Nucleotide substitution plus local reference context at the substituted position.
+  /// Nucleotide substitution plus the nucleotide context of the nearest tree node at the substituted position.
   #[serde(flatten)]
   pub substitution: NucSubWithContext,
 
-  /// Motif sites that contain the substituted position. Empty when the matching pattern event has no motifs.
+  /// Motif sites of all matching pattern events that have their group at the substituted position, sorted by position.
+  /// Empty when the matching events have no motifs.
   pub motif_matches: Vec<MutationPatternMotifMatch>,
 }
 
@@ -253,7 +263,7 @@ impl MutationPatternResults {
         clustered: 2,
         clusters: 1,
       },
-      description: Some("ADAR-mediated A-to-I editing observed as A>G and complementary T>C".to_owned()),
+      description: Some("ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand".to_owned()),
     }
   }
 }
@@ -280,43 +290,31 @@ impl MutationPatternsResults {
   }
 }
 
-/// Mutation pattern analysis of one sequence: per-pattern results for output, and SNP clusters for the QC rule.
-pub struct MutationPatternAnalysis {
-  pub results: MutationPatternsResults,
-  pub qc_clusters: Vec<ClusteredSnp>,
-}
-
-/// Mutation pattern configuration, validated and prepared for one reference sequence.
-///
-/// Built once per dataset. Motif sites are located in the reference sequence in advance, so the analysis of each
-/// sequence only looks up the sites around each substitution.
+/// Mutation pattern configuration, validated and compiled once per dataset.
 #[derive(Clone, Debug, Default)]
 pub struct MutationPatterns {
   patterns: Vec<PreparedPattern>,
 }
 
 impl MutationPatterns {
-  pub fn new(config: Option<&MutationPatternsConfig>, ref_seq: &[Nuc]) -> Result<Self, Report> {
+  pub fn new(config: Option<&MutationPatternsConfig>) -> Result<Self, Report> {
     let Some(config) = config else {
       return Ok(Self::default());
     };
 
     let mut ids = BTreeSet::new();
-    for pattern in &config.patterns {
-      if !ids.insert(pattern.id.as_str()) {
-        return make_error!("Mutation pattern id '{}' is used more than once", pattern.id);
-      }
-    }
-
-    let ref_seq_str = from_nuc_seq(ref_seq);
     let patterns = config
       .patterns
       .iter()
       .map(|pattern| {
-        PreparedPattern::new(pattern, &ref_seq_str)
-          .wrap_err_with(|| format!("When preparing mutation pattern '{}'", pattern.id))
+        if ids.insert(pattern.id.as_str()) {
+          PreparedPattern::new(pattern)
+        } else {
+          make_error!("Mutation pattern id '{}' is used more than once", pattern.id)
+        }
+        .wrap_err_with(|| format!("When preparing mutation pattern '{}'", pattern.id))
       })
-      .collect::<Result<Vec<_>, Report>>()?;
+      .try_collect()?;
 
     Ok(Self { patterns })
   }
@@ -324,96 +322,67 @@ impl MutationPatterns {
   pub const fn is_empty(&self) -> bool {
     self.patterns.is_empty()
   }
+
+  /// Pattern ids, in configuration order
+  pub fn ids(&self) -> impl Iterator<Item = &str> {
+    self.patterns.iter().map(|pattern| pattern.id.as_str())
+  }
 }
 
-/// Find mutation pattern matches and clusters among private nucleotide substitutions of one sequence, and the SNP
-/// clusters used by the `qc.snpClusters` rule.
+/// Find mutation pattern matches and clusters among private nucleotide substitutions of one sequence.
 ///
-/// Reference context and motifs use the global reference sequence, not the sequence of the nearest tree node.
+/// Substitution types, nucleotide context and motif sites all refer to the sequence of the nearest tree node: the
+/// reference sequence with `node_mutations` applied. The nearest node is the best available estimate of the sequence on
+/// which the mutational process acted.
 pub fn analyze_mutation_patterns(
   private_nuc_mutations: &PrivateNucMutations,
   ref_seq: &[Nuc],
+  node_mutations: Option<&BTreeMap<NucRefGlobalPosition, Nuc>>,
   patterns: &MutationPatterns,
-  qc_snp_clusters_config: Option<&QcRulesConfigSnpClusters>,
-) -> MutationPatternAnalysis {
+) -> MutationPatternsResults {
   let subs = &private_nuc_mutations.private_substitutions;
-
-  let qc_clusters = qc_snp_clusters_config
-    .filter(|qc| qc.enabled)
-    .map(|qc| {
-      find_clusters(subs, |sub| sub.pos.as_usize(), qc.window_size, qc.cluster_cut_off)
-        .into_iter()
-        .map(|cluster| ClusteredSnp {
-          start: cluster[0].pos.as_usize(),
-          end: cluster[cluster.len() - 1].pos.as_usize(),
-          number_of_snps: cluster.len(),
-        })
-        .collect_vec()
-    })
-    .unwrap_or_default();
 
   let results = if patterns.is_empty() {
     vec![]
-  } else {
-    let context_subs = subs
-      .iter()
-      .map(|sub| NucSubWithContext::from_sub(sub, ref_seq))
-      .collect_vec();
+  } else if subs.is_empty() {
     patterns
       .patterns
       .iter()
-      .map(|pattern| pattern.analyze(&context_subs))
+      .map(|pattern| pattern.analyze(&[], ""))
+      .collect_vec()
+  } else {
+    let node_seq = node_sequence(ref_seq, node_mutations);
+    let context_subs = subs
+      .iter()
+      .map(|sub| NucSubWithContext::from_sub(sub, &node_seq))
+      .collect_vec();
+    let node_seq = from_nuc_seq(&node_seq);
+    patterns
+      .patterns
+      .iter()
+      .map(|pattern| pattern.analyze(&context_subs, &node_seq))
       .collect_vec()
   };
 
-  MutationPatternAnalysis {
-    results: MutationPatternsResults { results },
-    qc_clusters,
-  }
+  MutationPatternsResults { results }
 }
 
-/// Group items, sorted by unique position, into clusters of more than `cluster_cut_off` items within `window_size`
-/// nucleotides.
-///
-/// Sliding-window scan. Each item enters the window, and items more than `window_size` positions upstream of it leave
-/// the window. When the window holds more than `cluster_cut_off` items, the item extends the previous cluster if the
-/// previous item is the last member of that cluster. Otherwise all items of the window start a new cluster, which can
-/// share items with the previous cluster. This is the algorithm of the `qc.snpClusters` rule.
-fn find_clusters<T>(
-  items: &[T],
-  position: impl Fn(&T) -> usize,
-  window_size: usize,
-  cluster_cut_off: usize,
-) -> Vec<Vec<&T>> {
-  let mut window = VecDeque::<&T>::new();
-  let mut clusters: Vec<Vec<&T>> = Vec::new();
-  let mut previous_pos: Option<usize> = None;
+/// Reverse complement of a motif, in upper case: `t(c)w` -> `W(G)A`
+pub fn opposite_strand_motif(motif: &str) -> Result<String, Report> {
+  let ast = parse_motif(motif)?;
+  let ast = map_motif_ast(&ast, &ReverseComplement)?;
+  let mut printed = String::new();
+  Printer::new().print(&ast, &mut printed)?;
+  Ok(printed)
+}
 
-  for item in items {
-    let pos = position(item);
-    window.push_back(item);
-
-    while position(window[0]) + window_size < pos {
-      window.pop_front();
-    }
-
-    if window.len() > cluster_cut_off {
-      let extends_last_cluster = window.len() > 1
-        && clusters
-          .last()
-          .and_then(|cluster| cluster.last())
-          .is_some_and(|last| Some(position(last)) == previous_pos);
-
-      if extends_last_cluster {
-        clusters.last_mut().expect("checked above").push(item);
-      } else {
-        clusters.push(window.iter().copied().collect_vec());
-      }
-    }
-    previous_pos = Some(pos);
+/// Reference sequence with the mutations of a tree node applied. A node deletion becomes a gap.
+fn node_sequence(ref_seq: &[Nuc], node_mutations: Option<&BTreeMap<NucRefGlobalPosition, Nuc>>) -> Vec<Nuc> {
+  let mut seq = ref_seq.to_vec();
+  for (pos, nuc) in node_mutations.into_iter().flatten() {
+    seq[pos.as_usize()] = *nuc;
   }
-
-  clusters
+  seq
 }
 
 fn compute_event_type_counts(events: &[MutationPatternEventMatch]) -> Vec<MutationPatternEventTypeCount> {
@@ -447,12 +416,13 @@ struct PreparedPattern {
   id: String,
   name: String,
   description: Option<String>,
+  /// Configured events, each followed by its opposite-strand event when it has `bothStrands`
   events: Vec<PreparedEvent>,
   cluster: Option<MutationPatternClusterConfig>,
 }
 
 impl PreparedPattern {
-  fn new(config: &MutationPatternConfig, ref_seq_str: &str) -> Result<Self, Report> {
+  fn new(config: &MutationPatternConfig) -> Result<Self, Report> {
     validate_pattern_id(&config.id)?;
 
     if let Some(cluster) = &config.cluster
@@ -464,8 +434,9 @@ impl PreparedPattern {
     let events = config
       .events
       .iter()
-      .map(|event| PreparedEvent::new(event, ref_seq_str))
-      .collect::<Result<Vec<_>, Report>>()?;
+      .map(PreparedEvent::new)
+      .flatten_ok()
+      .try_collect()?;
 
     Ok(Self {
       id: config.id.clone(),
@@ -476,19 +447,11 @@ impl PreparedPattern {
     })
   }
 
-  fn analyze(&self, subs: &[NucSubWithContext]) -> MutationPatternResults {
-    let matches = if self.events.is_empty() {
-      subs
-        .iter()
-        .cloned()
-        .map(MutationPatternEventMatch::unmatched_nuc_substitution)
-        .collect_vec()
-    } else {
-      subs
-        .iter()
-        .filter_map(|sub| self.events.iter().find_map(|event| event.match_substitution(sub)))
-        .collect_vec()
-    };
+  fn analyze(&self, subs: &[NucSubWithContext], node_seq: &str) -> MutationPatternResults {
+    let matches = subs
+      .iter()
+      .filter_map(|sub| self.match_substitution(sub, node_seq))
+      .collect_vec();
 
     let clusters = self
       .cluster
@@ -531,6 +494,35 @@ impl PreparedPattern {
       description: self.description.clone(),
     }
   }
+
+  /// Match a substitution against the union of all events: the substitution matches when at least one event accepts
+  /// it, and its motif sites are those of all accepting events. The result does not depend on the order of events.
+  fn match_substitution(&self, sub: &NucSubWithContext, node_seq: &str) -> Option<MutationPatternEventMatch> {
+    if self.events.is_empty() {
+      return Some(MutationPatternEventMatch::without_motif_matches(sub.clone()));
+    }
+
+    let accepting = self.events.iter().filter(|event| event.accepts(&sub.sub)).collect_vec();
+    if accepting.is_empty() {
+      return None;
+    }
+
+    let pos = sub.sub.pos.as_usize();
+    let motif_matches = accepting
+      .iter()
+      .flat_map(|event| event.motif_sites(node_seq, pos))
+      .sorted_by(|a, b| (a.start, a.end, &a.motif).cmp(&(b.start, b.end, &b.motif)))
+      .dedup()
+      .collect_vec();
+
+    let accepted_without_motifs = accepting.iter().any(|event| !event.has_motifs());
+    (accepted_without_motifs || !motif_matches.is_empty()).then(|| {
+      MutationPatternEventMatch::NucSubstitution(MutationPatternNucSubstitutionMatch {
+        substitution: sub.clone(),
+        motif_matches,
+      })
+    })
+  }
 }
 
 /// Reject ids that cannot be written unambiguously in TSV column names such as `mutationPatterns['<id>'].counts.matches`
@@ -550,17 +542,37 @@ enum PreparedEvent {
 }
 
 impl PreparedEvent {
-  fn new(event: &MutationPatternEvent, ref_seq_str: &str) -> Result<Self, Report> {
+  /// Prepare a configured event, followed by its opposite-strand event when requested
+  fn new(event: &MutationPatternEvent) -> Result<Vec<Self>, Report> {
     match event {
-      MutationPatternEvent::NucSubstitution(event) => {
-        Ok(Self::NucSubstitution(PreparedNucSubstitution::new(event, ref_seq_str)?))
-      }
+      MutationPatternEvent::NucSubstitution(event) => Ok(
+        PreparedNucSubstitution::new_with_opposite_strand(event)?
+          .into_iter()
+          .map(Self::NucSubstitution)
+          .collect_vec(),
+      ),
     }
   }
 
-  fn match_substitution(&self, sub: &NucSubWithContext) -> Option<MutationPatternEventMatch> {
+  fn accepts(&self, sub: &NucSub) -> bool {
     match self {
-      Self::NucSubstitution(event) => event.match_substitution(sub),
+      Self::NucSubstitution(event) => event.accepts(sub),
+    }
+  }
+
+  const fn has_motifs(&self) -> bool {
+    match self {
+      Self::NucSubstitution(event) => !event.motifs.is_empty(),
+    }
+  }
+
+  fn motif_sites(&self, node_seq: &str, pos: usize) -> Vec<MutationPatternMotifMatch> {
+    match self {
+      Self::NucSubstitution(event) => event
+        .motifs
+        .iter()
+        .flat_map(|motif| motif.sites_at(node_seq, pos))
+        .collect_vec(),
     }
   }
 }
@@ -568,110 +580,447 @@ impl PreparedEvent {
 #[derive(Clone, Debug)]
 struct PreparedNucSubstitution {
   ref_nucs: Vec<Nuc>,
-  qry: Vec<Nuc>,
-  motifs: Vec<MotifSites>,
+  qry_nucs: Vec<Nuc>,
+  motifs: Vec<PreparedMotif>,
 }
 
 impl PreparedNucSubstitution {
-  fn new(event: &MutationPatternNucSubstitution, ref_seq_str: &str) -> Result<Self, Report> {
-    if event.ref_nucs.is_empty() {
+  fn new_with_opposite_strand(event: &MutationPatternNucSubstitution) -> Result<Vec<Self>, Report> {
+    let prepared = Self::new(&event.ref_nucs, &event.qry_nucs, &event.motifs)?;
+    if !event.both_strands {
+      return Ok(vec![prepared]);
+    }
+
+    let opposite = event
+      .motifs
+      .iter()
+      .map(|motif| opposite_strand_motif(motif).wrap_err_with(|| format!("When reverse-complementing motif '{motif}'")))
+      .try_collect()
+      .and_then(|motifs: Vec<String>| {
+        Self::new(
+          &event.ref_nucs.iter().copied().map(complement).collect_vec(),
+          &event.qry_nucs.iter().copied().map(complement).collect_vec(),
+          &motifs,
+        )
+      })
+      .wrap_err("When preparing the opposite-strand event of `bothStrands`")?;
+
+    Ok(vec![prepared, opposite])
+  }
+
+  fn new(ref_nucs: &[Nuc], qry_nucs: &[Nuc], motifs: &[String]) -> Result<Self, Report> {
+    if ref_nucs.is_empty() {
       return make_error!("Mutation pattern event `ref` must list at least one nucleotide");
     }
-    if event.qry.is_empty() {
+    if qry_nucs.is_empty() {
       return make_error!("Mutation pattern event `qry` must list at least one nucleotide");
     }
+    let motifs = motifs
+      .iter()
+      .map(|motif| PreparedMotif::new(motif, ref_nucs).wrap_err_with(|| format!("When preparing motif '{motif}'")))
+      .try_collect()?;
     Ok(Self {
-      ref_nucs: event.ref_nucs.clone(),
-      qry: event.qry.clone(),
-      motifs: event
-        .motifs
-        .iter()
-        .map(|motif| MotifSites::new(motif, ref_seq_str))
-        .collect::<Result<Vec<_>, Report>>()?,
+      ref_nucs: ref_nucs.to_vec(),
+      qry_nucs: qry_nucs.to_vec(),
+      motifs,
     })
   }
 
-  fn match_substitution(&self, sub: &NucSubWithContext) -> Option<MutationPatternEventMatch> {
-    if !self.ref_nucs.iter().any(|nuc| is_nuc_match(*nuc, sub.sub.ref_nuc)) {
-      return None;
-    }
-    if !self.qry.iter().any(|nuc| is_nuc_match(*nuc, sub.sub.qry_nuc)) {
-      return None;
-    }
-
-    if self.motifs.is_empty() {
-      return Some(MutationPatternEventMatch::unmatched_nuc_substitution(sub.clone()));
-    }
-
-    let pos = sub.sub.pos.as_usize();
-    let motif_matches = self
-      .motifs
-      .iter()
-      .flat_map(|motif| motif.matches_containing(pos))
-      .collect_vec();
-
-    if motif_matches.is_empty() {
-      None
-    } else {
-      Some(MutationPatternEventMatch::NucSubstitution(
-        MutationPatternNucSubstitutionMatch {
-          substitution: sub.clone(),
-          motif_matches,
-        },
-      ))
-    }
+  fn accepts(&self, sub: &NucSub) -> bool {
+    self.ref_nucs.iter().any(|&filter| is_nuc_subset(sub.ref_nuc, filter))
+      && self.qry_nucs.iter().any(|&filter| is_nuc_subset(sub.qry_nuc, filter))
   }
 }
 
-/// All sites of the reference sequence where a motif regex matches.
-///
-/// A site is the leftmost-first match anchored at a given start position. Sites are collected for every start position,
-/// so sites can overlap.
+/// Motif compiled into a regex over nucleotide codes.
 #[derive(Clone, Debug)]
-struct MotifSites {
+struct PreparedMotif {
   motif: String,
-  /// Half-open `[start, end)` ranges, sorted by start
-  sites: Vec<(usize, usize)>,
-  max_site_len: usize,
+  regex: MetaRegex,
+  /// Maximum length of a motif site, or `None` when unbounded
+  max_len: Option<usize>,
 }
 
-impl MotifSites {
-  fn new(motif: &str, ref_seq_str: &str) -> Result<Self, Report> {
-    if motif.is_empty() {
-      return make_error!("Mutation pattern motif cannot be empty");
-    }
-    let regex = MetaRegex::new(motif).wrap_err_with(|| format!("When compiling mutation pattern motif '{motif}'"))?;
+impl PreparedMotif {
+  /// Parse, validate and compile a motif.
+  ///
+  /// The motif is parsed into a syntax tree, and letters are converted to upper case. Each IUPAC code is then replaced by
+  /// a class of the bases it stands for (`W` -> `[AT]`), before negated classes are resolved, so that `[^W]` means
+  /// `[CG]`. After translation, every class becomes the class of all codes whose bases it contains (`[AT]` ->
+  /// `[ATW]`), so that ambiguous letters in the node sequence match only where all of their bases are allowed.
+  fn new(motif: &str, ref_nucs: &[Nuc]) -> Result<Self, Report> {
+    let ast = parse_motif(motif)?;
+    let ast = map_motif_ast(&ast, &ExpandCodes)?;
+    let hir = Translator::new()
+      .translate(motif, &ast)
+      .wrap_err("When parsing motif")?;
+    let hir = to_code_classes(hir);
 
-    let sites = (0..ref_seq_str.len())
-      .filter_map(|start| {
-        let input = Input::new(ref_seq_str).range(start..).anchored(Anchored::Yes);
-        regex
-          .search(&input)
-          .filter(|m| !m.is_empty())
-          .map(|m| (m.start(), m.end()))
-      })
-      .collect_vec();
+    let group = find_capture_group(&hir)?;
+    validate_capture_group(group, ref_nucs)?;
 
-    let max_site_len = sites.iter().map(|(start, end)| end - start).max().unwrap_or_default();
+    let max_len = hir.properties().maximum_len();
+    let regex = MetaRegex::builder()
+      .build_from_hir(&hir)
+      .wrap_err("When compiling motif")?;
 
     Ok(Self {
       motif: motif.to_owned(),
-      sites,
-      max_site_len,
+      regex,
+      max_len,
     })
   }
 
-  fn matches_containing(&self, pos: usize) -> impl Iterator<Item = MutationPatternMotifMatch> + '_ {
-    let min_start = (pos + 1).saturating_sub(self.max_site_len);
-    let lo = self.sites.partition_point(|(start, _)| *start < min_start);
-    let hi = self.sites.partition_point(|(start, _)| *start <= pos);
-    self.sites[lo..hi]
-      .iter()
-      .filter(move |(_, end)| pos < *end)
-      .map(|&(start, end)| MutationPatternMotifMatch {
-        motif: self.motif.clone(),
-        start,
-        end,
+  /// Motif sites with the group at `pos`. A site is the leftmost-first match anchored at a start position; only starts
+  /// from which a site can reach `pos` are searched.
+  fn sites_at(&self, node_seq: &str, pos: usize) -> Vec<MutationPatternMotifMatch> {
+    let first_start = self.max_len.map_or(0, |max_len| (pos + 1).saturating_sub(max_len));
+    let mut caps = self.regex.create_captures();
+    (first_start..=pos)
+      .filter_map(|start| {
+        let input = Input::new(node_seq).range(start..).anchored(Anchored::Yes);
+        self.regex.search_captures(&input, &mut caps);
+        let group = caps.get_group(1)?;
+        let site = caps.get_match()?;
+        (group.start == pos && group.end == pos + 1).then(|| MutationPatternMotifMatch {
+          motif: self.motif.clone(),
+          start: site.start(),
+          end: site.end(),
+        })
       })
+      .collect_vec()
+  }
+}
+
+/// Parse a motif into a syntax tree with upper-case nucleotide codes. Rejects characters that are not nucleotide codes.
+fn parse_motif(motif: &str) -> Result<Ast, Report> {
+  if motif.is_empty() {
+    return make_error!("Mutation pattern motif cannot be empty");
+  }
+  let ast = Parser::new().parse(motif).wrap_err("When parsing motif")?;
+  map_motif_ast(&ast, &UpperCaseCodes)
+}
+
+/// Sub-expression of the only capture group, which must be present in every match
+fn find_capture_group(hir: &Hir) -> Result<&Hir, Report> {
+  if hir.properties().static_explicit_captures_len() != Some(1) {
+    return make_error!(
+      "The motif must contain exactly one group in parentheses, which marks the mutated nucleotide, for example 'T(C)W'"
+    );
+  }
+  find_capture(hir).ok_or_else(|| make_internal_report!("Motif capture group expected to exist, but not found"))
+}
+
+fn find_capture(hir: &Hir) -> Option<&Hir> {
+  match hir.kind() {
+    HirKind::Capture(Capture { sub, .. }) => Some(sub),
+    HirKind::Repetition(hir::Repetition { sub, .. }) => find_capture(sub),
+    HirKind::Concat(subs) | HirKind::Alternation(subs) => subs.iter().find_map(find_capture),
+    HirKind::Empty | HirKind::Literal(_) | HirKind::Class(_) | HirKind::Look(_) => None,
+  }
+}
+
+/// The group must match exactly one nucleotide, and must accept at least one nucleotide of the event `ref`
+fn validate_capture_group(group: &Hir, ref_nucs: &[Nuc]) -> Result<(), Report> {
+  let props = group.properties();
+  if props.minimum_len() != Some(1) || props.maximum_len() != Some(1) {
+    return make_error!("The group in parentheses must match exactly one nucleotide");
+  }
+
+  let group_regex = MetaRegex::builder()
+    .build_from_hir(group)
+    .wrap_err("When compiling the group in parentheses")?;
+  let accepts_ref = Nuc::iter().any(|nuc| {
+    let letter = from_nuc(nuc).to_string();
+    group_regex.is_match(Input::new(&letter).anchored(Anchored::Yes))
+      && ref_nucs.iter().any(|&filter| is_nuc_subset(nuc, filter))
+  });
+  if !accepts_ref {
+    return make_error!(
+      "The group in parentheses matches none of the event `ref` nucleotides: {}",
+      ref_nucs.iter().map(|nuc| from_nuc(*nuc)).join(", ")
+    );
+  }
+  Ok(())
+}
+
+/// Replace every class by the class of all nucleotide codes whose bases are bases of the class.
+///
+/// Literals are unchanged: after `ExpandCodes`, they contain only the unambiguous codes `A`, `C`, `G` and `T`.
+fn to_code_classes(hir: Hir) -> Hir {
+  match hir.into_kind() {
+    HirKind::Class(class) => Hir::class(Class::Unicode(code_class(&class))),
+    HirKind::Repetition(rep) => Hir::repetition(hir::Repetition {
+      sub: Box::new(to_code_classes(*rep.sub)),
+      ..rep
+    }),
+    HirKind::Capture(capture) => Hir::capture(Capture {
+      sub: Box::new(to_code_classes(*capture.sub)),
+      ..capture
+    }),
+    HirKind::Concat(subs) => Hir::concat(subs.into_iter().map(to_code_classes).collect_vec()),
+    HirKind::Alternation(subs) => Hir::alternation(subs.into_iter().map(to_code_classes).collect_vec()),
+    HirKind::Literal(hir::Literal(bytes)) => Hir::literal(bytes),
+    HirKind::Empty => Hir::empty(),
+    HirKind::Look(look) => Hir::look(look),
+  }
+}
+
+fn code_class(class: &Class) -> ClassUnicode {
+  let contains = |base: Nuc| {
+    let letter = from_nuc(base);
+    match class {
+      Class::Unicode(class) => class
+        .ranges()
+        .iter()
+        .any(|range| range.start() <= letter && letter <= range.end()),
+      Class::Bytes(class) => class
+        .ranges()
+        .iter()
+        .any(|range| char::from(range.start()) <= letter && letter <= char::from(range.end())),
+    }
+  };
+  let bases = BASES.into_iter().filter(|&base| contains(base)).collect_vec();
+  ClassUnicode::new(
+    Nuc::iter()
+      .filter(|&nuc| {
+        !nuc.is_gap()
+          && BASES
+            .iter()
+            .all(|&base| !is_nuc_subset(base, nuc) || bases.contains(&base))
+      })
+      .map(|nuc| ClassUnicodeRange::new(from_nuc(nuc), from_nuc(nuc))),
+  )
+}
+
+const BASES: [Nuc; 4] = [Nuc::A, Nuc::C, Nuc::G, Nuc::T];
+
+/// Replacement of the leaves of a motif syntax tree. `map_motif_ast` applies it to every literal and class item, and
+/// reverses concatenations when `REVERSE` is set.
+trait MotifAstMap {
+  const REVERSE: bool = false;
+
+  fn literal(&self, literal: &Literal) -> Result<Ast, Report>;
+
+  fn class_literal(&self, literal: &Literal) -> Result<ClassSetItem, Report>;
+
+  /// Leaves other than literals and bracketed classes: assertions, flags, `.`, `\w`, `\pL`
+  fn other(&self, ast: &Ast) -> Result<Ast, Report> {
+    Ok(ast.clone())
+  }
+
+  /// Class items other than literals and nested classes: ranges, `[:alpha:]`, `\w`, `\pL`
+  fn other_class_item(&self, item: &ClassSetItem) -> Result<ClassSetItem, Report> {
+    Ok(item.clone())
+  }
+}
+
+fn map_motif_ast<M: MotifAstMap>(ast: &Ast, map: &M) -> Result<Ast, Report> {
+  Ok(match ast {
+    Ast::Literal(literal) => map.literal(literal)?,
+    Ast::ClassBracketed(class) => Ast::class_bracketed(map_class_bracketed(class, map)?),
+    Ast::Repetition(rep) => Ast::repetition(Repetition {
+      span: rep.span,
+      op: rep.op.clone(),
+      greedy: rep.greedy,
+      ast: Box::new(map_motif_ast(&rep.ast, map)?),
+    }),
+    Ast::Group(group) => Ast::group(Group {
+      span: group.span,
+      kind: group.kind.clone(),
+      ast: Box::new(map_motif_ast(&group.ast, map)?),
+    }),
+    Ast::Alternation(alt) => Ast::alternation(Alternation {
+      span: alt.span,
+      asts: alt.asts.iter().map(|ast| map_motif_ast(ast, map)).try_collect()?,
+    }),
+    Ast::Concat(concat) => {
+      let asts: Vec<Ast> = concat.asts.iter().map(|ast| map_motif_ast(ast, map)).try_collect()?;
+      let asts = if M::REVERSE {
+        asts.into_iter().rev().collect_vec()
+      } else {
+        asts
+      };
+      Ast::concat(Concat {
+        span: concat.span,
+        asts,
+      })
+    }
+    Ast::Empty(_) | Ast::Flags(_) | Ast::Dot(_) | Ast::Assertion(_) | Ast::ClassUnicode(_) | Ast::ClassPerl(_) => {
+      map.other(ast)?
+    }
+  })
+}
+
+fn map_class_bracketed<M: MotifAstMap>(class: &ClassBracketed, map: &M) -> Result<ClassBracketed, Report> {
+  Ok(ClassBracketed {
+    span: class.span,
+    negated: class.negated,
+    kind: map_class_set(&class.kind, map)?,
+  })
+}
+
+fn map_class_set<M: MotifAstMap>(set: &ClassSet, map: &M) -> Result<ClassSet, Report> {
+  Ok(match set {
+    ClassSet::Item(item) => ClassSet::Item(map_class_set_item(item, map)?),
+    ClassSet::BinaryOp(op) => ClassSet::BinaryOp(ClassSetBinaryOp {
+      span: op.span,
+      kind: op.kind,
+      lhs: Box::new(map_class_set(&op.lhs, map)?),
+      rhs: Box::new(map_class_set(&op.rhs, map)?),
+    }),
+  })
+}
+
+fn map_class_set_item<M: MotifAstMap>(item: &ClassSetItem, map: &M) -> Result<ClassSetItem, Report> {
+  Ok(match item {
+    ClassSetItem::Literal(literal) => map.class_literal(literal)?,
+    ClassSetItem::Bracketed(class) => ClassSetItem::Bracketed(Box::new(map_class_bracketed(class, map)?)),
+    ClassSetItem::Union(union) => ClassSetItem::Union(ClassSetUnion {
+      span: union.span,
+      items: union
+        .items
+        .iter()
+        .map(|item| map_class_set_item(item, map))
+        .try_collect()?,
+    }),
+    ClassSetItem::Empty(_)
+    | ClassSetItem::Range(_)
+    | ClassSetItem::Ascii(_)
+    | ClassSetItem::Unicode(_)
+    | ClassSetItem::Perl(_) => map.other_class_item(item)?,
+  })
+}
+
+/// Convert letters to upper case, and reject characters that are not nucleotide codes and character ranges
+struct UpperCaseCodes;
+
+impl UpperCaseCodes {
+  fn upper_case(literal: &Literal) -> Result<Literal, Report> {
+    let c = literal.c.to_ascii_uppercase();
+    match to_nuc(c) {
+      Ok(nuc) if !nuc.is_gap() => Ok(Literal {
+        span: literal.span,
+        kind: LiteralKind::Verbatim,
+        c,
+      }),
+      _ => make_error!("The character '{}' is not a nucleotide code", literal.c),
+    }
+  }
+}
+
+impl MotifAstMap for UpperCaseCodes {
+  fn literal(&self, literal: &Literal) -> Result<Ast, Report> {
+    Ok(Ast::literal(Self::upper_case(literal)?))
+  }
+
+  fn class_literal(&self, literal: &Literal) -> Result<ClassSetItem, Report> {
+    Ok(ClassSetItem::Literal(Self::upper_case(literal)?))
+  }
+
+  fn other_class_item(&self, item: &ClassSetItem) -> Result<ClassSetItem, Report> {
+    if let ClassSetItem::Range(range) = item {
+      return make_error!(
+        "Character ranges such as '{}-{}' are not supported. List the nucleotides instead, for example '[ACG]'",
+        range.start.c,
+        range.end.c
+      );
+    }
+    Ok(item.clone())
+  }
+}
+
+/// Replace each upper-case nucleotide code by the bases it stands for: `W` -> `[AT]`
+struct ExpandCodes;
+
+impl ExpandCodes {
+  fn bases(literal: &Literal) -> Result<Vec<Literal>, Report> {
+    let nuc = to_nuc(literal.c)?;
+    Ok(
+      BASES
+        .into_iter()
+        .filter(|&base| is_nuc_subset(base, nuc))
+        .map(|base| Literal {
+          span: literal.span,
+          kind: LiteralKind::Verbatim,
+          c: from_nuc(base),
+        })
+        .collect_vec(),
+    )
+  }
+
+  fn union(span: Span, bases: Vec<Literal>) -> ClassSetUnion {
+    ClassSetUnion {
+      span,
+      items: bases.into_iter().map(ClassSetItem::Literal).collect_vec(),
+    }
+  }
+}
+
+impl MotifAstMap for ExpandCodes {
+  fn literal(&self, literal: &Literal) -> Result<Ast, Report> {
+    let bases = Self::bases(literal)?;
+    Ok(if let [base] = bases.as_slice() {
+      Ast::literal(base.clone())
+    } else {
+      Ast::class_bracketed(ClassBracketed {
+        span: literal.span,
+        negated: false,
+        kind: ClassSet::union(Self::union(literal.span, bases)),
+      })
+    })
+  }
+
+  fn class_literal(&self, literal: &Literal) -> Result<ClassSetItem, Report> {
+    Ok(ClassSetItem::Union(Self::union(literal.span, Self::bases(literal)?)))
+  }
+}
+
+/// Reverse concatenations and complement nucleotide codes. The capture group stays on the complemented nucleotide.
+///
+/// Rejects syntax whose meaning changes on the opposite strand: assertions (`^` is the start on one strand and the end
+/// on the other), inline flags (they apply to what follows them), and named classes (`[[:xdigit:]]` contains `A` but not
+/// its complement `T`).
+struct ReverseComplement;
+
+impl ReverseComplement {
+  fn complement(literal: &Literal) -> Result<Literal, Report> {
+    Ok(Literal {
+      span: literal.span,
+      kind: LiteralKind::Verbatim,
+      c: from_nuc(complement(to_nuc(literal.c)?)),
+    })
+  }
+}
+
+impl MotifAstMap for ReverseComplement {
+  const REVERSE: bool = true;
+
+  fn literal(&self, literal: &Literal) -> Result<Ast, Report> {
+    Ok(Ast::literal(Self::complement(literal)?))
+  }
+
+  fn class_literal(&self, literal: &Literal) -> Result<ClassSetItem, Report> {
+    Ok(ClassSetItem::Literal(Self::complement(literal)?))
+  }
+
+  fn other(&self, ast: &Ast) -> Result<Ast, Report> {
+    match ast {
+      Ast::Assertion(_) => make_error!("Assertions such as '^', '$' or '\\b' cannot be used with `bothStrands`"),
+      Ast::Flags(_) => make_error!("Inline flags such as '(?i)' cannot be used with `bothStrands`"),
+      Ast::ClassUnicode(_) | Ast::ClassPerl(_) => {
+        make_error!("Named classes such as '\\w' or '\\pL' cannot be used with `bothStrands`")
+      }
+      _ => Ok(ast.clone()),
+    }
+  }
+
+  fn other_class_item(&self, item: &ClassSetItem) -> Result<ClassSetItem, Report> {
+    match item {
+      ClassSetItem::Ascii(_) | ClassSetItem::Unicode(_) | ClassSetItem::Perl(_) => {
+        make_error!("Named classes such as '[:alpha:]', '\\w' or '\\pL' cannot be used with `bothStrands`")
+      }
+      _ => Ok(item.clone()),
+    }
   }
 }

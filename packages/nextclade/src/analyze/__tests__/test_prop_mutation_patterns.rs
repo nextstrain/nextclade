@@ -1,35 +1,23 @@
 #[cfg(test)]
 mod tests {
-  use crate::alphabet::nuc::Nuc;
   use crate::analyze::__tests__::test_mutation_patterns::tests::helpers::{
-    analyze, config, event_positions, motif_sites, private_muts, qc,
+    analyze, config, event_positions, motif_sites,
   };
-  use crate::analyze::mutation_patterns::{MutationPatterns, analyze_mutation_patterns};
-  use crate::analyze::nuc_sub::NucSub;
-  use crate::coord::position::NucRefGlobalPosition;
-  use generators::{gen_positions, snp_clusters_released};
+  use generators::{MotifCase, gen_motif_case, gen_positions};
   use itertools::Itertools;
   use proptest::prelude::*;
-  use regex::Regex;
+  use proptest::test_runner::RngSeed;
   use serde_json::json;
   use std::collections::BTreeSet;
 
   const REF_LEN: usize = 600;
 
   proptest! {
-    #[test]
-    fn test_prop_mutation_patterns_qc_clusters_matches_released_rule(
-      positions in gen_positions(),
-      window_size in 0_usize..150,
-      cluster_cut_off in 0_usize..8,
-    ) {
-      let ref_seq = vec![Nuc::A; REF_LEN];
-      let patterns = MutationPatterns::new(None, &ref_seq).unwrap();
-      let qc = qc(window_size, cluster_cut_off);
-      let analysis = analyze_mutation_patterns(&private_muts(subs_at(&positions)), &ref_seq, &patterns, Some(&qc));
-      let actual = analysis.qc_clusters.iter().map(|c| (c.start, c.end, c.number_of_snps)).collect_vec();
-      prop_assert_eq!(snp_clusters_released(&positions, window_size, cluster_cut_off), actual);
-    }
+    #![proptest_config(ProptestConfig {
+      rng_seed: RngSeed::Fixed(0),
+      failure_persistence: None,
+      ..ProptestConfig::default()
+    })]
 
     #[test]
     fn test_prop_mutation_patterns_clusters_preserves_invariants(
@@ -37,123 +25,154 @@ mod tests {
       window_size in 1_usize..150,
       cutoff in 0_usize..8,
     ) {
-      let ref_seq = vec![Nuc::A; REF_LEN];
+      let ref_seq = "A".repeat(REF_LEN);
+      let qry_seq = ref_seq
+        .char_indices()
+        .map(|(pos, nuc)| if positions.contains(&pos) { 'G' } else { nuc })
+        .collect::<String>();
       let config = config(&json!([{ "id": "all", "name": "All", "cluster": { "windowSize": window_size, "cutoff": cutoff } }])).unwrap();
-      let patterns = MutationPatterns::new(Some(&config), &ref_seq).unwrap();
-      let analysis = analyze_mutation_patterns(&private_muts(subs_at(&positions)), &ref_seq, &patterns, None);
-      let result = &analysis.results.results[0];
+      let results = analyze(&ref_seq, &qry_seq, Some(&config)).unwrap();
+      let result = &results.results[0];
+      let clusters = result.clusters.iter().map(|cluster| event_positions(&cluster.events)).collect_vec();
 
-      let clustered = result.clusters.iter().flat_map(|cluster| event_positions(&cluster.events)).collect::<BTreeSet<_>>();
+      let clustered = clusters.iter().flatten().collect::<BTreeSet<_>>();
       prop_assert_eq!(positions.len(), result.counts.matches);
       prop_assert_eq!(clustered.len(), result.counts.clustered);
       prop_assert_eq!(result.clusters.len(), result.counts.clusters);
-      for cluster in &result.clusters {
-        let cluster_positions = event_positions(&cluster.events);
-        prop_assert_eq!(cluster.count, cluster_positions.len());
-        prop_assert_eq!(Some(&cluster.start), cluster_positions.first());
-        prop_assert_eq!(Some(&cluster.end), cluster_positions.last());
-        prop_assert!(cluster_positions.iter().tuple_windows().all(|(a, b)| a < b));
-      }
+      prop_assert_eq!(
+        result.clusters.iter().map(|cluster| (cluster.start, cluster.end, cluster.count)).collect_vec(),
+        clusters.iter().map(|events| (events[0], events[events.len() - 1], events.len())).collect_vec()
+      );
+      prop_assert!(clusters.iter().all(|events| events.len() > cutoff));
+      prop_assert!(clusters.iter().flat_map(|events| events.iter().tuple_windows()).all(|(a, b)| a < b && b - a <= window_size));
     }
 
     #[test]
-    fn test_prop_mutation_patterns_motif_sites_matches_brute_force(
-      ref_seq in "[ACGT]{1,60}",
-      motif in prop::sample::select(vec!["TC[AT]", "[CT]G[ACT]", "A+", "(AC)+", "GA|GAT", "C.?G"]),
-      pos in any::<prop::sample::Index>(),
-    ) {
-      let pos = pos.index(ref_seq.len());
-      let qry_nuc = if ref_seq.as_bytes()[pos] == b'A' { "C" } else { "A" };
-      let mut qry_seq = ref_seq.clone();
-      qry_seq.replace_range(pos..=pos, qry_nuc);
+    fn test_prop_mutation_patterns_motif_sites_matches_oracle(case in gen_motif_case()) {
+      let MotifCase { ref_seq, qry_seq, motif, pos, expected_site } = case;
       let config = config(&json!([{
         "id": "p", "name": "P",
         "events": [{ "type": "nucSubstitution", "ref": ["N"], "qry": ["N"], "motifs": [motif] }]
       }])).unwrap();
-      let analysis = analyze(&ref_seq, &qry_seq, Some(&config), None).unwrap();
+      let results = analyze(&ref_seq, &qry_seq, Some(&config)).unwrap();
+      let result = &results.results[0];
 
-      // Oracle: leftmost-first match anchored at each start position, found with the `regex` crate on the suffix
-      let anchored = Regex::new(&format!("^(?:{motif})")).unwrap();
-      let expected = (0..ref_seq.len())
-        .filter_map(|start| ref_seq.get(start..).and_then(|suffix| anchored.find(suffix)).map(|m| (start, start + m.end())))
-        .filter(|&(start, end)| start < end && start <= pos && pos < end)
-        .collect_vec();
-
-      let result = &analysis.results.results[0];
-      prop_assert_eq!(usize::from(!expected.is_empty()), result.counts.matches);
-      prop_assert_eq!(expected, motif_sites(result).into_iter().flatten().collect_vec());
+      let expected_matches = expected_site.iter().map(|_| pos).collect_vec();
+      prop_assert_eq!(expected_matches, event_positions(&result.matches));
+      prop_assert_eq!(expected_site.into_iter().collect_vec(), motif_sites(result).into_iter().flatten().collect_vec());
     }
-  }
-
-  /// A>G substitutions at the given positions of a poly-A reference
-  fn subs_at(positions: &[usize]) -> Vec<NucSub> {
-    positions
-      .iter()
-      .map(|&pos| NucSub {
-        pos: NucRefGlobalPosition::from(pos),
-        ref_nuc: Nuc::A,
-        qry_nuc: Nuc::G,
-      })
-      .collect_vec()
   }
 
   mod generators {
     use super::REF_LEN;
     use itertools::Itertools;
     use proptest::prelude::*;
-    use std::collections::VecDeque;
 
     /// Sorted, unique substitution positions
     pub fn gen_positions() -> impl Strategy<Value = Vec<usize>> {
       prop::collection::btree_set(0..REF_LEN, 0..80).prop_map(|positions| positions.into_iter().collect_vec())
     }
 
-    /// Oracle for QC parity: `find_snp_clusters` and `process_snp_clusters` of the `qc.snpClusters` rule as released in
-    /// Nextclade 3.23.0 (`packages/nextclade/src/qc/qc_rule_snp_clusters.rs`), unchanged except for the input and
-    /// output types. Returns `(start, end, number_of_snps)` per cluster.
-    pub fn snp_clusters_released(
-      positions: &[usize],
-      window_size: usize,
-      cluster_cut_off: usize,
-    ) -> Vec<(usize, usize, usize)> {
-      let mut current_cluster = VecDeque::<isize>::new();
-      let mut all_clusters = Vec::<Vec<isize>>::new();
-      let mut previous_pos: isize = -1;
-      for &pos in positions {
-        let pos = pos as isize;
-        current_cluster.push_back(pos);
+    /// Fixed-length motif, a sequence with one substitution, and the expected motif site with its group at the
+    /// substituted position
+    #[derive(Clone, Debug)]
+    pub struct MotifCase {
+      pub ref_seq: String,
+      pub qry_seq: String,
+      pub motif: String,
+      pub pos: usize,
+      pub expected_site: Option<(usize, usize)>,
+    }
 
-        while current_cluster[0] < (pos - window_size as isize) {
-          current_cluster.pop_front();
-        }
+    /// IUPAC nucleotide codes and their bases (IUPAC-IUB 1985 nomenclature), written out independently of the code under
+    /// test
+    const IUPAC: [(char, &str); 15] = [
+      ('A', "A"),
+      ('C', "C"),
+      ('G', "G"),
+      ('T', "T"),
+      ('R', "AG"),
+      ('Y', "CT"),
+      ('S', "CG"),
+      ('W', "AT"),
+      ('K', "GT"),
+      ('M', "AC"),
+      ('B', "CGT"),
+      ('D', "AGT"),
+      ('H', "ACT"),
+      ('V', "ACG"),
+      ('N', "ACGT"),
+    ];
 
-        if current_cluster.len() > cluster_cut_off {
-          let n_clusters = all_clusters.len();
+    fn bases(code: char) -> &'static str {
+      IUPAC.iter().find(|(c, _)| *c == code).map(|(_, bases)| *bases).unwrap()
+    }
 
-          if !all_clusters.is_empty() && current_cluster.len() > 1 {
-            let i = n_clusters - 1;
-            let j = all_clusters[i].len() - 1;
-            let p = all_clusters[i][j];
+    /// Motif position: a non-empty set of bases, written as its IUPAC code, as a bracketed list of bases, or in lower case
+    fn gen_motif_position() -> impl Strategy<Value = (String, String)> {
+      (prop::sample::select(IUPAC.to_vec()), 0_usize..3).prop_map(|((code, bases), style)| {
+        let text = match style {
+          0 => code.to_string(),
+          1 => format!("[{bases}]"),
+          _ => code.to_ascii_lowercase().to_string(),
+        };
+        (text, bases.to_owned())
+      })
+    }
 
-            if p == previous_pos {
-              all_clusters[i].push(pos);
-            } else {
-              all_clusters.push(current_cluster.iter().copied().collect_vec());
-            }
-          } else {
-            all_clusters.push(current_cluster.iter().copied().collect_vec());
+    /// Mostly unambiguous sequence letters, with some ambiguous codes
+    fn gen_seq() -> impl Strategy<Value = String> {
+      prop::collection::vec(
+        prop::sample::select("ACGTACGTACGTACGTRYSWKMBDHVN".chars().collect_vec()),
+        1..40,
+      )
+      .prop_map(|letters| letters.into_iter().collect())
+    }
+
+    pub fn gen_motif_case() -> impl Strategy<Value = MotifCase> {
+      (
+        gen_seq(),
+        prop::collection::vec(gen_motif_position(), 1..5),
+        any::<prop::sample::Index>(),
+        any::<prop::sample::Index>(),
+      )
+        .prop_map(|(ref_seq, motif_positions, group, pos)| {
+          let group = group.index(motif_positions.len());
+          let pos = pos.index(ref_seq.len());
+          let motif = motif_positions
+            .iter()
+            .enumerate()
+            .map(|(i, (text, _))| if i == group { format!("({text})") } else { text.clone() })
+            .join("");
+
+          // Oracle: the only site with the group at `pos` starts at `pos - group`, and matches when every sequence
+          // letter stands only for bases allowed at its motif position
+          let ref_letters = ref_seq.chars().collect_vec();
+          let expected_site = pos.checked_sub(group).and_then(|start| {
+            let end = start + motif_positions.len();
+            let matches = end <= ref_letters.len()
+              && motif_positions
+                .iter()
+                .zip(&ref_letters[start..end])
+                .all(|((_, allowed), letter)| bases(*letter).chars().all(|base| allowed.contains(base)));
+            matches.then_some((start, end))
+          });
+
+          let qry_nuc = if ref_letters[pos] == 'A' { 'C' } else { 'A' };
+          let qry_seq = ref_letters
+            .iter()
+            .enumerate()
+            .map(|(i, &letter)| if i == pos { qry_nuc } else { letter })
+            .collect();
+
+          MotifCase {
+            ref_seq,
+            qry_seq,
+            motif,
+            pos,
+            expected_site,
           }
-        }
-        previous_pos = pos;
-      }
-
-      all_clusters
-        .into_iter()
-        .map(|mut cluster| {
-          cluster.sort_unstable();
-          (cluster[0] as usize, cluster[cluster.len() - 1] as usize, cluster.len())
         })
-        .collect_vec()
     }
   }
 }

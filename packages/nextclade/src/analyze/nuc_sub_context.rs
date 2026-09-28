@@ -3,10 +3,11 @@ use crate::analyze::nuc_sub::NucSub;
 use crate::coord::position::PositionLike;
 use serde::{Deserialize, Serialize};
 
-/// Nucleotide substitution with local reference nucleotide context centered on the substituted position.
+/// Nucleotide substitution with the nucleotide context of the nearest tree node, centered on the substituted position.
 ///
-/// Current output contains `[upstream, current, downstream]`. `current` is the substituted reference nucleotide.
-/// Boundary positions use gap characters for absent flanking nucleotides.
+/// The context is `[upstream, current, downstream]` in the sequence of the nearest node of the reference tree, which is
+/// the sequence that the reference nucleotide of a private substitution comes from: `current` equals `refNuc`. Absent
+/// flanking nucleotides at the sequence ends, and nucleotides deleted in the node, are gaps.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct NucSubWithContext {
@@ -14,17 +15,17 @@ pub struct NucSubWithContext {
   #[serde(flatten)]
   pub sub: NucSub,
 
-  /// Reference nucleotide context around the substituted position.
+  /// Nucleotides of the nearest tree node around the substituted position: `[upstream, current, downstream]`.
   pub ref_context: Vec<Nuc>,
 }
 
 impl NucSubWithContext {
-  pub fn from_sub(sub: &NucSub, ref_seq: &[Nuc]) -> Self {
+  pub fn from_sub(sub: &NucSub, node_seq: &[Nuc]) -> Self {
     let pos = sub.pos.as_usize();
-    let upstream = if pos > 0 { ref_seq[pos - 1] } else { Nuc::Gap };
-    let current = ref_seq[pos];
-    let downstream = if pos + 1 < ref_seq.len() {
-      ref_seq[pos + 1]
+    let upstream = if pos > 0 { node_seq[pos - 1] } else { Nuc::Gap };
+    let current = node_seq[pos];
+    let downstream = if pos + 1 < node_seq.len() {
+      node_seq[pos + 1]
     } else {
       Nuc::Gap
     };
