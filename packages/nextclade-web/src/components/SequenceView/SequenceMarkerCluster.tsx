@@ -1,6 +1,6 @@
 import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
-import styled from 'styled-components'
+import styled, { useTheme } from 'styled-components'
 
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 
@@ -15,8 +15,15 @@ import {
 } from 'src/state/seqViewSettings.state'
 import type { MutationPatternEventMatch, MutationPatternsResults } from 'src/gen/_SchemaRoot'
 
-const CLUSTER_FILL = 'rgba(255, 140, 0, 0.12)'
-const CLUSTER_STROKE = '#e06000'
+// The frame is hollow and dark, so that it stands out from mutation markers of any nucleotide color and leaves them
+// visible inside
+const CLUSTER_FRAME_STROKE_WIDTH = 1.5
+const CLUSTER_FRAME_PADDING_PX = 3
+// Dash pattern per lane, so that clusters of different patterns differ without relying on color
+const CLUSTER_FRAME_DASHES = [undefined, '3 2', '1 2']
+// Width of the invisible band along the frame that opens the tooltip. The inside stays free, so that the mutation
+// markers inside the cluster keep their own tooltips
+const CLUSTER_HOVER_STROKE_WIDTH = 6
 
 const ClusterBadgeGrid = styled.div`
   display: flex;
@@ -65,6 +72,7 @@ function SequenceMarkerClusterUnmemoed({
   ...rest
 }: SequenceMarkerClusterProps) {
   const { t } = useTranslation()
+  const theme = useTheme()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
@@ -73,7 +81,11 @@ function SequenceMarkerClusterUnmemoed({
   const { y, height } = useMemo(() => {
     const band = getSeqMarkerDims(seqMarkerClusterHeightState)
     const laneHeight = band.height / Math.max(laneCount, 1)
-    return { y: band.y + lane * laneHeight, height: laneHeight }
+    // Inset by half a stroke, so that frames in neighboring lanes do not overlap
+    return {
+      y: band.y + lane * laneHeight + CLUSTER_FRAME_STROKE_WIDTH / 2,
+      height: laneHeight - CLUSTER_FRAME_STROKE_WIDTH,
+    }
   }, [seqMarkerClusterHeightState, lane, laneCount])
 
   if (seqMarkerClusterHeightState === SeqMarkerHeightState.Off) {
@@ -89,21 +101,34 @@ function SequenceMarkerClusterUnmemoed({
   let width = (end + 1 - start) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
-  const x = start * pixelsPerBase - halfNuc
+  const x = start * pixelsPerBase - halfNuc - CLUSTER_FRAME_PADDING_PX
+  width += 2 * CLUSTER_FRAME_PADDING_PX
 
   return (
     <g onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <rect
-        id={id}
-        fill={CLUSTER_FILL}
-        stroke={CLUSTER_STROKE}
-        strokeWidth={1}
+        fill="none"
+        stroke={theme.gray900}
+        strokeWidth={CLUSTER_FRAME_STROKE_WIDTH}
+        strokeDasharray={CLUSTER_FRAME_DASHES[lane % CLUSTER_FRAME_DASHES.length]}
+        pointerEvents="none"
         x={x}
         y={y}
         width={width}
         height={height}
         rx={1}
         {...rest}
+      />
+      <rect
+        id={id}
+        fill="none"
+        stroke="transparent"
+        strokeWidth={CLUSTER_HOVER_STROKE_WIDTH}
+        pointerEvents="stroke"
+        x={x}
+        y={y}
+        width={width}
+        height={height}
       />
       <Tooltip target={id} isOpen={showTooltip}>
         <div>
