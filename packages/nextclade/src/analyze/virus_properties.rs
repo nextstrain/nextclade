@@ -91,8 +91,8 @@ pub struct MutationPatternNucSubstitution {
   #[serde(rename = "ref")]
   pub ref_nucs: Vec<Nuc>,
 
-  /// Query nucleotides to match at the mutated position. Must not be empty. Matched like `ref`: filter `G` does not match
-  /// the ambiguous query nucleotide `R`, so mixed calls are not counted.
+  /// Query nucleotides to match at the mutated position. Must not be empty. Matched like `ref`. Ambiguous query calls
+  /// such as `R` are not substitutions, so they never match.
   #[serde(rename = "qry")]
   pub qry_nucs: Vec<Nuc>,
 

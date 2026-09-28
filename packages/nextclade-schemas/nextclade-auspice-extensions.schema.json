@@ -1652,7 +1652,7 @@
               }
             },
             "qry": {
-              "description": "Query nucleotides to match at the mutated position. Must not be empty. Matched like `ref`: filter `G` does not match the ambiguous query nucleotide `R`, so mixed calls are not counted.",
+              "description": "Query nucleotides to match at the mutated position. Must not be empty. Matched like `ref`. Ambiguous query calls such as `R` are not substitutions, so they never match.",
               "type": "array",
               "items": {
                 "$ref": "#/definitions/Nuc"

@@ -302,7 +302,9 @@ Both lists accept IUPAC codes. A nucleotide matches a code when every base the n
 
 - `N` matches every nucleotide
 - `R` (A or G) matches `A`, `G` and `R`
-- `G` matches only `G`. It does not match the ambiguous call `R`, which can also be `A`, so mixed calls do not count as a pattern
+- `G` matches only `G`. It does not match `R`, which can also be `A`
+
+Ambiguous query calls such as `R` are not substitutions in Nextclade, so no pattern counts them.
 
 The two lists are checked independently: `"ref": ["A", "T"], "qry": ["G", "C"]` also matches A>C and T>G. To select only A>G and T>C, use one event per substitution type, or one event with `bothStrands`.
 
