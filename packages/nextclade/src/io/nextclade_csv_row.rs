@@ -684,7 +684,8 @@ pub fn format_clustered_snps(snps: &[ClusteredSnp], delimiter: &str) -> String {
   snps
     .iter()
     .map(|snp| {
-      let range = NucRefGlobalRange::from_usize(snp.start, snp.end).to_string();
+      // `end` is the inclusive position of the last substitution
+      let range = NucRefGlobalRange::from_usize(snp.start, snp.end + 1).to_string();
       let number_of_snps = snp.number_of_snps;
       format!("{range}:{number_of_snps}")
     })
@@ -765,13 +766,14 @@ mod tests {
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
-  // The shipped format passes the inclusive `end` as an exclusive range end, so the last clustered position is not
-  // included in the printed range. See kb/issues/M-qc-snp-clusters-range-excludes-last-position.md
+  // 0-based inclusive `(start, end)` print as 1-based inclusive ranges
   #[rustfmt::skip]
   #[rstest]
-  #[case::one_cluster(  &[(5, 29, 8)],              "6-29:8")]
-  #[case::two_clusters( &[(5, 29, 8), (99, 150, 6)], "6-29:8,100-150:6")]
-  #[case::no_clusters(  &[],                        "")]
+  #[case::one_cluster(   &[(5, 29, 8)],               "6-30:8")]
+  #[case::two_clusters(  &[(5, 29, 8), (99, 149, 6)], "6-30:8,100-150:6")]
+  #[case::one_position(  &[(5, 5, 1)],                "6:1")]
+  #[case::first_position(&[(0, 3, 2)],                "1-4:2")]
+  #[case::no_clusters(   &[],                         "")]
   #[trace]
   fn test_format_clustered_snps(#[case] clusters: &[(usize, usize, usize)], #[case] expected: &str) {
     let snps = clusters
