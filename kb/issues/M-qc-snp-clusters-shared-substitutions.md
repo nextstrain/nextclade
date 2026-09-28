@@ -15,9 +15,14 @@ Mutation pattern clusters use the same algorithm. Their `counts.clustered` count
 
 ## Code
 
-- `fn find_clusters()` ([packages/nextclade/src/analyze/mutation_patterns.rs#L382-L415](../../packages/nextclade/src/analyze/mutation_patterns.rs#L382-L415))
-- The property test `test_prop_mutation_patterns_qc_clusters_matches_released_rule` pins the released QC behavior
+- `fn find_clusters()` in `packages/nextclade/src/analyze/sliding_window_clusters.rs`, shared by the QC rule and mutation patterns
+- The property test `test_prop_rule_snp_clusters_matches_released_rule` in `packages/nextclade/src/qc/qc_rule_snp_clusters.rs` pins the released QC behavior
 
-## Decision needed
+## Fix options
 
-Merging overlapping clusters, or starting new clusters only after the last clustered position, changes shipped QC scores. The pattern clusters could change independently, but then pattern clusters and QC clusters would use different definitions.
+Any change to the QC rule changes shipped QC scores, so it needs a decision.
+
+- **Count unique substitutions**: compute `totalSNPs` from the distinct substitutions of all clusters. Scores keep counting clusters, so only the reported total changes
+- **Versioned rule**: add a new cluster definition, for example one where a new cluster starts only after the last clustered position, behind a new config key. Datasets opt in, and the released behavior stays the default
+
+The mutation pattern clusters could change independently, but then pattern clusters and QC clusters would use different definitions.
