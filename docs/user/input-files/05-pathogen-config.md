@@ -244,9 +244,11 @@ If the score is only relevant for specific clades, you can specify which clades 
 
 #### Nucleotide mutation pattern detection (`mutationPatterns`)
 
-Nextclade can detect named groups of private nucleotide substitutions. This is useful for reporting mutation patterns such as RNA editing signatures separately from the generic SNP cluster QC rule.
+Nextclade can report named groups of private nucleotide substitutions, for example signatures of RNA editing enzymes, and find dense clusters of them. Private substitutions are the substitutions of a sequence relative to its nearest node on the reference tree, so patterns need a reference tree: without one, pattern results are empty.
 
-Pattern detection is configured with `mutationPatterns.patterns`. Each pattern has an `id`, a display `name`, optional `description`, a list of `events`, and optional clustering parameters. A pattern with an empty or omitted `events` list matches all private nucleotide substitutions. The only supported event type is currently `nucSubstitution`.
+Mutation patterns are reported only. They never change QC scores. The `qc.snpClusters` rule keeps counting clusters of all private substitutions, including the ones that match patterns.
+
+Each pattern in `mutationPatterns.patterns` has an `id`, a display `name`, an optional `description`, a list of `events`, and an optional `cluster` rule. A substitution matches the pattern when at least one of its events matches. A pattern with an empty or omitted `events` list matches all private substitutions. The only event type is `nucSubstitution`.
 
 The `id` appears in JSON output and in the TSV column names `mutationPatterns['<id>'].*`. It must be non-empty, unique among the patterns, and must not contain the characters `'`, `[` or `]`.
 
@@ -256,17 +258,13 @@ The `id` appears in JSON output and in the TSV column names `mutationPatterns['<
       {
         "id": "adar",
         "name": "ADAR-like RNA editing",
-        "description": "ADAR-mediated A-to-I editing observed as A>G and complementary T>C",
+        "description": "ADAR-mediated A-to-I editing, observed as A>G, and as T>C on the opposite strand",
         "events": [
           {
             "type": "nucSubstitution",
             "ref": ["A"],
-            "qry": ["G"]
-          },
-          {
-            "type": "nucSubstitution",
-            "ref": ["T"],
-            "qry": ["C"]
+            "qry": ["G"],
+            "bothStrands": true
           }
         ],
         "cluster": {
@@ -276,20 +274,15 @@ The `id` appears in JSON output and in the TSV column names `mutationPatterns['<
       },
       {
         "id": "apobec",
-        "name": "APOBEC-like cytosine deamination",
-        "description": "APOBEC-like cytosine deamination observed as C>T in TCW context and complementary G>A in WGA context",
+        "name": "APOBEC3-like cytosine deamination",
+        "description": "APOBEC3-like cytosine deamination, observed as C>T in TCW context, and as G>A in WGA context on the opposite strand",
         "events": [
           {
             "type": "nucSubstitution",
             "ref": ["C"],
             "qry": ["T"],
-            "motifs": ["TC[AT]"]
-          },
-          {
-            "type": "nucSubstitution",
-            "ref": ["G"],
-            "qry": ["A"],
-            "motifs": ["[AT]GA"]
+            "motifs": ["T(C)W"],
+            "bothStrands": true
           }
         ],
         "cluster": {
@@ -301,13 +294,54 @@ The `id` appears in JSON output and in the TSV column names `mutationPatterns['<
   }
 ```
 
-The `ref` and `qry` arrays use Nextclade nucleotide symbols, including IUPAC ambiguity codes such as `N`, `R`, and `Y`, and must not be empty. A substitution matches when both the reference and query nucleotide match one of the configured symbols. Two symbols match when they share at least one base: `R` in `ref` matches `A` and `G`, and `G` in `qry` also matches an ambiguous query nucleotide `R`. The two arrays are checked independently, so `"ref": ["A", "T"], "qry": ["G", "C"]` also matches A>C and T>G. Use one event per substitution type, as in the example above, to select only A>G and T>C.
+##### Substitution types (`ref` and `qry`)
 
-The `motifs` array contains regular expressions matched against the reference sequence. A motif site is the leftmost-first regex match that starts at a given reference position. Sites are found at every start position, so sites can overlap. A motif qualifies a substitution when one of its sites contains the substituted reference position. The substituted nucleotide can be at any offset within the site, so write motifs in which the reference nucleotide occurs at one offset only: in `TC[AT]`, a C can only be the second letter. Letters are matched literally, so use regex character classes such as `[AT]` instead of IUPAC ambiguity symbols such as `W`.
+`ref` lists the nucleotides before the substitution, and `qry` the nucleotides after it. Neither list can be empty. The nucleotide before a private substitution is the nucleotide of the nearest tree node, which can differ from the reference sequence.
 
-The optional `cluster` object reports clusters within mutations matched by that pattern. Matched mutations at most `windowSize` nucleotides apart share a sliding window, and a window with more than `cutoff` matched mutations is reported as a cluster: with `"cutoff": 3`, a cluster has at least 4 mutations. `windowSize` must be at least 1. Clusters use the same algorithm as the `qc.snpClusters` rule, and adjacent clusters can share mutations.
+Both lists accept IUPAC codes. A nucleotide matches a code when every base the nucleotide can stand for is also a base of the code:
 
-Mutation patterns do not change QC. `qc.snpClusters` remains the generic SNP cluster QC rule over all private nucleotide substitutions, including the substitutions matched by mutation patterns.
+- `N` matches every nucleotide
+- `R` (A or G) matches `A`, `G` and `R`
+- `G` matches only `G`. It does not match the ambiguous call `R`, which can also be `A`, so mixed calls do not count as a pattern
+
+The two lists are checked independently: `"ref": ["A", "T"], "qry": ["G", "C"]` also matches A>C and T>G. To select only A>G and T>C, use one event per substitution type, or one event with `bothStrands`.
+
+##### Sequence context (`motifs`)
+
+A motif restricts an event to substitutions in a given sequence context. Write the motif in IUPAC notation and put the mutated nucleotide in parentheses: `T(C)W` means "a C preceded by T and followed by A or T". Upper and lower case are the same. Motifs are matched against the sequence of the nearest tree node, which is the sequence the mutational process acted on.
+
+- Each IUPAC code in a motif matches the same nucleotides as in `ref` and `qry`: `W` matches `A`, `T` and `W`
+- `[...]` lists choices: `[AT]` is the same as `W`. `[^A]` matches any nucleotide that cannot be `A`
+- `.` matches any nucleotide
+- Each motif must contain exactly one group in parentheses. The group must match exactly one nucleotide, and must accept at least one of the `ref` nucleotides of the event: A>G with the motif `T(C)W` is an error
+
+A substitution matches an event with motifs when one of the motifs has a site with its group at the substituted position. If an event lists several motifs, one matching motif is enough.
+
+Motifs are regular expressions in the syntax of the Rust [`regex`](https://docs.rs/regex/latest/regex/#syntax) crate, so repetitions such as `T{2}` and alternatives such as `(?:TT|AA)` also work, but are rarely needed. Character ranges such as `[A-C]` are not allowed. Nextclade finds one site per start position, the first match of the regular expression at that position. With repetitions such as `+` or `*`, this can skip sites, so prefer motifs of fixed length.
+
+##### Both strands (`bothStrands`)
+
+A mutational process that acts on single-stranded RNA or DNA can act on either strand. A change on the opposite strand appears as the complementary change of the reference strand, in the reverse-complemented context. With `"bothStrands": true`, Nextclade adds this opposite-strand event for you:
+
+- A>G, the signature of ADAR editing (A-to-I, read as G), also matches T>C
+- C>T with the motif `T(C)W`, the signature of APOBEC3 deamination, also matches G>A with the motif `W(G)A`
+
+Nextclade complements `ref` and `qry` and reverse-complements each motif. The derived motif appears in the output, in upper case. A substitution matched by both a listed and a derived event counts once. Motifs of events with `bothStrands` cannot contain assertions (`^`, `$`, `\b`), inline flags such as `(?i)`, or named classes such as `\w` or `[[:alpha:]]`, because their meaning changes on the opposite strand.
+
+##### Clusters (`cluster`)
+
+The optional `cluster` object reports dense groups of the substitutions matched by the pattern:
+
+- `windowSize`: matched substitutions at most this many nucleotides apart are in one sliding window. Must be at least 1
+- `cutoff`: a window with more than `cutoff` matched substitutions is a cluster. With `"cutoff": 3`, a cluster has at least 4 substitutions
+
+Clusters use the same algorithm as the `qc.snpClusters` rule, and adjacent clusters can share substitutions.
+
+##### Validation and compatibility
+
+Nextclade checks the pattern configuration when it loads the dataset. An invalid pattern, for example a motif without a group in parentheses, fails the dataset load with an error that names the pattern and the motif. Test a new configuration with Nextclade before you publish the dataset.
+
+Nextclade versions released before mutation pattern detection ignore `mutationPatterns` without a message, and give all other results unchanged. Adding patterns therefore needs no change to the minimum version in `compatibility.cli`. Raise the minimum version only when the dataset uses a pattern option that an older release with mutation pattern detection does not know.
 
 #### Amino acid motif detection (`aaMotifs`)
 
