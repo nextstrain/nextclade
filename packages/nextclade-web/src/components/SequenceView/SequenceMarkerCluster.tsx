@@ -44,6 +44,10 @@ export interface SequenceMarkerClusterProps extends SVGProps<SVGRectElement> {
   patternId: string
   patternName: string
   cluster: ClusterProps
+  /** Vertical lane of this pattern inside the cluster marker band */
+  lane: number
+  /** Number of lanes: one per configured pattern, so that clusters of different patterns never cover each other */
+  laneCount: number
   pixelsPerBase: number
   description?: string
 }
@@ -54,6 +58,8 @@ function SequenceMarkerClusterUnmemoed({
   patternId,
   patternName,
   cluster,
+  lane,
+  laneCount,
   pixelsPerBase,
   description,
   ...rest
@@ -64,7 +70,11 @@ function SequenceMarkerClusterUnmemoed({
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const seqMarkerClusterHeightState = useRecoilValue(seqMarkerClusterHeightStateAtom)
-  const { y, height } = useMemo(() => getSeqMarkerDims(seqMarkerClusterHeightState), [seqMarkerClusterHeightState])
+  const { y, height } = useMemo(() => {
+    const band = getSeqMarkerDims(seqMarkerClusterHeightState)
+    const laneHeight = band.height / Math.max(laneCount, 1)
+    return { y: band.y + lane * laneHeight, height: laneHeight }
+  }, [seqMarkerClusterHeightState, lane, laneCount])
 
   if (seqMarkerClusterHeightState === SeqMarkerHeightState.Off) {
     return null
@@ -135,16 +145,17 @@ export function countMutationPatternClusters(mutationPatterns?: MutationPatterns
   return (mutationPatterns?.results ?? []).reduce((total, pattern) => total + pattern.clusters.length, 0)
 }
 
-/** Markers for the clusters of all mutation patterns */
+/** Markers for the clusters of all mutation patterns, drawn in one lane per pattern */
 export function SequenceMarkerMutationPatternClusters({
   index,
   seqName,
   mutationPatterns,
   pixelsPerBase,
 }: SequenceMarkerMutationPatternClustersProps) {
+  const patterns = mutationPatterns?.results ?? []
   return (
     <>
-      {(mutationPatterns?.results ?? []).flatMap((pattern) =>
+      {patterns.flatMap((pattern, lane) =>
         pattern.clusters.map((cluster) => (
           <SequenceMarkerCluster
             key={`cluster_${pattern.id}_${cluster.start}_${cluster.end}`}
@@ -153,6 +164,8 @@ export function SequenceMarkerMutationPatternClusters({
             patternId={pattern.id}
             patternName={pattern.name}
             cluster={cluster}
+            lane={lane}
+            laneCount={patterns.length}
             pixelsPerBase={pixelsPerBase}
             description={pattern.description}
           />
