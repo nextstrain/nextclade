@@ -84,7 +84,7 @@ function MutationPatternsSection({ analysisResult }: { analysisResult: AnalysisR
           {pattern.clusters.map((cluster) => (
             <ClusterCard key={`${cluster.start}-${cluster.end}`}>
               <ClusterTitle>
-                {t('{{start}}-{{end}} ({{count}} events)', {
+                {t('{{start}}-{{end}} ({{count}} mutations)', {
                   start: cluster.start + 1,
                   end: cluster.end + 1,
                   count: cluster.count,

@@ -6,6 +6,7 @@ import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslation
 
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { MutationPatternEventBadge, mutationPatternEventKey } from 'src/components/Common/MutationPatternEventBadge'
+import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { getSafeId } from 'src/helpers/getSafeId'
 import {
   SeqMarkerHeightState,
@@ -16,7 +17,6 @@ import type { MutationPatternEventMatch, MutationPatternsResults } from 'src/gen
 
 const CLUSTER_FILL = 'rgba(255, 140, 0, 0.12)'
 const CLUSTER_STROKE = '#e06000'
-const CLUSTER_MIN_WIDTH_PX = 12
 
 const ClusterBadgeGrid = styled.div`
   display: flex;
@@ -41,6 +41,8 @@ interface ClusterProps {
 export interface SequenceMarkerClusterProps extends SVGProps<SVGRectElement> {
   index: number
   seqName: string
+  patternId: string
+  patternName: string
   cluster: ClusterProps
   pixelsPerBase: number
   description?: string
@@ -49,6 +51,8 @@ export interface SequenceMarkerClusterProps extends SVGProps<SVGRectElement> {
 function SequenceMarkerClusterUnmemoed({
   index,
   seqName,
+  patternId,
+  patternName,
   cluster,
   pixelsPerBase,
   description,
@@ -68,11 +72,13 @@ function SequenceMarkerClusterUnmemoed({
 
   const { start, end, count, events } = cluster
 
-  const id = getSafeId('cluster-marker', { index, seqName, begin: start, end })
+  // Several patterns can have a cluster with the same range
+  const id = getSafeId('cluster-marker', { index, seqName, patternId, begin: start, end })
 
-  let width = (end - start + 1) * pixelsPerBase
-  width = Math.max(width, CLUSTER_MIN_WIDTH_PX)
-  const halfNuc = Math.max(pixelsPerBase, CLUSTER_MIN_WIDTH_PX) / 2
+  // `end` is inclusive: the cluster covers the half-open range `[start, end + 1)`
+  let width = (end + 1 - start) * pixelsPerBase
+  width = Math.max(width, BASE_MIN_WIDTH_PX)
+  const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
   const x = start * pixelsPerBase - halfNuc
 
   return (
@@ -90,6 +96,9 @@ function SequenceMarkerClusterUnmemoed({
         {...rest}
       />
       <Tooltip target={id} isOpen={showTooltip}>
+        <div>
+          <b>{patternName}</b>
+        </div>
         <div>
           <b>
             {t('Cluster of private mutations: {{start}}-{{end}} ({{count}} mutations)', {
@@ -121,8 +130,12 @@ export interface SequenceMarkerMutationPatternClustersProps {
   pixelsPerBase: number
 }
 
-/** Markers for the clusters of all mutation patterns. Clusters are drawn around markers of other kinds, so they do not
- * count toward the marker limit. */
+/** Number of cluster markers of all mutation patterns, which count toward the marker limit like other markers */
+export function countMutationPatternClusters(mutationPatterns?: MutationPatternsResults): number {
+  return (mutationPatterns?.results ?? []).reduce((total, pattern) => total + pattern.clusters.length, 0)
+}
+
+/** Markers for the clusters of all mutation patterns */
 export function SequenceMarkerMutationPatternClusters({
   index,
   seqName,
@@ -137,6 +150,8 @@ export function SequenceMarkerMutationPatternClusters({
             key={`cluster_${pattern.id}_${cluster.start}_${cluster.end}`}
             index={index}
             seqName={seqName}
+            patternId={pattern.id}
+            patternName={pattern.name}
             cluster={cluster}
             pixelsPerBase={pixelsPerBase}
             description={pattern.description}

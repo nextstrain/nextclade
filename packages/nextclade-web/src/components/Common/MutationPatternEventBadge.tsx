@@ -15,5 +15,5 @@ export function mutationPatternEventKey(event: MutationPatternEventMatch): strin
       return `${event.type}:${event.pos}:${event.refNuc}:${event.qryNuc}`
   }
   // Events come from WASM output, which the compile-time exhaustiveness check does not cover
-  throw new Error(`Unknown mutation pattern event type: ${(event as { type: string }).type}`)
+  throw new Error(`Unknown mutation pattern event: ${JSON.stringify(event)}`)
 }
