@@ -1,32 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
-trap "exit 0" INT
 
-#
-# Run Nextclade on different Linux distros, to ensure compatibility.
+# Run a command on different Linux distros, to ensure compatibility.
 # We are mostly concerned about old distros with old glibc, libgcc and kernel.
+#
+# Current directory will be mounted into the container as `/workdir` and this will be the working dir where
+# the container starts. This way the executables and data are accessible starting from `./`
 #
 # Dependencies:
 #   sudo apt-get install -y bash parallel
 
-echo "Docker version:"
+printf "Docker version:\n"
 docker version
 
-function abspath() {
-  readlink -m "$1"
-}
-
-export NEXTCLADE_BIN="${1:? "Usage: ${0} <path_to_nextclade>"}"
-VOLUME="$(abspath "${NEXTCLADE_BIN}"):/nextclade"
-export VOLUME
-export RUN_COMMAND="/nextclade dataset list >/dev/null"
+export args="${*:?}"
 
 distros=(
   "debian/eol:jessie"  # 8
   "debian/eol:stretch" # 9
-  "debian/eol:buster"  # 10
+  "debian:10.0"
   "debian:11.0"
   "debian:12.0"
+  "debian:13.0"
   "debian:stable"
   "debian:testing"
   "debian:sid"
@@ -37,9 +32,11 @@ distros=(
   "ubuntu:20.04"
   "ubuntu:22.04"
   "ubuntu:24.04"
+  "ubuntu:26.04"
   "ubuntu:latest"
-  "amazonlinux:2016.09.0.20161028"
-  "amazonlinux:2017.12.0.20171212.2"
+  "amazonlinux:1"
+  "amazonlinux:2"
+  "amazonlinux:2023"
   "amazonlinux:2.0.20180622.1"
   "amazonlinux:2.0.20190115"
   "amazonlinux:2.0.20191217.0"
@@ -48,6 +45,9 @@ distros=(
   "amazonlinux:2.0.20220121.0"
   "amazonlinux:2.0.20230119.1"
   "amazonlinux:2.0.20240131.0"
+  "amazonlinux:2.0.20250428.0"
+  "amazonlinux:2016.09.0.20161028"
+  "amazonlinux:2017.12.0.20171212.2"
   "amazonlinux:latest"
   "centos:7"
   "centos:7.2.1511"
@@ -56,30 +56,47 @@ distros=(
   "centos:8"
   "centos:8.1.1911"
   "centos:8.4.2105"
+  "fedora:23"
   "fedora:27"
   "fedora:30"
   "fedora:33"
   "fedora:36"
   "fedora:39"
   "fedora:41"
+  "fedora:42"
+  "fedora:43"
+  "fedora:44"
   "fedora:latest"
+  "oraclelinux:7"
   "oraclelinux:7.2"
+  "oraclelinux:8"
   "oraclelinux:8.0"
   "oraclelinux:8.6"
   "oraclelinux:8.9"
+  "oraclelinux:9"
+  "oraclelinux:10"
   "registry.access.redhat.com/ubi8/ubi"
   "registry.access.redhat.com/ubi9/ubi"
+  "registry.access.redhat.com/ubi10/ubi"
+  "registry.access.redhat.com/rhel7:7.0-21"
   "opensuse/archive:13.2"
   "opensuse/leap:15.2"
+  "opensuse/leap:15.6"
+  "opensuse/leap:16.0"
+  "opensuse/leap:latest"
   "opensuse/tumbleweed:latest"
   "archlinux:latest"
+  "archlinux:20191006"
 )
 
 function run_one_distro() {
-  distro=$1
+  local distro="${1}"
+  local -a command_args=()
+  read -r -a command_args <<<"${args}"
+  printf "Running %s\n" "'${args}' on '${distro}'"
   docker pull -q "$distro" >/dev/null
-  if ! docker run -i --rm -v "${VOLUME}" "$distro" bash -c "${RUN_COMMAND}"; then
-    echo "Failed running '${RUN_COMMAND}' on '$distro'"
+  if ! docker run -i --rm -v "$(pwd):/workdir" -w /workdir "$distro" "${command_args[@]}" >/dev/null; then
+    printf "Failed running '%s' on '%s'\n" "${args}" "${distro}" >&2
     exit 1
   fi
 }

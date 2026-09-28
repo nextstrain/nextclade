@@ -326,9 +326,18 @@ jobs:
 
 
   run-linux-distros-test:
-    name: "Run Linux distros compatibility test"
+    name: "Run Linux distros compatibility test (${{ matrix.target }})"
     needs: [ build-cli ]
     runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            script: tests/test-linux-distros-gnu
+          - target: x86_64-unknown-linux-musl
+            script: tests/test-linux-distros-musl
 
     steps:
       - name: "Checkout code"
@@ -352,8 +361,8 @@ jobs:
 
       - name: "Test Linux distros compatibility"
         run: |
-          chmod +x ./.out/nextclade-x86_64-unknown-linux-gnu
-          ./tests/test-linux-distros ./.out/nextclade-x86_64-unknown-linux-gnu
+          chmod +x "./.out/nextclade-${{ matrix.target }}"
+          "./${{ matrix.script }}" "./.out/nextclade-${{ matrix.target }}" dataset list
 
 
   check-cli-docs:

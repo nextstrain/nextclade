@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Run a command on different Linux distros, to ensure compatibility.
+# Here we check distros which have either very old glibc or none at all.
+#
+# Current directory will be mounted into the container as `/workdir` and this will be the working dir where
+# the container starts. This way the executables and data are accessible starting from `./`
+#
+# Dependencies:
+#   sudo apt-get install -y bash parallel
+
+printf "Docker version:\n"
+docker version
+
+export args="${*:?}"
+
+distros=(
+  "docker/pipeline_scratch@sha256:b2374472e2d18c89ceac4fdc9b93ef598824fedbf7002c2ed28a8d1cdab7059e" # empty image
+
+  "gcr.io/distroless/static-debian11"
+  "gcr.io/distroless/static-debian12"
+  "gcr.io/distroless/static-debian13"
+  "gcr.io/distroless/static:nonroot"
+
+  "alpine:edge"
+  "alpine:latest"
+  "alpine:3"
+  "alpine:3.1"
+  "alpine:3.5"
+  "alpine:3.8"
+  "alpine:3.12"
+  "alpine:3.13" # musl 1.2
+  "alpine:3.16"
+  "alpine:3.20"
+  "alpine:3.24"
+
+  "ghcr.io/void-linux/void-musl:20230809"
+  "ghcr.io/void-linux/void-musl:20260901R1"
+  "ghcr.io/void-linux/void-musl:latest"
+  "ghcr.io/void-linux/void-musl-busybox:20260901R1"
+
+  "chimeralinux/chimera:latest"
+
+  "gentoo/stage3:musl"
+  "gentoo/stage3:musl-hardened"
+  "gentoo/stage3:musl-llvm"
+
+  "openwrt/rootfs:x86-64-19.07.10"
+  "openwrt/rootfs:x86-64-21.02.7"
+  "openwrt/rootfs:x86-64-22.03.7"
+  "openwrt/rootfs:x86-64-23.05.6"
+  "openwrt/rootfs:x86-64-24.10.8"
+  "openwrt/rootfs:x86-64-25.12.5"
+
+  "busybox:1-glibc"
+  "busybox:1-musl"
+  "busybox:1-uclibc"
+  "busybox:stable-glibc"
+  "busybox:stable-musl"
+  "busybox:stable-uclibc"
+
+  "centos:6.6"
+  "centos:5"
+
+  "debian/eol:wheezy"  # 7
+  "debian/eol:squeeze" # 6
+  "debian/eol:lenny"   # 5
+  "debian/eol:etch"    # 4
+
+  "oraclelinux:5.11"
+  "oraclelinux:6.6"
+
+  "registry.access.redhat.com/rhel6:6.5-11"
+
+  "ubuntu:12.04"
+)
+
+function run_one_distro() {
+  local distro="${1}"
+  local -a command_args=()
+  read -r -a command_args <<<"${args}"
+  printf "Running %s\n" "'${args}' on '${distro}'"
+  docker pull -q "$distro" >/dev/null
+  if ! docker run -i --rm -v "$(pwd):/workdir" -w /workdir "$distro" "${command_args[@]}" >/dev/null; then
+    printf "Failed running '%s' on '%s'\n" "${args}" "${distro}" >&2
+    exit 1
+  fi
+}
+export -f run_one_distro
+
+parallel --jobs="${#distros[@]}" run_one_distro ::: "${distros[@]}"
