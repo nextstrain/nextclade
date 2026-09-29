@@ -1,3 +1,34 @@
+## 3.24.0
+
+### Mutation pattern detection
+
+Dataset authors can now define named mutation patterns in the new `mutationPatterns` field of `pathogen.json`, to report signatures of mutational processes such as ADAR RNA editing or APOBEC3 cytosine deamination. A pattern selects private nucleotide substitutions by substitution type (IUPAC codes supported) and by optional sequence context motifs (e.g. `T(C)W`), optionally on both strands. A pattern can also report dense clusters of its matches, using its own sliding window and cutoff, independent from the `qc.snpClusters` rule. Pattern results are reported in the `mutationPatterns` field of JSON and NDJSON outputs and in the `mutationPatterns['<id>'].*` columns of CSV and TSV outputs. Mutation patterns do not affect QC scores. Private substitutions are computed relative to the nearest node on the reference tree, so patterns require a dataset with a reference tree. Datasets without `mutationPatterns` are unaffected. See [pathogen config documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/input-files/05-pathogen-config.html#nucleotide-mutation-pattern-detection-mutationpatterns), [#1767](https://github.com/nextstrain/nextclade/pull/1767), [#1780](https://github.com/nextstrain/nextclade/pull/1780) for details.
+
+### Nextclade Web: mutation pattern markers
+
+When the sequence view shows mutations relative to "Parent", Nextclade Web now marks each mutation pattern match with a triangle and each pattern cluster with a frame, in a separate lane per pattern. Hovering over a marker highlights the matches of that pattern across all rows. The mutations tooltip lists matches, counts per substitution type and cluster ranges for each pattern. See [#1767](https://github.com/nextstrain/nextclade/pull/1767), [#1780](https://github.com/nextstrain/nextclade/pull/1780) for details.
+
+### Fix: last position missing in SNP cluster ranges
+
+The `qc.snpClusters.clusteredSNPs` column of CSV and TSV outputs left out the last substitution of each cluster from the printed range, and printed single-position clusters as "empty range". Ranges now include the last position, consistent with other range columns and with the tooltip in Nextclade Web. See [#1767](https://github.com/nextstrain/nextclade/pull/1767) for details.
+
+### Docker: supported Alpine versions
+
+Docker images are now published for Alpine 3.24, and no longer for Alpine 3.18. Images are published for the following Alpine versions:
+
+- 3.24: `:alpine3.24`, `:alpine`
+- 3.23: `:alpine3.23`
+- 3.22: `:alpine3.22`
+- 3.21: `:alpine3.21`
+- 3.20: `:alpine3.20`
+- 3.19: `:alpine3.19`
+
+See the full list of available tags and platforms on [Docker Hub](https://hub.docker.com/r/nextstrain/nextclade/tags).
+
+### Docker: fix Debian 11 images
+
+Debian 11 reached end of life and its package repositories moved to the Debian archive, which broke builds of the `:debian11` images. These images now build again and include the final Debian 11 security updates.
+
 ## 3.23.0
 
 ### Multi-reference datasets
