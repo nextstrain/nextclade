@@ -5,6 +5,7 @@ pub mod tests {
   use crate::analyze::virus_properties::MutationPatternsConfig;
   use crate::assert_error;
   use crate::io::json::{JsonPretty, json_parse, json_stringify};
+  use crate::utils::error::report_to_string;
   use eyre::Report;
   use helpers::{
     ClusterRange, analyze, analyze_with_node, cluster_ranges, config, matched_positions, motif_sites, motif_texts,
@@ -531,13 +532,43 @@ pub mod tests {
     Ok(())
   }
 
-  #[test]
-  fn test_mutation_patterns_no_clusters_without_cluster_config() -> Result<(), Report> {
-    let config = config(&json!([{ "id": "all", "name": "All" }]))?;
+  // A>G at 0, 4, 8: with a clustering rule of window 10 and cutoff 0 they would form one cluster
+  #[rstest]
+  #[case::omitted(json!({ "id": "all", "name": "All" }))]
+  #[case::false_(json!({ "id": "all", "name": "All", "cluster": false }))]
+  #[case::null(json!({ "id": "all", "name": "All", "cluster": null }))]
+  #[trace]
+  fn test_mutation_patterns_no_clusters_without_cluster_config(#[case] pattern: Value) -> Result<(), Report> {
+    let config = config(&json!([pattern]))?;
     let results = analyze("ACGTACGTACGTA", "GCGTGCGTGCGTA", Some(&config))?;
     let result = &results.results[0];
-    assert_eq!(3, result.counts.matches);
+    assert_eq!(vec![0, 4, 8], matched_positions(result));
     assert!(result.clusters.is_empty());
+    assert_eq!(
+      (3, 0, 0),
+      (result.counts.matches, result.counts.clustered, result.counts.clusters)
+    );
+    Ok(())
+  }
+
+  #[test]
+  fn test_mutation_patterns_cluster_false_is_not_serialized() -> Result<(), Report> {
+    let config = config(&json!([{ "id": "all", "name": "All", "cluster": false }]))?;
+    let serialized: Value = json_parse(json_stringify(&config, JsonPretty(false))?)?;
+    assert_eq!(json!({ "patterns": [{ "id": "all", "name": "All" }] }), serialized);
+    Ok(())
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::true_(  json!(true),                      "`cluster: true` is not supported. Set `cluster` to an object with `windowSize` and `cutoff`, or to `false` for no clustering")]
+  #[case::number( json!(200),                       "invalid type: integer `200`, expected an object with `windowSize` and `cutoff`, or `false` for no clustering")]
+  #[case::field(  json!({ "windowSize": "200" }),   "invalid type: string \"200\", expected usize")]
+  #[trace]
+  fn test_mutation_patterns_invalid_cluster(#[case] cluster: Value, #[case] expected: &str) -> Result<(), Report> {
+    let result = config(&json!([{ "id": "a", "name": "A", "cluster": cluster }]));
+    let error = report_to_string(&result.expect_err("expected a parse error"));
+    assert!(error.contains(expected), "expected error containing:\n  {expected}\nactual:\n  {error}");
     Ok(())
   }
 

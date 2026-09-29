@@ -11,7 +11,7 @@ import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfNucMuts } from 'src/components/Results/ListOfNucMuts'
 import { ListOfAaMuts } from 'src/components/Results/ListOfAaMuts'
-import { MutationPatternEventBadge, mutationPatternEventKey } from 'src/components/Common/MutationPatternEventBadge'
+import { ListOfMutationsGeneric } from 'src/components/Results/ListOfMutationsGeneric'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { TableSlim } from 'src/components/Common/TableSlim'
 
@@ -43,62 +43,57 @@ const PatternDescription = styled.div`
   margin-bottom: 0.35rem;
 `
 
-const ClusterCard = styled.div`
-  background: rgba(255, 140, 0, 0.06);
-  border: 1px solid rgba(255, 140, 0, 0.2);
-  border-radius: 3px;
-  padding: 0.25rem 0.4rem;
-
-  &:not(:last-child) {
-    margin-bottom: 0.35rem;
-  }
-`
-
-const ClusterTitle = styled.div`
-  font-weight: 700;
+const PatternSummary = styled.div`
   font-size: 0.85em;
-  margin-bottom: 2px;
+  margin-bottom: 0.25rem;
 `
 
-const ClusterBadgeGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
+const PatternClusters = styled.div`
+  font-size: 0.85em;
 `
+
+/** Number of cluster ranges listed before the list is truncated */
+const MAX_CLUSTER_RANGES = 16
 
 function MutationPatternsSection({ analysisResult }: { analysisResult: AnalysisResult }) {
   const { t } = useTranslationSafe()
-  const visiblePatterns = (analysisResult.mutationPatterns?.results ?? []).filter((pattern) => pattern.clusters.length > 0)
+  const patterns = analysisResult.mutationPatterns?.results ?? []
 
-  if (visiblePatterns.length === 0) {
+  if (patterns.length === 0) {
     return null
   }
 
   return (
     <PatternList>
-      {visiblePatterns.map((pattern) => (
-        <PatternSection key={pattern.id}>
-          <PatternName>{pattern.name || t('Mutation pattern')}</PatternName>
-          {pattern.description && <PatternDescription>{pattern.description}</PatternDescription>}
+      {patterns.map((pattern) => {
+        const typeCounts = pattern.eventTypeCounts
+          .map(({ refNuc, qryNuc, count }) => `${refNuc}>${qryNuc}: ${count}`)
+          .join(', ')
+        const clusterRanges = pattern.clusters
+          .slice(0, MAX_CLUSTER_RANGES)
+          .map(({ start, end, count }) => `${start + 1}-${end + 1} (${count})`)
+          .join(', ')
+        return (
+          <PatternSection key={pattern.id}>
+            <PatternName>{pattern.name || t('Mutation pattern')}</PatternName>
+            {pattern.description && <PatternDescription>{pattern.description}</PatternDescription>}
 
-          {pattern.clusters.map((cluster) => (
-            <ClusterCard key={`${cluster.start}-${cluster.end}`}>
-              <ClusterTitle>
-                {t('{{start}}-{{end}} ({{count}} mutations)', {
-                  start: cluster.start + 1,
-                  end: cluster.end + 1,
-                  count: cluster.count,
-                })}
-              </ClusterTitle>
-              <ClusterBadgeGrid>
-                {cluster.events.map((event) => (
-                  <MutationPatternEventBadge key={mutationPatternEventKey(event)} event={event} />
-                ))}
-              </ClusterBadgeGrid>
-            </ClusterCard>
-          ))}
-        </PatternSection>
-      ))}
+            <PatternSummary>
+              {t('{{ n }} private mutations relative to parent match this pattern', { n: pattern.counts.matches })}
+              {typeCounts && ` (${typeCounts})`}
+            </PatternSummary>
+
+            {pattern.matches.length > 0 && <ListOfMutationsGeneric substitutions={pattern.matches} />}
+
+            {pattern.clusters.length > 0 && (
+              <PatternClusters>
+                {t('Clusters ({{ n }}): {{ ranges }}', { n: pattern.clusters.length, ranges: clusterRanges })}
+                {pattern.clusters.length > MAX_CLUSTER_RANGES && ` ${t('(truncated)')}`}
+              </PatternClusters>
+            )}
+          </PatternSection>
+        )
+      })}
     </PatternList>
   )
 }
@@ -209,7 +204,7 @@ export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
           </tbody>
         </TableSlim>
 
-        <MutationPatternsSection analysisResult={analysisResult} />
+        {nodeSearchName === REF_NODE_PARENT && <MutationPatternsSection analysisResult={analysisResult} />}
       </Tooltip>
     </div>
   )

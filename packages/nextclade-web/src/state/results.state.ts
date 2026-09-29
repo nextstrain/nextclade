@@ -292,3 +292,9 @@ export const canDownloadAtom = jotaiAtom((get) => {
   const globalStatus = get(analysisStatusGlobalAtom)
   return globalStatus === AlgorithmGlobalStatus.done
 })
+
+/** Id of the mutation pattern under the mouse pointer in the sequence view. Every row fades the markers of other mutations and patterns */
+export const focusedMutationPatternIdAtom = atom<string | undefined>({
+  key: 'focusedMutationPatternId',
+  default: undefined,
+})
