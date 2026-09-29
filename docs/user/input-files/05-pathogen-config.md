@@ -339,6 +339,8 @@ The optional `cluster` object reports dense groups of the substitutions matched 
 
 Clusters use the same algorithm as the `qc.snpClusters` rule, and adjacent clusters can share substitutions.
 
+Without clustering, Nextclade reports all matched substitutions and their counts, but no clusters. Omit `cluster`, or set `"cluster": false`, for processes that leave scattered substitutions rather than dense clusters, for example APOBEC3-like editing in mpox. `"cluster": true` is an error, because it does not give a window and a cutoff.
+
 ##### Validation and compatibility
 
 Nextclade checks the pattern configuration when it loads the dataset. An invalid pattern, for example a motif without a group in parentheses, fails the dataset load with an error that names the pattern and the motif. Test a new configuration with Nextclade before you publish the dataset.

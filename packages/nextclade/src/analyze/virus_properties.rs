@@ -19,10 +19,14 @@ use crate::{o, vec_of_owned};
 use eyre::{Report, WrapErr};
 use maplit::btreemap;
 use ordered_float::OrderedFloat;
+use schemars::schema::{InstanceType, Metadata, SchemaObject, SubschemaValidation};
 use semver::Version;
-use serde::{Deserialize, Serialize};
+use serde::de::value::MapAccessDeserializer;
+use serde::de::{self, MapAccess, Visitor};
+use serde::{Deserialize, Deserializer, Serialize};
 use smart_default::SmartDefault;
 use std::collections::BTreeMap;
+use std::fmt;
 use std::path::Path;
 use validator::Validate;
 
@@ -155,6 +159,86 @@ impl MutationPatternClusterConfig {
   }
 }
 
+/// Deserialize the `cluster` field of a mutation pattern: a clustering rule, or `false` (or `null`) for no clustering.
+/// `true` is rejected, because it does not say which window and cutoff to use.
+fn deserialize_mutation_pattern_cluster<'de, D: Deserializer<'de>>(
+  deserializer: D,
+) -> Result<Option<MutationPatternClusterConfig>, D::Error> {
+  struct ClusterVisitor;
+
+  impl<'de> Visitor<'de> for ClusterVisitor {
+    type Value = Option<MutationPatternClusterConfig>;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+      formatter.write_str("an object with `windowSize` and `cutoff`, or `false` for no clustering")
+    }
+
+    fn visit_bool<E: de::Error>(self, v: bool) -> Result<Self::Value, E> {
+      if v {
+        Err(E::custom(
+          "`cluster: true` is not supported. Set `cluster` to an object with `windowSize` and `cutoff`, or to `false` for no clustering",
+        ))
+      } else {
+        Ok(None)
+      }
+    }
+
+    fn visit_unit<E: de::Error>(self) -> Result<Self::Value, E> {
+      Ok(None)
+    }
+
+    fn visit_none<E: de::Error>(self) -> Result<Self::Value, E> {
+      Ok(None)
+    }
+
+    fn visit_map<A: MapAccess<'de>>(self, map: A) -> Result<Self::Value, A::Error> {
+      MutationPatternClusterConfig::deserialize(MapAccessDeserializer::new(map)).map(Some)
+    }
+  }
+
+  deserializer.deserialize_any(ClusterVisitor)
+}
+
+/// JSON schema of the `cluster` field of a mutation pattern: a clustering rule, `false`, or `null`
+struct MutationPatternClusterSetting;
+
+impl schemars::JsonSchema for MutationPatternClusterSetting {
+  fn schema_name() -> String {
+    o!("MutationPatternClusterSetting")
+  }
+
+  fn is_referenceable() -> bool {
+    false
+  }
+
+  fn json_schema(generator: &mut schemars::r#gen::SchemaGenerator) -> schemars::schema::Schema {
+    let no_clustering = SchemaObject {
+      metadata: Some(Box::new(Metadata {
+        description: Some(o!("No clustering")),
+        ..Metadata::default()
+      })),
+      instance_type: Some(InstanceType::Boolean.into()),
+      const_value: Some(serde_json::Value::Bool(false)),
+      ..SchemaObject::default()
+    };
+    let null = SchemaObject {
+      instance_type: Some(InstanceType::Null.into()),
+      ..SchemaObject::default()
+    };
+    schemars::schema::Schema::Object(SchemaObject {
+      subschemas: Some(Box::new(SubschemaValidation {
+        any_of: Some(vec![
+          generator.subschema_for::<MutationPatternClusterConfig>(),
+          no_clustering.into(),
+          null.into(),
+        ]),
+        ..SubschemaValidation::default()
+      })),
+      ..SchemaObject::default()
+    })
+  }
+}
+
 /// Named mutation pattern: event filters, optional clustering, and display metadata.
 ///
 /// Dataset authors can define multiple patterns to separate biologically different mutation processes, such as
@@ -179,9 +263,14 @@ pub struct MutationPatternConfig {
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub events: Vec<MutationPatternEvent>,
 
-  /// Optional pattern-local clustering rule. If omitted, Nextclade reports matches and type counts, but no clusters for
-  /// this pattern.
-  #[serde(default, skip_serializing_if = "Option::is_none")]
+  /// Optional pattern-local clustering rule. If omitted or `false`, Nextclade reports matches and type counts, but no
+  /// clusters for this pattern. This suits processes that leave scattered mutations rather than dense clusters.
+  #[serde(
+    default,
+    deserialize_with = "deserialize_mutation_pattern_cluster",
+    skip_serializing_if = "Option::is_none"
+  )]
+  #[schemars(with = "MutationPatternClusterSetting")]
   pub cluster: Option<MutationPatternClusterConfig>,
 }
 

@@ -1144,10 +1144,15 @@
           }
         },
         "cluster": {
-          "description": "Optional pattern-local clustering rule. If omitted, Nextclade reports matches and type counts, but no clusters for this pattern.",
+          "description": "Optional pattern-local clustering rule. If omitted or `false`, Nextclade reports matches and type counts, but no clusters for this pattern. This suits processes that leave scattered mutations rather than dense clusters.",
           "anyOf": [
             {
               "$ref": "#/definitions/MutationPatternClusterConfig"
+            },
+            {
+              "description": "No clustering",
+              "type": "boolean",
+              "const": false
             },
             {
               "type": "null"
