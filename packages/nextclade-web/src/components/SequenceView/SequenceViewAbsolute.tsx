@@ -11,7 +11,6 @@ import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
-import { SequenceMarkerMutationPatternClusters, countMutationPatternClusters } from './SequenceMarkerCluster'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 import { SequenceMarkerInsertion } from './SequenceMarkerInsertion'
 import { SequenceViewCoverageWrapper, SequenceViewCoverageText, SequenceViewSVG } from './SequenceViewStyles'
@@ -33,7 +32,6 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
     insertions,
     nucToAaMuts,
     nonACGTNs,
-    mutationPatterns,
   } = sequence
 
   const { t } = useTranslationSafe()
@@ -120,8 +118,7 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
     deletionViews.length +
     missingViews.length +
     frameShiftMarkers.length +
-    insertionViews.length +
-    countMutationPatternClusters(mutationPatterns)
+    insertionViews.length
   if (totalMarkers > maxNucMarkers) {
     return (
       <SequenceViewCoverageWrapper>
@@ -171,12 +168,6 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
         pixelsPerBase={pixelsPerBase}
       />
       {frameShiftMarkers}
-      <SequenceMarkerMutationPatternClusters
-        index={index}
-        seqName={seqName}
-        mutationPatterns={mutationPatterns}
-        pixelsPerBase={pixelsPerBase}
-      />
     </SequenceViewSVG>
   )
 }

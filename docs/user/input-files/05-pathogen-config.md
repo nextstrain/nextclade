@@ -341,6 +341,10 @@ Clusters use the same algorithm as the `qc.snpClusters` rule, and adjacent clust
 
 Without clustering, Nextclade reports all matched substitutions and their counts, but no clusters. Omit `cluster`, or set `"cluster": false`, for processes that leave scattered substitutions rather than dense clusters, for example APOBEC3-like editing in mpox. `"cluster": true` is an error, because it does not give a window and a cutoff.
 
+##### Display in Nextclade Web
+
+Pattern results are relative to the nearest node on the reference tree, so Nextclade Web shows them only when the sequence view shows mutations relative to "Parent". Select it in the reference node dropdown above the results table. Each matched substitution then has a dark triangle marker in the lane of its pattern, and each cluster has a dark frame. Hovering over a marker or a frame fades the other mutations in all rows, so that the substitutions of the pattern stand out. The mutations column tooltip lists the matched substitutions and the clusters of each pattern.
+
 ##### Validation and compatibility
 
 Nextclade checks the pattern configuration when it loads the dataset. An invalid pattern, for example a motif without a group in parentheses, fails the dataset load with an error that names the pattern and the motif. Test a new configuration with Nextclade before you publish the dataset.
