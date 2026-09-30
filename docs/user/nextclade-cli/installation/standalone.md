@@ -10,17 +10,15 @@ All versions and their release notes are available on 🐈 [GitHub Releases](htt
 
 For convenience, this table provides links to the latest version:
 
-|         | x86_64                                                                                                                                                                                                                    | arm64                                                                                                                                                                                                                       |
-|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Linux   | [gnu](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-gnu), [musl](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-musl)* | [gnu](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-unknown-linux-gnu), [musl](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-unknown-linux-musl)* |
-| macOS   | [download](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-apple-darwin)                                                                                                                | [download](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-apple-darwin)                                                                                                                 |
-| Windows | [download](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe)                                                                                                          | -                                                                                                                                                                                                                           |
+<table>
+<tr><td><b>Linux</b> x86_64</td><td><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-gnu">glibc</a><br><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-musl">musl</a>*</td></tr>
+<tr><td><b>Linux</b> ARM64</td><td><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-unknown-linux-gnu">glibc</a><br><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-unknown-linux-musl">musl</a>*</td></tr>
+<tr><td><b>macOS</b>**</td><td><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-apple-darwin">Apple Silicon</a><br><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-apple-darwin">Intel</a></td></tr>
+<tr><td><b>Windows</b> x86_64</td><td><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe">.exe</a></td></tr>
+</table>
 
-<p>
-<small>
-* - the "gnu" build is faster and is recommended for most users. However, it requires glibc >= 2.14 to be present on the system. If you are running an older Linux distribution, you can use a "musl" flavor, which does not require external libc but is slightly slower.
-</small>
-</p>
+<p><sub>* glibc builds are faster and recommended, but require glibc >= 2.14. musl builds are static, run on older Linux distributions, and are slightly slower</sub><br>
+<sub>** macOS executables are not signed. See the note below if macOS refuses to run them</sub></p>
 
 The downloaded executables can be renamed and moved freely. It is convenient to rename the executable to `nextclade` and to move to one of the directories included in system `$PATH`, so that it's available from any directory in the console. On Unix-like systems don't forget to add "executable" permission to the files.
 
