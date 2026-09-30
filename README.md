@@ -181,6 +181,26 @@ by Nextstrain team
   </a>
 </p>
 
+<h2 id="installation-and-usage" align="center">
+📥 Installation and usage
+</h2>
+
+<table>
+<tr><td>🌍 <b>Web</b></td><td><a href="https://clades.nextstrain.org">clades.nextstrain.org</a></td><td><a href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-web/index.html">guide</a></td></tr>
+<tr><td>📥 <b>CLI</b></td><td><table><tr><td><b>Linux</b> x86_64</td><td><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-gnu">glibc</a><br><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-musl">musl</a>*</td></tr><tr><td><b>Linux</b> ARM64</td><td><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-unknown-linux-gnu">glibc</a><br><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-unknown-linux-musl">musl</a>*</td></tr><tr><td><b>macOS</b>***</td><td><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-aarch64-apple-darwin">Apple Silicon</a><br><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-apple-darwin">Intel</a></td></tr><tr><td><b>Windows</b> x86_64</td><td><a href="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-pc-windows-gnu.exe">.exe</a></td></tr></table></td><td><a href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/standalone.html">install</a><br><a href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/usage.html">usage</a><br><a href="https://github.com/nextstrain/nextclade/releases">all releases</a></td></tr>
+<tr><td>🐋 <b>Docker</b></td><td><code>docker pull nextstrain/nextclade:latest</code> (<a href="https://hub.docker.com/r/nextstrain/nextclade/tags">tags</a>)</td><td><a href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/docker.html">guide</a></td></tr>
+<tr><td>🐍 <b>Conda</b></td><td><code>conda install -c bioconda nextclade</code> (<a href="https://anaconda.org/bioconda/nextclade/files">versions</a>)**</td><td><a href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/conda.html">guide</a></td></tr>
+<tr><td>🛠️ <b>From source</b></td><td><a href="https://github.com/nextstrain/nextclade">github.com/nextstrain/nextclade</a></td><td><a href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/build-from-source.html">guide</a></td></tr>
+<tr><td>💾 <b>Datasets</b></td><td><a href="https://github.com/nextstrain/nextclade_data">github.com/nextstrain/nextclade_data</a></td><td><a href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/datasets.html">guide</a></td></tr>
+<tr><td>📚 <b>Docs</b></td><td><a href="https://docs.nextstrain.org/projects/nextclade">docs.nextstrain.org/projects/nextclade</a></td><td></td></tr>
+<tr><td>🚩 <b>Issues</b></td><td><a href="https://github.com/nextstrain/nextclade/issues">Report bugs, suggest features</a></td><td></td></tr>
+<tr><td>💬 <b>Discussion</b></td><td><a href="https://discussion.nextstrain.org">discussion.nextstrain.org</a></td><td></td></tr>
+</table>
+
+<sub>* glibc builds are faster and recommended, but require glibc >= 2.14. musl builds are static, run on older Linux distributions, and are slightly slower</sub><br>
+<sub>** Bioconda releases need manual approval and can be delayed</sub><br>
+<sub>*** macOS executables are not signed. See the <a href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/standalone.html">install guide</a> if macOS refuses to run them</sub>
+
 <h2 id="citation" align="center">
 📜️ Citation
 </h2>
