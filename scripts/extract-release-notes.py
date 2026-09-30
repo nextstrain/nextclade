@@ -11,12 +11,12 @@ def find_release_notes(input_changelog_md: str):
     for line in f:
       if not found_release_notes_block and line.startswith("## "):
         found_release_notes_block = True
-        release_notes += line
       elif found_release_notes_block:
         if line.startswith("## "):
-          return release_notes
+          break
         else:
           release_notes += line
+  return release_notes.lstrip("\n")
 
 
 if __name__ == '__main__':
