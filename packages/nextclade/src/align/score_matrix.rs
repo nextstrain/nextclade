@@ -128,8 +128,10 @@ pub fn score_matrix<T: Letter<T>>(
             scores[(ri - 1, qpos - 1)] - params.penalty_mismatch
           };
           origin = MATCH;
-        } else {
-          tmp_path = tmp_path | BOUNDARY; // mark boundary when possible moves are restricted. here: can't move up or left-up
+        } else if ri < n_rows - 1 && qpos < n_cols - 1 {
+          // Can't move diagonally. The last reference row and last query column are sequence ends:
+          // `simple_stripes` clamps stripes there, so a missing predecessor is not an interior band edge.
+          tmp_path = tmp_path | BOUNDARY;
         }
 
         // check the scores of a reference gap
@@ -160,8 +162,9 @@ pub fn score_matrix<T: Letter<T>>(
             score = tmp_score;
             origin = REF_GAP_MATRIX;
           }
-        } else if ri < n_rows - 1 {
-          tmp_path = tmp_path | BOUNDARY; // mark boundary if no ref gap allowed due to stripes: can't move left
+        } else if ri < n_rows - 1 && qpos < n_cols - 1 {
+          // Can't move left. Collapsed terminal stripes sit on the last query column; that is a sequence end.
+          tmp_path = tmp_path | BOUNDARY;
         }
 
         // check the scores of a query gap
@@ -189,8 +192,12 @@ pub fn score_matrix<T: Letter<T>>(
             origin = QRY_GAP_MATRIX;
           }
         } else if qpos < n_cols - 1 {
+          // Stripe hole: this query-gap state cannot be extended from the row above.
           qry_gaps[qpos] = NO_ALIGN;
-          tmp_path = tmp_path | BOUNDARY; // mark boundary if no ref gap allowed due to stripes: can't move up.
+          if ri < n_rows - 1 {
+            // Can't move up. The last reference row is extended to the query end, so it is not a band edge.
+            tmp_path = tmp_path | BOUNDARY;
+          }
         }
       }
 
@@ -206,7 +213,7 @@ pub fn score_matrix<T: Letter<T>>(
 mod tests {
   #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
   use super::*;
-  use crate::align::band_2d::simple_stripes;
+  use crate::align::band_2d::{full_matrix, simple_stripes};
   use crate::align::gap_open::{GapScoreMap, get_gap_open_close_scores_codon_aware};
 
   use crate::alphabet::nuc::{Nuc, to_nuc_seq};
@@ -343,6 +350,98 @@ mod tests {
 
     assert_eq!(expected_scores, result.scores);
     assert_eq!(expected_paths, result.paths);
+
+    Ok(())
+  }
+
+  /// Collapsed terminal stripes and the forced last row are sequence ends. Their missing predecessors must not
+  /// set `BOUNDARY`, while the move bits and the alignment score stay the same.
+  #[rstest]
+  fn terminal_stripes_omit_boundary_but_keep_moves_and_score(ctx: Context) -> Result<(), Report> {
+    let qry_seq = to_nuc_seq("ACGT")?;
+    let ref_seq = to_nuc_seq("ACGTAAAA")?;
+    let stripes = simple_stripes(0, 1, ref_seq.len(), qry_seq.len());
+    let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params);
+
+    let query_size = qry_seq.len();
+    let ref_len = ref_seq.len();
+    assert!(stripes.iter().filter(|stripe| stripe.begin == query_size).count() > 2);
+
+    for (ri, stripe) in stripes.iter().enumerate() {
+      if stripe.begin != query_size {
+        continue;
+      }
+      let path = result.paths[(ri, query_size)];
+      assert_eq!(
+        path & BOUNDARY,
+        0,
+        "collapsed row {ri} marked a sequence end as a band edge"
+      );
+      // Only a query gap can enter a stripe that is the single last query column.
+      if ri > 0 && stripes[ri - 1].begin == query_size {
+        assert!(
+          path == QRY_GAP_MATRIX || path == (QRY_GAP_MATRIX | QRY_GAP_EXTEND),
+          "collapsed row {ri} changed move bits: {path}"
+        );
+      }
+    }
+
+    for qpos in stripes[ref_len].begin..stripes[ref_len].end {
+      assert_eq!(result.paths[(ref_len, qpos)] & BOUNDARY, 0, "last row qpos {qpos}");
+    }
+
+    // Left edge of an interior stripe still cannot move left, so the band restriction stays.
+    let interior = (2, stripes[2].begin);
+    assert!(stripes[2].begin > 0 && stripes[2].begin < query_size);
+    assert_ne!(result.paths[interior] & BOUNDARY, 0);
+    assert_ne!(result.paths[interior] & (MATCH | REF_GAP_MATRIX | QRY_GAP_MATRIX), 0);
+
+    let full = score_matrix(
+      &qry_seq,
+      &ref_seq,
+      &ctx.gap_open_close,
+      &full_matrix(ref_len, query_size),
+      &ctx.params,
+    );
+    assert_eq!(full.scores[(ref_len, query_size)], result.scores[(ref_len, query_size)]);
+
+    Ok(())
+  }
+
+  /// Trailing query bases are reached by extending the last reference row. Cells past the previous stripe have no
+  /// upward or diagonal predecessor; that clamp is not a band edge, and horizontal move bits stay put.
+  #[rstest]
+  fn last_row_extension_omits_boundary_but_keeps_ref_gap(ctx: Context) -> Result<(), Report> {
+    let qry_seq = to_nuc_seq("ACGTAAAA")?;
+    let ref_seq = to_nuc_seq("ACGT")?;
+    let stripes = simple_stripes(0, 1, ref_seq.len(), qry_seq.len());
+    let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params);
+
+    let ref_len = ref_seq.len();
+    let query_size = qry_seq.len();
+    let prev_end = stripes[ref_len - 1].end;
+    assert!(stripes[ref_len].end == query_size + 1);
+    assert!(prev_end + 1 < stripes[ref_len].end);
+
+    for qpos in stripes[ref_len].begin..stripes[ref_len].end {
+      let path = result.paths[(ref_len, qpos)];
+      assert_eq!(path & BOUNDARY, 0, "last row qpos {qpos} path {path}");
+      if qpos > prev_end {
+        assert!(
+          path == REF_GAP_MATRIX || path == (REF_GAP_MATRIX | REF_GAP_EXTEND),
+          "extended last-row qpos {qpos} changed move bits: {path}"
+        );
+      }
+    }
+
+    let full = score_matrix(
+      &qry_seq,
+      &ref_seq,
+      &ctx.gap_open_close,
+      &full_matrix(ref_len, query_size),
+      &ctx.params,
+    );
+    assert_eq!(full.scores[(ref_len, query_size)], result.scores[(ref_len, query_size)]);
 
     Ok(())
   }
