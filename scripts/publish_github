@@ -69,7 +69,37 @@ prerelease_flag=${release_type:+--prerelease}
 (
   if [ -z "$release_type" ]; then
     ./scripts/extract-release-notes.py CHANGELOG.md
-    cat docs/assets/release-instructions.md
+    cat <<EOF
+
+---
+
+### Installation and usage
+
+<table>
+<tr><td>📚 <b>Docs</b></td><td><a href="https://docs.nextstrain.org/projects/nextclade">docs.nextstrain.org/projects/nextclade</a></td></tr>
+<tr><td>🌍 <b>Web</b></td><td><a href="https://clades.nextstrain.org">clades.nextstrain.org</a></td></tr>
+<tr><td>📥 <b>CLI</b></td><td><table><tr><td><b>Linux</b> x86_64</td><td><a href="https://github.com/nextstrain/nextclade/releases/download/${version}/nextclade-x86_64-unknown-linux-gnu">glibc</a><br><a href="https://github.com/nextstrain/nextclade/releases/download/${version}/nextclade-x86_64-unknown-linux-musl">musl</a>*</td></tr><tr><td><b>Linux</b> ARM64</td><td><a href="https://github.com/nextstrain/nextclade/releases/download/${version}/nextclade-aarch64-unknown-linux-gnu">glibc</a><br><a href="https://github.com/nextstrain/nextclade/releases/download/${version}/nextclade-aarch64-unknown-linux-musl">musl</a>*</td></tr><tr><td><b>macOS</b>***</td><td><a href="https://github.com/nextstrain/nextclade/releases/download/${version}/nextclade-aarch64-apple-darwin">Apple Silicon</a><br><a href="https://github.com/nextstrain/nextclade/releases/download/${version}/nextclade-x86_64-apple-darwin">Intel</a></td></tr><tr><td><b>Windows</b> x86_64</td><td><a href="https://github.com/nextstrain/nextclade/releases/download/${version}/nextclade-x86_64-pc-windows-gnu.exe">.exe</a></td></tr></table></td></tr>
+<tr><td>🐋 <b>Docker</b></td><td><code>docker pull nextstrain/nextclade:${version}</code> (<a href="https://hub.docker.com/r/nextstrain/nextclade/tags">tags</a>)</td></tr>
+<tr><td>🐍 <b>Conda</b></td><td><code>conda install -c bioconda nextclade=${version}</code> (<a href="https://anaconda.org/bioconda/nextclade/files">versions</a>)**</td></tr>
+<tr><td>⌨️ <b>Source code</b></td><td><a href="https://github.com/nextstrain/nextclade">github.com/nextstrain/nextclade</a></td></tr>
+<tr><td>💾 <b>Datasets</b></td><td><a href="https://github.com/nextstrain/nextclade_data">github.com/nextstrain/nextclade_data</a></td></tr>
+<tr><td>🚩 <b>Issues</b></td><td><a href="https://github.com/nextstrain/nextclade/issues">Report bugs, suggest features</a></td></tr>
+</table>
+
+<sub>* glibc builds are faster and recommended, but require glibc >= 2.14. musl builds are static, run on older Linux distributions, and are slightly slower</sub>
+<sub>** Bioconda releases need manual approval and can be delayed</sub>
+<sub>*** macOS executables are not signed. See the <a href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/standalone.html">install guide</a> if macOS refuses to run them</sub>
+
+### Citation
+
+If you use results obtained with Nextclade in a publication, please cite our paper:
+
+> Aksamentov, I., Roemer, C., Hodcroft, E. B., & Neher, R. A., (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. Journal of Open Source Software, 6(67), 3773, https://doi.org/10.21105/joss.03773
+
+([bibtex](https://clades.nextstrain.org/citation.bib))
+
+Where possible, provide a link to Nextclade Web: https://clades.nextstrain.org
+EOF
   else
     cat docs/assets/prerelease-warning.md
     echo "For changes compared to the previous final release version, please refer to \"Unreleased\" section in [CHANGELOG.md](https://github.com/nextstrain/nextclade/blob/${git_sha}/CHANGELOG.md)"
