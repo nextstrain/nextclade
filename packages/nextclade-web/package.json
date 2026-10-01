@@ -309,5 +309,8 @@
     "react-transition-group": "4.4.5",
     "reactstrap": "8.10.1",
     "styled-components": "5.3.5"
+  },
+  "patchedDependencies": {
+    "auspice@2.67.0": "patches/auspice@2.67.0.patch"
   }
 }

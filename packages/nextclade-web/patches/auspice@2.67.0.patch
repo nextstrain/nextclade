@@ -1,0 +1,110 @@
+diff --git a/src/components/tree/phyloTree/change.ts b/src/components/tree/phyloTree/change.ts
+index 7ddc3cffc..e49d37e3c 100644
+--- a/src/components/tree/phyloTree/change.ts
++++ b/src/components/tree/phyloTree/change.ts
+@@ -242,6 +242,7 @@ export const modifySVGInStages = function modifySVGInStages(
+   let inProgress = 0; /* counter of transitions currently in progress */
+ 
+   const step3 = (): void => {
++    if (this.disposed) return;
+     this.drawBranches();
+     if (this.params.showGrid) this.addGrid();
+     this.svg.selectAll(".tip").remove();
+@@ -258,6 +259,7 @@ export const modifySVGInStages = function modifySVGInStages(
+ 
+   /* STEP 2: move tips */
+   const step2 = (): void => {
++    if (this.disposed) return;
+     if (!--inProgress) { /* decrement counter. When hits 0 run block */
+       this.setClipMask();
+       const updateTips = createUpdateCall(".tip", svgPropsToUpdate);
+diff --git a/src/components/tree/phyloTree/labels.js b/src/components/tree/phyloTree/labels.js
+index d37f293a1..063867d54 100644
+--- a/src/components/tree/phyloTree/labels.js
++++ b/src/components/tree/phyloTree/labels.js
+@@ -30,6 +30,7 @@ export const updateTipLabels = function updateTipLabels(dt) {
+     }
+ 
+     window.setTimeout(() => {
++      if (this.disposed) return;
+       this.groups.tipLabels
+         .selectAll(".tipLabel")
+         .data(inViewVisibleTips)
+diff --git a/src/components/tree/phyloTree/phyloTree.ts b/src/components/tree/phyloTree/phyloTree.ts
+index d4f928d48..9ed15b2a8 100644
+--- a/src/components/tree/phyloTree/phyloTree.ts
++++ b/src/components/tree/phyloTree/phyloTree.ts
+@@ -19,6 +19,7 @@ const PhyloTree = function PhyloTree(
+   idxOfInViewRootNode: number,
+ ): void {
+   this.grid = false;
++  this.disposed = false;
+   this.attributes = ['r', 'cx', 'cy', 'id', 'class', 'd'];
+   this.params = createDefaultParams();
+   this.groups = {};
+@@ -57,6 +58,7 @@ PhyloTree.prototype.modifySVGInStages = modifySVGInStages;
+ /* I N I T I A L        R E N D E R       E T C */
+ PhyloTree.prototype.render = renderers.render;
+ PhyloTree.prototype.clearSVG = renderers.clearSVG;
++PhyloTree.prototype.dispose = renderers.dispose;
+ 
+ /* D R A W I N G    F U N C T I O N S */
+ PhyloTree.prototype.setClipMask = renderers.setClipMask;
+diff --git a/src/components/tree/phyloTree/renderers.ts b/src/components/tree/phyloTree/renderers.ts
+index 7a2c67ac7..8db76e594 100644
+--- a/src/components/tree/phyloTree/renderers.ts
++++ b/src/components/tree/phyloTree/renderers.ts
+@@ -414,6 +414,13 @@ export const clearSVG = function clearSVG(this: PhyloTreeType): void {
+   this.svg.selectAll("*").remove();
+ };
+ 
++/* Stop drawing and remove everything drawn. Pending deferred drawing steps (staged transitions, tip label timers) check
++ * `disposed` and do nothing, so a disposed tree cannot draw into an SVG that is reused by another tree. */
++export const dispose = function dispose(this: PhyloTreeType): void {
++  this.disposed = true;
++  if (this.svg) this.clearSVG();
++};
++
+ 
+ /* Due to errors rendering gradients on SVG branches on some browsers/OSs which would
+ cause the branches to not appear, we're falling back to the previous solution which
+diff --git a/src/components/tree/phyloTree/types.ts b/src/components/tree/phyloTree/types.ts
+index 24ab49ec2..7596ef8be 100644
+--- a/src/components/tree/phyloTree/types.ts
++++ b/src/components/tree/phyloTree/types.ts
+@@ -257,6 +257,8 @@ export interface PhyloTreeType {
+   callbacks: Callbacks
+   change: typeof change
+   clearSVG: typeof renderers.clearSVG
++  dispose: typeof renderers.dispose
++  disposed: boolean
+   confidencesInSVG: boolean
+   dateRange: [number, number]
+   distance: Distance
+diff --git a/src/components/tree/tree.tsx b/src/components/tree/tree.tsx
+index 70d4ead6b..0ffc17387 100644
+--- a/src/components/tree/tree.tsx
++++ b/src/components/tree/tree.tsx
+@@ -1,4 +1,5 @@
+ import React from "react";
++import { select } from "d3-selection";
+ import { withTranslation } from "react-i18next";
+ import { FaSearchMinus } from "react-icons/fa";
+ import { Root, updateVisibleTipsAndBranchThicknesses } from "../../actions/tree";
+@@ -79,6 +80,16 @@ export class TreeComponent extends React.Component<TreeComponentProps, TreeCompo
+     }
+   }
+ 
++  override componentWillUnmount(): void {
++    /* Remove the drawn trees and stop their pending drawing steps, so that a remount into the same SVG elements
++     * (e.g. React StrictMode in development) starts from an empty SVG. The state may not hold the trees yet, because
++     * the state update from componentDidMount can still be pending, so also clear the SVG elements directly. */
++    this.state.tree?.dispose();
++    this.state.treeToo?.dispose();
++    select(this.domRefs.mainTree).selectAll("*").remove();
++    select(this.domRefs.secondTree).selectAll("*").remove();
++  }
++
+   override componentDidUpdate(prevProps: TreeComponentProps): void {
+     let newState: Partial<TreeComponentState> = {};
+     let rightTreeUpdated = false;
