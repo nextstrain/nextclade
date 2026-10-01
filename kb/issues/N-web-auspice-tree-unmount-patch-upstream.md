@@ -12,4 +12,14 @@ Nextclade fixes this with a Bun patch of Auspice: `packages/nextclade-web/patche
 
 ## Fix
 
-Contribute the patch to [nextstrain/auspice](https://github.com/nextstrain/auspice). After upgrading to an Auspice release that contains it, delete the patch file and its `patchedDependencies` entry. Bun refuses to install when the patch no longer applies to a new Auspice version, so an upgrade without this step fails visibly.
+Contribute the patch to [nextstrain/auspice](https://github.com/nextstrain/auspice). After upgrading to an Auspice release that contains it, remove the unmount cleanup from the patch. The patch file also holds the change in [N-web-auspice-branch-label-margin-patch-upstream.md](N-web-auspice-branch-label-margin-patch-upstream.md). When the patch has no changes left, delete the patch file and its `patchedDependencies` entry. Bun refuses to install when the patch no longer applies to a new Auspice version, so an upgrade without this step fails visibly.
+
+## Editing the patch
+
+`bun patch auspice` fails with `error overwriting folder in node_modules: FileNotFound` and deletes `node_modules/auspice`. Bun fails this way when a file of the installed package is missing, and the post-install script `packages/nextclade-web/tools/monkeyPatch.ts` deletes `src/util/perf.js` from Auspice. Install Auspice without the post-install script before editing:
+
+1. Run `rm -rf node_modules/auspice && bun install --ignore-scripts` in `packages/nextclade-web`
+2. Run `bun patch auspice` and edit the files in `node_modules/auspice`
+3. Run `bun patch --commit node_modules/auspice`
+4. Run `bun install` to apply the post-install script again
+5. Restart the dev server with an empty `.build/development`, because webpack does not rebuild changed files in `node_modules`
