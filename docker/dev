@@ -712,6 +712,8 @@ done
 VOLUMES+=(
   ["${CACHE_DIR}/.cargo/install"]="/home/${USER}/.cargo/install"
   ["${CACHE_DIR}/.cargo/registry"]="/home/${USER}/.cargo/registry"
+  # Keep Bun's package cache between containers: `bun patch` copies packages from it
+  ["${CACHE_DIR}/.bun/install/cache"]="/home/${USER}/.bun/install/cache"
 )
 
 mkdir -p "${!VOLUMES[@]}"
