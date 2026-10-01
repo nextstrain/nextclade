@@ -19,9 +19,12 @@ import { AnnotatedTitle } from 'auspice/src/components/controls/annotatedTitle'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import { LogoPoweredByAuspice } from 'src/components/Tree/LogoPoweredByAuspice'
 import { SIDEBAR_THEME } from 'src/components/Layout/sidebarTheme'
+import { auspiceFilterBadgeIconsCentered } from 'src/components/Tree/auspiceFilterBadgeStyle'
 
 export const StyledAuspiceControlsContainer = styled(ControlsContainer)`
   font-family: ${SIDEBAR_THEME['font-family']};
+
+  ${auspiceFilterBadgeIconsCentered}
 `
 
 export const Bottom = styled.div`

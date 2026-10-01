@@ -1,15 +1,18 @@
 import React, { KeyboardEvent, ReactNode, useCallback, useId, useLayoutEffect, useRef, useState } from 'react'
 import { useAtom, useAtomValue } from 'jotai'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
-import styled, { css } from 'styled-components'
+import styled from 'styled-components'
 import { SIDEBAR_THEME, SIDEBAR_WIDTH_PX } from 'src/components/Layout/sidebarTheme'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { isSidebarOpenAtom, isWideViewportAtom } from 'src/state/sidebar.state'
 
 const TRANSITION = '0.3s ease-out'
 
-/** Width of the tab on the left edge of the page content that opens the closed sidebar */
-const SHOW_TAB_WIDTH_PX = 14
+/** Width of the pull tab beside the sidebar. Narrower than the page gutter, to keep a gap to the page content */
+const PULL_TAB_WIDTH_PX = 12
+
+/** Width of the shadow on the sidebar's right edge. The pull tab overlaps it, so that both look like one piece */
+const SIDEBAR_EDGE_SHADOW_PX = 3
 
 /** Narrowest strip of page content that stays visible next to the open sidebar on narrow viewports */
 const MIN_UNCOVERED_CONTENT_PX = 40
@@ -24,6 +27,7 @@ export interface SidebarLayoutProps {
  * Page layout with a collapsible sidebar on the left of the page content.
  *
  * The sidebar slides in and out within the page content area, so the app's navigation bar and footer stay visible.
+ * A pull tab on the sidebar's right edge toggles it, and stays visible on the edge of the page content when closed.
  * On wide viewports the open sidebar takes space from the page content, and the user's open/closed choice is
  * remembered. On narrow viewports there is not enough room for both, so the open sidebar covers the page content
  * and closes on Escape or on a click on the uncovered content.
@@ -44,13 +48,13 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
   const sidebarId = useId()
   const isWide = useAtomValue(isWideViewportAtom)
   const [isOpen, setIsOpen] = useAtom(isSidebarOpenAtom)
-  const open = useCallback(() => setIsOpen(true), [setIsOpen])
+  const toggle = useCallback(() => setIsOpen(!isOpen), [isOpen, setIsOpen])
   const close = useCallback(() => setIsOpen(false), [setIsOpen])
   const isOverlay = !isWide
 
+  const railRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLElement>(null)
-  const hideButtonRef = useRef<HTMLButtonElement>(null)
-  const showTabRef = useRef<HTMLButtonElement>(null)
+  const pullTabRef = useRef<HTMLButtonElement>(null)
 
   useLayoutEffect(() => {
     const sidebarElem = sidebarRef.current
@@ -60,17 +64,12 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
     // Keep the closed sidebar out of keyboard focus and the accessibility tree. CSS `visibility` is not enough,
     // because some controls inside (e.g. react-select inputs) set `visibility: visible` themselves.
     // React 18 has no `inert` prop, so set the DOM property directly.
-    // Keyboard focus moves from the toggle control just used to the one that toggles the sidebar back. Focus can
-    // enter the sidebar only after `inert` is removed, and must leave it before `inert` is set.
-    const focused = document.activeElement
+    // Keyboard focus inside the closing sidebar (e.g. after Escape) moves to the pull tab before `inert` is set.
     if (isOpen) {
       sidebarElem.inert = false
-      if (focused === showTabRef.current) {
-        hideButtonRef.current?.focus({ preventScroll: true })
-      }
     } else {
-      if (sidebarElem.contains(focused)) {
-        showTabRef.current?.focus({ preventScroll: true })
+      if (sidebarElem.contains(document.activeElement)) {
+        pullTabRef.current?.focus({ preventScroll: true })
       }
       sidebarElem.inert = true
     }
@@ -78,10 +77,10 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
 
   // Resize the page content only after the sidebar has finished sliding. Resizing re-renders size-dependent content
   // (such as the tree), which can block the main thread for a second or more and would otherwise delay painting
-  // the frames of the toggle (such as the show tab appearing).
+  // the frames of the toggle (such as the sliding pull tab).
   const [isSpaceReserved, setIsSpaceReserved] = useState(isOpen)
   useLayoutEffect(() => {
-    const animations = sidebarRef.current?.getAnimations() ?? []
+    const animations = railRef.current?.getAnimations() ?? []
     let isCancelled = false
     Promise.all(animations.map((animation) => animation.finished))
       .then(() => !isCancelled && setIsSpaceReserved(isOpen))
@@ -101,72 +100,35 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
     [close, isOverlay],
   )
 
-  const indentPx = !isOverlay && isSpaceReserved ? SIDEBAR_WIDTH_PX : SHOW_TAB_WIDTH_PX
+  const indentPx = !isOverlay && isSpaceReserved ? SIDEBAR_WIDTH_PX : 0
+  const pullTabLabel = isOpen ? t('Hide sidebar') : t('Show sidebar')
 
   return (
     <Container>
-      <Sidebar
-        ref={sidebarRef}
-        id={sidebarId}
-        aria-label={t('Sidebar')}
-        onKeyDown={handleKeyDown}
-        $isOpen={isOpen}
-        $isOverlay={isOverlay}
-      >
-        <SidebarHeader>
-          <HideButton
-            ref={hideButtonRef}
-            type="button"
-            onClick={close}
-            aria-controls={sidebarId}
-            aria-expanded
-            aria-label={t('Hide sidebar')}
-            title={t('Hide sidebar')}
-          >
-            <FaChevronLeft />
-          </HideButton>
-        </SidebarHeader>
-        <SidebarBody>{sidebar}</SidebarBody>
-      </Sidebar>
+      <Rail ref={railRef} onKeyDown={handleKeyDown} $isOpen={isOpen}>
+        <Sidebar ref={sidebarRef} id={sidebarId} aria-label={t('Sidebar')} $isOverlay={isOverlay}>
+          {sidebar}
+        </Sidebar>
+        <PullTab
+          ref={pullTabRef}
+          type="button"
+          onClick={toggle}
+          aria-controls={sidebarId}
+          aria-expanded={isOpen}
+          aria-label={pullTabLabel}
+          title={pullTabLabel}
+          $isOverlay={isOverlay}
+        >
+          {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
+        </PullTab>
+      </Rail>
 
       {isOverlay && isOpen && <DismissArea onClick={close} aria-hidden />}
-
-      <ShowTab
-        ref={showTabRef}
-        type="button"
-        onClick={open}
-        aria-controls={sidebarId}
-        aria-expanded={false}
-        aria-label={t('Show sidebar')}
-        title={t('Show sidebar')}
-        $isSidebarOpen={isOpen}
-      >
-        <FaChevronRight />
-      </ShowTab>
 
       <IndentedMain $indentPx={indentPx}>{children}</IndentedMain>
     </Container>
   )
 }
-
-const focusRing = css`
-  &:focus-visible {
-    outline: 2px solid ${SIDEBAR_THEME.selectedColor};
-    outline-offset: 2px;
-  }
-`
-
-const iconButton = css`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  cursor: pointer;
-  color: #444;
-  font-size: 12px;
-  ${focusRing}
-`
 
 /** Positioning context of the sidebar, bounded by the page content area */
 const Container = styled.div`
@@ -181,7 +143,7 @@ const Container = styled.div`
 
 /**
  * Page content. Forms its own stacking context, so positioned elements inside it (such as tree legends and tree
- * buttons) stay below the sidebar and its controls.
+ * buttons) stay below the sidebar and its pull tab.
  */
 const Main = styled.div`
   position: relative;
@@ -194,32 +156,24 @@ const Main = styled.div`
   overflow: hidden;
 `
 
-/** Leaves room on the left for the sidebar where it takes space, or for the tab that opens the closed sidebar */
+/** Leaves room on the left for the sidebar where it takes space */
 const IndentedMain = styled(Main)<{ $indentPx: number }>`
   margin-left: ${({ $indentPx }) => $indentPx}px;
 `
 
 /**
- * Only the sidebar moves, and only by `transform`, which the browser animates off the main thread. Everything
- * attached to the sidebar (such as its hide button) is inside it and moves with it. The page content changes width
- * in one step after the slide, so size-dependent content (such as the tree) lays out once per toggle.
+ * Sidebar together with its pull tab. Only the rail moves, and only by `transform`, which the browser animates off
+ * the main thread. The page content changes width in one step after the slide, so size-dependent content (such as
+ * the tree) lays out once per toggle.
  */
-const Sidebar = styled.aside<{ $isOpen: boolean; $isOverlay: boolean }>`
+const Rail = styled.div<{ $isOpen: boolean }>`
   position: absolute;
   z-index: 3;
   top: 0;
   bottom: 0;
   left: 0;
-  display: flex;
-  flex-direction: column;
   width: ${SIDEBAR_WIDTH_PX}px;
   max-width: calc(100% - ${MIN_UNCOVERED_CONTENT_PX}px);
-  overflow: hidden;
-  background-color: ${SIDEBAR_THEME.background};
-  box-shadow: ${({ $isOverlay }) =>
-    $isOverlay
-      ? `2px 0 8px ${SIDEBAR_THEME.sidebarBoxShadow}`
-      : `-3px 0 3px -3px ${SIDEBAR_THEME.sidebarBoxShadow} inset`};
   transform: translateX(${({ $isOpen }) => ($isOpen ? '0' : '-100%')});
   transition: transform ${TRANSITION};
   will-change: transform;
@@ -229,30 +183,56 @@ const Sidebar = styled.aside<{ $isOpen: boolean; $isOverlay: boolean }>`
   }
 `
 
-/** Row above the scrollable sidebar body, so the hide button never covers the body's scrollbar */
-const SidebarHeader = styled.div`
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: flex-end;
-  padding: 4px 4px 0;
-`
+/** Shadow of the sidebar over the page content where the sidebar covers it */
+const OVERLAY_SHADOW = `2px 0 8px ${SIDEBAR_THEME.sidebarBoxShadow}`
 
-const SidebarBody = styled.div`
-  flex: 1 1 auto;
-  min-height: 0;
+/** Inner shadow along one edge, which makes the sidebar look recessed below the page content next to it */
+function edgeShadow(x: number, y: number): string {
+  const px = SIDEBAR_EDGE_SHADOW_PX
+  return `${x * px}px ${y * px}px ${px}px -${px}px ${SIDEBAR_THEME.sidebarBoxShadow} inset`
+}
+
+const Sidebar = styled.aside<{ $isOverlay: boolean }>`
+  height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
+  background-color: ${SIDEBAR_THEME.background};
+  box-shadow: ${({ $isOverlay }) => ($isOverlay ? OVERLAY_SHADOW : edgeShadow(-1, 0))};
 `
 
-const HideButton = styled.button`
-  ${iconButton}
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  background-color: transparent;
+/**
+ * Tab attached to the right edge of the sidebar. When the sidebar is closed, it rests on the edge of the page content.
+ * It has the sidebar's colors and continues the sidebar's shadow around its outline. It starts inside the sidebar and
+ * covers the sidebar's edge shadow, and its shadow is clipped on its left side, so the side that attaches to the
+ * sidebar has no seam.
+ */
+const PullTab = styled.button<{ $isOverlay: boolean }>`
+  position: absolute;
+  top: 0;
+  left: calc(100% - ${SIDEBAR_EDGE_SHADOW_PX}px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: ${PULL_TAB_WIDTH_PX + SIDEBAR_EDGE_SHADOW_PX}px;
+  height: 44px;
+  padding: 0 0 0 ${SIDEBAR_EDGE_SHADOW_PX}px;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  background-color: ${SIDEBAR_THEME.background};
+  box-shadow: ${({ $isOverlay }) =>
+    $isOverlay ? OVERLAY_SHADOW : [edgeShadow(-1, 0), edgeShadow(0, 1), edgeShadow(0, -1)].join(', ')};
+  clip-path: inset(-12px -12px -12px 0);
+  color: ${SIDEBAR_THEME.unselectedColor};
+  font-size: 10px;
+  cursor: pointer;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.08);
+    color: ${SIDEBAR_THEME.selectedColor};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${SIDEBAR_THEME.selectedColor};
+    outline-offset: 2px;
   }
 `
 
@@ -261,24 +241,4 @@ const DismissArea = styled.div`
   position: absolute;
   z-index: 2;
   inset: 0;
-`
-
-/**
- * Tab on the left edge of the page content that opens the closed sidebar. It sits under the sidebar, so the sliding
- * sidebar uncovers it when closing and covers it when opening, without animating the tab itself.
- */
-const ShowTab = styled.button<{ $isSidebarOpen: boolean }>`
-  ${iconButton}
-  position: absolute;
-  z-index: 1;
-  top: 4px;
-  left: 0;
-  width: ${SHOW_TAB_WIDTH_PX}px;
-  height: 44px;
-  border-radius: 0 6px 6px 0;
-  background-color: ${SIDEBAR_THEME.background};
-  box-shadow: 0 0 5px 1px ${SIDEBAR_THEME.sidebarBoxShadow};
-
-  /* Out of keyboard focus and the accessibility tree while the sidebar is open */
-  visibility: ${({ $isSidebarOpen }) => ($isSidebarOpen ? 'hidden' : 'visible')};
 `

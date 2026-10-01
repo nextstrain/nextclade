@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router'
 import React, { useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
-import { Row, Col } from 'reactstrap'
 import { ExportPageNoDataset } from 'src/components/Export/ExportPageNoDataset'
 import { ExportPageUnknownDataset } from 'src/components/Export/ExportPageUnknownDataset'
 import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
@@ -21,6 +20,7 @@ import { ExportTabMain } from 'src/components/Export/ExportTabMain'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Layout } from 'src/components/Layout/Layout'
 import { SidebarLayout } from 'src/components/Layout/SidebarLayout'
+import { PAGE_GUTTER_PX } from 'src/components/Layout/sidebarTheme'
 import { ExcelDownloadLink } from 'src/components/Export/ExcelDownloadButton'
 import { ExcelExportHelp } from 'src/components/Help/ExcelExportHelp'
 
@@ -32,11 +32,9 @@ export function ExportPage() {
   return (
     <Layout>
       <SidebarLayout sidebar={hasMultipleDatasetsForAnalysis ? <ExportSidebar /> : undefined}>
-        <Row noGutters className="d-flex w-100 h-100 overflow-hidden">
-          <Col className="mx-auto h-100 overflow-hidden">
-            <MainContent key={viewedDatasetName} />
-          </Col>
-        </Row>
+        <PageContent>
+          <MainContent key={viewedDatasetName} />
+        </PageContent>
       </SidebarLayout>
     </Layout>
   )
@@ -148,10 +146,17 @@ const SidebarContent = styled.div`
   padding: 20px;
 `
 
+const PageContent = styled.div`
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+  padding-left: ${PAGE_GUTTER_PX}px;
+`
+
 const MainContentInner = styled.div`
+  width: 100%;
   max-width: ${(props) => props.theme.containerMaxWidths.md};
-  margin: auto;
-  padding: 0.8rem 0;
+  margin: 0 auto;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -162,8 +167,7 @@ const MainContentInner = styled.div`
 const Header = styled.div`
   display: flex;
   flex: 0;
-  padding-left: 10px;
-  margin-top: 10px;
+  margin-top: 0.5rem;
   margin-bottom: 3px;
 `
 

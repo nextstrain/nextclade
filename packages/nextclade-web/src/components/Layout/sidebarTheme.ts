@@ -11,3 +11,9 @@ export const SIDEBAR_THEME = {
 
 /** Width of the sidebar when open */
 export const SIDEBAR_WIDTH_PX = 260
+
+/**
+ * Space on the left of page content next to a sidebar, where the closed sidebar's pull tab rests. Pages pad their
+ * content on the left by this much and use the full space on the other sides.
+ */
+export const PAGE_GUTTER_PX = 16
