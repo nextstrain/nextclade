@@ -6,6 +6,8 @@ import { I18nextProvider } from 'react-i18next'
 import { Store } from 'redux'
 import { auspiceFilterBadgeIconsCentered } from 'src/components/Tree/auspiceFilterBadgeStyle'
 import { ButtonSvg } from 'src/components/Tree/ButtonSvg'
+import { ButtonTreeJson } from 'src/components/Tree/ButtonTreeJson'
+import { TreeTabButtonGroup } from 'src/components/Tree/TreeTabButton'
 import { Link } from 'src/components/Link/Link'
 import styled, { ThemeProvider } from 'styled-components'
 import type { AuspiceJsonV2, AuspiceState } from 'auspice'
@@ -166,7 +168,10 @@ export default function TreePageContent({ tree: treeProp }: TreePageContentProps
                     </FiltersSummaryWrapper>
                     <HeaderSpacer />
                     <GisaidLogoWidget />
-                    <ButtonSvg />
+                    <TreeTabButtonGroup>
+                      <ButtonSvg />
+                      <ButtonTreeJson datasetName={effectiveDatasetPath ?? ''} />
+                    </TreeTabButtonGroup>
                   </TreeHeader>
                 }
               />

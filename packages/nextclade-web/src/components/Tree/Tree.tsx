@@ -4,6 +4,7 @@ import { useResizeDetector } from 'react-resize-detector'
 import AuspiceEntropy from 'auspice/src/components/entropy'
 import AuspiceTree from 'auspice/src/components/tree'
 import { PAGE_GUTTER_PX } from 'src/components/Layout/sidebarTheme'
+import { TREE_TAB_BUTTON_GAP_PX } from 'src/components/Tree/TreeTabButton'
 
 /**
  * Height of the title row of an Auspice card, including its top border, if shown. Auspice places the tree legend below
@@ -14,7 +15,7 @@ const CARD_TITLE_HEIGHT_PX = 26
 
 /** Space between the tree header and the tree zoom buttons, which share the title row of the tree card. Matches the
  * space between the zoom buttons, so that buttons at the end of the header look like one group with them */
-const HEADER_GAP_PX = 4
+const HEADER_GAP_PX = TREE_TAB_BUTTON_GAP_PX
 
 /** Space below each chart, so that its axis labels and controls stay clear of the next chart and of the page footer */
 const CHART_BOTTOM_GAP_PX = 16

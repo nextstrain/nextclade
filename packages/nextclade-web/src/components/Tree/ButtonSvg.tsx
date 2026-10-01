@@ -4,9 +4,8 @@ import { FaDownload } from 'react-icons/fa'
 import { useDispatch, useSelector } from 'react-redux'
 import { publications } from 'auspice/src/components/download/downloadModal'
 import { SVG } from 'auspice/src/components/download/helperFunctions'
-import { SIDEBAR_THEME } from 'src/components/Layout/sidebarTheme'
+import { TreeTabButton } from 'src/components/Tree/TreeTabButton'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import styled from 'styled-components'
 
 export function ButtonSvg() {
   const { t } = useTranslationSafe()
@@ -45,53 +44,9 @@ export function ButtonSvg() {
   )
 
   return (
-    <SvgButton type="button" onClick={onClick} title={t('Download a screenshot of the current page in SVG format')}>
+    <TreeTabButton type="button" onClick={onClick} title={t('Download a screenshot of the current page in SVG format')}>
       <FaDownload />
       {t('SVG')}
-    </SvgButton>
+    </TreeTabButton>
   )
 }
-
-/** Colors of the Auspice tree buttons ("Zoom to Selected", "Zoom to Root") next to this button */
-const AUSPICE_BUTTON = {
-  color: '#333',
-  iconColor: '#888',
-  border: '#ccc',
-}
-
-/** Looks like the Auspice tree buttons: a tab hanging from the top of the tree card */
-const SvgButton = styled.button`
-  display: flex;
-  flex: 0 0 auto;
-  align-self: flex-start;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 6px;
-  border: 1px solid ${AUSPICE_BUTTON.border};
-  border-top: none;
-  border-radius: 0 0 3px 3px;
-  background-color: #fff;
-  color: ${AUSPICE_BUTTON.color};
-  font-family: ${SIDEBAR_THEME['font-family']};
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 15px;
-  text-transform: uppercase;
-  cursor: pointer;
-
-  /* Auspice button icons are thin outlines. A solid icon in the text color would look much heavier next to them */
-  & > svg {
-    width: 11px;
-    height: 11px;
-    color: ${AUSPICE_BUTTON.iconColor};
-  }
-
-  &:hover {
-    background-color: #f5f5f5;
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${SIDEBAR_THEME.selectedColor};
-    outline-offset: 1px;
-  }
-`
