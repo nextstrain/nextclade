@@ -13,29 +13,16 @@ import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspi
 import { changeColorBy } from 'auspice/src/actions/colors'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { useEffectiveDataset } from 'src/hooks/useEffectiveDataset'
-import { isViewedDatasetUnknownAtom } from 'src/state/dataset.state'
+import { hasMultipleDatasetsForAnalysisAtom, isViewedDatasetUnknownAtom } from 'src/state/dataset.state'
 import { treeAtom } from 'src/state/results.state'
 import { configureStore } from 'src/state/store'
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import FiltersSummary from 'auspice/src/components/info/filtersSummary'
-import { SidebarContainer as SidebarContainerBase } from 'auspice/src/components/main/styles'
 import { LogoGisaid as LogoGisaidBase } from 'src/components/Common/LogoGisaid'
 import { Tree } from 'src/components/Tree/Tree'
 import { Sidebar } from 'src/components/Tree/Sidebar'
-
-const AuspiceContainer = styled.div`
-  display: flex;
-  flex: 1;
-  flex-basis: 99%;
-  height: 100%;
-`
-
-const SidebarContainer = styled(SidebarContainerBase)`
-  position: unset !important;
-  flex: 0 0 260px;
-  //background-color: #30353f;
-  overflow-y: auto;
-`
+import { SidebarLayout } from 'src/components/Layout/SidebarLayout'
+import { SIDEBAR_THEME } from 'src/components/Layout/sidebarTheme'
 
 const TreeContainer = styled.div`
   flex: 1 1;
@@ -62,16 +49,6 @@ const LogoGisaidWrapper = styled.div`
 const LogoGisaid = styled(LogoGisaidBase)`
   margin-top: auto;
 `
-
-const AUSPICE_SIDEBAR_THEME = {
-  'background': '#F2F2F2',
-  'color': '#000',
-  'sidebarBoxShadow': 'rgba(0, 0, 0, 0.2)',
-  'font-family': 'Lato, Helvetica Neue, Helvetica, sans-serif',
-  'selectedColor': '#5097BA',
-  'unselectedColor': '#333',
-  'unselectedBackground': '#888',
-}
 
 export interface TreePageContentProps {
   tree?: AuspiceJsonV2
@@ -133,15 +110,12 @@ export default function TreePageContent({ tree: treeProp }: TreePageContentProps
   }
 
   return (
-    <AuspiceContainer>
-      {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-      {/* @ts-ignore */}
-      <I18nextProvider i18n={i18nAuspice}>
-        <ThemeProvider theme={AUSPICE_SIDEBAR_THEME as never}>
-          <ReactReduxProvider store={store}>
-            <SidebarContainer>
-              <Sidebar hasTree />
-            </SidebarContainer>
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    <I18nextProvider i18n={i18nAuspice}>
+      <ThemeProvider theme={SIDEBAR_THEME as never}>
+        <ReactReduxProvider store={store}>
+          <SidebarLayout sidebar={<Sidebar hasTree />}>
             <TreeContainer>
               <TreeTopPanel>
                 <FiltersSummaryWrapper>
@@ -152,10 +126,10 @@ export default function TreePageContent({ tree: treeProp }: TreePageContentProps
               </TreeTopPanel>
               <Tree />
             </TreeContainer>
-          </ReactReduxProvider>
-        </ThemeProvider>
-      </I18nextProvider>
-    </AuspiceContainer>
+          </SidebarLayout>
+        </ReactReduxProvider>
+      </ThemeProvider>
+    </I18nextProvider>
   )
 }
 
@@ -181,16 +155,15 @@ interface TreePagePlaceholderProps {
 
 function TreePagePlaceholder({ children }: TreePagePlaceholderProps) {
   const { t } = useTranslationSafe()
+  // Without a tree, the sidebar only holds the dataset switcher
+  const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
 
   return (
-    <AuspiceContainer>
-      {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-      {/* @ts-ignore */}
-      <I18nextProvider i18n={i18nAuspice}>
-        <ThemeProvider theme={AUSPICE_SIDEBAR_THEME as never}>
-          <SidebarContainer>
-            <Sidebar hasTree={false} />
-          </SidebarContainer>
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    <I18nextProvider i18n={i18nAuspice}>
+      <ThemeProvider theme={SIDEBAR_THEME as never}>
+        <SidebarLayout sidebar={hasMultipleDatasetsForAnalysis ? <Sidebar hasTree={false} /> : undefined}>
           <TreeContainer>
             <TreeTopPanel>
               <PlaceholderContent>
@@ -201,9 +174,9 @@ function TreePagePlaceholder({ children }: TreePagePlaceholderProps) {
               </PlaceholderContent>
             </TreeTopPanel>
           </TreeContainer>
-        </ThemeProvider>
-      </I18nextProvider>
-    </AuspiceContainer>
+        </SidebarLayout>
+      </ThemeProvider>
+    </I18nextProvider>
   )
 }
 

@@ -18,8 +18,11 @@ import { ControlHeader } from 'auspice/src/components/controls/controlHeader'
 import { AnnotatedTitle } from 'auspice/src/components/controls/annotatedTitle'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
 import { LogoPoweredByAuspice } from 'src/components/Tree/LogoPoweredByAuspice'
+import { SIDEBAR_THEME } from 'src/components/Layout/sidebarTheme'
 
-export const StyledAuspiceControlsContainer = styled(ControlsContainer)``
+export const StyledAuspiceControlsContainer = styled(ControlsContainer)`
+  font-family: ${SIDEBAR_THEME['font-family']};
+`
 
 export const Bottom = styled.div`
   margin-top: auto;

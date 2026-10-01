@@ -20,6 +20,7 @@ import { ExportTabColumnConfig } from 'src/components/Export/ExportTabColumnConf
 import { ExportTabMain } from 'src/components/Export/ExportTabMain'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Layout } from 'src/components/Layout/Layout'
+import { SidebarLayout } from 'src/components/Layout/SidebarLayout'
 import { ExcelDownloadLink } from 'src/components/Export/ExcelDownloadButton'
 import { ExcelExportHelp } from 'src/components/Help/ExcelExportHelp'
 
@@ -30,45 +31,48 @@ export function ExportPage() {
 
   return (
     <Layout>
-      <Container>
-        {hasMultipleDatasetsForAnalysis && (
-          <Sidebar>
-            <div className="mt-2 pb-1">
-              <span className="mr-1">{t('All datasets')}</span>
-              <span className="mr-1">
-                <ExcelExportHelp />
-              </span>
-            </div>
-
-            <div className="pb-1">
-              <ExcelDownloadLink />
-            </div>
-
-            <div className="mt-2 pb-1 pt-2 border-top" />
-
-            <div className="d-flex my-auto pb-1">
-              <span className="mr-1">{t('Individual datasets')}</span>
-              <span className="mr-1">
-                <DatasetCountBadge />
-              </span>
-              <span className="mr-1">
-                <ViewedDatasetExportHelp />
-              </span>
-            </div>
-
-            <div className="pb-1">
-              <ViewedDatasetSelector />
-            </div>
-          </Sidebar>
-        )}
-
+      <SidebarLayout sidebar={hasMultipleDatasetsForAnalysis ? <ExportSidebar /> : undefined}>
         <Row noGutters className="d-flex w-100 h-100 overflow-hidden">
           <Col className="mx-auto h-100 overflow-hidden">
             <MainContent key={viewedDatasetName} />
           </Col>
         </Row>
-      </Container>
+      </SidebarLayout>
     </Layout>
+  )
+}
+
+function ExportSidebar() {
+  const { t } = useTranslationSafe()
+  return (
+    <SidebarContent>
+      <div className="mt-2 pb-1">
+        <span className="mr-1">{t('All datasets')}</span>
+        <span className="mr-1">
+          <ExcelExportHelp />
+        </span>
+      </div>
+
+      <div className="pb-1">
+        <ExcelDownloadLink />
+      </div>
+
+      <div className="mt-2 pb-1 pt-2 border-top" />
+
+      <div className="d-flex my-auto pb-1">
+        <span className="mr-1">{t('Individual datasets')}</span>
+        <span className="mr-1">
+          <DatasetCountBadge />
+        </span>
+        <span className="mr-1">
+          <ViewedDatasetExportHelp />
+        </span>
+      </div>
+
+      <div className="pb-1">
+        <ViewedDatasetSelector />
+      </div>
+    </SidebarContent>
   )
 }
 
@@ -140,17 +144,7 @@ function MainContent() {
   )
 }
 
-const Container = styled.div`
-  display: flex;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-`
-
-const Sidebar = styled.aside`
-  flex: 0 0 260px;
-  height: 100%;
-  background-color: #f2f2f2;
+const SidebarContent = styled.div`
   padding: 20px;
 `
 
