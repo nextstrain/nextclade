@@ -304,11 +304,8 @@ export function useExportTree({ datasetName }: { datasetName: string }) {
     [tree],
   )
 
-  if (isNil(tree)) {
-    return undefined
-  }
-
-  return useResultsExport(exportFn)
+  const exportResult = useResultsExport(exportFn)
+  return isNil(tree) ? undefined : exportResult
 }
 
 export function useExportTreeNwk({ datasetName }: { datasetName: string }) {
@@ -324,11 +321,8 @@ export function useExportTreeNwk({ datasetName }: { datasetName: string }) {
     [treeNwk],
   )
 
-  if (isNil(treeNwk)) {
-    return undefined
-  }
-
-  return useResultsExport(exportFn)
+  const exportResult = useResultsExport(exportFn)
+  return isNil(treeNwk) ? undefined : exportResult
 }
 
 export function useExportPeptides({ datasetName }: { datasetName: string }) {
@@ -345,11 +339,8 @@ export function useExportPeptides({ datasetName }: { datasetName: string }) {
     [analysisResults, datasetName],
   )
 
-  if (isEmpty(cdses)) {
-    return undefined
-  }
-
-  return useResultsExport(exportFn)
+  const exportResult = useResultsExport(exportFn)
+  return isEmpty(cdses) ? undefined : exportResult
 }
 
 export const useExportGff = createSimpleResultExportHook(
