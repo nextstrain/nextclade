@@ -1,4 +1,4 @@
-import React, { KeyboardEvent, ReactNode, useCallback, useId, useLayoutEffect, useRef, useState } from 'react'
+import React, { KeyboardEvent, ReactNode, useCallback, useId, useLayoutEffect, useRef } from 'react'
 import { useAtom, useAtomValue } from 'jotai'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import styled from 'styled-components'
@@ -75,21 +75,6 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
     }
   }, [isOpen])
 
-  // Resize the page content only after the sidebar has finished sliding. Resizing re-renders size-dependent content
-  // (such as the tree), which can block the main thread for a second or more and would otherwise delay painting
-  // the frames of the toggle (such as the sliding pull tab).
-  const [isSpaceReserved, setIsSpaceReserved] = useState(isOpen)
-  useLayoutEffect(() => {
-    const animations = railRef.current?.getAnimations() ?? []
-    let isCancelled = false
-    Promise.all(animations.map((animation) => animation.finished))
-      .then(() => !isCancelled && setIsSpaceReserved(isOpen))
-      .catch(() => undefined) // Animation was replaced by a newer toggle, which schedules its own update
-    return () => {
-      isCancelled = true
-    }
-  }, [isOpen])
-
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       // Controls inside (such as dropdowns) prevent the default when they handle Escape themselves
@@ -100,13 +85,14 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
     [close, isOverlay],
   )
 
-  const indentPx = !isOverlay && isSpaceReserved ? SIDEBAR_WIDTH_PX : 0
+  // The sidebar always slides over the page content, so the content never changes size and is never re-rendered
+  const indentPx = 0
   const pullTabLabel = isOpen ? t('Hide sidebar') : t('Show sidebar')
 
   return (
     <Container>
       <Rail ref={railRef} onKeyDown={handleKeyDown} $isOpen={isOpen}>
-        <Sidebar ref={sidebarRef} id={sidebarId} aria-label={t('Sidebar')} $isOverlay={isOverlay}>
+        <Sidebar ref={sidebarRef} id={sidebarId} aria-label={t('Sidebar')} $isOverlay>
           {sidebar}
         </Sidebar>
         <PullTab
@@ -117,7 +103,7 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
           aria-expanded={isOpen}
           aria-label={pullTabLabel}
           title={pullTabLabel}
-          $isOverlay={isOverlay}
+          $isOverlay
         >
           {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
         </PullTab>
