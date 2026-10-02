@@ -4,6 +4,7 @@ import { useResizeDetector } from 'react-resize-detector'
 import AuspiceEntropy from 'auspice/src/components/entropy'
 import AuspiceTree from 'auspice/src/components/tree'
 import { PAGE_GUTTER_PX } from 'src/components/Layout/sidebarTheme'
+import { useSizeBeforePaint } from 'src/hooks/useSizeBeforePaint'
 import { TREE_TAB_BUTTON_GAP_PX } from 'src/components/Tree/TreeTabButton'
 
 /**
@@ -37,8 +38,11 @@ export interface TreeProps {
  * Auspice tree, sized to fill the visible area, and the entropy chart below it, reachable by scrolling.
  */
 export function Tree({ header }: TreeProps) {
-  // Content box of the scroll container: excludes its padding and scrollbar, so the drawings fit exactly
-  const { width, height, ref } = useResizeDetector<HTMLDivElement>()
+  // Content box of the scroll container: excludes its padding and scrollbar, so the drawings fit exactly. The drawings
+  // take a new size in the same frame as the container, so the tree is never painted at its old size in a moved or
+  // resized container (e.g. when the sidebar opens or closes)
+  const { size, ref } = useSizeBeforePaint<HTMLDivElement>()
+  const width = size?.width
 
   // The tree zoom buttons have translated labels, so their position is measured to know the space left for the header
   const treePanelRef = useRef<HTMLDivElement>(null)
@@ -61,7 +65,7 @@ export function Tree({ header }: TreeProps) {
     }
   }, [width, zoomButtonsWidth, zoomButtonsRef])
 
-  const visibleHeight = height ?? 0
+  const visibleHeight = size?.height ?? 0
   const treeHeight = visibleHeight - CARD_TITLE_HEIGHT_PX - CHART_BOTTOM_GAP_PX
   const hasSize = width !== undefined && width > 0 && treeHeight > 0
 
