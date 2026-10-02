@@ -1,5 +1,5 @@
 diff --git a/src/components/tree/phyloTree/change.ts b/src/components/tree/phyloTree/change.ts
-index 7ddc3cf..a9a8a68 100644
+index 7ddc3cf..02073c8 100644
 --- a/src/components/tree/phyloTree/change.ts
 +++ b/src/components/tree/phyloTree/change.ts
 @@ -242,6 +242,7 @@ export const modifySVGInStages = function modifySVGInStages(
@@ -18,7 +18,19 @@ index 7ddc3cf..a9a8a68 100644
      if (!--inProgress) { /* decrement counter. When hits 0 run block */
        this.setClipMask();
        const updateTips = createUpdateCall(".tip", svgPropsToUpdate);
-@@ -376,7 +378,9 @@ export const change = function change(
+@@ -341,6 +343,11 @@ export const change = function change(
+   if ((Date.now() - this.timeLastRenderRequested) < idealTransitionTime * 2 || performanceFlags.get("skipTreeAnimation")===true) {
+     transitionTime = 0;
+   }
++  /* the SVG takes its new size at once, so a transition would start from positions computed for the old size and
++  draw the tree misplaced until it ends */
++  if (svgHasChangedDimensions) {
++    transitionTime = 0;
++  }
+ 
+   /* the logic of converting what react is telling us to change
+   and what SVG elements, node properties, svg props we actually change */
+@@ -376,7 +383,9 @@ export const change = function change(
      svgPropsToUpdate.add("stroke-width");
      nodePropsToModify["stroke-width"] = branchThickness;
    }
@@ -29,7 +41,7 @@ index 7ddc3cf..a9a8a68 100644
      elemsToUpdate.add(".tip").add(".branch.S").add(".branch.T").add(".branch");
      elemsToUpdate.add(".vaccineCross").add(".vaccineDottedLine").add(".conf");
      elemsToUpdate.add('.branchLabel').add('.tipLabel');
-@@ -465,7 +469,8 @@ export const change = function change(
+@@ -465,7 +474,8 @@ export const change = function change(
      zoomIntoClade ||
      svgHasChangedDimensions ||
      streamDefinitionChange ||
