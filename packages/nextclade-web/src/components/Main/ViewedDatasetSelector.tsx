@@ -18,7 +18,7 @@ import type {
 import { attrStrMaybe, Dataset } from 'src/types'
 import type { IsMultiValue } from 'src/components/Common/Dropdown'
 import { datasetsForAnalysisAtom, UNKNOWN_DATASET_NAME, viewedDatasetNameAtom } from 'src/state/dataset.state'
-import { allTreesAtom } from 'src/state/results.state'
+import { allInitialDataAtom } from 'src/state/results.state'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
@@ -34,11 +34,11 @@ export function ViewedDatasetSelector() {
   const [viewedDatasetName, setViewedDatasetName] = useRecoilState(viewedDatasetNameAtom)
   const hasSeqsWithoutDatasetSuggestions = useRecoilValue(hasSeqsWithoutDatasetSuggestionsAtom)
   const datasets = useRecoilValue(datasetsForAnalysisAtom)
-  const allTrees = useRecoilValue(allTreesAtom)
+  const allInitialData = useRecoilValue(allInitialDataAtom)
 
   const { options, currentOption } = useMemo(() => {
     const options: Option[] = (datasets ?? []).map((dataset) => {
-      const hasTree = !isNil(allTrees.get(dataset.path))
+      const hasTree = allInitialData.get(dataset.path)?.hasTree
       return {
         value: dataset.path,
         dataset,
@@ -51,7 +51,7 @@ export function ViewedDatasetSelector() {
     }
     const currentOption = options.find((o) => o.value === viewedDatasetName) ?? options[0]
     return { options, currentOption }
-  }, [allTrees, datasets, hasSeqsWithoutDatasetSuggestions, t, viewedDatasetName])
+  }, [allInitialData, datasets, hasSeqsWithoutDatasetSuggestions, t, viewedDatasetName])
 
   const handleChange = useCallback(
     (option: OnChangeValue<Option, IsMultiValue>, _: ActionMeta<Option>) => {
@@ -130,7 +130,7 @@ function OptionComponentDataset({
     >
       <div>
         <span>{name}</span>
-        {!hasTree && (
+        {hasTree === false && (
           <Badge
             title={t('This dataset does not provide a reference tree. Related functionality is disabled.')}
             className="ml-1"

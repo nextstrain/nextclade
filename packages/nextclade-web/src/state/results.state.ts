@@ -1,6 +1,6 @@
 /* eslint-disable no-void */
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
-import { isNil, union } from 'lodash'
+import { union } from 'lodash'
 import { atom, selectorFamily } from 'recoil'
 import { atom as jotaiAtom } from 'jotai'
 import { atomFamily as jotaiAtomFamily } from 'jotai/utils'
@@ -195,15 +195,6 @@ export const [treeNwkAtom, allTreesNwkAtom] = multiAtom<string | undefined | nul
   key: 'treeNwk',
 })
 
-export const hasTreeAtom = selectorFamily<boolean, { datasetName: string }>({
-  key: 'hasTree',
-  get:
-    ({ datasetName }) =>
-    ({ get }) => {
-      return !isNil(get(treeAtom(datasetName)))
-    },
-})
-
 export const [cladeNodeAttrDescsAtom, allCladeNodeAttrDescsAtom] = multiAtom<
   CladeNodeAttrDesc[],
   { datasetName: string }
@@ -236,6 +227,18 @@ export const [mutationPatternKeysAtom, allMutationPatternKeysAtom] = multiAtom<s
 
 export const [initialDataAtom, allInitialDataAtom] = multiAtom<AnalysisInitialData, string>({
   key: 'initialDataAtom',
+})
+
+/**
+ * Whether the analysis outputs a tree for the dataset. Known as soon as the analysis has loaded the dataset, long
+ * before the tree itself. Undefined before that.
+ */
+export const datasetHasTreeAtom = selectorFamily<boolean | undefined, { datasetName: string }>({
+  key: 'datasetHasTree',
+  get:
+    ({ datasetName }) =>
+    ({ get }) =>
+      get(initialDataAtom(datasetName))?.hasTree,
 })
 
 export const csvColumnConfigAtom = atom<CsvColumnConfig | undefined>({

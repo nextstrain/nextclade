@@ -9,13 +9,13 @@ import { ButtonHelpStyled } from 'src/components/Results/ResultsTableStyle'
 import { SequenceSelector } from 'src/components/SequenceView/SequenceSelector'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
-import { hasTreeAtom } from 'src/state/results.state'
+import { datasetHasTreeAtom } from 'src/state/results.state'
 
 export function SequenceViewColumnHeader() {
   const { t } = useTranslationSafe()
 
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
-  const hasTree = useRecoilValue(hasTreeAtom({ datasetName }))
+  const hasTree = useRecoilValue(datasetHasTreeAtom({ datasetName }))
 
   return (
     <FlexOuter>
