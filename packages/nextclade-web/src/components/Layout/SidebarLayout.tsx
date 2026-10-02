@@ -78,17 +78,52 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
   // Resize the page content only after the sidebar has finished sliding. Resizing re-renders size-dependent content
   // (such as the tree), which can block the main thread for a second or more and would otherwise delay painting
   // the frames of the toggle (such as the sliding pull tab).
+  // While the content is laid out at its new size, which can take a second on large trees, it is dimmed to show that
+  // it is being updated.
   const [isSpaceReserved, setIsSpaceReserved] = useState(isOpen)
+  const [isDimmed, setIsDimmed] = useState(false)
   useLayoutEffect(() => {
     const animations = railRef.current?.getAnimations() ?? []
     let isCancelled = false
     Promise.all(animations.map((animation) => animation.finished))
-      .then(() => !isCancelled && setIsSpaceReserved(isOpen))
+      .then(async () => {
+        if (isCancelled) {
+          return
+        }
+        if (isOverlay || animations.length === 0) {
+          setIsSpaceReserved(isOpen)
+          return
+        }
+        setIsDimmed(true)
+        // Let the browser paint the dimmed content before the layout blocks the main thread
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => setTimeout(resolve, 0))
+        })
+        if (!isCancelled) {
+          setIsSpaceReserved(isOpen)
+        }
+        setIsDimmed(false)
+      })
       .catch(() => undefined) // Animation was replaced by a newer toggle, which schedules its own update
     return () => {
       isCancelled = true
     }
-  }, [isOpen])
+  }, [isOpen, isOverlay])
+
+  // While the sidebar slides, stretch the current drawing of the page content towards its final place and width. This
+  // only moves pixels, so it animates at full frame rate. The content is laid out at its new size after the slide.
+  const mainRef = useRef<HTMLDivElement>(null)
+  const [stretch, setStretch] = useState<string | undefined>(undefined)
+  useLayoutEffect(() => {
+    const main = mainRef.current
+    if (!main || isOverlay || isOpen === isSpaceReserved) {
+      setStretch(undefined)
+      return
+    }
+    const width = main.getBoundingClientRect().width
+    const dx = isOpen ? SIDEBAR_WIDTH_PX : -SIDEBAR_WIDTH_PX
+    setStretch(`translateX(${dx}px) scaleX(${(width - dx) / width})`)
+  }, [isOpen, isSpaceReserved, isOverlay])
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -125,7 +160,9 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
 
       {isOverlay && isOpen && <DismissArea onClick={close} aria-hidden />}
 
-      <IndentedMain $indentPx={indentPx}>{children}</IndentedMain>
+      <IndentedMain ref={mainRef} $indentPx={indentPx} $stretch={stretch} $isDimmed={isDimmed}>
+        {children}
+      </IndentedMain>
     </Container>
   )
 }
@@ -157,8 +194,19 @@ const Main = styled.div`
 `
 
 /** Leaves room on the left for the sidebar where it takes space */
-const IndentedMain = styled(Main)<{ $indentPx: number }>`
+const IndentedMain = styled(Main)<{ $indentPx: number; $stretch?: string; $isDimmed: boolean }>`
   margin-left: ${({ $indentPx }) => $indentPx}px;
+  transform: ${({ $stretch }) => $stretch ?? 'none'};
+  transform-origin: left center;
+  opacity: ${({ $isDimmed }) => ($isDimmed ? 0.4 : 1)};
+  transition: ${({ $stretch, $isDimmed }) =>
+    [$stretch ? `transform ${TRANSITION}` : undefined, $isDimmed ? undefined : 'opacity 0.3s ease-in']
+      .filter(Boolean)
+      .join(', ') || 'none'};
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `
 
 /**
