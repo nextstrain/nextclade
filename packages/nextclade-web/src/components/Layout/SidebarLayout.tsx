@@ -125,7 +125,10 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
 
       {isOverlay && isOpen && <DismissArea onClick={close} aria-hidden />}
 
-      <IndentedMain $indentPx={indentPx}>{children}</IndentedMain>
+      {/* The page content fades out while the sidebar slides, and fades in after it is laid out at its new size */}
+      <IndentedMain $indentPx={indentPx} $isFaded={!isOverlay && isOpen !== isSpaceReserved}>
+        {children}
+      </IndentedMain>
     </Container>
   )
 }
@@ -157,8 +160,14 @@ const Main = styled.div`
 `
 
 /** Leaves room on the left for the sidebar where it takes space */
-const IndentedMain = styled(Main)<{ $indentPx: number }>`
+const IndentedMain = styled(Main)<{ $indentPx: number; $isFaded: boolean }>`
   margin-left: ${({ $indentPx }) => $indentPx}px;
+  opacity: ${({ $isFaded }) => ($isFaded ? 0 : 1)};
+  transition: ${({ $isFaded }) => ($isFaded ? 'opacity 0.15s ease-out' : 'opacity 0.3s ease-in')};
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `
 
 /**
