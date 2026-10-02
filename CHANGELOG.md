@@ -1,3 +1,17 @@
+## Unreleased
+
+### Nextclade Web: collapsible sidebar on tree and export pages
+
+The sidebar of the tree and export pages can now be hidden and shown again with a tab on its edge. On wide screens, the sidebar sits next to the page content and Nextclade Web remembers whether it is open. On narrow screens, the sidebar opens over the page content, and closes on Escape or on a click outside of it. The tree page no longer requires a minimum window width of 1080 px. See [#1782](https://github.com/nextstrain/nextclade/pull/1782), [#1784](https://github.com/nextstrain/nextclade/pull/1784) for details.
+
+### Nextclade Web: larger tree view
+
+The tree now fills the available height of the page. The active filters, the GISAID attribution, the download buttons and the zoom buttons share one row above the tree, and the entropy chart below the tree is shorter. Branch labels near the root of the tree and axis labels at the edges are no longer cut off. See [#1784](https://github.com/nextstrain/nextclade/pull/1784) for details.
+
+### Nextclade Web: download tree JSON from the tree page
+
+A new "JSON" button next to the "SVG" button on the tree page downloads the tree with the analyzed sequences placed onto it, in Auspice JSON format. This is the same `nextclade.auspice.json` file as on the export page. See [#1785](https://github.com/nextstrain/nextclade/pull/1785) for details.
+
 ## 3.24.0
 
 ### Mutation pattern detection
