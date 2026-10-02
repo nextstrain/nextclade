@@ -250,6 +250,8 @@ pub struct AnalysisInitialData {
   pub aa_motif_keys: Vec<String>,
   pub mutation_pattern_keys: Vec<String>,
   pub csv_column_config_default: CsvColumnConfig,
+  /// Whether the analysis outputs a tree. The tree itself is only available after all sequences are analyzed
+  pub has_tree: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
@@ -449,6 +451,7 @@ impl Nextclade {
       aa_motif_keys: self.aa_motifs_keys.clone(),
       mutation_pattern_keys: self.mutation_patterns.ids().map(ToOwned::to_owned).collect(),
       csv_column_config_default: CsvColumnConfig::default(),
+      has_tree: self.graph.is_some(),
     }
   }
 

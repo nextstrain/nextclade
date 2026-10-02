@@ -1,0 +1,1 @@
+mod test_nextclade_wasm_initial_data;
