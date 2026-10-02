@@ -90,6 +90,20 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
     }
   }, [isOpen])
 
+  // While the sidebar slides, move the current drawing of the page content along with it, at its old size. This
+  // only moves pixels, so it animates at full frame rate. The content is laid out at its new size after the slide.
+  const mainRef = useRef<HTMLDivElement>(null)
+  const [push, setPush] = useState<string | undefined>(undefined)
+  useLayoutEffect(() => {
+    const main = mainRef.current
+    if (!main || isOverlay || isOpen === isSpaceReserved) {
+      setPush(undefined)
+      return
+    }
+    const dx = isOpen ? SIDEBAR_WIDTH_PX : -SIDEBAR_WIDTH_PX
+    setPush(`translateX(${dx}px)`)
+  }, [isOpen, isSpaceReserved, isOverlay])
+
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       // Controls inside (such as dropdowns) prevent the default when they handle Escape themselves
@@ -125,7 +139,9 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
 
       {isOverlay && isOpen && <DismissArea onClick={close} aria-hidden />}
 
-      <IndentedMain $indentPx={indentPx}>{children}</IndentedMain>
+      <IndentedMain ref={mainRef} $indentPx={indentPx} $push={push}>
+        {children}
+      </IndentedMain>
     </Container>
   )
 }
@@ -157,8 +173,15 @@ const Main = styled.div`
 `
 
 /** Leaves room on the left for the sidebar where it takes space */
-const IndentedMain = styled(Main)<{ $indentPx: number }>`
+const IndentedMain = styled(Main)<{ $indentPx: number; $push?: string }>`
   margin-left: ${({ $indentPx }) => $indentPx}px;
+  transform: ${({ $push }) => $push ?? 'none'};
+  transform-origin: left center;
+  transition: ${({ $push }) => ($push ? `transform ${TRANSITION}` : 'none')};
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `
 
 /**
