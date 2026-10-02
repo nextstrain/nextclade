@@ -1,4 +1,4 @@
-import React, { KeyboardEvent, ReactNode, useCallback, useId, useLayoutEffect, useRef, useState } from 'react'
+import React, { KeyboardEvent, ReactNode, useCallback, useId, useLayoutEffect, useRef } from 'react'
 import { useAtom, useAtomValue } from 'jotai'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import styled from 'styled-components'
@@ -75,20 +75,24 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
     }
   }, [isOpen])
 
-  // Resize the page content only after the sidebar has finished sliding. Resizing re-renders size-dependent content
-  // (such as the tree), which can block the main thread for a second or more and would otherwise delay painting
-  // the frames of the toggle (such as the sliding pull tab).
-  const [isSpaceReserved, setIsSpaceReserved] = useState(isOpen)
+  // The page content takes its new place and width at once, then slides there from its old place together with the
+  // sidebar, as in Auspice. Size-dependent content (such as the tree) is laid out at its new size before both start.
+  const mainRef = useRef<HTMLDivElement>(null)
+  const prevIsOpenRef = useRef(isOpen)
   useLayoutEffect(() => {
-    const animations = railRef.current?.getAnimations() ?? []
-    let isCancelled = false
-    Promise.all(animations.map((animation) => animation.finished))
-      .then(() => !isCancelled && setIsSpaceReserved(isOpen))
-      .catch(() => undefined) // Animation was replaced by a newer toggle, which schedules its own update
-    return () => {
-      isCancelled = true
+    if (prevIsOpenRef.current === isOpen) {
+      return
     }
-  }, [isOpen])
+    prevIsOpenRef.current = isOpen
+    if (isOverlay || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return
+    }
+    const dx = isOpen ? -SIDEBAR_WIDTH_PX : SIDEBAR_WIDTH_PX
+    mainRef.current?.animate([{ transform: `translateX(${dx}px)` }, { transform: 'none' }], {
+      duration: 300,
+      easing: 'ease-out',
+    })
+  }, [isOpen, isOverlay])
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -100,7 +104,7 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
     [close, isOverlay],
   )
 
-  const indentPx = !isOverlay && isSpaceReserved ? SIDEBAR_WIDTH_PX : 0
+  const indentPx = !isOverlay && isOpen ? SIDEBAR_WIDTH_PX : 0
   const pullTabLabel = isOpen ? t('Hide sidebar') : t('Show sidebar')
 
   return (
@@ -125,7 +129,9 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
 
       {isOverlay && isOpen && <DismissArea onClick={close} aria-hidden />}
 
-      <IndentedMain $indentPx={indentPx}>{children}</IndentedMain>
+      <IndentedMain ref={mainRef} $indentPx={indentPx}>
+        {children}
+      </IndentedMain>
     </Container>
   )
 }
@@ -162,9 +168,8 @@ const IndentedMain = styled(Main)<{ $indentPx: number }>`
 `
 
 /**
- * Sidebar together with its pull tab. Only the rail moves, and only by `transform`, which the browser animates off
- * the main thread. The page content changes width in one step after the slide, so size-dependent content (such as
- * the tree) lays out once per toggle.
+ * Sidebar together with its pull tab. The rail moves only by `transform`, which the browser animates off
+ * the main thread.
  */
 const Rail = styled.div<{ $isOpen: boolean }>`
   position: absolute;
