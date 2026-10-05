@@ -1,5 +1,13 @@
 ## Unreleased
 
+### Alignment: optional penalty for deletions that enter a CDS
+
+The new alignment parameter `penaltyGapEnterCds` (CLI argument `--penalty-gap-enter-cds`) adds a penalty to a deletion that extends from a position outside of all CDSs into a CDS. The codon-aware gap penalties apply where a gap starts, so, depending on `gapAlignmentSide`, an ambiguous deletion just before a CDS could be placed over the first bases of the CDS and remove, for example, the start codon of a forward-strand CDS. With a penalty of 1 or more, such deletions stay outside of the CDS. With a penalty above `penaltyGapOpenInFrame` minus `penaltyGapOpen`, a deletion that cuts into a CDS also costs more than an in-frame deletion inside of the CDS. The default is 0, so results do not change unless a dataset or a CLI argument sets the parameter. See the [alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/algorithm/01-sequence-alignment.html) for details.
+
+### Documentation: meaning of `gapAlignmentSide`
+
+The documentation of `gapAlignmentSide` described the opposite of the actual behavior. `left` (the default) moves the aligned bases to the left and places ambiguous gaps at their 3'-most position. `right` places ambiguous gaps at their 5'-most position. The behavior does not change.
+
 ### Nextclade Web: collapsible sidebar on tree and export pages
 
 The sidebar of the tree and export pages can now be hidden and shown again with a tab on its edge. On wide screens, the sidebar sits next to the page content and Nextclade Web remembers whether it is open. On narrow screens, the sidebar opens over the page content, and closes on Escape or on a click outside of it. The tree page no longer requires a minimum window width of 1080 px. See [#1782](https://github.com/nextstrain/nextclade/pull/1782), [#1784](https://github.com/nextstrain/nextclade/pull/1784) for details.
