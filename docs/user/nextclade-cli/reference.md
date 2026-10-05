@@ -409,13 +409,13 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
 * `--excess-bandwidth <EXCESS_BANDWIDTH>` — Excess bandwidth for internal stripes
 * `--terminal-bandwidth <TERMINAL_BANDWIDTH>` — Excess bandwidth for terminal stripes
-* `--gap-alignment-side <GAP_ALIGNMENT_SIDE>` — Whether to align gaps on the left or right side if equally parsimonious. Default: left
+* `--gap-alignment-side <GAP_ALIGNMENT_SIDE>` — Where to place gaps that have several placements with equal score. `left` moves the aligned bases to the left and the gaps to the 3'-most position. `right` moves the aligned bases to the right and the gaps to the 5'-most position. Default: left
 
   Possible values:
   - `left`:
-    Place ambiguous gaps on the left (5') side. This is the default
+    Move aligned bases to the left (5') side and ambiguous gaps to the 3'-most position. This is the default
   - `right`:
-    Place ambiguous gaps on the right (3') side
+    Move aligned bases to the right (3') side and ambiguous gaps to the 5'-most position
 
 * `--kmer-length <KMER_LENGTH>` — Length of exactly matching k-mers used in the seed alignment of the query to the reference
 * `--kmer-distance <KMER_DISTANCE>` — Interval of successive k-mers on the query sequence. Should be small compared to the query length

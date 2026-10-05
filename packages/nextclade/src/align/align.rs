@@ -492,7 +492,7 @@ mod tests {
   }
 
   #[rstest]
-  fn aligns_ambiguous_gap_placing_right(ctx: Context) -> Result<(), Report> {
+  fn aligns_ambiguous_deletion_with_gap_alignment_side_right(ctx: Context) -> Result<(), Report> {
     #[rustfmt::skip]
     let qry_seq = to_nuc_seq("ACATCTTC"   )?;
     let ref_seq = to_nuc_seq("ACATAGTCTTC")?;
@@ -514,7 +514,7 @@ mod tests {
   }
 
   #[rstest]
-  fn aligns_ambiguous_gap_placing_left(ctx: Context) -> Result<(), Report> {
+  fn aligns_ambiguous_deletion_with_gap_alignment_side_left(ctx: Context) -> Result<(), Report> {
     #[rustfmt::skip]
     let qry_seq = to_nuc_seq("ACATCTTC"   )?;
     let ref_seq = to_nuc_seq("ACATAGTCTTC")?;
@@ -543,7 +543,7 @@ mod tests {
   }
 
   #[rstest]
-  fn aligns_ambiguous_gap_placing_case_reversed(ctx: Context) -> Result<(), Report> {
+  fn aligns_ambiguous_insertion_with_gap_alignment_side_right(ctx: Context) -> Result<(), Report> {
     #[rustfmt::skip]
     let qry_seq = to_nuc_seq("ACATAGTCTTG")?;
     let ref_seq = to_nuc_seq("ACATCTTG")?;
@@ -565,7 +565,7 @@ mod tests {
   }
 
   #[rstest]
-  fn aligns_ambiguous_gap_placing_case_reversed_left(ctx: Context) -> Result<(), Report> {
+  fn aligns_ambiguous_insertion_with_gap_alignment_side_left(ctx: Context) -> Result<(), Report> {
     #[rustfmt::skip]
     let qry_seq = to_nuc_seq("ACATAGTCTTG")?;
     let ref_seq = to_nuc_seq("ACATCTTG")?;

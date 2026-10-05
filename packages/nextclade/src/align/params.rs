@@ -8,15 +8,15 @@ use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-/// Controls which side ambiguous gaps are placed on when alignment is equally parsimonious in either direction.
+/// Controls where ambiguous gaps go when the alignment is equally parsimonious in either direction. The value names the side to which the aligned bases move; ambiguous gaps go to the opposite side.
 #[derive(ValueEnum, Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[derive(Default)]
 pub enum GapAlignmentSide {
-  /// Place ambiguous gaps on the left (5') side. This is the default.
+  /// Move aligned bases to the left (5') side and ambiguous gaps to the 3'-most position. This is the default.
   #[default]
   Left,
-  /// Place ambiguous gaps on the right (3') side.
+  /// Move aligned bases to the right (3') side and ambiguous gaps to the 5'-most position.
   Right,
 }
 
@@ -113,7 +113,7 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub terminal_bandwidth: i32,
 
-  /// Whether to align gaps on the left or right side if equally parsimonious. Default: left
+  /// Where to place gaps that have several placements with equal score. `left` moves the aligned bases to the left and the gaps to the 3'-most position. `right` moves the aligned bases to the right and the gaps to the 5'-most position. Default: left
   #[clap(long, value_enum)]
   pub gap_alignment_side: GapAlignmentSide,
 

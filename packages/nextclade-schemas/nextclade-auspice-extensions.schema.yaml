@@ -1265,7 +1265,7 @@ definitions:
         - 'null'
         format: int32
       gapAlignmentSide:
-        description: 'Whether to align gaps on the left or right side if equally parsimonious. Default: left'
+        description: 'Where to place gaps that have several placements with equal score. `left` moves the aligned bases to the left and the gaps to the 3''-most position. `right` moves the aligned bases to the right and the gaps to the 5''-most position. Default: left'
         anyOf:
         - $ref: '#/definitions/GapAlignmentSide'
         - type: 'null'
@@ -1345,13 +1345,13 @@ definitions:
       enum:
       - short-sequences
   GapAlignmentSide:
-    description: Controls which side ambiguous gaps are placed on when alignment is equally parsimonious in either direction.
+    description: Controls where ambiguous gaps go when the alignment is equally parsimonious in either direction. The value names the side to which the aligned bases move; ambiguous gaps go to the opposite side.
     oneOf:
-    - description: Place ambiguous gaps on the left (5') side. This is the default.
+    - description: Move aligned bases to the left (5') side and ambiguous gaps to the 3'-most position. This is the default.
       type: string
       enum:
       - left
-    - description: Place ambiguous gaps on the right (3') side.
+    - description: Move aligned bases to the right (3') side and ambiguous gaps to the 5'-most position.
       type: string
       enum:
       - right
