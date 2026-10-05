@@ -1375,6 +1375,14 @@
           ],
           "format": "int32"
         },
+        "penaltyGapEnterCds": {
+          "description": "Additional penalty for a deletion that extends from a position outside of all CDSs into a CDS. Applies only when a genome annotation is provided. Insertions are not affected.\n\nThe codon-aware penalties apply where a deletion starts. Without this penalty, a deletion that starts before a CDS and ends inside of it pays only `--penalty-gap-open`, so an ambiguous deletion can be placed over the first bases of the CDS in reference coordinates: the start codon of a forward-strand CDS, or the last codon of a reverse-strand CDS. A value of 1 or more keeps such deletions outside of the CDS when an equally good placement exists. A value greater than `--penalty-gap-open-in-frame` minus `--penalty-gap-open` also makes a deletion that cuts into a CDS more costly than an in-frame deletion inside of the CDS. Values above `--score-match` plus `--penalty-mismatch` can make the aligner add a substitution to avoid a deletion that enters a CDS. 0 disables the penalty.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
         "penaltyMismatch": {
           "description": "Penalty for aligned nucleotides or amino acids that differ in state during alignment. Note that this is redundantly parameterized with `--score-match`",
           "type": [

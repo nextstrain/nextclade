@@ -1,4 +1,5 @@
 use crate::align::band_2d::{Band2d, Stripe};
+use crate::align::gap_open::GapScoreMap;
 use crate::align::params::{AlignPairwiseParams, GapAlignmentSide};
 use crate::alphabet::letter::Letter;
 use log::trace;
@@ -23,11 +24,11 @@ pub struct ScoreMatrixResult {
 pub fn score_matrix<T: Letter<T>>(
   qry_seq: &[T],
   ref_seq: &[T],
-  gap_open_close: &[i32],
+  gap_open_close: &GapScoreMap,
   stripes: &[Stripe],
   params: &AlignPairwiseParams,
 ) -> ScoreMatrixResult {
-  assert!(gap_open_close.len() > 0);
+  assert!(!gap_open_close.open.is_empty());
   assert!(stripes.len() > 0);
 
   let query_size = qry_seq.len();
@@ -74,7 +75,7 @@ pub fn score_matrix<T: Letter<T>>(
       // Left terminal qry insertion is not free
       // TODO: Consider whether qry insertion should ever be free, not only qry deletion!
       if qpos == 1 {
-        scores[(0, 1)] = -gap_open_close[0];
+        scores[(0, 1)] = -gap_open_close.open[0];
       } else {
         scores[(0, qpos)] = scores[(0, qpos - 1)] - params.penalty_gap_extend;
       }
@@ -85,6 +86,8 @@ pub fn score_matrix<T: Letter<T>>(
   // Iterate over rows
   for ri in 1..=ref_len {
     let mut ref_gaps = NO_ALIGN;
+    // Penalty to extend a deletion over the reference base of this row
+    let del_extend = gap_open_close.extend_deletion[ri - 1];
 
     for qpos in stripes[ri].begin..stripes[ri].end {
       let mut tmp_path = 0;
@@ -107,9 +110,9 @@ pub fn score_matrix<T: Letter<T>>(
         } else {
           // Left terminal qry gap is not free
           if ri == 1 {
-            score = -gap_open_close[0];
+            score = -gap_open_close.open[0];
           } else {
-            score = scores[(ri - 1, 0)] - params.penalty_gap_extend;
+            score = scores[(ri - 1, 0)] - del_extend;
           }
         }
       } else {
@@ -139,7 +142,7 @@ pub fn score_matrix<T: Letter<T>>(
           if ri != ref_len || !params.right_terminal_gaps_free {
             //normal case, not at end of ref sequence
             r_gap_extend = ref_gaps - params.penalty_gap_extend;
-            r_gap_open = scores[(ri, qpos - 1)] - gap_open_close[ri];
+            r_gap_open = scores[(ri, qpos - 1)] - gap_open_close.open[ri];
           } else {
             // at end of ref sequence if right terminal gaps are free
             // TODO: Consider whether qry insertion should ever be free, not only qry deletion!
@@ -169,8 +172,8 @@ pub fn score_matrix<T: Letter<T>>(
           // need stripe above to move from, otherwise no scores[(ri-1, qpos)] not existing
           if qpos != query_size || !params.right_terminal_gaps_free {
             //normal case, not at end of query sequence
-            q_gap_extend = qry_gaps[qpos] - params.penalty_gap_extend;
-            q_gap_open = scores[(ri - 1, qpos)] - gap_open_close[ri - 1];
+            q_gap_extend = qry_gaps[qpos] - del_extend;
+            q_gap_open = scores[(ri - 1, qpos)] - gap_open_close.open[ri - 1];
           } else {
             //end of query sequence make right terminal gap free
             q_gap_extend = qry_gaps[qpos];

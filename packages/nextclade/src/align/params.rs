@@ -75,6 +75,12 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub penalty_gap_open_out_of_frame: i32,
 
+  /// Additional penalty for a deletion that extends from a position outside of all CDSs into a CDS. Applies only when a genome annotation is provided. Insertions are not affected.
+  ///
+  /// The codon-aware penalties apply where a deletion starts. Without this penalty, a deletion that starts before a CDS and ends inside of it pays only `--penalty-gap-open`, so an ambiguous deletion can be placed over the first bases of the CDS in reference coordinates: the start codon of a forward-strand CDS, or the last codon of a reverse-strand CDS. A value of 1 or more keeps such deletions outside of the CDS when an equally good placement exists. A value greater than `--penalty-gap-open-in-frame` minus `--penalty-gap-open` also makes a deletion that cuts into a CDS more costly than an in-frame deletion inside of the CDS. Values above `--score-match` plus `--penalty-mismatch` can make the aligner add a substitution to avoid a deletion that enters a CDS. 0 disables the penalty.
+  #[clap(long)]
+  pub penalty_gap_enter_cds: i32,
+
   /// Penalty for aligned nucleotides or amino acids that differ in state during alignment. Note that this is redundantly parameterized with `--score-match`
   #[clap(long)]
   pub penalty_mismatch: i32,
@@ -183,6 +189,7 @@ impl Default for AlignPairwiseParams {
       penalty_gap_open: 6,
       penalty_gap_open_in_frame: 7,
       penalty_gap_open_out_of_frame: 8,
+      penalty_gap_enter_cds: 0,
       penalty_mismatch: 1,
       score_match: 3,
       max_band_area: 500_000_000, // requires around 500Mb for paths, 2GB for the scores

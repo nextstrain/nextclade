@@ -1,4 +1,5 @@
 use crate::align::align::align_aa;
+use crate::align::gap_open::GapScoreMap;
 use crate::align::insertions_strip::{Insertion, insertions_strip};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::remove_gaps::remove_gaps_in_place;
@@ -228,7 +229,7 @@ pub fn translate_cds(
   ref_seq: &[Nuc],
   cds: &Cds,
   ref_cds_translation: &CdsTranslation,
-  gap_open_close_aa: &[i32],
+  gap_open_close_aa: &GapScoreMap,
   coord_map_global: &CoordMapGlobal,
   params: &AlignPairwiseParams,
 ) -> Result<CdsTranslation, Report> {
@@ -309,7 +310,7 @@ pub fn translate_genes(
   gene_map: &GeneMap,
   coord_map_global: &CoordMapGlobal,
   global_alignment_range: &NucRefGlobalRange,
-  gap_open_close_aa: &[i32],
+  gap_open_close_aa: &GapScoreMap,
   params: &AlignPairwiseParams,
 ) -> Result<Translation, Report> {
   let genes: IndexMap<String, GeneTranslation> = gene_map

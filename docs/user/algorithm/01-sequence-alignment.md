@@ -46,7 +46,17 @@ Alignment 2: ... | GT- | --T | TAC | ...
 Alignment 3: ... | GTT | T-- | -AC | ...
 ```
 
-If a genome annotation is provided, Nextclade will use a lower gap-open-penalty at the beginning of a codon (delimited by the `|` characters in the schema above), thereby locking a gap in-frame if possible. Similarly, Nextclade preferentially places gaps outside of genes in case of ambiguities.
+If a genome annotation is provided, Nextclade will use a lower gap-open-penalty at the beginning of a codon (delimited by the `|` characters in the schema above), thereby locking a gap in-frame if possible. A gap that starts inside of a coding sequence (CDS) pays a higher gap-open-penalty than a gap outside of all CDSs, so Nextclade preferentially places gaps outside of CDSs in case of ambiguities.
+
+When several placements of a gap have the same score, the `gapAlignmentSide` alignment parameter selects one: `left` (the default) moves the aligned bases to the left and places the gap at its 3'-most position, `right` places the gap at its 5'-most position.
+
+The codon-aware penalties apply at the position where a gap starts. A deletion that starts before a CDS and ends inside of it pays only the gap-open-penalty of its first base, which is outside of the CDS. If such a deletion has an equally good placement outside of the CDS, `gapAlignmentSide` decides between them, and the deletion can remove the first bases of the CDS in reference coordinates: the start codon of a forward-strand CDS, or the last codon of a reverse-strand CDS. The `penaltyGapEnterCds` alignment parameter (CLI argument `--penalty-gap-enter-cds`) adds a penalty to a deletion that extends from a position outside of all CDSs into a CDS:
+
+- A value of 1 or more keeps such deletions outside of the CDS when an equally good placement exists
+- A value greater than `penaltyGapOpenInFrame` minus `penaltyGapOpen` also makes a deletion that cuts into a CDS more costly than an in-frame deletion inside of the CDS
+- A value greater than `scoreMatch` plus `penaltyMismatch` can make Nextclade add a substitution to avoid a deletion that enters a CDS
+
+The default value is 0, which adds no penalty. Insertions are not affected.
 
 Alignment may fail if the query sequence is too divergent from the reference sequence, i.e. if there are many differences between the query and reference sequence. The seed matching step may then not be able to find a sufficient number of similar regions. This may happen due to usage of an incorrect reference sequence (e.g. from a different virus or a virus from a different host organism), if analysed sequences are of very low quality (e.g. containing a lot of missing regions or with a lot of ambiguous nucleotides) or are very short compared to the reference sequence.
 

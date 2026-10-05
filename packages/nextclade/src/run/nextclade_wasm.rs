@@ -278,14 +278,14 @@ pub struct Nextclade {
   pub ref_record: FastaRecord,
   pub ref_seq: Vec<Nuc>,
   pub seed_index: CodonSpacedIndex,
-  pub gap_open_close_nuc: Vec<i32>,
+  pub gap_open_close_nuc: GapScoreMap,
   pub virus_properties: VirusProperties,
   pub primers: Vec<PcrPrimer>,
   pub params: NextcladeInputParams,
 
   // If genome annotation is provided
   pub gene_map: GeneMap,
-  pub gap_open_close_aa: Vec<i32>,
+  pub gap_open_close_aa: GapScoreMap,
   pub ref_translation: Translation,
   pub aa_motifs_ref: AaMotifsMap,
   pub aa_motifs_descs: Vec<AaMotifsDesc>,

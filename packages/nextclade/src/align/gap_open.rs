@@ -4,13 +4,14 @@ use crate::alphabet::nuc::Nuc;
 use crate::gene::gene::GeneStrand;
 use crate::gene::gene_map::GeneMap;
 use either::Either;
-
-pub type GapScoreMap = Vec<i32>;
+use itertools::Itertools;
 
 pub fn get_gap_open_close_scores_flat(ref_seq: &[Nuc], params: &AlignPairwiseParams) -> GapScoreMap {
-  let value = params.penalty_gap_open;
   let len = ref_seq.len() + 2;
-  vec![value; len]
+  GapScoreMap {
+    open: vec![params.penalty_gap_open; len],
+    extend_deletion: vec![params.penalty_gap_extend; len],
+  }
 }
 
 pub fn get_gap_open_close_scores_codon_aware(
@@ -18,7 +19,11 @@ pub fn get_gap_open_close_scores_codon_aware(
   gene_map: &GeneMap,
   params: &AlignPairwiseParams,
 ) -> GapScoreMap {
-  let mut gap_open_close = get_gap_open_close_scores_flat(ref_seq, params);
+  let GapScoreMap {
+    open: mut gap_open_close,
+    mut extend_deletion,
+  } = get_gap_open_close_scores_flat(ref_seq, params);
+  let mut is_coding = vec![false; gap_open_close.len()];
   for cds in gene_map.iter_cdses() {
     let mut cds_pos = 0;
     for segment in &cds.segments {
@@ -36,11 +41,36 @@ pub fn get_gap_open_close_scores_codon_aware(
         } else {
           gap_open_close[i] = params.penalty_gap_open_out_of_frame;
         }
+        is_coding[i] = true;
         cds_pos += 1;
       }
     }
   }
-  gap_open_close
+
+  // The codon-aware open penalty applies only where a deletion starts. A deletion that starts outside of all CDSs and
+  // runs into a CDS pays the additional penalty at the first coding base it covers. Otherwise an ambiguous deletion next
+  // to the low-coordinate end of a CDS costs the same inside and outside of the CDS, and can remove its first bases.
+  for (i, (prev, curr)) in is_coding.iter().tuple_windows().enumerate() {
+    if *curr && !*prev {
+      extend_deletion[i + 1] += params.penalty_gap_enter_cds;
+    }
+  }
+
+  GapScoreMap {
+    open: gap_open_close,
+    extend_deletion,
+  }
+}
+
+/// Gap penalties for each reference position
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct GapScoreMap {
+  /// Penalty to open a gap. A deletion pays the value of its first deleted base. An insertion pays the value of the
+  /// reference base after it
+  pub open: Vec<i32>,
+
+  /// Penalty to extend a deletion over the base
+  pub extend_deletion: Vec<i32>,
 }
 
 #[cfg(test)]
@@ -120,6 +150,7 @@ mod tests {
     Ok(gene_map)
   }
 
+  #[derive(Debug)]
   struct Context {
     ref_seq: Vec<Nuc>,
     params: AlignPairwiseParams,
@@ -157,7 +188,7 @@ mod tests {
 
     let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
 
-    assert_eq!(actual, expect);
+    assert_eq!(expect, actual.open);
     Ok(())
   }
 
@@ -180,7 +211,7 @@ mod tests {
 
     let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
 
-    assert_eq!(actual, expect);
+    assert_eq!(expect, actual.open);
     Ok(())
   }
 
@@ -201,7 +232,7 @@ mod tests {
 
     let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
 
-    assert_eq!(actual, expect);
+    assert_eq!(expect, actual.open);
     Ok(())
   }
 
@@ -222,7 +253,7 @@ mod tests {
 
     let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
 
-    assert_eq!(actual, expect);
+    assert_eq!(expect, actual.open);
     Ok(())
   }
 
@@ -245,7 +276,7 @@ mod tests {
 
     let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
 
-    assert_eq!(actual, expect);
+    assert_eq!(expect, actual.open);
     Ok(())
   }
 
@@ -265,7 +296,7 @@ mod tests {
 
     let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
 
-    assert_eq!(actual, expect);
+    assert_eq!(expect, actual.open);
     Ok(())
   }
 
@@ -285,7 +316,51 @@ mod tests {
 
     let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &ctx.params);
 
-    assert_eq!(actual, expect);
+    assert_eq!(expect, actual.open);
     Ok(())
+  }
+
+  // Deletion extension penalty 1, CDS entry penalty 5: the first base of each coding run (in reference coordinates)
+  // that follows a non-coding base costs 1 + 5
+  #[rustfmt::skip]
+  #[rstest]
+  //                                                                                      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 + 2 extra
+  #[case::forward(           vec![vec![(3, 9, Forward)]],                            vec![1, 1, 1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
+  #[case::reverse(           vec![vec![(3, 9, Reverse)]],                            vec![1, 1, 1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
+  #[case::adjacent_segments( vec![vec![(3, 12, Forward), (12, 18, Forward)]],        vec![1, 1, 1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
+  #[case::two_cds(           vec![vec![(3, 9, Forward)], vec![(12, 18, Reverse)]],   vec![1, 1, 1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
+  #[case::one_base_apart(    vec![vec![(3, 9, Forward)], vec![(10, 19, Forward)]],   vec![1, 1, 1, 6, 1, 1, 1, 1, 1, 1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
+  #[case::overlapping(       vec![vec![(3, 12, Forward)], vec![(9, 18, Forward)]],   vec![1, 1, 1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
+  #[case::sequence_start(    vec![vec![(0, 9, Forward)]],                            vec![1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])]
+  #[trace]
+  fn test_gap_score_extend_deletion_enter_cds(
+    ctx: Context,
+    #[case] cdses: Vec<Vec<(isize, isize, GeneStrand)>>,
+    #[case] expect: Vec<i32>,
+  ) -> Result<(), Report> {
+    let gene_map = create_test_genome_annotation(&cdses.iter().map(Vec::as_slice).collect_vec())?;
+    let params = AlignPairwiseParams {
+      penalty_gap_extend: 1,
+      penalty_gap_enter_cds: 5,
+      ..ctx.params
+    };
+
+    let actual = get_gap_open_close_scores_codon_aware(&ctx.ref_seq, &gene_map, &params);
+
+    assert_eq!(expect, actual.extend_deletion);
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_gap_score_extend_deletion_flat(ctx: Context) {
+    let params = AlignPairwiseParams {
+      penalty_gap_extend: 1,
+      penalty_gap_enter_cds: 5,
+      ..ctx.params
+    };
+
+    let actual = get_gap_open_close_scores_flat(&ctx.ref_seq, &params);
+
+    assert_eq!(vec![1; 27], actual.extend_deletion);
   }
 }

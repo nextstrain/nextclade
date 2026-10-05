@@ -1,6 +1,7 @@
 use crate::align::backtrace::{AlignmentOutput, backtrace};
 use crate::align::band_2d::Stripe;
 use crate::align::band_2d::{full_matrix, simple_stripes};
+use crate::align::gap_open::GapScoreMap;
 use crate::align::params::AlignPairwiseParams;
 use crate::align::score_matrix::{ScoreMatrixResult, score_matrix};
 use crate::align::seed_alignment::create_alignment_band;
@@ -17,7 +18,7 @@ use std::cmp::max;
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
   ref_seq: &[T],
-  gap_open_close: &[i32],
+  gap_open_close: &GapScoreMap,
   params: &AlignPairwiseParams,
   stripes: &[Stripe],
 ) -> AlignmentOutput<T> {
@@ -35,7 +36,7 @@ pub fn align_nuc(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   seed_index: &CodonSpacedIndex,
-  gap_open_close: &[i32],
+  gap_open_close: &GapScoreMap,
   params: &AlignPairwiseParams,
 ) -> Result<AlignmentOutput<Nuc>, Report> {
   let qry_len = qry_seq.len();
@@ -156,7 +157,7 @@ pub fn align_nuc(
 pub fn align_aa(
   qry_seq: &[Aa],
   ref_seq: &[Aa],
-  gap_open_close: &[i32],
+  gap_open_close: &GapScoreMap,
   params: &AlignPairwiseParams,
   band_width: usize,
   mean_shift: i32,
@@ -674,8 +675,9 @@ mod tests {
     Ok(())
   }
 
-  // Ambiguous gaps next to a CDS. The codon-aware gap cost applies only where a gap starts, so the tie-break can select a
-  // gap that ends inside the CDS. See kb/issues/M-align-gap-end-cost-in-cds.md
+  // Deletions next to the low-coordinate end of a CDS. The codon-aware open penalty applies only where a deletion starts,
+  // so without `penalty_gap_enter_cds` a deletion that starts before a CDS and ends inside of it pays only the flat open
+  // penalty, and the tie-break can select it over an equally good deletion outside of the CDS
   mod cds_boundary {
     use std::ops::Range;
 
@@ -686,6 +688,63 @@ mod tests {
       pub qry_aln: &'static str,
       pub gff: &'static str,
     }
+
+    /// Reference sequence and annotation. The query sequences are the expected alignments without gaps
+    #[derive(Debug)]
+    pub struct Region {
+      pub ref_seq: &'static str,
+      pub gff: &'static str,
+    }
+
+    /// 6-nt deletion at a CDS start (mpox OPG112, Ivory_Coast_2012). Codon 1 and codon 3 are both `ATG`, so the
+    /// deletion has 8 placements with the same matches, from 2 bases before the CDS to inside of codon 4
+    #[rustfmt::skip]
+    pub const STRADDLE: Region = Region {
+      //        0         1         2         3         4         5
+      //        012345678901234567890123456789012345678901234567890123456789
+      ref_seq: "TCTTTACACAAATAATTACAAGACCGATAAATGGAAATGGATAAACGGATGAAATCTCTC",
+      //                                      [----------CDS1-------------]
+      //                                       M  E  M  D  K  R  M  K  S  L
+      gff: r#"##gff-version 3
+ref	.	CDS	31	60	.	+	0	Name=CDS1
+"#,
+    };
+
+    /// `STRADDLE` with codons 2 and 3 deleted: in-frame, keeps the start codon
+    #[rustfmt::skip]
+    //                                        0         1         2         3         4         5
+    //                                        012345678901234567890123456789012345678901234567890123456789
+    pub const STRADDLE_CODONS_2_3: &str =    "TCTTTACACAAATAATTACAAGACCGATAAATG------GATAAACGGATGAAATCTCTC";
+
+    /// `STRADDLE` with codons 1 and 2 deleted: in-frame
+    #[rustfmt::skip]
+    pub const STRADDLE_CODONS_1_2: &str =    "TCTTTACACAAATAATTACAAGACCGATAA------ATGGATAAACGGATGAAATCTCTC";
+
+    /// `STRADDLE` with a deletion that starts 2 bases before the CDS: removes codon 1 and cuts codon 2
+    #[rustfmt::skip]
+    pub const STRADDLE_ACROSS_START: &str =  "TCTTTACACAAATAATTACAAGACCGAT------AAATGGATAAACGGATGAAATCTCTC";
+
+    /// 15-nt deletion across the end of one CDS and the start of the next (SARS-CoV-2 ORF7b and ORF8,
+    /// Switzerland/BE-ETHZ-630376/2021). Every placement enters the second CDS. The only placement without substitutions,
+    /// `CROSSING_QRY`, starts at the last base of the first CDS. Moving it one base to the right avoids the first CDS
+    /// but adds the substitution A18T, and the query codon at 16-18 is `TAT` in both placements
+    #[rustfmt::skip]
+    pub const CROSSING: Region = Region {
+      //        0         1         2         3         4         5
+      //        012345678901234567890123456789012345678901234567890
+      ref_seq: "GAAACTTGTCACGCCTAAACGAACATGAAATTTCTTGTTTTCTTAGGAATC",
+      //        [-----CDS1------]      [----------CDS2-----------]
+      gff: r#"##gff-version 3
+ref	.	CDS	1	18	.	+	0	Name=CDS1
+ref	.	CDS	25	51	.	+	0	Name=CDS2
+"#,
+    };
+
+    /// `CROSSING` with the deletion that starts at the last base of the first CDS
+    #[rustfmt::skip]
+    //                                        0         1         2         3         4         5
+    //                                        012345678901234567890123456789012345678901234567890
+    pub const CROSSING_QRY: &str =           "GAAACTTGTCACGCCTA---------------TCTTGTTTTCTTAGGAATC";
 
     /// 8-nt UTR deletion before the CDS start (CVA10 VP4): the query `A` after the gap matches the last UTR base or
     /// the first CDS base
@@ -844,23 +903,18 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
 
   #[rstest]
   #[rustfmt::skip]
-  #[ignore = "gap that ends inside a CDS has no cost: kb/issues/M-align-gap-end-cost-in-cds.md"]
   #[case::short_tie_left(             cds_boundary::SHORT_TIE,             GapAlignmentSide::Left  )]
   #[case::short_tie_right(            cds_boundary::SHORT_TIE,             GapAlignmentSide::Right )]
-  #[ignore = "gap that ends inside a CDS has no cost: kb/issues/M-align-gap-end-cost-in-cds.md"]
   #[case::tandem_repeat_left(         cds_boundary::TANDEM_REPEAT,         GapAlignmentSide::Left  )]
   #[case::tandem_repeat_right(        cds_boundary::TANDEM_REPEAT,         GapAlignmentSide::Right )]
-  #[ignore = "gap that ends inside a CDS has no cost: kb/issues/M-align-gap-end-cost-in-cds.md"]
   #[case::n_run_left(                 cds_boundary::N_RUN,                 GapAlignmentSide::Left  )]
   #[case::n_run_right(                cds_boundary::N_RUN,                 GapAlignmentSide::Right )]
-  #[ignore = "gap that ends inside a CDS has no cost: kb/issues/M-align-gap-end-cost-in-cds.md"]
   #[case::unaligned_5_end_left(       cds_boundary::UNALIGNED_5_END,       GapAlignmentSide::Left  )]
   #[case::unaligned_5_end_right(      cds_boundary::UNALIGNED_5_END,       GapAlignmentSide::Right )]
   #[case::insertion_left(             cds_boundary::INSERTION,             GapAlignmentSide::Left  )]
   #[case::insertion_right(            cds_boundary::INSERTION,             GapAlignmentSide::Right )]
   #[case::reverse_strand_start_left(  cds_boundary::REVERSE_STRAND_START,  GapAlignmentSide::Left  )]
   #[case::reverse_strand_start_right( cds_boundary::REVERSE_STRAND_START,  GapAlignmentSide::Right )]
-  #[ignore = "gap that ends inside a CDS has no cost: kb/issues/M-align-gap-end-cost-in-cds.md"]
   #[case::reverse_strand_end_left(    cds_boundary::REVERSE_STRAND_END,    GapAlignmentSide::Left  )]
   #[case::reverse_strand_end_right(   cds_boundary::REVERSE_STRAND_END,    GapAlignmentSide::Right )]
   #[trace]
@@ -872,7 +926,8 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
     let qry_seq = to_nuc_seq(&case.qry_aln.replace('-', ""))?;
     let gene_map = GeneMap::from_str(case.gff)?;
 
-    // Seed settings for short sequences, and gap penalties of the dengue dataset, with which `UNALIGNED_5_END` ties
+    // Seed settings for short sequences, gap penalties of the dengue dataset, with which `UNALIGNED_5_END` ties, and the
+    // smallest CDS entry penalty, which breaks the ties
     let params = AlignPairwiseParams {
       min_length: 3,
       min_match_length: 5,
@@ -882,6 +937,7 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
       penalty_gap_open: 8,
       penalty_gap_open_in_frame: 12,
       penalty_gap_open_out_of_frame: 14,
+      penalty_gap_enter_cds: 1,
       gap_alignment_side,
       ..AlignPairwiseParams::default()
     };
@@ -894,6 +950,53 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
     let expected_qry_aln_in_cds = cds_boundary::qry_aln_in_cds(case.ref_aln, case.qry_aln, cds.clone());
     let actual_qry_aln_in_cds = cds_boundary::qry_aln_in_cds(&from_nuc_seq(&result.ref_seq), &from_nuc_seq(&result.qry_seq), cds);
     assert_eq!(expected_qry_aln_in_cds, actual_qry_aln_in_cds);
+    Ok(())
+  }
+
+  // Default gap penalties (open 6, in-frame 7, out-of-frame 8), as in the mpox and SARS-CoV-2 datasets. A CDS entry
+  // penalty above in-frame minus open (1) makes a deletion that starts before the CDS more costly than an in-frame
+  // deletion inside of it. At 1, they tie and the gap side decides. A deletion that enters a CDS in every placement keeps
+  // its placement with any CDS entry penalty
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::straddle_left(                 &cds_boundary::STRADDLE, GapAlignmentSide::Left,   2, cds_boundary::STRADDLE_CODONS_2_3   )]
+  #[case::straddle_right(                &cds_boundary::STRADDLE, GapAlignmentSide::Right,  2, cds_boundary::STRADDLE_CODONS_1_2   )]
+  #[case::straddle_right_at_threshold(   &cds_boundary::STRADDLE, GapAlignmentSide::Right,  1, cds_boundary::STRADDLE_ACROSS_START )]
+  #[case::crossing_left_no_penalty(      &cds_boundary::CROSSING, GapAlignmentSide::Left,   0, cds_boundary::CROSSING_QRY          )]
+  #[case::crossing_left(                 &cds_boundary::CROSSING, GapAlignmentSide::Left,   2, cds_boundary::CROSSING_QRY          )]
+  #[case::crossing_left_high_penalty(    &cds_boundary::CROSSING, GapAlignmentSide::Left,  10, cds_boundary::CROSSING_QRY          )]
+  #[case::crossing_right_no_penalty(     &cds_boundary::CROSSING, GapAlignmentSide::Right,  0, cds_boundary::CROSSING_QRY          )]
+  #[case::crossing_right(                &cds_boundary::CROSSING, GapAlignmentSide::Right,  2, cds_boundary::CROSSING_QRY          )]
+  #[case::crossing_right_high_penalty(   &cds_boundary::CROSSING, GapAlignmentSide::Right, 10, cds_boundary::CROSSING_QRY          )]
+  #[trace]
+  fn aligns_deletion_entering_cds(
+    #[case] region: &cds_boundary::Region,
+    #[case] gap_alignment_side: GapAlignmentSide,
+    #[case] penalty_gap_enter_cds: i32,
+    #[case] expected_qry_aln: &str,
+  ) -> Result<(), Report> {
+    let ref_seq = to_nuc_seq(region.ref_seq)?;
+    let qry_seq = to_nuc_seq(&expected_qry_aln.replace('-', ""))?;
+    let gene_map = GeneMap::from_str(region.gff)?;
+
+    let params = AlignPairwiseParams {
+      min_length: 3,
+      min_match_length: 5,
+      min_seed_cover: 0.01.into(),
+      kmer_length: 6,
+      kmer_distance: 3,
+      penalty_gap_enter_cds,
+      gap_alignment_side,
+      ..AlignPairwiseParams::default()
+    };
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &params);
+
+    let result = align_nuc(0, "", &qry_seq, &ref_seq, &CodonSpacedIndex::from_sequence(&ref_seq), &gap_open_close, &params)?;
+
+    assert_eq!(
+      (region.ref_seq.to_owned(), expected_qry_aln.to_owned()),
+      (from_nuc_seq(&result.ref_seq), from_nuc_seq(&result.qry_seq))
+    );
     Ok(())
   }
 }
