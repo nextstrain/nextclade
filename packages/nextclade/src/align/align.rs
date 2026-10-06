@@ -807,8 +807,9 @@ ref	.	CDS	59	82	.	+	0	Name=CDS1
 "#,
     };
 
-    /// Query that starts near the CDS start (dengue C, GenBank KY586941): an unaligned 5' end and an internal deletion
-    /// that ends inside the CDS have the same score
+    /// Query that starts near the CDS start (dengue/all C, GenBank KY586941): an unaligned 5' end and an internal
+    /// deletion that ends inside the CDS have the same score. As in the dengue/all annotation, the CDS starts one codon
+    /// after the `ATG`, so this case covers the tie only, not a start codon
     #[rustfmt::skip]
     pub const UNALIGNED_5_END: Case = Case {
       //                 0         1         2         3         4         5         6
