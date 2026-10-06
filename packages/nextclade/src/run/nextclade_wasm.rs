@@ -4,6 +4,7 @@ use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::{Nuc, to_nuc_seq, to_nuc_seq_replacing};
 use crate::analyze::find_aa_motifs::find_aa_motifs;
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
+use crate::analyze::find_lost_start_codons::find_cdses_with_start_codon;
 use crate::analyze::mutation_patterns::MutationPatterns;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
@@ -28,7 +29,7 @@ use itertools::Itertools;
 use optfield::optfield;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[optfield(pub NextcladeParamsOptional, attrs, doc, field_attrs, field_doc, merge_fn = pub)]
@@ -286,6 +287,7 @@ pub struct Nextclade {
   // If genome annotation is provided
   pub gene_map: GeneMap,
   pub gap_open_close_aa: GapScoreMap,
+  pub cdses_with_start_codon: BTreeSet<String>,
   pub ref_translation: Translation,
   pub aa_motifs_ref: AaMotifsMap,
   pub aa_motifs_descs: Vec<AaMotifsDesc>,
@@ -304,6 +306,7 @@ pub struct Nextclade {
 pub struct InitialStateWithAa {
   pub gap_open_close_nuc: GapScoreMap,
   pub gap_open_close_aa: GapScoreMap,
+  pub cdses_with_start_codon: BTreeSet<String>,
   pub ref_translation: Translation,
   pub aa_motifs_ref: AaMotifsMap,
 }
@@ -344,11 +347,13 @@ impl Nextclade {
     let InitialStateWithAa {
       gap_open_close_nuc,
       gap_open_close_aa,
+      cdses_with_start_codon,
       ref_translation,
       aa_motifs_ref,
     } = if !gene_map.is_empty() {
       let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &params.alignment);
       let gap_open_close_aa = get_gap_open_close_scores_flat(&ref_seq, &params.alignment);
+      let cdses_with_start_codon = find_cdses_with_start_codon(&gene_map, &ref_seq);
 
       let ref_translation =
         translate_genes_ref(&ref_seq, &gene_map, &params.alignment).wrap_err("When translating reference sequence")?;
@@ -359,6 +364,7 @@ impl Nextclade {
       InitialStateWithAa {
         gap_open_close_nuc,
         gap_open_close_aa,
+        cdses_with_start_codon,
         ref_translation,
         aa_motifs_ref,
       }
@@ -367,6 +373,7 @@ impl Nextclade {
       InitialStateWithAa {
         gap_open_close_nuc: gap_open_close.clone(),
         gap_open_close_aa: gap_open_close,
+        cdses_with_start_codon: BTreeSet::default(),
         ref_translation: Translation::default(),
         aa_motifs_ref: BTreeMap::default(),
       }
@@ -413,6 +420,7 @@ impl Nextclade {
       params,
       gene_map,
       gap_open_close_aa,
+      cdses_with_start_codon,
       ref_translation,
       aa_motifs_ref,
       aa_motifs_descs,

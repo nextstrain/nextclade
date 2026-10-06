@@ -115,6 +115,7 @@ pub fn nextclade_run_one(
     params,
     gene_map,
     gap_open_close_aa,
+    cdses_with_start_codon,
     ref_translation,
     aa_motifs_ref,
     graph,
@@ -224,7 +225,7 @@ pub fn nextclade_run_one(
         .map(|cds_tr| gene_map.get_cds(&cds_tr.name))
         .collect::<Result<Vec<_>, Report>>()?;
       warnings.extend(
-        find_lost_start_codons(&translated_cdses, &aln)
+        find_lost_start_codons(&translated_cdses, cdses_with_start_codon, &aln)
           .iter()
           .map(LostStartCodon::to_warning),
       );
