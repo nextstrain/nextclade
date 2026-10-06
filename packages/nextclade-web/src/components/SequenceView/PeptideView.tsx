@@ -77,8 +77,11 @@ export function PeptideViewUnsized({ width, sequence, warnings = [], cdsName }: 
     if (!cds) {
       return <>{t('{{cds}} {{geneName}} is missing in genome annotation', { cds: 'CDS', geneName: cdsName })}</>
     }
-    const warningsForThisGene = warnings.filter((warn) => warn.cdsName === cdsName)
-    if (warningsForThisGene.length > 0) {
+    // A CDS without aligned amino acids has no translation. Warnings about a translated CDS (e.g. a lost start codon)
+    // do not hide its peptide.
+    const isTranslated = (sequence.aaAlignmentRanges[cdsName] ?? []).length > 0
+    if (!isTranslated) {
+      const warningsForThisGene = warnings.filter((warn) => warn.cdsName === cdsName)
       return <PeptideViewMissing geneName={cds.name} reasons={warningsForThisGene} />
     }
     if (refNodeName === REF_NODE_ROOT) {
