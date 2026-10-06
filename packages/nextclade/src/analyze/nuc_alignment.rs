@@ -1,8 +1,13 @@
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::abstract_mutation::AbstractMutation;
 use crate::analyze::nuc_sub::NucSub;
-use crate::coord::position::{NucRefGlobalPosition, PositionLike};
+use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
+use crate::coord::position::{AaRefPosition, NucRefGlobalPosition, PositionLike};
 use crate::coord::range::NucRefGlobalRange;
+use crate::gene::cds::Cds;
+use crate::gene::gene::GeneStrand;
+use crate::translate::complement::reverse_complement_in_place;
+use itertools::Itertools;
 use std::collections::BTreeMap;
 
 pub trait NucAlignmentAbstract {
@@ -32,6 +37,49 @@ pub trait NucAlignmentAbstract {
   fn is_sequenced(&self, pos: NucRefGlobalPosition) -> bool {
     pos >= 0 && self.alignment_range().contains(pos)
   }
+
+  /// Reference and query bases of a codon of a CDS, in the reading direction of the CDS
+  fn codon(&self, cds: &Cds, pos: AaRefPosition) -> CodonNucs {
+    let nuc_ranges = cds_codon_pos_to_ref_range(cds, pos);
+
+    let in_reading_direction = |strand: GeneStrand, mut nucs: Vec<Nuc>| {
+      if strand == GeneStrand::Reverse {
+        reverse_complement_in_place(&mut nucs);
+      }
+      nucs
+    };
+
+    let ref_triplet = nuc_ranges
+      .iter()
+      .flat_map(|(range, strand)| in_reading_direction(*strand, self.ref_range(range).into_iter().collect_vec()))
+      .collect_vec();
+
+    let qry_triplet = nuc_ranges
+      .iter()
+      .flat_map(|(range, strand)| in_reading_direction(*strand, self.qry_range(range).into_iter().collect_vec()))
+      .collect_vec();
+
+    let nuc_ranges = nuc_ranges.into_iter().map(|(range, _)| range).collect_vec();
+
+    CodonNucs {
+      ref_triplet,
+      qry_triplet,
+      nuc_ranges,
+    }
+  }
+}
+
+/// Reference and query bases of a codon, in the reading direction of the CDS
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CodonNucs {
+  /// Reference codon bases (typically 3, more for a codon split between CDS segments)
+  pub ref_triplet: Vec<Nuc>,
+
+  /// Query bases at the same positions
+  pub qry_triplet: Vec<Nuc>,
+
+  /// Reference ranges of the codon bases (more than one for a codon split between CDS segments)
+  pub nuc_ranges: Vec<NucRefGlobalRange>,
 }
 
 /// Represents a pair of aligned amino acid sequences (resulting from pairwise alignment)

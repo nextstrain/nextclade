@@ -3,14 +3,10 @@ use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_sub_min::AaSubMin;
 use crate::analyze::abstract_mutation::{AbstractMutation, CloneableMutation, MutParams, Pos, QryLetter, RefLetter};
-use crate::analyze::nuc_alignment::NucAlignmentAbstract;
-use crate::coord::coord_map_cds_to_global::cds_codon_pos_to_ref_range;
+use crate::analyze::nuc_alignment::{CodonNucs, NucAlignmentAbstract};
 use crate::coord::position::{AaRefPosition, NucRefGlobalPosition};
 use crate::coord::range::NucRefGlobalRange;
 use crate::gene::cds::Cds;
-use crate::gene::gene::GeneStrand;
-use crate::translate::complement::reverse_complement_in_place;
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 /// Amino acid change with nucleotide-level context, including the reference and query codon triplets and their genomic coordinates.
@@ -78,31 +74,11 @@ impl CloneableMutation<AaRefPosition, Aa> for AaChangeWithContext {
 impl AaChangeWithContext {
   pub fn new(cds: &Cds, sub: &AaSubMin, aln: &impl NucAlignmentAbstract) -> Self {
     let AaSubMin { pos, ref_aa, qry_aa } = *sub;
-    let nuc_ranges = cds_codon_pos_to_ref_range(cds, pos);
-
-    let ref_triplet = nuc_ranges
-      .iter()
-      .flat_map(|(range, strand)| {
-        let mut nucs = aln.ref_range(range).into_iter().collect_vec();
-        if strand == &GeneStrand::Reverse {
-          reverse_complement_in_place(&mut nucs);
-        }
-        nucs
-      })
-      .collect_vec();
-
-    let qry_triplet = nuc_ranges
-      .iter()
-      .flat_map(|(range, strand)| {
-        let mut nucs = aln.qry_range(range).into_iter().collect_vec();
-        if strand == &GeneStrand::Reverse {
-          reverse_complement_in_place(&mut nucs);
-        }
-        nucs
-      })
-      .collect_vec();
-
-    let nuc_ranges = nuc_ranges.into_iter().map(|(range, _)| range).collect_vec();
+    let CodonNucs {
+      ref_triplet,
+      qry_triplet,
+      nuc_ranges,
+    } = aln.codon(cds, pos);
 
     Self {
       cds_name: cds.name.clone(),
