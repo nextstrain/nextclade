@@ -12,7 +12,7 @@ left   CCGATAA ATG --- --- GAT AAA    M--DK   aa deletions E2-, M3-
 right  CCGATAA --- --- ATG GAT AAA    --MDK   aa deletions M1-, E2-
 ```
 
-Both alignments describe the same query, with the same protein length and reading frame. Only the reported deleted codons differ.
+Both alignments describe the same query, with the same protein length and reading frame. Only the reported deleted codons differ. With `right`, Nextclade versions after 3.24.0 also report a lost start codon in the `warnings` output, because the first codon of the query is `---`.
 
 The case needs a codon repeat at the CDS start and a dataset that uses `right`. In the example sequences of 94 datasets of `nextclade_data`, aligned with both gap sides, this example is the only occurrence. A reverse-strand CDS has its start codon at the high-coordinate end, so there `left` (gaps at the 3'-most position) can remove it. This follows from the symmetry of the tie-break and was not observed in the examples.
 

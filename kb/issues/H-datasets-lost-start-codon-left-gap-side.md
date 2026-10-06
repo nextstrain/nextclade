@@ -2,7 +2,7 @@
 
 ## Problem
 
-With their shipped setting `"gapAlignmentSide": "left"`, some datasets place an ambiguous upstream deletion over the start codon of a CDS. The first codon translates to `X` or `-`, or Nextclade reports false aa deletions of the first codons (e.g. `OPG204:M1-`, or `OPG204:M1-`, `K2-`, `M3-` for a 12-nt deletion). Amino-acid mutations at the start of the protein are wrong, and exported peptides have no start codon. Nextclade reports no frameshift, and QC status does not change.
+With their shipped setting `"gapAlignmentSide": "left"`, some datasets place an ambiguous upstream deletion over the start codon of a CDS. The first codon translates to `X` or `-`, or Nextclade reports false aa deletions of the first codons (e.g. `OPG204:M1-`, or `OPG204:M1-`, `K2-`, `M3-` for a 12-nt deletion). Amino-acid mutations at the start of the protein are wrong, and exported peptides have no start codon. Nextclade reports no frameshift, and QC status does not change. Nextclade versions after 3.24.0 report a lost start codon in the `warnings` output.
 
 The nucleotide deletion is real. Only its position is incorrect. The alternative placement upstream of the CDS has the same score and keeps the start codon.
 
@@ -27,7 +27,7 @@ Mechanism, reproduction and measurements: [kb/reports/alignment-gap-placement-at
 
 ## Tests
 
-No test in this repository covers the dataset settings. The aligner fixtures `mod cds_boundary` in [packages/nextclade/src/align/align.rs](../../packages/nextclade/src/align/align.rs) cover the patterns. The dataset-side check is an affected genome in the example sequences of each dataset, with a check that the CDS translation starts with `M`. At the moment, no check in either repository compares start codons in the example output.
+No test in this repository covers the dataset settings. The aligner fixtures `mod cds_boundary` in [packages/nextclade/src/align/align.rs](../../packages/nextclade/src/align/align.rs) cover the patterns. The dataset-side check is an affected genome in the example sequences of each dataset, with a check for lost start codons: a CDS translation that does not start with `M`, or the lost start codon warning of Nextclade versions after 3.24.0 in the `warnings` output. At the moment, no check compares start codons in the example output.
 
 ## Fix
 
