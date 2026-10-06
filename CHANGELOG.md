@@ -4,6 +4,10 @@
 
 The new alignment parameter `penaltyGapEnterCds` (CLI argument `--penalty-gap-enter-cds`) adds a penalty to a deletion that extends from a position outside of all CDSs into a CDS. The codon-aware gap penalties apply where a gap starts, so, depending on `gapAlignmentSide`, an ambiguous deletion just before a CDS could be placed over the first bases of the CDS and remove, for example, the start codon of a forward-strand CDS. With a penalty of 1 or more, such deletions stay outside of the CDS. With a penalty above `penaltyGapOpenInFrame` minus `penaltyGapOpen`, a deletion that cuts into a CDS also costs more than an in-frame deletion inside of the CDS. The default is 0, so results do not change unless a dataset or a CLI argument sets the parameter. See the [alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/algorithm/01-sequence-alignment.html) for details.
 
+### Warning for a lost start codon
+
+Nextclade now warns when the reference CDS starts with `ATG` and the first codon of the query sequence is different, for example `ATA`, or `-TG` when a deletion removes part of the start codon. The warning is in the `warnings` column of TSV and CSV outputs, in the `warnings` array of JSON and NDJSON outputs, and in the tooltip of the sequence name in Nextclade Web. Before, a lost start codon was visible only as an `X` or a deletion at the first position of the translation. There is no warning when the first codon contains `N` or ambiguous nucleotides, or is not sequenced. See the [errors and warnings documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/output-files/errors-and-warnings.html) for details.
+
 ### Documentation: meaning of `gapAlignmentSide`
 
 The documentation of `gapAlignmentSide` described the opposite of the actual behavior. `left` (the default) moves the aligned bases to the left and places ambiguous gaps at their 3'-most position. `right` places ambiguous gaps at their 5'-most position. The behavior does not change.
