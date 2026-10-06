@@ -7,9 +7,9 @@
   - **Ties**: such a deletion costs the same as an equally good placement outside of the CDS, and `gapAlignmentSide` selects the placement. The default `left` puts ambiguous gaps at the 3'-most position, that is, into the CDS
   - **Straddle**: such a deletion is cheaper than an in-frame deletion inside of the CDS by `penaltyGapOpenInFrame - penaltyGapOpen`, so the aligner can cut the start codon also when no tie exists, with both gap sides
 - **Fix**: the alignment parameter `penaltyGapEnterCds` (CLI argument `--penalty-gap-enter-cds`) charges a deletion that extends from outside of all CDSs into a CDS. A value of 1 fixes the ties. A value above `penaltyGapOpenInFrame - penaltyGapOpen` also fixes the straddle. The default is 0 (previous behavior), and datasets opt in
-- **Exposure**: all datasets that use `left` or do not set the option (49 of 109 in `nextclade_data`), and datasets with straddles with both gap sides. With the shipped settings, the example sequences of `mpox/all-clades` (8 of 13), `mpox/lineage-b.1` (2 of 9) and `dengue/all` (1 of 54) lose a start codon. Real genomes also lose the OPG204 start with `mpox/clade-iib`. With `right`, mpox Ivory_Coast_2012 loses the OPG112 start by a straddle
+- **Exposure**: all datasets that use `left` or do not set the option (49 of 109 in `nextclade_data`), and datasets with straddles with both gap sides. With the shipped settings, the example sequences of `mpox/all-clades` (8 of 13) and `mpox/lineage-b.1` (2 of 9) lose a start codon. Real genomes also lose the OPG204 start with `mpox/clade-iib`, and the VP4 start with the CVA10 dataset in development. With `right`, mpox Ivory_Coast_2012 loses the OPG112 start by a straddle
 
-The exposure measurements use Nextclade 3.23.0 and `nextclade_data` branch `add-cva10` (commit `fefe1a7d`), which contains `master` and a CVA10 dataset in development. The measurements of `penaltyGapEnterCds` use `nextclade_data` `master` (commit `bce905b7`).
+The exposure measurements use Nextclade 3.23.0 and `nextclade_data` branch `add-cva10` (commit `fefe1a7d`), which contains `master` and a CVA10 dataset in development. The measurements of `penaltyGapEnterCds` use `nextclade_data` `master` (commit `bce905b7`) for the example sequences, and public GenBank genomes for the real-genome measurements: all 497 CVA10 genomes of 6-8 kb in NCBI Nucleotide (taxon 42769, retrieved 2026-10-06), and random samples of the Nextstrain mpox and dengue sequence files (`data.nextstrain.org/files/workflows/mpox/sequences.fasta.zst`, `data.nextstrain.org/files/workflows/dengue/sequences_all.fasta.zst`).
 
 ## Minimal reproduction
 
@@ -65,7 +65,7 @@ Fixtures in `mod cds_boundary` of [packages/nextclade/src/align/align.rs](../../
 - `SHORT_TIE`: 8-nt UTR deletion before the CDS start (CVA10 VP4)
 - `TANDEM_REPEAT`: `ATGAAG` repeat across the CDS start, with one unit less in the query (mpox OPG204)
 - `N_RUN`: deletion next to a run of `N` before the CDS start (EV-D68 VP4, GenBank MF045417)
-- `UNALIGNED_5_END`: tie between an unaligned 5' end and an internal deletion that ends inside the CDS (dengue C, GenBank KY586941)
+- `UNALIGNED_5_END`: tie between an unaligned 5' end and an internal deletion that ends inside the CDS (dengue/all C, GenBank KY586941). As in the dengue/all annotation, the CDS starts one codon after the `ATG`, so the fixture tests the tie only, not a start codon
 - `INSERTION`: insertion in an `A` run next to the CDS start
 - `REVERSE_STRAND_START`: reverse-strand CDS, gap next to its start codon at the high-coordinate end of the range
 - `REVERSE_STRAND_END`: reverse-strand CDS, gap next to its last base at the low-coordinate end of the range
@@ -106,9 +106,10 @@ mpox OPG112 starts at 91247 with `ATG GAA ATG`. Sample Ivory_Coast_2012 lacks 6 
 - **Entry only**: a deletion that leaves a CDS at its high-coordinate end already pays the CDS open penalty where it starts. A penalty at that end too changes real deletions across a CDS end. Example: SARS-CoV-2 Switzerland/BE-ETHZ-630376/2021 has a 15-nt deletion 27887-27901 across the ORF7b stop codon (27885-27887) and the ORF8 start (27894). The only placement without substitutions starts at the last base of ORF7b. Moving it one base to the right avoids ORF7b, but adds the substitution A27887T, and the query codon at 27885-27887 is `TAT` in both placements. With a penalty at both CDS ends, Nextclade selects the placement with the extra substitution
 - **Values**:
   - 1 or more: a deletion that enters a CDS loses ties against placements that do not enter it
-  - Above `penaltyGapOpenInFrame - penaltyGapOpen`: a deletion that enters a CDS also costs more than an in-frame deletion inside of the CDS, which fixes the straddle. `penaltyGapOpenInFrame - penaltyGapOpen + 1` is 2 for the default open penalties and 5 for dengue/all and HIV-1 (open 8, in-frame 12)
+  - Above `penaltyGapOpenInFrame - penaltyGapOpen`: a deletion that enters a CDS also costs more than an in-frame deletion inside of the CDS, which fixes the straddle. `penaltyGapOpenInFrame - penaltyGapOpen + 1` is 2 for the default open penalties, 5 for HIV-1 (open 8, in-frame 12) and 6 for CVA10 (open 13, in-frame 18)
   - Above `scoreMatch + penaltyMismatch` (4 with the defaults): the aligner can replace a deletion that enters a CDS by a deletion next to it plus one substitution. For datasets with `penaltyGapOpenInFrame - penaltyGapOpen` of 4 or more, the value that fixes the straddle is in this range. Such datasets already accept one substitution to keep a gap that starts in a UTR out of a CDS. The example sequences of `nextclade_data` show no such replacement
   - The dynamic programming can close a deletion before the CDS and open a new one at the CDS start. Thus, the penalty that a deletion actually pays at the entry is at most the in-frame open penalty minus the extension penalty
+  - The in-frame open penalty depends on where a deletion starts, not on its length. Thus, above `penaltyGapOpenInFrame - penaltyGapOpen`, a deletion whose length is not a multiple of 3 can also move from the CDS start to a codon boundary inside of the CDS. The start codon is kept, and Nextclade reports a frameshift instead. Example: mpox PP_000YGCX, a 77-nt deletion at the OPG015_dup start
 
 ## Exposure across datasets
 
@@ -124,11 +125,12 @@ Method: for each of the 93 datasets in `nextclade_data` with example sequences a
 
 ### Lost start codons in example sequences
 
-| Dataset                       | Setting | Examples with lost start | CDS    | Pattern                                                                                      |
-| ----------------------------- | ------- | ------------------------ | ------ | -------------------------------------------------------------------------------------------- |
-| `nextstrain/mpox/all-clades`  | `left`  | 8 of 13                  | OPG204 | tandem repeat `ATGAAG` across the CDS start                                                  |
-| `nextstrain/mpox/lineage-b.1` | `left`  | 2 of 9                   | OPG204 | same                                                                                         |
-| `nextstrain/dengue/all`       | `left`  | 1 of 54                  | C      | internal deletion 72-104 over the CDS start at 102; with `right`, the 5' end stays unaligned |
+| Dataset                       | Setting | Examples with lost start | CDS    | Pattern                                     |
+| ----------------------------- | ------- | ------------------------ | ------ | ------------------------------------------- |
+| `nextstrain/mpox/all-clades`  | `left`  | 8 of 13                  | OPG204 | tandem repeat `ATGAAG` across the CDS start |
+| `nextstrain/mpox/lineage-b.1` | `left`  | 2 of 9                   | OPG204 | same                                        |
+
+In `nextstrain/dengue/all`, the C translation of example KY586941 starts with `-`, but no start codon is lost: the annotation starts C at 102, one codon after the start codon `ATG` at 99-101, and the genome lacks one `AAC` codon ([kb/issues/N-datasets-dengue-all-c-starts-after-start-codon.md](../issues/N-datasets-dengue-all-c-starts-after-start-codon.md)).
 
 The example sets are small, so this table shows the lower limit of the exposure. `nextstrain/mpox/clade-iib` uses the same reference and setting as `mpox/all-clades`, but none of its examples has the short `ATGAAG` repeat. The affected `all-clades` examples ON674051, KJ642617 and PQ178860.1 also lose the OPG204 start with `clade-iib` (translation `-XMKMMVR`). Users select these mpox datasets with the shortcuts `MPXV`, `nextstrain/mpox` (`all-clades`), `hMPXV` (`clade-iib`) and `hMPXV_B1` (`lineage-b.1`). The CVA10 dataset on the `add-cva10` branch has no affected example, but 8 of 497 CVA10 genomes from GenBank lose the VP4 start with `left`.
 
@@ -152,13 +154,23 @@ Method: the example sequences of the 94 datasets in `nextclade_data` (commit `bc
 | `penaltyGapOpenInFrame - penaltyGapOpen + 1`           | 19                | 10                 | 0                     | 10                         | 0                        |
 | same value, charged also where a deletion leaves a CDS | 24                | 9                  | 5                     | 10                         | 0                        |
 
-- **Fixed**: OPG204 in the mpox examples, dengue KY586941, the last codon of reverse-strand CDSs in mpox (OPG045, and one `clade-i` CDS), and the OPG112 straddle. With the larger value and `left`, OPG112 of Ivory_Coast_2012 becomes an in-frame deletion of codons 2-3 and keeps its start codon. With `right`, it becomes an in-frame deletion of codons 1-2 ([kb/issues/N-align-in-frame-deletion-tie-at-cds-start.md](../issues/N-align-in-frame-deletion-tie-at-cds-start.md))
+- **Fixed**: OPG204 in the mpox examples, the last codon of reverse-strand CDSs in mpox (OPG045, and one `clade-i` CDS), and the OPG112 straddle. With the larger value and `left`, OPG112 of Ivory_Coast_2012 becomes an in-frame deletion of codons 2-3 and keeps its start codon. With `right`, it becomes an in-frame deletion of codons 1-2 ([kb/issues/N-align-in-frame-deletion-tie-at-cds-start.md](../issues/N-align-in-frame-deletion-tie-at-cds-start.md))
 - **Only score changed**: real deletions that enter a CDS in every placement, e.g. SARS-CoV-2 Switzerland/BE-ETHZ-630376/2021 in all SARS-CoV-2 datasets
 - **Records with `N` runs**: two hMPV records with a 100-nt `N` spacer between partial gene sequences, and mpox records with `N` runs next to a deletion. The deletion moves off the CDS start, and the `N` run covers it instead. The protein starts with `X` (unknown) instead of `-` (deleted). With the larger value, the first-codon count of the hMPV records gets worse by 2, which explains the smaller number in the table
 - **Penalty at both CDS ends**: the 5 changed substitution counts are the ORF7b example in the SARS-CoV-2 datasets with `left` (see "Entry only" above)
+- **Not a fix**: dengue/all KY586941 with `left`. The table counts it in "First codon no longer lost", but the C translation changes from `-NQRKK` (`C:N1-`, the real difference) to `MNQRKK` with a false `C:N1M`, because the annotated C starts after the start codon
+
+## Effect of `penaltyGapEnterCds` on GenBank genomes
+
+Method: each dataset with and without the penalty, with its shipped gap side, compared per genome for indel placement, `alignmentScore`, substitutions, frameshifts, private mutations, QC status, clade and the lost start codon warning.
+
+- **CVA10** (497 genomes, `left`, value 6): only the 8 genomes with the 8-nt UTR deletion change. The deletion moves from 738-745 to 737-744, and VP4 starts with `M`. Values 1 and 6 give the same result. With `right` instead of the penalty, the alignment of 288 genomes changes, because every ambiguous indel moves
+- **mpox** (3300 genomes, `left`, value 2): the lost start codon warning disappears in 243 cases. In 227 of them the start codon is intact, and in 16 an `N` run covers the start instead of the deletion. One warning is added, in a genome fragment. The QC private mutation total goes up by 1 or 2 in 134 genomes, because the reference trees store the placement without the penalty. Frameshifts change in 12 genomes: 11 are fragments or have 55 or more frameshifts, and one is PP_000YGCX (see "Values" above)
+- **dengue/all** (3000 complete genomes, `left`, value 5): only 19 genomes change, all 5'-truncated DENV4 (KY5868xx), from `C:N1-` to the false `C:N1M` ([kb/issues/N-datasets-dengue-all-c-starts-after-start-codon.md](../issues/N-datasets-dengue-all-c-starts-after-start-codon.md)). With `right`, the alignment of 2877 genomes changes, and the penalty has no effect
 
 ## Related issues
 
 - [kb/issues/H-datasets-lost-start-codon-left-gap-side.md](../issues/H-datasets-lost-start-codon-left-gap-side.md)
 - [kb/issues/N-align-cds-entry-penalty-off-by-default.md](../issues/N-align-cds-entry-penalty-off-by-default.md)
 - [kb/issues/N-align-in-frame-deletion-tie-at-cds-start.md](../issues/N-align-in-frame-deletion-tie-at-cds-start.md)
+- [kb/issues/N-datasets-dengue-all-c-starts-after-start-codon.md](../issues/N-datasets-dengue-all-c-starts-after-start-codon.md)
