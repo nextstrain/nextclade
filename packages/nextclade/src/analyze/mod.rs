@@ -12,6 +12,7 @@ pub mod divergence;
 pub mod find_aa_motifs;
 pub mod find_aa_motifs_changes;
 pub mod find_clade_founder;
+pub mod find_lost_start_codons;
 pub mod find_private_aa_mutations;
 pub mod find_private_nuc_mutations;
 pub mod find_relative_aa_mutations;

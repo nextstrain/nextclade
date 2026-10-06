@@ -14,6 +14,7 @@ use crate::analyze::find_aa_motifs_changes::find_aa_motifs_changes;
 use crate::analyze::find_clade_founder::{
   CladeNodeAttrFounderInfo, find_clade_founder, find_clade_node_attrs_founders,
 };
+use crate::analyze::find_lost_start_codons::{LostStartCodon, find_lost_start_codons};
 use crate::analyze::find_private_aa_mutations::{
   FindPrivateAaMutationsParams, PrivateAaMutations, find_private_aa_mutations,
 };
@@ -217,6 +218,16 @@ pub fn nextclade_run_one(
         .iter_genes()
         .flat_map(|(_, gene_tr)| gene_tr.warnings.clone())
         .collect_vec();
+
+      let translated_cdses = translation
+        .cdses()
+        .map(|cds_tr| gene_map.get_cds(&cds_tr.name))
+        .collect::<Result<Vec<_>, Report>>()?;
+      warnings.extend(
+        find_lost_start_codons(&translated_cdses, &aln)
+          .iter()
+          .map(LostStartCodon::to_warning),
+      );
 
       if alignment.is_reverse_complement {
         warnings.push(PeptideWarning {

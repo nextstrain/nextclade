@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 /// A warning about a peptide sequence
-#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PeptideWarning {
   /// Name of the CDS that produced the warning
