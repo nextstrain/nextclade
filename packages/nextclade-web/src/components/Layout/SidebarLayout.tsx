@@ -6,7 +6,7 @@ import { SIDEBAR_THEME, SIDEBAR_WIDTH_PX } from 'src/components/Layout/sidebarTh
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { isSidebarOpenAtom, isWideViewportAtom } from 'src/state/sidebar.state'
 
-const TRANSITION = '0.3s ease-out'
+const TRANSITION = '0.15s ease-out'
 
 /** Width of the pull tab beside the sidebar. Narrower than the page gutter, to keep a gap to the page content */
 const PULL_TAB_WIDTH_PX = 12
