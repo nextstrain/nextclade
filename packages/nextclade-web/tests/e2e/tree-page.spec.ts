@@ -43,6 +43,52 @@ test.describe('Tree page during and after analysis', () => {
   })
 })
 
+test.describe('Tree page sidebar controls', () => {
+  test.describe.configure({ timeout: 300_000 })
+
+  test('hides and shows the entropy chart from the sidebar', async ({ page }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+    const entropyToggle = page.getByRole('checkbox', { name: 'Show Entropy panel' })
+    const entropyChart = page.locator('#d3entropyParent')
+
+    await expect(entropyToggle).toBeChecked()
+    await expect(entropyChart).toBeAttached()
+
+    await entropyToggle.click({ force: true })
+    await expect(entropyToggle).not.toBeChecked()
+    await expect(entropyChart).not.toBeAttached()
+
+    await entropyToggle.click({ force: true })
+    await expect(entropyToggle).toBeChecked()
+    await expect(entropyChart).toBeAttached()
+
+    expect(errors).toEqual([])
+  })
+
+  test('explodes the tree by clade', async ({ page }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+
+    await choose(page, 'Explode Tree By', 'Clade')
+
+    // The select shows the chosen value next to its input
+    await expect(page.locator('div:has(> div > input[aria-label="Explode Tree By"])')).toHaveText('Clade')
+    await expect(page.locator('#MainTree .tip').first()).toBeAttached()
+    expect(errors).toEqual([])
+  })
+
+  test('recolors the tree when the coloring changes', async ({ page }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+    const tipFills = () =>
+      page.locator('#MainTree .tip').evaluateAll((tips) => tips.map((tip) => getComputedStyle(tip).fill).join())
+    const fillsByClade = await tipFills()
+
+    await choose(page, 'Color By', 'QC Status')
+
+    await expect.poll(tipFills).not.toEqual(fillsByClade)
+    expect(errors).toEqual([])
+  })
+})
+
 /** Open the tree page with in-app navigation, which keeps the analysis state (a page load would clear it) */
 async function openTreePage(page: Page) {
   await page.getByRole('navigation').getByRole('link', { name: 'Tree', exact: true }).click()
@@ -68,6 +114,26 @@ async function watchNoTreeHeading(page: Page) {
 
 async function hasNoTreeHeadingAppeared(page: Page): Promise<boolean | undefined> {
   return page.evaluate(() => window.hasNoTreeHeadingAppeared)
+}
+
+/** Run the SARS-CoV-2 example analysis and open the tree page. Return the uncaught page errors, which grow as they occur */
+async function runExampleAndOpenTreePage(page: Page): Promise<string[]> {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+
+  await page.goto('/?dataset-name=sars-cov-2&input-fasta=example')
+  await expect(page.getByText(/Done\. Total sequences/)).toBeVisible({ timeout: 180_000 })
+  await openTreePage(page)
+  await expect(page.getByRole('combobox', { name: 'Color By' })).toBeAttached({ timeout: 120_000 })
+
+  return errors
+}
+
+/** Choose an option of a sidebar select. The select input has no size, so the menu is opened with the keyboard */
+async function choose(page: Page, select: string, option: string) {
+  await page.getByRole('combobox', { name: select }).focus()
+  await page.keyboard.press('ArrowDown')
+  await page.getByRole('option', { name: option, exact: true }).click()
 }
 
 declare global {
