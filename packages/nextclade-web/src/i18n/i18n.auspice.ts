@@ -15,6 +15,7 @@ import plSidebar from 'auspice/src/locales/pl/sidebar.json'
 import ptSidebar from 'auspice/src/locales/pt/sidebar.json'
 import ruSidebar from 'auspice/src/locales/ru/sidebar.json'
 import trSidebar from 'auspice/src/locales/tr/sidebar.json'
+import zhSidebar from 'auspice/src/locales/zh/sidebar.json'
 
 import arTranslation from 'auspice/src/locales/ar/translation.json'
 import deTranslation from 'auspice/src/locales/de/translation.json'
@@ -28,6 +29,7 @@ import plTranslation from 'auspice/src/locales/pl/translation.json'
 import ptTranslation from 'auspice/src/locales/pt/translation.json'
 import ruTranslation from 'auspice/src/locales/ru/translation.json'
 import trTranslation from 'auspice/src/locales/tr/translation.json'
+import zhTranslation from 'auspice/src/locales/zh/translation.json'
 
 export const AUSPICE_I18N_NAMESPACES = ['language', 'sidebar', 'translation']
 
@@ -46,6 +48,7 @@ export function i18nAuspiceInit() {
       pt: { sidebar: ptSidebar, translation: ptTranslation },
       ru: { sidebar: ruSidebar, translation: ruTranslation },
       tr: { sidebar: trSidebar, translation: trTranslation },
+      zh: { sidebar: zhSidebar, translation: zhTranslation },
     },
     lng: DEFAULT_LOCALE_KEY,
     fallbackLng: DEFAULT_LOCALE_KEY,
