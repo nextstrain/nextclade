@@ -103,19 +103,24 @@ const Container = styled.div`
 
 const Form = styled(FormBase)`
   display: flex;
+  flex-wrap: wrap;
+  row-gap: 0.25rem;
   width: 100%;
   min-height: 38px;
   padding: 0 5px;
 `
 
-export const FlexLeft = styled.div`
+const FlexLeft = styled.div`
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   margin-right: auto;
   vertical-align: middle;
 `
 
-export const FlexRight = styled.div`
+const FlexRight = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
   margin-left: auto;
 `
 
@@ -126,6 +131,10 @@ const ButtonRunStyled = styled(Button)`
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+
+  @media (max-width: 575.98px) {
+    width: 110px;
+  }
 `
 
 const ButtonResetStyled = styled(Button)`
@@ -135,6 +144,12 @@ const ButtonResetStyled = styled(Button)`
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+
+  @media (max-width: 575.98px) {
+    margin: 0 0.25rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
 `
 
 export function AutosuggestionToggle({ ...restProps }) {

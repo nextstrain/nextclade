@@ -100,7 +100,7 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
   const formatOptionLabel = useCallback(
     (option: TagOption) => (
       <OptionLabelContainer>
-        <span>{option.label}</span>
+        <OptionLabelText>{option.label}</OptionLabelText>
         <DatasetTagBadge tag={option.value} versions={availableVersions} t={t} />
       </OptionLabelContainer>
     ),
@@ -242,4 +242,12 @@ const OptionLabelContainer = styled.div`
   gap: 6px;
   justify-content: space-between;
   width: 100%;
+  min-width: 0;
+`
+
+/** Shortens the date with an ellipsis on narrow screens, so that the version badge stays visible */
+const OptionLabelText = styled.span`
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `

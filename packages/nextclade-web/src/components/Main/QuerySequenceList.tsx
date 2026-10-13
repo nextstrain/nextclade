@@ -38,10 +38,10 @@ export function QuerySequenceList({ toMainPage }: { toMainPage?: () => void }) {
 
     return (
       <div className="d-flex mt-3">
-        <h4>{t("Sequence data you've added")}</h4>
+        <ListTitle>{t("Sequence data you've added")}</ListTitle>
 
         <div className="d-flex ml-auto">
-          <Button className="" color="link" onClick={clearQryInputs} title={t('Remove all input files')}>
+          <Button className="text-nowrap" color="link" onClick={clearQryInputs} title={t('Remove all input files')}>
             {t('Remove all')}
           </Button>
 
@@ -73,6 +73,13 @@ const ContainerMain = styled.div`
   flex-direction: column;
   overflow: hidden;
   padding: 3px;
+`
+
+const ListTitle = styled.h4`
+  @media (max-width: 575.98px) {
+    font-size: 1.25rem;
+    margin: auto 0;
+  }
 `
 
 const Ul = styled(UlGeneric)`

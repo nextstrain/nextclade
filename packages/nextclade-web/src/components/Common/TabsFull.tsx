@@ -42,6 +42,7 @@ export function TabLabel({ tabId, activeTabId, setActiveTabId, children, ...rest
 }
 
 const Nav = styled(NavBase)`
+  flex-wrap: nowrap;
   border-bottom: 0 !important;
 `
 
@@ -63,9 +64,15 @@ export const TabPane = styled(TabPaneBase)`
   border-bottom-right-radius: 5px;
   border-top-right-radius: 5px;
   padding: 1rem;
+
+  @media (max-width: 575.98px) {
+    padding: 0.5rem;
+  }
 `
 
 const NavItem = styled(NavItemBase)`
+  display: flex;
+  flex-direction: column;
   cursor: pointer;
 
   border: #ccc 1px solid;
@@ -74,6 +81,16 @@ const NavItem = styled(NavItemBase)`
 
   background: #ddd;
   min-width: 170px;
+
+  /* Tabs share the row on phones instead of wrapping onto separate rows */
+  @media (max-width: 575.98px) {
+    flex: 1 1 0;
+    min-width: 0;
+
+    .nav-link {
+      padding: 0.5rem 0.25rem;
+    }
+  }
 
   border-bottom: 0 !important;
 
@@ -107,6 +124,7 @@ const NavItem = styled(NavItemBase)`
 `
 
 const NavLink = styled(NavLinkBase)`
+  flex: 1;
   color: ${(props) => props.theme.bodyColor};
   text-align: center;
 `
