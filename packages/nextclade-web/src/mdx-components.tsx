@@ -77,6 +77,11 @@ export const Blockquote = styled.blockquote`
 export const P = styled.p`
   text-align: justify;
 
+  /* Justified text in narrow columns has wide gaps between words */
+  @media (max-width: 767.98px) {
+    text-align: left;
+  }
+
   code {
     font-size: 0.8rem;
     padding: 1px 5px;

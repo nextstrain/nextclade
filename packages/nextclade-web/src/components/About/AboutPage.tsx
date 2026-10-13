@@ -39,8 +39,10 @@ const Container = styled.div`
 const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
+  width: 100%;
   max-width: ${(props) => props.theme.containerMaxWidths.lg};
   margin: 0 auto;
+  padding: 0 15px;
 `
 
 const H3 = styled.h3`
