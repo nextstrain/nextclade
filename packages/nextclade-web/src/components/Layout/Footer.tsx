@@ -26,14 +26,23 @@ const CopyrightText = styled.div`
   font-size: 0.75rem;
   flex-grow: 1;
 
-  @media (max-width: 576px) {
-    font-size: 0.5rem;
+  /* Wraps onto two lines on phones instead of shrinking to an unreadable size */
+  @media (max-width: 575.98px) {
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: 0.6875rem;
+    line-height: 1.2;
   }
 `
 
 const LogoContainer = styled.div`
   flex-grow: 1;
   text-align: center;
+
+  @media (max-width: 575.98px) {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
 `
 
 const LogoLink = styled(LinkExternal)`
