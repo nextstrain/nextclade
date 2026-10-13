@@ -87,6 +87,7 @@ class LauncherWorkerImpl {
       )
       await this.pool.completed()
 
+      this.analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.buildingTree)
       const trees = await this.pool.getOutputTrees(this.datasetNames)
 
       this.treeObservable.next(trees)
