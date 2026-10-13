@@ -37,15 +37,6 @@ const TreeContainer = styled.div`
   min-height: 0;
 `
 
-/** Row above the tree: active filters, data attribution and download */
-const TreeHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-  min-width: 0;
-`
-
 /** Text style of the filter summary in the Auspice info panel on nextstrain.org */
 const AUSPICE_INFO_TEXT = {
   color: '#888',
@@ -85,10 +76,6 @@ const TreeHeaderLogoGisaid = styled(LogoGisaid)`
     width: auto;
     height: 16px;
   }
-`
-
-const HeaderSpacer = styled.div`
-  flex: 1 1 0;
 `
 
 /** Content of the tree page when there is no tree to show */
@@ -160,18 +147,19 @@ export default function TreePageContent() {
       <TreePageFrame sidebar={<Sidebar controls="tree" />}>
         <TreeContainer>
           <Tree
-            header={
-              <TreeHeader>
-                <FiltersSummaryWrapper>
-                  <FiltersSummary />
-                </FiltersSummaryWrapper>
-                <HeaderSpacer />
+            summary={
+              <FiltersSummaryWrapper>
+                <FiltersSummary />
+              </FiltersSummaryWrapper>
+            }
+            actions={
+              <>
                 <GisaidLogoWidget />
                 <TreeTabButtonGroup>
                   <ButtonSvg />
                   <ButtonTreeJson datasetName={effectiveDatasetPath ?? ''} />
                 </TreeTabButtonGroup>
-              </TreeHeader>
+              </>
             }
           />
         </TreeContainer>
