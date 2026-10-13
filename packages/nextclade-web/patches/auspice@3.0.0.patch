@@ -661,7 +661,7 @@ index d37f293a1be1dadb39303d4430cb4e0b3b50331c..1401ccabf77646e5d0358b34bf958893
  
    const nodes = (this.params.showStreamTrees ? this.nodes.filter((d) => !d.n.inStream) : this.nodes)
 diff --git a/src/components/tree/phyloTree/layouts.ts b/src/components/tree/phyloTree/layouts.ts
-index a1537c670dfd460d3399961a7945f44dad6de9a5..02ec6552f893861fdb8b42d5d5e4bdd96167cd7b 100644
+index a1537c670dfd460d3399961a7945f44dad6de9a5..3af282ce66a62423e49bb36072d46d58a1439745 100644
 --- a/src/components/tree/phyloTree/layouts.ts
 +++ b/src/components/tree/phyloTree/layouts.ts
 @@ -7,7 +7,9 @@ import { stemParent, nodeOrdering } from "./helpers";
@@ -702,7 +702,7 @@ index a1537c670dfd460d3399961a7945f44dad6de9a5..02ec6552f893861fdb8b42d5d5e4bdd9
    const hiddenYPosition = this.yScale.range()[1] + 100;
    const hiddenXPosition = this.xScale.range()[0] - 100;
  
-@@ -628,9 +634,17 @@ function jitter(
+@@ -628,12 +634,24 @@ function jitter(
  }
  
  
@@ -720,8 +720,16 @@ index a1537c670dfd460d3399961a7945f44dad6de9a5..02ec6552f893861fdb8b42d5d5e4bdd9
 +  measureLabel: LabelMeasure = estimateLabelWidth,
  ): number {
    let padBy = 0;
-   if (inViewTerminalNodes.length < params.tipLabelBreakL1) {
-@@ -643,15 +657,104 @@ function getTipLabelPadding(
+-  if (inViewTerminalNodes.length < params.tipLabelBreakL1) {
++  /* Labels are drawn for the visible tips only, while fewer than `tipLabelBreakL1` of them are in view, in a font size
++  that follows the number of all tips in view, see `updateTipLabels()`. Tips hidden by filters (e.g. all but the
++  sequences of interest) get no label, so they neither need room nor prevent the labels of the others */
++  const labelledTips = inViewTerminalNodes.filter((d) => d.visibility === NODE_VISIBLE);
++  if (labelledTips.length < params.tipLabelBreakL1) {
+ 
+     let fontSize = params.tipLabelFontSizeL1;
+     if (inViewTerminalNodes.length < params.tipLabelBreakL2) {
+@@ -643,15 +661,104 @@ function getTipLabelPadding(
        fontSize = params.tipLabelFontSizeL3;
      }
  
@@ -731,7 +739,7 @@ index a1537c670dfd460d3399961a7945f44dad6de9a5..02ec6552f893861fdb8b42d5d5e4bdd9
 -      }
 -    });
 +    /* labels start `tipLabelPadX` right of their tip, see `updateTipLabels()` */
-+    const widestLabel = Math.max(0, ...inViewTerminalNodes.map((d) => measureLabel(String(tipLabel(d) ?? ""), fontSize, 400)));
++    const widestLabel = Math.max(0, ...labelledTips.map((d) => measureLabel(String(tipLabel(d) ?? ""), fontSize, 400)));
 +    padBy = measureLabel === estimateLabelWidth ? widestLabel : widestLabel + params.tipLabelPadX;
    }
    return padBy;
