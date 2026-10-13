@@ -60,7 +60,7 @@ function DatasetUpdatedAtLine({ dataset, datasetUpdatedAt, showBadge }: DatasetU
 
   return (
     <DatasetUpdatedAtContainer title={datasetUpdatedAt}>
-      <span>{datasetUpdatedAt}</span>
+      <DatasetUpdatedAtText>{datasetUpdatedAt}</DatasetUpdatedAtText>
       {showBadge && <DatasetTagBadge tag={tag} versions={versions} t={t} />}
     </DatasetUpdatedAtContainer>
   )
@@ -136,4 +136,10 @@ const DatasetUpdatedAtContainer = styled(DatasetInfoLine)`
   display: flex;
   align-items: center;
   gap: 6px;
+`
+
+const DatasetUpdatedAtText = styled.span`
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `

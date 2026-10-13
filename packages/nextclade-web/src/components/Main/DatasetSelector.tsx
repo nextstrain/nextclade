@@ -67,7 +67,11 @@ export function DatasetSelectorImpl({
           <SelectDatasetHelp />
         </Title>
 
-        <SearchBox searchTitle={t('Search datasets')} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
+        <DatasetSearchBox
+          searchTitle={t('Search datasets')}
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+        />
       </Header>
 
       <Header>
@@ -105,6 +109,10 @@ const Header = styled.div`
   padding-left: 8px;
   margin-top: 10px;
   margin-bottom: 3px;
+
+  @media (max-width: 575.98px) {
+    flex-wrap: wrap;
+  }
 `
 
 const Main = styled.div`
@@ -117,6 +125,18 @@ const Main = styled.div`
 const Title = styled.div`
   display: flex;
   flex: 1;
+
+  @media (max-width: 575.98px) {
+    flex-basis: 100%;
+    margin-bottom: 0.5rem;
+  }
+`
+
+/** Takes its own row on phones, below the title */
+const DatasetSearchBox = styled(SearchBox)`
+  @media (max-width: 575.98px) {
+    flex-basis: 100%;
+  }
 `
 
 const H4Inline = styled.h4`

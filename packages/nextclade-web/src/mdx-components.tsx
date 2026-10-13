@@ -121,7 +121,7 @@ export const Li = styled.li`
 `
 
 function Table({ ...restProps }) {
-  return <TableSlim striped {...restProps} />
+  return <TableSlim striped responsive {...restProps} />
 }
 
 export const Details = styled.details`
