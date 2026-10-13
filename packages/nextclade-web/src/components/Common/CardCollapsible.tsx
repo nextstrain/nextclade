@@ -19,10 +19,10 @@ export function CardCollapsible({ header, children, defaultCollapsed = true, ...
   )
   return (
     <Card {...restProps}>
-      <CardHeader onClick={toggleCollapsed}>
+      <Header onClick={toggleCollapsed}>
         {Icon}
         <HeaderWrapper>{header}</HeaderWrapper>
-      </CardHeader>
+      </Header>
 
       <Collapse isOpen={isOpen}>
         <CardBody>{children}</CardBody>
@@ -31,12 +31,21 @@ export function CardCollapsible({ header, children, defaultCollapsed = true, ...
   )
 }
 
+/** Keeps the arrow beside the header when the header text wraps */
+const Header = styled(CardHeader)`
+  display: flex;
+  align-items: center;
+`
+
 export const ArrowIcon = styled(MdArrowDropDown)<{ $rotated?: boolean }>`
   display: inline;
+  flex-shrink: 0;
   transition: transform linear 0.25s;
   transform: ${(props) => !props.$rotated && 'rotate(-90deg)'};
 `
 
 const HeaderWrapper = styled.span`
+  flex: 1;
+  min-width: 0;
   vertical-align: middle;
 `

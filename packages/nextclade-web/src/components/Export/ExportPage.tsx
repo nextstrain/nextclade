@@ -146,11 +146,12 @@ const SidebarContent = styled.div`
   padding: 20px;
 `
 
+/** Centered column with equal gutters on both sides; the left gutter also holds the sidebar's pull tab */
 const PageContent = styled.div`
   display: flex;
   flex: 1 1 0;
   min-height: 0;
-  padding-left: ${PAGE_GUTTER_PX}px;
+  padding: 0 ${PAGE_GUTTER_PX}px;
 `
 
 const MainContentInner = styled.div`

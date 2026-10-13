@@ -311,18 +311,18 @@ export function ExportFileElement({
   }, [isDisabled, isDone, isRunning])
 
   return (
-    <Li className="d-flex" isDisabled={isDisabled}>
-      <span className="flex-grow-0">
+    <Li $isDisabled={isDisabled}>
+      <span className="flex-shrink-0">
         <Icon />
       </span>
-      <div className="mx-3 d-inline-block flex-grow-1">
+      <Description>
         <pre className="mb-0 export-file-filename">{filename}</pre>
         <p className="my-0 small">{HelpMain}</p>
         <p className="my-0 small">{HelpDetails}</p>
         {Config}
-      </div>
+      </Description>
 
-      <div className="d-inline-block ml-auto my-auto">
+      <div className="flex-shrink-0 ml-auto my-auto">
         <DownloadButton
           color="primary"
           disabled={isRunning || !hasFilename || isDisabled}
@@ -336,9 +336,23 @@ export function ExportFileElement({
   )
 }
 
+const Description = styled.div`
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0 1rem;
+
+  @media (max-width: 575.98px) {
+    margin: 0 0.5rem;
+  }
+`
+
 const DownloadButton = styled(ButtonBase)`
   width: 70px;
   height: 50px;
+
+  @media (max-width: 575.98px) {
+    width: 50px;
+  }
 `
 
 const ConfigButton = styled(ButtonBase)`
@@ -379,12 +393,17 @@ export const Ul = styled(UlGeneric)`
   overflow: auto;
 `
 
-export const Li = styled.li<{ isDisabled?: boolean }>`
+export const Li = styled.li<{ $isDisabled?: boolean }>`
   margin: 10px 7px;
   display: flex;
   padding: 0.5rem 1rem;
   box-shadow: 0 0 12px 0 #0004;
   border: 1px #ccc9 solid;
   border-radius: 5px;
-  opacity: ${({ isDisabled }) => (isDisabled ? 0.5 : 1)};
+  opacity: ${({ $isDisabled }) => ($isDisabled ? 0.5 : 1)};
+
+  @media (max-width: 575.98px) {
+    margin: 8px 2px;
+    padding: 0.5rem;
+  }
 `

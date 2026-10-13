@@ -333,6 +333,23 @@ const Main = styled.div`
 const Footer = styled.div`
   display: flex;
   flex: 0;
+
+  /* Buttons share the width and wrap evenly on phones */
+  @media (max-width: 575.98px) {
+    flex-wrap: wrap;
+
+    > div {
+      display: flex;
+      flex: 1 1 100%;
+      margin: 0 !important;
+    }
+
+    button {
+      flex: 1 1 0;
+      width: auto;
+      margin: 0.25rem !important;
+    }
+  }
 `
 
 export interface CsvColumnConfigCategoryProps {
