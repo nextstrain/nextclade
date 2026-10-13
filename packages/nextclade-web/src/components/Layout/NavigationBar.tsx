@@ -101,6 +101,11 @@ export const NavLinkLocalStyle = styled(LinkSmart)<{ $active: boolean; disabled?
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
 `
 
+/** Interactive navigation item other than a link, such as a button, spaced like the links */
+const NavComponentWrapper = styled.span`
+  padding: 0 0.5rem;
+`
+
 export const NavItemBreadcrumb = styled(NavItem)<{ $active: boolean; disabled?: boolean }>`
   display: flex;
   flex-shrink: 0;
@@ -172,14 +177,14 @@ export interface NavLinkLocalProps {
 export function NavLinkImpl({ desc: { url, content, component, title }, active = false }: NavLinkLocalProps) {
   const item = useMemo(() => {
     if (component) {
-      return component
+      return <NavComponentWrapper>{component}</NavComponentWrapper>
     }
     return (
       <NavLinkLocalStyle
         href={url}
         $active={active}
         aria-disabled={!url}
-        aria-label={typeof content === 'string' ? undefined : title}
+        aria-label={url && typeof content !== 'string' ? title : undefined}
         disabled={!url}
       >
         {content}
@@ -188,7 +193,7 @@ export function NavLinkImpl({ desc: { url, content, component, title }, active =
   }, [active, component, content, title, url])
 
   return (
-    <NavItem key={url} title={title} aria-disabled={!url}>
+    <NavItem key={url} title={title} aria-disabled={!url && !component}>
       {item}
     </NavItem>
   )
@@ -268,7 +273,7 @@ export function NavigationBar() {
       },
       {
         title: t('Cite Nextclade in your work'),
-        content: <CitationButton />,
+        component: <CitationButton />,
       },
       {
         url: 'https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-web/index.html',
