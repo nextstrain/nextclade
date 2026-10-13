@@ -1,17 +1,34 @@
 import { useRouter } from 'next/router'
 import React, { useCallback } from 'react'
+import styled from 'styled-components'
 import { DatasetCurrent } from 'src/components/Main/DatasetCurrent'
 import { QuerySequenceList } from 'src/components/Main/QuerySequenceList'
-import styled from 'styled-components'
-import { Row as RowBase, Col as ColBase } from 'reactstrap'
 import { DatasetAutosuggestionResultsList } from 'src/components/Main/DatasetSelector'
 
+/**
+ * On wide screens, the dataset list and the selected dataset are side by side, and each scrolls on its own.
+ * On narrow screens, they are stacked in one column which scrolls as a whole, and the dataset list has limited
+ * height, so that the selected dataset and its Run button below it stay reachable.
+ */
 export function StepDatasetSelection() {
+  const { push } = useRouter()
+  const toMainPage = useCallback(() => {
+    void push('/') // eslint-disable-line no-void
+  }, [push])
+
   return (
     <Container>
-      <Main>
-        <DatasetSelection />
-      </Main>
+      <Column>
+        <SequenceListSection>
+          <QuerySequenceList toMainPage={toMainPage} />
+        </SequenceListSection>
+        <DatasetListSection>
+          <DatasetAutosuggestionResultsList />
+        </DatasetListSection>
+      </Column>
+      <Column>
+        <DatasetCurrent />
+      </Column>
     </Container>
   )
 }
@@ -20,83 +37,50 @@ const Container = styled.div`
   display: flex;
   flex: 1;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  @media (min-width: 992px) {
+    flex-direction: row;
+    overflow: hidden;
+  }
 `
 
-const Main = styled.div`
+const Column = styled.div`
   display: flex;
-  flex: 1;
+  flex: 0 0 auto;
   flex-direction: column;
-  overflow: hidden;
+
+  @media (min-width: 992px) {
+    flex: 1 1 50%;
+    min-width: 0;
+    overflow: hidden;
+  }
 `
 
-const MainFixed = styled.div`
+const SequenceListSection = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  max-height: 20%;
+  max-height: 30vh;
   margin-top: 12px;
   padding: 0 15px;
-`
 
-function DatasetSelection() {
-  const { push } = useRouter()
-  const toMainPage = useCallback(() => {
-    void push('/') // eslint-disable-line no-void
-  }, [push])
-
-  return (
-    <Wrapper>
-      <Row noGutters className="flex-column flex-lg-row h-100">
-        <Col lg={6}>
-          <Container>
-            <MainFixed>
-              <QuerySequenceList toMainPage={toMainPage} />
-            </MainFixed>
-            <Main>
-              <DatasetAutosuggestionResultsList />
-            </Main>
-          </Container>
-        </Col>
-        <Col lg={6}>
-          <div className="d-flex flex-column w-100">
-            <DatasetCurrent />
-          </div>
-        </Col>
-      </Row>
-    </Wrapper>
-  )
-}
-
-const Wrapper = styled.div`
-  display: flex;
-  flex: 1;
-  width: 100% !important;
-
-  @media (min-width: 991.98px) {
-    overflow: hidden;
-    height: 100%;
+  @media (min-width: 992px) {
+    max-height: 20%;
   }
 `
 
-const Row = styled(RowBase)`
+const DatasetListSection = styled.div`
   display: flex;
-  flex: 1;
-  width: 100% !important;
+  flex-direction: column;
+  overflow: hidden;
+  height: 70vh;
+  min-height: 360px;
 
-  @media (min-width: 991.98px) {
-    overflow: hidden;
-    height: 100%;
-  }
-`
-
-const Col = styled(ColBase)`
-  display: flex;
-  flex: 1;
-  width: 100% !important;
-
-  @media (min-width: 991.98px) {
-    overflow: hidden;
-    height: 100%;
+  @media (min-width: 992px) {
+    flex: 1;
+    height: auto;
+    min-height: 0;
   }
 `
