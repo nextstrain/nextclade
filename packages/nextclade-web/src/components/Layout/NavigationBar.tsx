@@ -24,6 +24,9 @@ import { LanguageSwitcher } from 'src/components/Layout/LanguageSwitcher'
 
 const LOGO_SIZE = 36
 
+/** Widest viewport where breadcrumbs take only the width of their text */
+const COMPACT_BREADCRUMBS_MAX_WIDTH = '1399.98px'
+
 export const Navbar = styled(NavbarBase)`
   height: 45px;
   display: flex;
@@ -104,8 +107,9 @@ export const NavItemBreadcrumb = styled(NavItem)<{ $active: boolean; disabled?: 
   min-width: 90px;
   min-height: 35px;
 
-  /* Narrow breadcrumbs fit the navigation bar of tablets and phones in one row */
-  @media not all and (min-width: ${(props) => props.theme.md}) {
+  /* Narrow breadcrumbs fit the navigation bar of tablets and phones in one row, and leave room for the analysis
+  status on laptops */
+  @media (max-width: ${COMPACT_BREADCRUMBS_MAX_WIDTH}) {
     min-width: 0;
   }
 
@@ -138,7 +142,7 @@ export const NavLinkBreadcrumbStyle = styled(NavLinkLocalStyle)<{ $active: boole
   text-overflow: ellipsis;
   text-align: center;
 
-  @media not all and (min-width: ${(props) => props.theme.md}) {
+  @media (max-width: ${COMPACT_BREADCRUMBS_MAX_WIDTH}) {
     max-width: none;
     padding: 0 8px;
   }
