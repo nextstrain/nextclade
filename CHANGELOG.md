@@ -1,12 +1,28 @@
-## Unreleased
+## 3.25.0
 
 ### Alignment: optional penalty for deletions that enter a CDS
 
-The new alignment parameter `penaltyGapEnterCds` (CLI argument `--penalty-gap-enter-cds`) adds a penalty to a deletion that extends from a position outside of all CDSs into a CDS. The codon-aware gap penalties apply where a gap starts, so, depending on `gapAlignmentSide`, an ambiguous deletion just before a CDS could be placed over the first bases of the CDS and remove, for example, the start codon of a forward-strand CDS. With a penalty of 1 or more, such deletions stay outside of the CDS. With a penalty above `penaltyGapOpenInFrame` minus `penaltyGapOpen`, a deletion that cuts into a CDS also costs more than an in-frame deletion inside of the CDS. The default is 0, so results do not change unless a dataset or a CLI argument sets the parameter. See the [alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/algorithm/01-sequence-alignment.html) for details.
+The new alignment parameter `penaltyGapEnterCds` (CLI argument `--penalty-gap-enter-cds`) adds a penalty to a deletion that extends from a position outside of all CDSs into a CDS.
+
+The codon-aware gap penalties apply only where a gap starts. Without the new penalty, an ambiguous deletion just before a CDS can be placed over the first bases of the CDS, depending on `gapAlignmentSide`, and remove the start codon of a forward-strand CDS, for example. The effect of the penalty depends on its value:
+
+- 1 or more: ambiguous deletions stay outside of the CDS
+- above `penaltyGapOpenInFrame` minus `penaltyGapOpen`: a deletion that cuts into a CDS also costs more than an in-frame deletion inside of the CDS
+
+The default is 0, so results do not change unless a dataset or a CLI argument sets the parameter. See the [alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/01-sequence-alignment.html) for details.
 
 ### Warning for a lost start codon
 
-Nextclade now warns when the reference CDS starts with `ATG` and the first codon of the query sequence is different, for example `ATA`, or `-TG` when a deletion removes part of the start codon. The warning is in the `warnings` column of TSV and CSV outputs, in the `warnings` array of JSON and NDJSON outputs, and in the tooltip of the sequence name in Nextclade Web. Before, a lost start codon was visible only as an `X` or a deletion at the first position of the translation. There is no warning when the first codon contains `N` or ambiguous nucleotides, or is not sequenced. There is also no warning for a CDS that continues the reading frame of the CDS before it, such as a mature peptide of a polyprotein that the genome annotation lists as a separate CDS (for example HIV-1 `p7` or dengue `E`), because its first codon is not a start codon. See the [errors and warnings documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/output-files/errors-and-warnings.html) for details.
+Nextclade now warns when the reference CDS starts with `ATG` and the first codon of the query sequence is different, for example `ATA`, or `-TG` when a deletion removes part of the start codon. Before, a lost start codon was visible only as an `X` or a deletion at the first position of the translation.
+
+The warning is in the `warnings` column of TSV and CSV outputs, in the `warnings` array of JSON and NDJSON outputs, and in the tooltip of the sequence name in Nextclade Web.
+
+There is no warning in these cases:
+
+- the first codon of the query contains `N` or ambiguous nucleotides, or is not sequenced
+- the CDS continues the reading frame of the CDS before it, so its first codon is not a start codon. This is the case for a mature peptide of a polyprotein that the genome annotation lists as a separate CDS, for example HIV-1 `p7` or dengue `E`
+
+See the [errors and warnings documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/errors-and-warnings.html) for details.
 
 ### Documentation: meaning of `gapAlignmentSide`
 
@@ -14,7 +30,7 @@ The documentation of `gapAlignmentSide` described the opposite of the actual beh
 
 ### Nextclade Web: collapsible sidebar on tree and export pages
 
-The sidebar of the tree and export pages can now be hidden and shown again with a tab on its edge. On wide screens, the sidebar sits next to the page content and Nextclade Web remembers whether it is open. On narrow screens, the sidebar opens over the page content, and closes on Escape or on a click outside of it. The tree page no longer requires a minimum window width of 1080 px. See [#1782](https://github.com/nextstrain/nextclade/pull/1782), [#1784](https://github.com/nextstrain/nextclade/pull/1784) for details.
+The sidebar of the tree and export pages can now be hidden and shown again with a tab on its edge. On wide screens, the sidebar sits next to the page content and Nextclade Web remembers whether it is open. On narrow screens, the sidebar opens over the page content, and closes on Escape or on a click outside of it. The tree page no longer requires a minimum window width of 1080 px. See [#1782](https://github.com/nextstrain/nextclade/pull/1782), [#1784](https://github.com/nextstrain/nextclade/pull/1784), [#1787](https://github.com/nextstrain/nextclade/pull/1787) for details.
 
 ### Nextclade Web: larger tree view
 
