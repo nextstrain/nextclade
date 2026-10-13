@@ -301,6 +301,7 @@
     "bootstrap": "4.6.1",
     "classnames": "2.5.1",
     "debug": "file:vendor/debug",
+    "dompurify": "3.4.16",
     "i18next": "19.3.1",
     "react": "18.1.0",
     "react-dom": "18.1.0",
