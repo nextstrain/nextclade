@@ -27,6 +27,8 @@ const LOGO_SIZE = 36
 export const Navbar = styled(NavbarBase)`
   height: 45px;
   display: flex;
+  /* The navigation bar has a fixed height: wrapped items would cover the page below it */
+  flex-wrap: nowrap !important;
   padding: 0 !important;
   margin: 0 !important;
   box-shadow: 0 0 8px 0 #0004;
@@ -34,7 +36,13 @@ export const Navbar = styled(NavbarBase)`
 
 export const Nav = styled(NavBase)`
   display: flex;
+  flex-wrap: nowrap !important;
   padding: 0 !important;
+`
+
+/** Logo and breadcrumbs. Shrinks on narrow screens, where the breadcrumbs cut their text */
+const NavBreadcrumbs = styled(Nav)`
+  min-width: 0;
 `
 
 const NavbarBrand = styled(NavbarBrandBase)`
@@ -42,6 +50,11 @@ const NavbarBrand = styled(NavbarBrandBase)`
   flex: 1;
   padding: 0 !important;
   margin: 0 !important;
+
+  /* Phones need the room for the breadcrumbs. The "Start" breadcrumb leads to the start page too */
+  @media not all and (min-width: ${(props) => props.theme.sm}) {
+    display: none;
+  }
 `
 
 const BrandLogo = styled(BrandLogoBase)`
@@ -73,6 +86,12 @@ export const NavItemBreadcrumb = styled(NavItem)<{ $active: boolean; disabled?: 
   display: flex;
   min-width: 90px;
   min-height: 35px;
+
+  /* Narrow breadcrumbs fit the navigation bar of tablets and phones in one row */
+  @media not all and (min-width: ${(props) => props.theme.md}) {
+    min-width: 0;
+  }
+
   background: ${(props) =>
     props.$active ? props.theme.primary : props.disabled ? props.theme.gray250 : props.theme.gray150};
   text-align: center;
@@ -235,16 +254,16 @@ export function NavigationBar() {
 
   return (
     <Navbar light role="navigation">
-      <Nav>
+      <NavBreadcrumbs>
         <NavbarBrand tag={Link} href="/">
           <span className="d-inline-flex">
             <BrandLogo />
-            <BrandText className="d-none d-md-block" />
+            <BrandText className="d-none d-lg-block" />
           </span>
         </NavbarBrand>
 
         {linksLeft}
-      </Nav>
+      </NavBreadcrumbs>
 
       <ResultsStatus className="d-none d-md-inline-flex" />
 
@@ -270,7 +289,13 @@ export function BreadcrumbArrow({ disabled }: { disabled?: boolean }) {
 }
 
 const BreadCrumbArrowIcon = styled(ArrowRight)<{ $color?: string }>`
+  flex: 0 0 auto;
   margin: auto 0;
   stroke: ${(props) => props.$color};
   fill: ${(props) => props.$color};
+
+  /* Phones show the breadcrumbs without arrows, to fit them in one row */
+  @media not all and (min-width: ${(props) => props.theme.sm}) {
+    display: none;
+  }
 `

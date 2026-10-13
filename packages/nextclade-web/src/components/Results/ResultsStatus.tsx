@@ -14,6 +14,8 @@ import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/types'
 const ResultsStatusWrapper = styled.div`
   display: flex;
   flex: 1;
+  /* Shrinks and cuts its text where the navigation bar is narrow */
+  min-width: 0;
 
   height: 37px;
   margin-left: 0.75rem;
