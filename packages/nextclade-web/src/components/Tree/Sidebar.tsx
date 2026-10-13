@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo } from 'react'
+import React, { ComponentType, ReactNode, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 import { HeaderTitle } from 'src/components/Common/CardHeaderWithToggle'
 import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
@@ -36,59 +36,101 @@ export const Spacer = styled.span<{ sizePx: number }>`
   margin-top: ${(props) => props.sizePx}px;
 `
 
-export function Sidebar({ hasTree }: { hasTree: boolean }) {
-  // NOTE: when hasTree is false, the redux state is not available,
-  // so we need to make sure downstream components don't try to access it
+/**
+ * Controls below the dataset switcher:
+ *  - `tree`: tree controls, which need the Redux store of the tree
+ *  - `placeholder`: faint stand-ins for the tree controls, while the tree is not available yet
+ *  - `none`: no controls
+ */
+export type SidebarControls = 'tree' | 'placeholder' | 'none'
+
+const SIDEBAR_CONTROLS: Record<SidebarControls, ComponentType | null> = {
+  tree: TreeControls,
+  placeholder: TreeControlsPlaceholder,
+  none: null,
+}
+
+export function Sidebar({ controls }: { controls: SidebarControls }) {
   const { t } = useTranslation()
   const hasMultipleDatasetsForAnalysis = useRecoilValue(hasMultipleDatasetsForAnalysisAtom)
 
-  const { datasetSwitcherWidget, remainingWidgets } = useMemo(() => {
-    let datasetSwitcherWidget = null
-    if (hasMultipleDatasetsForAnalysis) {
-      datasetSwitcherWidget = (
-        <>
-          <span className="d-flex align-items-center">
-            <span className="mr-1">
-              <ControlHeaderCloneWithoutRedux title={t('Dataset')} />
-            </span>
-            <span className="mr-1">
-              <DatasetCountBadge />
-            </span>
+  const datasetSwitcherWidget = useMemo(() => {
+    if (!hasMultipleDatasetsForAnalysis) {
+      return null
+    }
+    return (
+      <>
+        <span className="d-flex align-items-center">
+          <span className="mr-1">
+            <ControlHeaderCloneWithoutRedux title={t('Dataset')} />
           </span>
-          <ViewedDatasetSelector />
-        </>
-      )
-    }
+          <span className="mr-1">
+            <DatasetCountBadge />
+          </span>
+        </span>
+        <ViewedDatasetSelector />
+      </>
+    )
+  }, [hasMultipleDatasetsForAnalysis, t])
 
-    let remainingWidgets = null
-    if (hasTree) {
-      remainingWidgets = (
-        <>
-          <ControlHeader title={t('sidebar:Color By')} tooltip={ColorByInfo} />
-          <ColorBy />
-
-          <ControlHeader title={t('sidebar:Filter Data')} tooltip={FilterInfo} />
-          <FilterData measurementsOn={false} />
-
-          <Spacer sizePx={10} />
-
-          <TreePanel />
-
-          <Bottom>
-            <LogoPoweredByAuspice />
-          </Bottom>
-        </>
-      )
-    }
-
-    return { datasetSwitcherWidget, remainingWidgets }
-  }, [hasMultipleDatasetsForAnalysis, hasTree, t])
+  const Controls = SIDEBAR_CONTROLS[controls]
 
   return (
     <StyledAuspiceControlsContainer>
       {datasetSwitcherWidget}
-      {remainingWidgets}
+      {Controls && <Controls />}
     </StyledAuspiceControlsContainer>
+  )
+}
+
+function TreeControls() {
+  const { t } = useTranslation()
+  return (
+    <>
+      <ControlHeader title={t('sidebar:Color By')} tooltip={ColorByInfo} />
+      <ColorBy />
+
+      <ControlHeader title={t('sidebar:Filter Data')} tooltip={FilterInfo} />
+      <FilterData measurementsOn={false} />
+
+      <Spacer sizePx={10} />
+
+      <TreePanel />
+
+      <Bottom>
+        <LogoPoweredByAuspice />
+      </Bottom>
+    </>
+  )
+}
+
+/** Same layout as the tree controls, without the Redux store. Hidden from assistive technology, as it has no content */
+function TreeControlsPlaceholder() {
+  const { t } = useTranslation()
+  return (
+    <>
+      <div className="d-flex flex-column" aria-hidden>
+        <ControlHeaderCloneWithoutRedux title={t('sidebar:Color By')} />
+        <PlaceholderBar $heightPx={34} />
+
+        <ControlHeaderCloneWithoutRedux title={t('sidebar:Filter Data')} />
+        <PlaceholderBar $heightPx={34} />
+
+        <Spacer sizePx={10} />
+
+        <AnnotatedTitleWrapper>
+          <AnnotatedTitleCloneWithoutRedux title={t('sidebar:Tree')} />
+        </AnnotatedTitleWrapper>
+        <PlaceholderBar $heightPx={100} />
+        <PlaceholderBar $heightPx={20} />
+        <PlaceholderBar $heightPx={34} />
+        <PlaceholderBar $heightPx={34} />
+      </div>
+
+      <Bottom>
+        <LogoPoweredByAuspice />
+      </Bottom>
+    </>
   )
 }
 
@@ -138,4 +180,25 @@ const AnnotatedTitleWrapper = styled.div`
   border-top: ${(props) => props.theme.gray700} solid 0.5px;
   padding-top: 1rem;
   padding-bottom: 0.5rem;
+`
+
+/** Faint stand-in for a sidebar control, pulsing to show that the content is loading */
+const PlaceholderBar = styled.div<{ $heightPx: number }>`
+  height: ${(props) => props.$heightPx}px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  /* Text color at low opacity, so that the bar is visible on light and dark backgrounds */
+  background-color: currentColor;
+  opacity: 0.12;
+
+  animation: sidebar-placeholder-pulse 1.5s ease-in-out infinite;
+  @keyframes sidebar-placeholder-pulse {
+    50% {
+      opacity: 0.05;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
