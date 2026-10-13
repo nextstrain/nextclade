@@ -129,13 +129,6 @@ export async function main() {
     'node_modules/fork-ts-checker-webpack-plugin/lib/hooks/tap-done-to-async-get-issues.js',
     "config.logger.log(chalk_1.default.cyan('Type-checking in progress...'));",
   )
-
-  // Auspice: Remove requires for '@extensions' modules from `extensions.js`
-  // Reason: We don't use extensions and don't want to setup webpack aliases for that.
-  await replace(
-    'node_modules/auspice/src/util/extensions.ts',
-    'extensions[key] = require(`@extensions/${extensions[key]}`).default;',
-  )
 }
 
 main().catch(console.error)
