@@ -1,5 +1,5 @@
 import { isNil } from 'lodash'
-import React, { ReactNode, useLayoutEffect, useMemo, useState } from 'react'
+import React, { ReactNode, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { Provider as ReactReduxProvider, useSelector } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
@@ -10,7 +10,7 @@ import { ButtonTreeJson } from 'src/components/Tree/ButtonTreeJson'
 import { TreeTabButtonGroup } from 'src/components/Tree/TreeTabButton'
 import { Link } from 'src/components/Link/Link'
 import styled, { ThemeProvider } from 'styled-components'
-import type { AuspiceState } from 'auspice'
+import type { AuspiceJsonV2, AuspiceState } from 'auspice'
 import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import { changeColorBy } from 'auspice/src/actions/colors'
@@ -128,8 +128,15 @@ export default function TreePageContent() {
 
   const [store, setStore] = useState<Store<AuspiceState> | null>(null)
 
+  // Tree for which the current store was created. Auspice draws the tree from the nodes of the store that it mounts
+  // with, so the store is created once per tree: when React StrictMode runs this effect again after mounting, a second
+  // store would leave the mounted tree drawing nodes that the store no longer holds, and Auspice's zoom and focus
+  // actions, which reach the drawing through the store's nodes, would not find it
+  const storeTreeRef = useRef<AuspiceJsonV2 | null>(null)
+
   useLayoutEffect(() => {
-    if (!isNil(tree)) {
+    if (!isNil(tree) && storeTreeRef.current !== tree) {
+      storeTreeRef.current = tree
       const { store: newStore } = configureStore()
       const { dispatch } = newStore
       const auspiceState = createAuspiceState(tree, dispatch)
