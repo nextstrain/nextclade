@@ -19,42 +19,25 @@ import { SelectDatasetHelp } from 'src/components/Help/SelectDatasetHelp'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { TabContent, TabLabel, TabNav, TabPane } from 'src/components/Common/TabsFull'
 
-const ContainerFixed = styled.div`
+/** Page content of natural height: the page scrolls when the content does not fit the viewport */
+const Container = styled.div`
   display: flex;
-  flex: 1;
+  flex: 0 0 auto;
   flex-direction: column;
   width: 100%;
-  margin: 0 auto;
   max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px 1.5rem;
 `
 
 const Header = styled.div`
   display: flex;
-  flex: 0;
-  padding-left: 10px;
   margin-top: 10px;
-  margin-bottom: 3px;
-`
+  margin-bottom: 1.5rem;
 
-const Main = styled.div`
-  flex: 1;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  margin: -12px;
-  padding: 12px;
-  overflow: hidden;
-`
-
-const RowCustom = styled(Row)`
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  margin: -12px;
-  padding: 12px;
-  margin-left: auto;
-  margin-right: auto;
-  overflow: hidden;
+  @media (max-height: 700px) {
+    margin-bottom: 1rem;
+  }
 `
 
 export function Landing() {
@@ -62,23 +45,21 @@ export function Landing() {
   useUpdatedDatasetIndex()
 
   return (
-    <ContainerFixed>
+    <Container>
       <Header>
         <MainSectionTitle />
       </Header>
 
-      <Main className="mt-4 mb-2">
-        <RowCustom>
-          <Col md={6} className="d-flex flex-column h-100">
-            <LandingCardQuerySeqPicker />
-          </Col>
+      <Row>
+        <Col md={6} className="d-flex flex-column mb-4 mb-md-0">
+          <LandingCardQuerySeqPicker />
+        </Col>
 
-          <Col md={6}>
-            <LandingCardDataset />
-          </Col>
-        </RowCustom>
-      </Main>
-    </ContainerFixed>
+        <Col md={6} className="d-flex flex-column">
+          <LandingCardDataset />
+        </Col>
+      </Row>
+    </Container>
   )
 }
 
@@ -94,11 +75,11 @@ export function LandingCardQuerySeqPicker() {
   }, [qryInputs.length, t])
 
   return (
-    <CardL1 className="d-flex flex-column h-100">
+    <CardL1 className="flex-grow-1">
       <CardL1Header>
         <CardTitle title={title}>{title}</CardTitle>
       </CardL1Header>
-      <CardL1Body className="d-flex flex-column h-100">
+      <CardL1Body className="d-flex flex-column">
         <QuerySequenceFilePicker />
         <QuerySequenceList />
       </CardL1Body>
@@ -126,14 +107,14 @@ export function LandingCardDataset() {
   )
 
   return (
-    <CardL1 className="d-flex flex-column h-100">
+    <CardL1 className="flex-grow-1">
       <CardL1Header>
         <CardTitle>
           {text}
           <SelectDatasetHelp />
         </CardTitle>
       </CardL1Header>
-      <CardL1Body className="d-flex flex-column h-100">
+      <CardL1Body className="d-flex flex-column">
         <TabNav>
           <TabLabel tabId="single" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
             {t('Single dataset')}
@@ -169,4 +150,9 @@ export const CardTitle = styled.h4`
   margin: auto 0;
   white-space: nowrap;
   text-overflow: ellipsis;
+
+  @media (max-width: 575.98px) {
+    padding-left: 0.25rem;
+    font-size: 1.25rem;
+  }
 `

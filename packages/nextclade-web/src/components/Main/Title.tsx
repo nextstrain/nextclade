@@ -16,10 +16,12 @@ const TitleH1 = styled.h1`
   margin-bottom: 0;
   font-weight: 300;
   letter-spacing: -1px;
-  font-size: 6rem;
+
+  /* Shrink with the viewport height, so that the input cards fit on short laptop screens */
+  font-size: clamp(3.5rem, 11vh, 6rem);
 
   @media (max-width: 767.98px) {
-    font-size: 5rem;
+    font-size: clamp(3.5rem, 11vh, 5rem);
   }
 
   @media (max-width: 576px) {
@@ -81,8 +83,8 @@ export const Subtitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 300;
 
-  @media (max-width: 991.98px) {
-    font-size: 1.5rem;
+  @media (max-height: 700px) {
+    font-size: 1.25rem;
   }
 
   @media (max-width: 767.98px) {
