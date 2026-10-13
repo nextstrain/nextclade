@@ -1,5 +1,7 @@
 import React, { ComponentType, ReactNode, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
+import { useSelector } from 'react-redux'
+import type { AuspiceState } from 'auspice'
 import { HeaderTitle } from 'src/components/Common/CardHeaderWithToggle'
 import { DatasetCountBadge } from 'src/components/Main/DatasetCountBadge'
 import { hasMultipleDatasetsForAnalysisAtom } from 'src/state/dataset.state'
@@ -11,9 +13,11 @@ import ChooseLayout from 'auspice/src/components/controls/choose-layout'
 import { ToggleFocus } from 'auspice/src/components/controls/toggle-focus'
 import ChooseMetric from 'auspice/src/components/controls/choose-metric'
 import ChooseTipLabel from 'auspice/src/components/controls/choose-tip-label'
+import ChooseExplodeAttr from 'auspice/src/components/controls/choose-explode-attr'
+import { PanelSection } from 'auspice/src/components/controls/panelSection'
 import { ControlsContainer, HeaderContainer, TitleAndIconContainer } from 'auspice/src/components/controls/styles'
 import FilterData, { FilterInfo } from 'auspice/src/components/controls/filter'
-import { TreeInfo } from 'auspice/src/components/controls/miscInfoText'
+import { EntropyInfo, ExplodeTreeInfo, TreeInfo } from 'auspice/src/components/controls/miscInfoText'
 import { ControlHeader } from 'auspice/src/components/controls/controlHeader'
 import { AnnotatedTitle } from 'auspice/src/components/controls/annotatedTitle'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
@@ -25,6 +29,13 @@ export const StyledAuspiceControlsContainer = styled(ControlsContainer)`
   font-family: ${SIDEBAR_THEME['font-family']};
 
   ${auspiceFilterBadgeIconsCentered}
+
+  /* Auspice puts the info icon of "Explode Tree By" at the end of the row. Place it next to the title, as in the other
+  titles of the sidebar */
+  & [data-for='explode_tree'] {
+    justify-content: flex-start;
+    gap: 5px;
+  }
 `
 
 export const Bottom = styled.div`
@@ -97,6 +108,8 @@ function TreeControls() {
 
       <TreePanel />
 
+      <EntropyPanel />
+
       <Bottom>
         <LogoPoweredByAuspice />
       </Bottom>
@@ -123,6 +136,7 @@ function TreeControlsPlaceholder() {
         </AnnotatedTitleWrapper>
         <PlaceholderBar $heightPx={100} />
         <PlaceholderBar $heightPx={20} />
+        <PlaceholderBar $heightPx={34} />
         <PlaceholderBar $heightPx={34} />
         <PlaceholderBar $heightPx={34} />
       </div>
@@ -163,16 +177,26 @@ function TreePanel() {
 
       <div className="d-flex flex-column">
         <ChooseLayout />
-        <ToggleFocus />
-        <Spacer sizePx={10} />
         <ChooseMetric />
+        <ToggleFocus />
         <ChooseBranchLabelling />
-        <Spacer sizePx={25} />
         <ChooseTipLabel />
-        <Spacer sizePx={10} />
+        <ChooseExplodeAttr tooltip={ExplodeTreeInfo} />
       </div>
     </div>
   )
+}
+
+/** Shows and hides the entropy chart below the tree */
+function EntropyPanel() {
+  const { t } = useTranslation()
+  const isEntropyAvailable = useSelector((state: AuspiceState) => state.controls?.panelsAvailable?.includes('entropy'))
+
+  if (!isEntropyAvailable) {
+    return null
+  }
+
+  return <PanelSection panel="entropy" title={t('sidebar:Entropy')} tooltip={EntropyInfo} />
 }
 
 const AnnotatedTitleWrapper = styled.div`

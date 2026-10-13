@@ -1,5 +1,7 @@
 import React, { ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
+import { useSelector } from 'react-redux'
+import type { AuspiceState } from 'auspice'
 import { useResizeDetector } from 'react-resize-detector'
 import AuspiceEntropy from 'auspice/src/components/entropy'
 import AuspiceTree from 'auspice/src/components/tree'
@@ -35,7 +37,7 @@ export interface TreeProps {
 }
 
 /**
- * Auspice tree, sized to fill the visible area, and the entropy chart below it, reachable by scrolling.
+ * Auspice tree, sized to fill the visible area, and the entropy chart below it, reachable by scrolling, if shown.
  */
 export function Tree({ header }: TreeProps) {
   // Content box of the scroll container: excludes its padding and scrollbar, so the drawings fit exactly. The drawings
@@ -65,6 +67,9 @@ export function Tree({ header }: TreeProps) {
     }
   }, [width, zoomButtonsWidth, zoomButtonsRef])
 
+  // The sidebar toggles the entropy chart through Auspice's list of displayed panels
+  const showEntropy = useSelector((state: AuspiceState) => state.controls?.panelsToDisplay?.includes('entropy'))
+
   const visibleHeight = size?.height ?? 0
   const treeHeight = visibleHeight - CARD_TITLE_HEIGHT_PX - CHART_BOTTOM_GAP_PX
   const hasSize = width !== undefined && width > 0 && treeHeight > 0
@@ -77,12 +82,14 @@ export function Tree({ header }: TreeProps) {
             <TreeHeader style={{ right: headerRight }}>{header}</TreeHeader>
             <AuspiceTree width={width} height={treeHeight} />
           </AuspicePanel>
-          <AuspicePanel $noSelect>
-            <AuspiceEntropy
-              width={width}
-              height={Math.max(ENTROPY_MIN_HEIGHT_PX, ENTROPY_HEIGHT_FRACTION * visibleHeight - ENTROPY_VERTICAL_PADDING_PX)}
-            />
-          </AuspicePanel>
+          {showEntropy && (
+            <AuspicePanel $noSelect>
+              <AuspiceEntropy
+                width={width}
+                height={Math.max(ENTROPY_MIN_HEIGHT_PX, ENTROPY_HEIGHT_FRACTION * visibleHeight - ENTROPY_VERTICAL_PADDING_PX)}
+              />
+            </AuspicePanel>
+          )}
         </>
       )}
     </ScrollArea>
