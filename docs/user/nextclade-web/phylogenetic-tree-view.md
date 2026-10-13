@@ -11,6 +11,19 @@ Nextclade runs a greedy parsimony tree builder on user provided sequences. This 
 
 For a more accurate tree including your sequences, you can use [Usher](https://genome.ucsc.edu/cgi-bin/hgPhyloPlace), which works out of the box with SARS-CoV-2, hMPXV, RSV-A, and RSV-B (as of January 2024).
 
+### Sidebar controls
+
+The sidebar on the left of the tree holds the Auspice controls that apply to the tree of a Nextclade analysis:
+
+- **Color By** and **Filter Data**: color the tree and filter its tips by clade, QC status, node type, and the other attributes of the dataset
+- **Layout**, **Focus on selected**, **Branch Labels**, and **Tip Labels**: arrange and label the tree
+- **Explode Tree By**: split the tree into subtrees where an attribute changes along a branch, for example one subtree per clade
+- **Entropy**: show or hide the diversity chart of the genome below the tree
+
+The map, date range, animation, and frequency controls of Auspice are not available, because the sequences that Nextclade places on the tree have no location or sampling date.
+
+On narrow screens, the sidebar opens over the tree and closes with the tab on its edge, and the row with the filters and the download buttons moves above the tree.
+
 ### Multi-dataset mode
 
 In multi-dataset mode, you can switch between datasets through the dataset selector on the top left.
