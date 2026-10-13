@@ -175,11 +175,17 @@ export function NavLinkImpl({ desc: { url, content, component, title }, active =
       return component
     }
     return (
-      <NavLinkLocalStyle href={url} $active={active} aria-disabled={!url} disabled={!url}>
+      <NavLinkLocalStyle
+        href={url}
+        $active={active}
+        aria-disabled={!url}
+        aria-label={typeof content === 'string' ? undefined : title}
+        disabled={!url}
+      >
         {content}
       </NavLinkLocalStyle>
     )
-  }, [active, component, content, url])
+  }, [active, component, content, title, url])
 
   return (
     <NavItem key={url} title={title} aria-disabled={!url}>
@@ -325,7 +331,7 @@ export function NavigationBar() {
       </Nav>
 
       <Nav className="d-xl-none">
-        <NavigationMenu links={linksRight} className="pb-1" />
+        <NavigationMenu links={linksRight} iconLinks={linksSocial} className="pb-1" />
       </Nav>
     </Navbar>
   )

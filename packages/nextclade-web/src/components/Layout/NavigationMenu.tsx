@@ -10,9 +10,11 @@ import { MdOutlineMenu } from 'react-icons/md'
 
 export interface NavigationMenuProps extends DropdownProps {
   links: ReactNode[]
+  /** Icon-only links, shown in one row below the other links */
+  iconLinks?: ReactNode[]
 }
 
-export function NavigationMenu({ links, ...restProps }: NavigationMenuProps) {
+export function NavigationMenu({ links, iconLinks, ...restProps }: NavigationMenuProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const toggle = useCallback(() => setDropdownOpen((prevState) => !prevState), [])
 
@@ -23,6 +25,7 @@ export function NavigationMenu({ links, ...restProps }: NavigationMenuProps) {
       </DropdownToggle>
       <DropdownMenu>
         <DropdownMenuListWrapper>{links}</DropdownMenuListWrapper>
+        {iconLinks && <IconLinksRow>{iconLinks}</IconLinksRow>}
       </DropdownMenu>
     </Dropdown>
   )
@@ -60,5 +63,28 @@ const DropdownMenuListWrapper = styled.ul`
 
   > li {
     list-style: none;
+  }
+
+  /* Comfortable tap targets on touch screens */
+  > li > a,
+  > li > span {
+    display: block;
+    padding: 0.375rem 0.5rem;
+  }
+`
+
+const IconLinksRow = styled.ul`
+  display: flex;
+  margin: 0.5rem 0 0;
+  padding: 0;
+
+  > li {
+    list-style: none;
+    margin: 0;
+  }
+
+  > li > a {
+    display: block;
+    padding: 0.375rem 0.5rem;
   }
 `
