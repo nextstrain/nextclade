@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo } from 'react'
+import React, { ReactNode, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/router'
 import {
   Nav as NavBase,
@@ -37,12 +37,28 @@ export const Navbar = styled(NavbarBase)`
 export const Nav = styled(NavBase)`
   display: flex;
   flex-wrap: nowrap !important;
+  flex-shrink: 0;
   padding: 0 !important;
 `
 
-/** Logo and breadcrumbs. Shrinks on narrow screens, where the breadcrumbs cut their text */
-const NavBreadcrumbs = styled(Nav)`
+/** Breadcrumbs. Scroll sideways where the navigation bar is too narrow to show all of them */
+const NavBreadcrumbs = styled.ul.attrs({ className: 'nav' })`
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
   min-width: 0;
+  padding: 0 !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Phones hide the logo, which otherwise keeps the breadcrumbs off the screen edge */
+  @media not all and (min-width: ${(props) => props.theme.sm}) {
+    padding-left: 4px !important;
+  }
 `
 
 const NavbarBrand = styled(NavbarBrandBase)`
@@ -84,6 +100,7 @@ export const NavLinkLocalStyle = styled(LinkSmart)<{ $active: boolean; disabled?
 
 export const NavItemBreadcrumb = styled(NavItem)<{ $active: boolean; disabled?: boolean }>`
   display: flex;
+  flex-shrink: 0;
   min-width: 90px;
   min-height: 35px;
 
@@ -97,6 +114,10 @@ export const NavItemBreadcrumb = styled(NavItem)<{ $active: boolean; disabled?: 
   text-align: center;
   border: #0001 solid 1px;
   border-radius: 3px;
+
+  @media not all and (min-width: ${(props) => props.theme.sm}) {
+    margin: auto 1px;
+  }
 `
 
 export const NavLinkBreadcrumbStyle = styled(NavLinkLocalStyle)<{ $active: boolean; disabled?: boolean }>`
@@ -116,6 +137,16 @@ export const NavLinkBreadcrumbStyle = styled(NavLinkLocalStyle)<{ $active: boole
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+
+  @media not all and (min-width: ${(props) => props.theme.md}) {
+    max-width: none;
+    padding: 0 8px;
+  }
+
+  @media not all and (min-width: ${(props) => props.theme.sm}) {
+    padding: 0 4px;
+    font-size: 0.875rem;
+  }
 
   :hover {
     color: ${({ $active, disabled, theme }) => (disabled ? theme.gray500 : $active ? theme.white : theme.bodyColor)};
@@ -156,7 +187,13 @@ export function NavLinkImpl({ desc: { url, content, component, title }, active =
 export function NavLinkBreadcrumb({ desc: { url, content, title }, active = false }: NavLinkLocalProps) {
   return (
     <NavItemBreadcrumb key={url} title={title} $active={active} aria-disabled={!url} disabled={!url}>
-      <NavLinkBreadcrumbStyle href={url} $active={active} aria-disabled={!url} disabled={!url}>
+      <NavLinkBreadcrumbStyle
+        href={url}
+        $active={active}
+        aria-current={active ? 'page' : undefined}
+        aria-disabled={!url}
+        disabled={!url}
+      >
         {content}
       </NavLinkBreadcrumbStyle>
     </NavItemBreadcrumb>
@@ -166,6 +203,14 @@ export function NavLinkBreadcrumb({ desc: { url, content, title }, active = fals
 export function NavigationBar() {
   const { t } = useTranslationSafe()
   const { pathname } = useRouter()
+
+  const breadcrumbsRef = useRef<HTMLUListElement>(null)
+  useEffect(() => {
+    // Keep the breadcrumb of the current page in view when the breadcrumbs are scrolled sideways
+    breadcrumbsRef.current
+      ?.querySelector('[aria-current="page"]')
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [pathname])
 
   const hasRan = useAtomValue(hasRanAtom)
   const canDownload = useAtomValue(canDownloadAtom)
@@ -254,16 +299,16 @@ export function NavigationBar() {
 
   return (
     <Navbar light role="navigation">
-      <NavBreadcrumbs>
+      <Nav>
         <NavbarBrand tag={Link} href="/">
           <span className="d-inline-flex">
             <BrandLogo />
             <BrandText className="d-none d-lg-block" />
           </span>
         </NavbarBrand>
+      </Nav>
 
-        {linksLeft}
-      </NavBreadcrumbs>
+      <NavBreadcrumbs ref={breadcrumbsRef}>{linksLeft}</NavBreadcrumbs>
 
       <ResultsStatus className="d-none d-md-inline-flex" />
 
