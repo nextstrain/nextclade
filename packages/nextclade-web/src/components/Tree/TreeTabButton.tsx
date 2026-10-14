@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import { SIDEBAR_THEME } from 'src/components/Layout/sidebarTheme'
 
 /** Colors of the Auspice tree buttons ("Zoom to Selected", "Zoom to Root") next to the tree tab buttons */
@@ -20,8 +20,8 @@ export const TreeTabButtonGroup = styled.div`
   gap: ${TREE_TAB_BUTTON_GAP_PX}px;
 `
 
-/** Button that looks like the Auspice tree buttons: a tab hanging from the top of the tree card */
-export const TreeTabButton = styled.button`
+/** Look of the Auspice tree buttons: a tab hanging from the top of the tree card */
+export const treeTabButtonStyle = css`
   display: flex;
   align-items: center;
   gap: 4px;
@@ -58,4 +58,9 @@ export const TreeTabButton = styled.button`
     outline: 2px solid ${SIDEBAR_THEME.selectedColor};
     outline-offset: 1px;
   }
+`
+
+/** Button that looks like the Auspice tree buttons */
+export const TreeTabButton = styled.button`
+  ${treeTabButtonStyle}
 `

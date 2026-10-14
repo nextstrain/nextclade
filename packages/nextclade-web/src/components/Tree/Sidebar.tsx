@@ -24,6 +24,7 @@ import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector
 import { LogoPoweredByAuspice } from 'src/components/Tree/LogoPoweredByAuspice'
 import { SIDEBAR_THEME } from 'src/components/Layout/sidebarTheme'
 import { auspiceFilterBadgeIconsCentered } from 'src/components/Tree/auspiceFilterBadgeStyle'
+import { AddMetadataButton } from 'src/components/Tree/AddMetadataButton'
 
 export const StyledAuspiceControlsContainer = styled(ControlsContainer)`
   font-family: ${SIDEBAR_THEME['font-family']};
@@ -103,8 +104,7 @@ function TreeControls() {
 
       <ControlHeader title={t('sidebar:Filter Data')} tooltip={FilterInfo} />
       <FilterData measurementsOn={false} />
-
-      <Spacer sizePx={10} />
+      <AddMetadataButton />
 
       <TreePanel />
 

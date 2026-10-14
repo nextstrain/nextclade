@@ -178,7 +178,7 @@ index a73fe7bf478e18e97a194de0243718e9d2cb53bf..a969f919f0f2ecbfa74727f33351733d
          {label === "" ? null : (
            <ToggleSubtitle>
 diff --git a/src/components/download/helperFunctions.js b/src/components/download/helperFunctions.js
-index 92481937541295671b2780c356c5ba6a6f5bd116..e508e006d717bbf61c67e92a17568a97448da39a 100644
+index 92481937541295671b2780c356c5ba6a6f5bd116..905b9027d29e39f854c6898d423f7d1131a9e5cd 100644
 --- a/src/components/download/helperFunctions.js
 +++ b/src/components/download/helperFunctions.js
 @@ -9,6 +9,8 @@ import { datasetSummary } from "../info/datasetSummary";
@@ -289,17 +289,21 @@ index 92481937541295671b2780c356c5ba6a6f5bd116..e508e006d717bbf61c67e92a17568a97
    for (const key in panels) {
      if (panels[key]) {
        injectAsSVGStrings(output, key, panels[key]); // modifies output in place
-@@ -644,6 +702,25 @@ const writeSVGPossiblyIncludingMap = (dispatch, filePrefix, panelsInDOM, panelLa
+@@ -643,8 +701,41 @@ const writeSVGPossiblyIncludingMap = (dispatch, filePrefix, panelsInDOM, panelLa
+   }
  };
  
- export const SVG = (dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications) => {
+-export const SVG = (dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications) => {
++/* An embedding app may give its own text lines (HTML) as `caption`, which replace the dataset, attribution, license and
++publication lines written for nextstrain datasets */
++export const SVG = (dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications, caption = undefined) => {
 +  /* The entropy panel computes its bars only while it is on screen, and shows "data loading" below
 +  the fold. Compute the bars for the export, and write after the panel has drawn them. */
 +  if (panelsInDOM.indexOf("entropy") !== -1 && dispatch(calcEntropyBarsIfMissing)) {
-+    setTimeout(() => writeSVG(dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications), 0);
++    setTimeout(() => writeSVG(dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications, caption), 0);
 +    return;
 +  }
-+  writeSVG(dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications);
++  writeSVG(dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications, caption);
 +};
 +
 +/* Thunk: compute the entropy bars if the panel has none, and return whether it computed them */
@@ -311,10 +315,38 @@ index 92481937541295671b2780c356c5ba6a6f5bd116..e508e006d717bbf61c67e92a17568a97
 +  return true;
 +};
 +
-+const writeSVG = (dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications) => {
++const writeSVG = (dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications, caption) => {
    /* make the text strings */
++  const textStrings = caption ? [...caption] : nextstrainCaption(t, metadata, nodes, visibility, publications);
++
++  /* downloading the map tiles is an async call */
++  if (panelsInDOM.indexOf("map") !== -1) {
++    window.L.getMapSvg(writeSVGPossiblyIncludingMap.bind(this, dispatch, filePrefix, panelsInDOM, panelLayout, textStrings));
++  } else {
++    writeSVGPossiblyIncludingMap(dispatch, filePrefix, panelsInDOM, panelLayout, textStrings, undefined);
++  }
++};
++
++/* Text lines below the figure for a nextstrain dataset */
++const nextstrainCaption = (t, metadata, nodes, visibility, publications) => {
    const textStrings = [];
    textStrings.push(metadata.title);
+   textStrings.push(`Last updated ${metadata.updated}`);
+@@ -663,13 +754,7 @@ export const SVG = (dispatch, t, metadata, nodes, visibility, filePrefix, panels
+   publications.forEach((pub) => {
+     textStrings.push(`<a href="${pub.href}">${pub.author}, ${pub.title}, ${pub.journal} (${pub.year})</a>`);
+   });
+-
+-  /* downloading the map tiles is an async call */
+-  if (panelsInDOM.indexOf("map") !== -1) {
+-    window.L.getMapSvg(writeSVGPossiblyIncludingMap.bind(this, dispatch, filePrefix, panelsInDOM, panelLayout, textStrings));
+-  } else {
+-    writeSVGPossiblyIncludingMap(dispatch, filePrefix, panelsInDOM, panelLayout, textStrings, undefined);
+-  }
++  return textStrings;
+ };
+ 
+ export const entropyTSV = (dispatch, filePrefix, entropy) => {
 diff --git a/src/components/entropy/entropyD3.js b/src/components/entropy/entropyD3.js
 index ceef79df33357f9c2a677a6d8e01747bb48188ed..16de2f534db39bf3a4c2f385cdc33700d61ffb24 100644
 --- a/src/components/entropy/entropyD3.js
@@ -427,6 +459,27 @@ index 5c1e69c62ab2328fd2c5ca71e17bc951bd724101..7a76b88e3a29fce33b8074dd27d35817
          <FaTrash data-tip data-for={id+'remove'}/>
          <Tooltip id={id+'remove'}>{'Remove this filter'}</Tooltip>
        </IconContainer>
+diff --git a/src/components/modal/Modal.jsx b/src/components/modal/Modal.jsx
+index 364b7ebb8fe6c88998699559405e490c6fcb85ae..05fc2460a8500c9e66e146ee0a3047d7ff6585be 100644
+--- a/src/components/modal/Modal.jsx
++++ b/src/components/modal/Modal.jsx
+@@ -3,6 +3,7 @@ import Mousetrap from "mousetrap";
+ import { connect } from "react-redux";
+ import { withTranslation } from 'react-i18next';
+ import { SET_MODAL } from "../../actions/types";
++import { hasExtension, getExtension } from "../../util/extensions";
+ import { infoPanelStyles } from "../../globalStyles";
+ import { stopProp } from "../tree/infoPanels/click";
+ import DownloadModalContents from "../download/downloadModal";
+@@ -26,6 +27,8 @@ class Modal extends React.Component {
+    * and if _any_ modal's open pressing 'd' dismisses it
+    */
+   componentDidMount() {
++    /* an embedding app with its own downloads turns the download modal off (extension `downloadModal: false`) */
++    if (hasExtension("downloadModal") && !getExtension("downloadModal")) return;
+     Mousetrap.bind('d', () => {
+       this.props.dispatch({ type: SET_MODAL, modal: this.props.modal ? null : 'download' });
+     });
 diff --git a/src/components/tree/phyloTree/change.ts b/src/components/tree/phyloTree/change.ts
 index 3a876916302dbb571155123e5de75246d317bde3..8ff35fbe14412ee1156e3c4bcd4de851cc473870 100644
 --- a/src/components/tree/phyloTree/change.ts
@@ -840,7 +893,7 @@ index a1537c670dfd460d3399961a7945f44dad6de9a5..3af282ce66a62423e49bb36072d46d58
    return node.tipCount + 0.15*(node.fullTipCount-node.tipCount);
  }
 diff --git a/src/components/tree/phyloTree/phyloTree.ts b/src/components/tree/phyloTree/phyloTree.ts
-index d4f928d487df9ad1b681caf4bedbd1c57e980c21..9ed15b2a8658d56cc31416094f60c4132f6d795f 100644
+index d4f928d487df9ad1b681caf4bedbd1c57e980c21..458ee23c9024a12b6f1b62c05a517049d1b53cb6 100644
 --- a/src/components/tree/phyloTree/phyloTree.ts
 +++ b/src/components/tree/phyloTree/phyloTree.ts
 @@ -19,6 +19,7 @@ const PhyloTree = function PhyloTree(
@@ -851,7 +904,18 @@ index d4f928d487df9ad1b681caf4bedbd1c57e980c21..9ed15b2a8658d56cc31416094f60c413
    this.attributes = ['r', 'cx', 'cy', 'id', 'class', 'd'];
    this.params = createDefaultParams();
    this.groups = {};
-@@ -57,6 +58,7 @@ PhyloTree.prototype.modifySVGInStages = modifySVGInStages;
+@@ -36,7 +37,9 @@ const PhyloTree = function PhyloTree(
+       n: d,
+       x: 0,
+       y: 0,
+-      inView: d.inView !== undefined ? d.inView : true /* each node is visible, unless set earlier! */
++      /* each node is visible, unless set earlier! Once drawn, the zoom is kept on the drawn nodes (`shell`) only, so
++      a new drawing of these nodes, e.g. after the tree component mounts again with the same store, takes it from there */
++      inView: d.shell ? d.shell.inView : d.inView !== undefined ? d.inView : true
+     };
+     d.shell = phyloNode;
+     return phyloNode;
+@@ -57,6 +60,7 @@ PhyloTree.prototype.modifySVGInStages = modifySVGInStages;
  /* I N I T I A L        R E N D E R       E T C */
  PhyloTree.prototype.render = renderers.render;
  PhyloTree.prototype.clearSVG = renderers.clearSVG;
@@ -1060,10 +1124,18 @@ index 5020928b7f4eb2edb11b6eadd3ba61ffda6ce9bb..d61fab7bb25eb6595c8a02d1a343ef6f
      let newState: Partial<TreeComponentState> = {};
      let rightTreeUpdated = false;
 diff --git a/src/util/extensions.ts b/src/util/extensions.ts
-index 939d1156923c7603360fdcfdd42cadcef3adc3d9..fef855b3be92838002bd042b0f50acd9266b4923 100644
+index 939d1156923c7603360fdcfdd42cadcef3adc3d9..188ab78199f4c52e840e191e6f61690f9432a45e 100644
 --- a/src/util/extensions.ts
 +++ b/src/util/extensions.ts
-@@ -4,30 +4,10 @@ type Extensions = {
+@@ -1,37 +1,16 @@
++/* Nextclade bundles the Auspice sources with its own webpack configuration. The stock registry reads a build-time
++EXTENSION_DATA variable and loads components through webpack's `require.context("@extensions")`. Here "@extensions" is a
++webpack alias to a module of the app whose default export is the registry itself. */
++import registry from "@extensions";
++
+ // TODO: Add typing for individual extensions.
+ // See docs/customise-client/api.rst.
+ type Extensions = {
    [key: string]: any
  }
  
@@ -1091,10 +1163,11 @@ index 939d1156923c7603360fdcfdd42cadcef3adc3d9..fef855b3be92838002bd042b0f50acd9
 -
 -  return extensions;
 -})();
-+/* Nextclade bundles the Auspice sources with its own webpack configuration, which has no "@extensions" alias, and
-+uses no build-time extensions. Webpack resolves the `require.context("@extensions")` of the stock registry at build
-+time, even where the code never runs, so the registry is empty instead. */
-+const registry: Extensions = {};
- 
- 
+-
+-
  export const getExtension = (what: string): any | false => {
+-  if (registry[what]) {
++  if (Object.prototype.hasOwnProperty.call(registry, what)) {
+     return registry[what];
+   }
+   console.error("Requested non-existing extension", what);

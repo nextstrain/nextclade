@@ -12,6 +12,8 @@ export default function withResolve(nextConfig: NextConfig) {
         'react-redux': path.resolve('node_modules/react-redux'),
         'redux': path.resolve('node_modules/redux'),
         'redux-thunk': path.resolve('node_modules/redux-thunk'),
+        // Auspice reads its extensions from this module
+        '@extensions': path.resolve('src/components/Tree/auspiceExtensions.ts'),
       },
     }
 

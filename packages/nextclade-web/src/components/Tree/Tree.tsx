@@ -8,6 +8,8 @@ import AuspiceTree from 'auspice/src/components/tree'
 import { PAGE_GUTTER_PX } from 'src/components/Layout/sidebarTheme'
 import { useSizeBeforePaint } from 'src/hooks/useSizeBeforePaint'
 import { TREE_TAB_BUTTON_GAP_PX } from 'src/components/Tree/TreeTabButton'
+import { TreePanelErrorBoundary } from 'src/components/Tree/TreePanelErrorBoundary'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 /**
  * Height of the title row of an Auspice card, including its top border, if shown. Auspice places the tree legend below
@@ -29,6 +31,18 @@ const HEADER_ITEM_GAP_PX = 16
  */
 const HEADER_MIN_SUMMARY_WIDTH_PX = 120
 
+/**
+ * Widest tree (e.g. on phones) whose header folds its actions (e.g. the download buttons) into one menu, so that a useful
+ * part of the summary still fits next to them
+ */
+const HEADER_COMPACT_MAX_WIDTH_PX = 600
+
+/**
+ * Stack level of content over the tree, such as notifications: above the tree legend and the hover info, which Auspice
+ * places at level 1000. The page content is its own stacking context, so the sidebar stays above
+ */
+export const TREE_OVERLAY_Z_INDEX = 1001
+
 /** Space below each chart, so that its axis labels and controls stay clear of the next chart and of the page footer */
 const CHART_BOTTOM_GAP_PX = 16
 
@@ -43,14 +57,19 @@ const ENTROPY_MIN_HEIGHT_PX = 300
 export interface TreeProps {
   /** Start of the row above the tree, e.g. the active filters. Shrinks to fit the row */
   summary: ReactNode
-  /** End of the row above the tree, left of the tree zoom buttons, e.g. download buttons. Keeps its width */
-  actions: ReactNode
+  /**
+   * End of the row above the tree, left of the tree zoom buttons, e.g. download buttons. Keeps its width. Compact where
+   * the tree is narrow, so that the summary keeps some room
+   */
+  actions: (isCompact: boolean) => ReactNode
 }
 
 /**
  * Auspice tree, sized to fill the visible area, and the entropy chart below it, reachable by scrolling, if shown.
  */
 export function Tree({ summary, actions }: TreeProps) {
+  const { t } = useTranslationSafe()
+
   // Content box of the scroll container: excludes its padding and scrollbar, so the drawings fit exactly. The drawings
   // take a new size in the same frame as the container, so the tree is never painted at its old size in a moved or
   // resized container (e.g. when the sidebar opens or closes)
@@ -96,10 +115,12 @@ export function Tree({ summary, actions }: TreeProps) {
   const treeHeight = visibleHeight - headerRowHeight - CARD_TITLE_HEIGHT_PX - CHART_BOTTOM_GAP_PX
   const hasSize = width !== undefined && width > 0 && treeHeight > 0
 
+  const isHeaderCompact = width !== undefined && width <= HEADER_COMPACT_MAX_WIDTH_PX
+
   const header = (
     <TreeHeader $isStacked={isHeaderStacked} style={isHeaderStacked ? undefined : { right: headerRight }}>
       <TreeHeaderSummary>{summary}</TreeHeaderSummary>
-      <TreeHeaderActions ref={actionsRef}>{actions}</TreeHeaderActions>
+      <TreeHeaderActions ref={actionsRef}>{actions(isHeaderCompact)}</TreeHeaderActions>
     </TreeHeader>
   )
 
@@ -109,17 +130,21 @@ export function Tree({ summary, actions }: TreeProps) {
         <>
           <AuspicePanel ref={treePanelRef} $hideTitle $isZoomButtonsRowOwn={isHeaderStacked}>
             {header}
-            <AuspiceTree width={width} height={treeHeight} />
+            <TreePanelErrorBoundary subject={t('the tree')}>
+              <AuspiceTree width={width} height={treeHeight} />
+            </TreePanelErrorBoundary>
           </AuspicePanel>
           {showEntropy && (
             <AuspicePanel $noSelect>
-              <AuspiceEntropy
-                width={width}
-                height={Math.max(
-                  ENTROPY_MIN_HEIGHT_PX,
-                  ENTROPY_HEIGHT_FRACTION * visibleHeight - ENTROPY_VERTICAL_PADDING_PX,
-                )}
-              />
+              <TreePanelErrorBoundary subject={t('the entropy chart')}>
+                <AuspiceEntropy
+                  width={width}
+                  height={Math.max(
+                    ENTROPY_MIN_HEIGHT_PX,
+                    ENTROPY_HEIGHT_FRACTION * visibleHeight - ENTROPY_VERTICAL_PADDING_PX,
+                  )}
+                />
+              </TreePanelErrorBoundary>
             </AuspicePanel>
           )}
         </>
@@ -132,6 +157,10 @@ export function Tree({ summary, actions }: TreeProps) {
  * Scrolls the tree and the entropy chart. Fills the page content area, so the scrollbar is on the page edge. Takes its
  * size from the page layout only: without size containment, the drawings, which are sized from this element, would
  * also widen it and its ancestors through their content size.
+ *
+ * The space of the scrollbar is kept while there is nothing to scroll: otherwise showing the entropy chart, which adds
+ * the scrollbar, would narrow the tree, and Auspice would draw the whole tree again. The scrollbar is thin, so the kept
+ * space is small.
  */
 const ScrollArea = styled.div`
   contain: size;
@@ -140,6 +169,8 @@ const ScrollArea = styled.div`
   padding-left: ${PAGE_GUTTER_PX}px;
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
 `
 
 /**

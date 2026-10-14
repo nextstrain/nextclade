@@ -11,5 +11,6 @@ declare module 'auspice/src/components/download/helperFunctions' {
     panelsInDOM: unknown,
     panelLayout: unknown,
     publications: Publication[],
+    caption?: string[],
   ): void
 }

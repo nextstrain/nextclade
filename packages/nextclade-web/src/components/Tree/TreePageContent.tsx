@@ -1,29 +1,28 @@
 import { isNil } from 'lodash'
-import React, { ReactNode, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo } from 'react'
+import { useDropzone } from 'react-dropzone'
 import { useRecoilValue } from 'recoil'
-import { Provider as ReactReduxProvider, useSelector } from 'react-redux'
+import { Provider as ReactReduxProvider, useDispatch, useSelector } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
-import { Store } from 'redux'
 import { auspiceFilterBadgeIconsCentered } from 'src/components/Tree/auspiceFilterBadgeStyle'
-import { ButtonSvg } from 'src/components/Tree/ButtonSvg'
-import { ButtonTreeJson } from 'src/components/Tree/ButtonTreeJson'
-import { TreeTabButtonGroup } from 'src/components/Tree/TreeTabButton'
+import { TreeDownloads } from 'src/components/Tree/TreeDownloads'
+import { TreeNotifications } from 'src/components/Tree/TreeNotifications'
+import { addMetadataFiles } from 'src/components/Tree/treeMetadataFiles'
 import { Link } from 'src/components/Link/Link'
 import styled, { ThemeProvider } from 'styled-components'
-import type { AuspiceJsonV2, AuspiceState } from 'auspice'
+import type { AuspiceState } from 'auspice'
+import AuspiceModal from 'auspice/src/components/modal/Modal.jsx'
+import { BROWSER_DIMENSIONS } from 'auspice/src/actions/types'
 import { TFunc, useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
-import { changeColorBy } from 'auspice/src/actions/colors'
-import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { useEffectiveDataset } from 'src/hooks/useEffectiveDataset'
 import { TreeStatus, useTreeStatus } from 'src/hooks/useTreeStatus'
 import { hasMultipleDatasetsForAnalysisAtom, isViewedDatasetUnknownAtom } from 'src/state/dataset.state'
 import { treeAtom } from 'src/state/results.state'
-import { configureStore } from 'src/state/store'
+import { getTreeStore } from 'src/state/store'
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 import { LogoGisaid } from 'src/components/Common/LogoGisaid'
-import { Tree } from 'src/components/Tree/Tree'
+import { Tree, TREE_OVERLAY_Z_INDEX } from 'src/components/Tree/Tree'
 import { Sidebar } from 'src/components/Tree/Sidebar'
 import { SidebarLayout } from 'src/components/Layout/SidebarLayout'
 import { PAGE_GUTTER_PX, SIDEBAR_THEME } from 'src/components/Layout/sidebarTheme'
@@ -31,10 +30,29 @@ import { LoadingSpinner } from 'src/components/Loading/Loading'
 import { attrStrMaybe, Dataset } from 'src/types'
 
 const TreeContainer = styled.div`
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1 1 0;
   min-height: 0;
+`
+
+/** Shown over the tree while files are dragged over it */
+const DropOverlay = styled.div`
+  position: absolute;
+  z-index: ${TREE_OVERLAY_Z_INDEX};
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border: 2px dashed ${SIDEBAR_THEME.selectedColor};
+  background-color: rgba(255, 255, 255, 0.85);
+  color: ${SIDEBAR_THEME.unselectedColor};
+  font-family: ${SIDEBAR_THEME['font-family']};
+  font-size: 16px;
+  text-align: center;
+  pointer-events: none;
 `
 
 /** Text style of the filter summary in the Auspice info panel on nextstrain.org */
@@ -113,26 +131,8 @@ export default function TreePageContent() {
   const tree = useRecoilValue(treeAtom(effectiveDatasetPath ?? ''))
   const treeStatus = useTreeStatus(effectiveDatasetPath)
 
-  const [store, setStore] = useState<Store<AuspiceState> | null>(null)
-
-  // Tree for which the current store was created. Auspice draws the tree from the nodes of the store that it mounts
-  // with, so the store is created once per tree: when React StrictMode runs this effect again after mounting, a second
-  // store would leave the mounted tree drawing nodes that the store no longer holds, and Auspice's zoom and focus
-  // actions, which reach the drawing through the store's nodes, would not find it
-  const storeTreeRef = useRef<AuspiceJsonV2 | null>(null)
-
-  useLayoutEffect(() => {
-    if (!isNil(tree) && storeTreeRef.current !== tree) {
-      storeTreeRef.current = tree
-      const { store: newStore } = configureStore()
-      const { dispatch } = newStore
-      const auspiceState = createAuspiceState(tree, dispatch)
-      dispatch(auspiceStartClean(auspiceState))
-      dispatch(changeColorBy())
-      dispatch(treeFilterByNodeType(['New']))
-      setStore(newStore)
-    }
-  }, [tree, effectiveDatasetPath])
+  // The store of the tree outlives this page, so the view of the tree stays as the user left it when they come back
+  const store = useMemo(() => (isNil(tree) ? undefined : getTreeStore(tree)), [tree])
 
   if (isViewedDatasetUnknown) {
     return <TreePageUnclassified />
@@ -145,27 +145,80 @@ export default function TreePageContent() {
   return (
     <ReactReduxProvider store={store}>
       <TreePageFrame sidebar={<Sidebar controls="tree" />}>
-        <TreeContainer>
-          <Tree
-            summary={
-              <FiltersSummaryWrapper>
-                <FiltersSummary />
-              </FiltersSummaryWrapper>
-            }
-            actions={
-              <>
-                <GisaidLogoWidget />
-                <TreeTabButtonGroup>
-                  <ButtonSvg />
-                  <ButtonTreeJson datasetName={effectiveDatasetPath ?? ''} />
-                </TreeTabButtonGroup>
-              </>
-            }
-          />
-        </TreeContainer>
+        <TreeView datasetPath={effectiveDatasetPath} datasetTag={dataset?.version?.tag} />
       </TreePageFrame>
     </ReactReduxProvider>
   )
+}
+
+interface TreeViewProps {
+  datasetPath: string | undefined
+  datasetTag: string | undefined
+}
+
+/**
+ * Tree with its header, and Auspice's dialogs (e.g. the color editor, opened by Shift-click on a legend item) and
+ * notifications. Metadata files dropped on the tree add colorings and filters
+ */
+function TreeView({ datasetPath, datasetTag }: TreeViewProps) {
+  const { t } = useTranslationSafe()
+  const dispatch = useDispatch()
+  useAuspiceBrowserDimensions()
+
+  const { getRootProps, isDragActive } = useDropzone({
+    onDrop: (files: File[]) => void dispatch(addMetadataFiles(files)),
+    noClick: true,
+    noKeyboard: true,
+  })
+
+  return (
+    <TreeContainer {...getRootProps()}>
+      <Tree
+        summary={
+          <FiltersSummaryWrapper>
+            <FiltersSummary />
+          </FiltersSummaryWrapper>
+        }
+        actions={(isCompact) => (
+          <>
+            <GisaidLogoWidget />
+            <TreeDownloads datasetPath={datasetPath} datasetTag={datasetTag} isCompact={isCompact} />
+          </>
+        )}
+      />
+      {isDragActive && (
+        <DropOverlay>{t('Drop CSV or TSV files to color and filter the tree by their columns')}</DropOverlay>
+      )}
+      <TreeNotifications />
+      <AuspiceModal />
+    </TreeContainer>
+  )
+}
+
+/** Tell Auspice the window size, which sizes its dialogs. Auspice's own size monitor is not used */
+function useAuspiceBrowserDimensions() {
+  const dispatch = useDispatch()
+  useEffect(() => {
+    let frame: number | undefined
+    function update() {
+      frame = undefined
+      dispatch({
+        type: BROWSER_DIMENSIONS,
+        data: { width: window.innerWidth, height: window.innerHeight, docHeight: document.body.clientHeight },
+      })
+    }
+    function onResize() {
+      frame ??= window.requestAnimationFrame(update)
+    }
+    update()
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      if (frame !== undefined) {
+        window.cancelAnimationFrame(frame)
+      }
+    }
+  }, [dispatch])
 }
 
 function GisaidLogoWidget() {

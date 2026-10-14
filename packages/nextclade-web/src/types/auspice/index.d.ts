@@ -225,6 +225,8 @@ declare module 'auspice' {
       transmission_lines?: boolean
     }
     filters?: string[]
+    /** Number of tips in the tree (state only) */
+    mainTreeNumTips?: number
     genomeAnnotations?: GeneMapJson
     geoResolutions?: { demes?: Record<string, { latitude?: number; longitude?: number }>; key?: string }[]
     panels?: string[]
