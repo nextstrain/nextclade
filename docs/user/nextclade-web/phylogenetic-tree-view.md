@@ -16,6 +16,7 @@ For a more accurate tree including your sequences, you can use [Usher](https://g
 The sidebar on the left of the tree holds the Auspice controls that apply to the tree of a Nextclade analysis:
 
 - **Color By** and **Filter Data**: color the tree and filter its tips by clade, QC status, node type, and the other attributes of the dataset
+- **Add metadata**: color and filter the tree by your own data, see [Your metadata on the tree](#your-metadata-on-the-tree)
 - **Layout**, **Focus on selected**, **Branch Labels**, and **Tip Labels**: arrange and label the tree
 - **Explode Tree By**: split the tree into subtrees where an attribute changes along a branch, for example one subtree per clade
 - **Entropy**: show or hide the diversity chart of the genome below the tree
@@ -23,6 +24,25 @@ The sidebar on the left of the tree holds the Auspice controls that apply to the
 The map, date range, animation, and frequency controls of Auspice are not available, because the sequences that Nextclade places on the tree have no location or sampling date.
 
 On narrow screens, the sidebar opens over the tree and closes with the tab on its edge, and the row with the filters and the download buttons moves above the tree.
+
+The tree keeps its coloring, filters, zoom, and the other settings of the view while you visit other pages, until the next analysis.
+
+### Your metadata on the tree
+
+Click **Add metadata** in the sidebar, or drop files on the tree, to add the columns of CSV or TSV files to the tree as colorings and filters. The first column of a file holds the sequence names, as in the input FASTA file, and each other column becomes a coloring by its values, for example the sampling site of each sequence. Columns named `date`, `num_date`, `year`, `month`, `latitude` or `longitude` are skipped, because the tree page has no time axis and no map. Node-data JSON files of Augur also work. The data stays in your browser.
+
+Excel files are not read: save the sheet as a CSV or TSV file and add that file.
+
+Shift-click a value in the legend of the tree to change the colors of the current coloring, for example for a figure.
+
+### Downloads
+
+The buttons above the tree download:
+
+- **SVG**: a figure of the tree and of the diversity chart, if shown, as on screen. The text below the figure names the dataset, the Nextclade version, how many tips are shown, and the publications to cite
+- **JSON** and **NWK**: the tree with your sequences placed on it, in Auspice JSON or Newick format. These are the same files as on the Export page, which offers all other output files of the analysis
+
+On narrow screens these downloads are in the **Download** menu.
 
 ### Multi-dataset mode
 
