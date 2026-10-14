@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
+import { test, expect, Download, Page } from '@playwright/test'
 import { URLParameterTester } from './helpers/url-parameters'
 
 const NO_TREE_HEADING = 'This dataset has no reference tree'
@@ -70,8 +71,7 @@ test.describe('Tree page sidebar controls', () => {
 
     await choose(page, 'Explode Tree By', 'Clade')
 
-    // The select shows the chosen value next to its input
-    await expect(page.locator('div:has(> div > input[aria-label="Explode Tree By"])')).toHaveText('Clade')
+    await expect(selectValue(page, 'Explode Tree By')).toHaveText('Clade')
     await expect(page.locator('#MainTree .tip').first()).toBeAttached()
     expect(errors).toEqual([])
   })
@@ -85,6 +85,106 @@ test.describe('Tree page sidebar controls', () => {
     await choose(page, 'Color By', 'QC Status')
 
     await expect.poll(tipFills).not.toEqual(fillsByClade)
+    expect(errors).toEqual([])
+  })
+})
+
+test.describe('Tree page view of the tree', () => {
+  test.describe.configure({ timeout: 300_000 })
+
+  test('keeps the coloring and the zoom when the user returns to the tree page', async ({ page }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+    const axisLabels = () => page.locator('#MainTree .gridText').allTextContents()
+    const wholeTreeAxis = await axisLabels()
+
+    await choose(page, 'Color By', 'QC Status')
+    await page.getByRole('combobox', { name: 'Filter Data' }).fill('23I')
+    await page.getByRole('option', { name: 'Clade \u2192 23I', exact: true }).click()
+    await page.getByRole('button', { name: 'Zoom to Selected' }).click()
+    await expect.poll(axisLabels).not.toEqual(wholeTreeAxis)
+    const zoomedAxis = await axisLabels()
+
+    await page.getByRole('navigation').getByRole('link', { name: 'Results', exact: true }).click()
+    await page.waitForURL('**/results')
+    await openTreePage(page)
+
+    await expect(selectValue(page, 'Color By')).toHaveText('QC Status')
+    await expect.poll(axisLabels).toEqual(zoomedAxis)
+    expect(errors).toEqual([])
+  })
+
+  test('downloads the tree of the analysis in Newick format, the same file as on the export page', async ({ page }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+
+    const download = await downloadFromButton(page, 'NWK')
+
+    expect(download.suggestedFilename()).toBe('nextclade.nwk')
+    expect((await readDownload(download)).trim()).toMatch(/^\(.*;$/s)
+    expect(errors).toEqual([])
+  })
+
+  test('offers the downloads in one menu on narrow screens', async ({ page }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+
+    await expect(svgButton(page)).toHaveCount(0)
+    await page.getByRole('button', { name: 'Download', exact: true }).click()
+    await expect(page.getByRole('menuitem')).toHaveText([
+      /^Figure \(SVG\)/,
+      /^Tree \(Auspice JSON\)/,
+      /^Tree \(Newick\)/,
+    ])
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByRole('menuitem', { name: /^Tree \(Auspice JSON\)/ }).click()
+
+    expect((await downloadPromise).suggestedFilename()).toBe('nextclade.auspice.json')
+    expect(errors).toEqual([])
+  })
+
+  test('writes the dataset and the publications below the figure, instead of the Nextstrain terms', async ({
+    page,
+  }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+
+    const download = await downloadFromButton(page, 'SVG')
+
+    expect(download.suggestedFilename()).toBe('nextclade.svg')
+    const svg = await readDownload(download)
+    expect(svg).toContain('Nextclade dataset nextstrain/sars-cov-2/wuhan-hu-1/orfs')
+    expect(svg).toContain('Made with Nextclade Web')
+    expect(svg).toContain('Nextclade: clade assignment, mutation calling and quality control for viral genomes')
+    expect(svg).not.toContain('Visualizations are licensed under CC-BY')
+    expect(errors).toEqual([])
+  })
+
+  test('colors the tree by the columns of an added metadata file', async ({ page }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+    const [firstName, secondName] = await tipNames(page)
+
+    await addMetadataFile(page, {
+      name: 'sites.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(`strain,sampling_site\n${firstName},Basel\n${secondName},Zurich\n`),
+    })
+
+    await expect(page.getByRole('status').filter({ hasText: 'Adding metadata from sites.csv' })).toBeVisible()
+    await choose(page, 'Color By', 'sampling_site')
+    await expect(selectValue(page, 'Color By')).toHaveText('sampling_site')
+    expect(errors).toEqual([])
+  })
+
+  test('refuses Excel files and tells how to add the data', async ({ page }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+
+    await addMetadataFile(page, {
+      name: 'sites.xlsx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer: Buffer.from('not a spreadsheet'),
+    })
+
+    const alert = page.getByRole('alert').filter({ hasText: "Excel files are not supported: 'sites.xlsx'" })
+    await expect(alert).toBeVisible()
+    await expect(alert).toContainText('Save the sheet as a CSV or TSV file')
     expect(errors).toEqual([])
   })
 })
@@ -125,6 +225,7 @@ async function runExampleAndOpenTreePage(page: Page): Promise<string[]> {
   await expect(page.getByText(/Done\. Total sequences/)).toBeVisible({ timeout: 180_000 })
   await openTreePage(page)
   await expect(page.getByRole('combobox', { name: 'Color By' })).toBeAttached({ timeout: 120_000 })
+  await expect(page.locator('#MainTree .tip').first()).toBeAttached()
 
   return errors
 }
@@ -134,6 +235,49 @@ async function choose(page: Page, select: string, option: string) {
   await page.getByRole('combobox', { name: select }).focus()
   await page.keyboard.press('ArrowDown')
   await page.getByRole('option', { name: option, exact: true }).click()
+}
+
+/** Value shown by a sidebar select, next to its input */
+function selectValue(page: Page, select: string) {
+  return page.locator(`div:has(> div > input[aria-label="${select}"])`)
+}
+
+/** Download the file of a download button above the tree */
+async function downloadFromButton(page: Page, name: string): Promise<Download> {
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name, exact: true }).click()
+  return downloadPromise
+}
+
+async function readDownload(download: Download): Promise<string> {
+  return readFile(await download.path(), 'utf8')
+}
+
+/** Names of two analyzed sequences, from the tree of the analysis */
+async function tipNames(page: Page): Promise<string[]> {
+  const download = await downloadFromButton(page, 'JSON')
+  const tree = JSON.parse(await readDownload(download)) as { tree: TreeNode }
+  return newTipNames(tree.tree).slice(0, 2)
+}
+
+interface TreeNode {
+  name: string
+  node_attrs?: { 'Node type'?: { value?: string } }
+  children?: TreeNode[]
+}
+
+function newTipNames(node: TreeNode): string[] {
+  if (!node.children?.length) {
+    return node.node_attrs?.['Node type']?.value === 'New' ? [node.name] : []
+  }
+  return node.children.flatMap(newTipNames)
+}
+
+async function addMetadataFile(page: Page, file: { name: string; mimeType: string; buffer: Buffer }) {
+  const fileChooserPromise = page.waitForEvent('filechooser')
+  await page.getByRole('button', { name: 'Add metadata' }).click()
+  const fileChooser = await fileChooserPromise
+  await fileChooser.setFiles(file)
 }
 
 declare global {
