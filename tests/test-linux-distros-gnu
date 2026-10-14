@@ -2,7 +2,8 @@
 set -euo pipefail
 
 # Run a command on different Linux distros, to ensure compatibility.
-# We are mostly concerned about old distros with old glibc, libgcc and kernel.
+# We are mostly concerned about old distros with old glibc and kernel, and
+# about minimal images that carry glibc without the rest of a distribution.
 #
 # Current directory will be mounted into the container as `/workdir` and this will be the working dir where
 # the container starts. This way the executables and data are accessible starting from `./`
@@ -87,6 +88,18 @@ distros=(
   "opensuse/tumbleweed:latest"
   "archlinux:latest"
   "archlinux:20191006"
+
+  # Minimal images: distroless/base lacks libgcc_s.so.1, so it fails a binary
+  # that links the shared GCC unwinder; distroless/cc adds it. The Bioconda
+  # images are the bases of the BioContainers images, which run the Bioconda
+  # package.
+  "gcr.io/distroless/base-debian11"
+  "gcr.io/distroless/base-debian12"
+  "gcr.io/distroless/base-debian13"
+  "gcr.io/distroless/cc-debian12"
+  "cgr.dev/chainguard/glibc-dynamic:latest"
+  "quay.io/bioconda/base-glibc-busybox-bash:3.1"
+  "quay.io/bioconda/base-glibc-debian-bash:3.1"
 )
 
 function run_one_distro() {

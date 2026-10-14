@@ -53,6 +53,9 @@ distros=(
   "openwrt/rootfs:x86-64-24.10.8"
   "openwrt/rootfs:x86-64-25.12.5"
 
+  # BusyBox with glibc, musl, and uClibc. The glibc of BusyBox lacks libdl.so.2
+  # and librt.so.1, which glibc 2.34 merged into libc.so.6, so it runs no
+  # binary built for an older glibc.
   "busybox:1-glibc"
   "busybox:1-musl"
   "busybox:1-uclibc"
