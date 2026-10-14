@@ -341,6 +341,20 @@ FROM dev AS cross-x86_64-unknown-linux-gnu
 ENV CC_x86_64-unknown-linux-gnu=gcc
 ENV CXX_x86_64-unknown-linux-gnu=g++
 
+# Rust's std links the GCC unwinder with `-lgcc_s`, which makes a glibc binary need `libgcc_s.so.1` at run
+# time; minimal glibc images such as `gcr.io/distroless/base` lack it. A linker script of that name, first on
+# the library path, resolves `-lgcc_s` to the static unwinder `libgcc_eh.a` of the toolchain instead.
+# `libgcc.a` provides the helpers that `libgcc_eh.a` calls.
+USER 0
+
+RUN set -euxo pipefail >/dev/null \
+&& mkdir -p /opt/static-unwinder \
+&& printf 'GROUP(-lgcc_eh -lgcc)\n' >/opt/static-unwinder/libgcc_s.so
+
+USER ${UID}
+
+ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS="-L native=/opt/static-unwinder"
+
 
 # Cross-compilation for Linux x86_64 with libmusl
 FROM base AS cross-x86_64-unknown-linux-musl
@@ -396,6 +410,14 @@ RUN set -euxo pipefail >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && rm -rf /var/lib/apt/lists/*
 
+# Rust's std links the GCC unwinder with `-lgcc_s`, which makes a glibc binary need `libgcc_s.so.1` at run
+# time; minimal glibc images such as `gcr.io/distroless/base` lack it. A linker script of that name, first on
+# the library path, resolves `-lgcc_s` to the static unwinder `libgcc_eh.a` of the toolchain instead.
+# `libgcc.a` provides the helpers that `libgcc_eh.a` calls.
+RUN set -euxo pipefail >/dev/null \
+&& mkdir -p /opt/static-unwinder \
+&& printf 'GROUP(-lgcc_eh -lgcc)\n' >/opt/static-unwinder/libgcc_s.so
+
 USER ${UID}
 
 RUN set -euxo pipefail >/dev/null \
@@ -404,6 +426,7 @@ RUN set -euxo pipefail >/dev/null \
 ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
 ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS="-L native=/opt/static-unwinder"
 
 # Cross-compilation for Linux ARM64 with libmusl
 FROM base AS cross-aarch64-unknown-linux-musl
