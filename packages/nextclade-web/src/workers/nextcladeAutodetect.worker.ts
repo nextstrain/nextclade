@@ -7,6 +7,7 @@ import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { NextcladeSeqAutodetectWasm } from 'src/gen/nextclade-wasm'
+import { WasmCallGuard } from 'src/workers/WasmCallGuard'
 
 const gSubject = new Subject<MinimizerSearchRecord[]>()
 
@@ -21,12 +22,16 @@ function onResultParsed(res: MinimizerSearchRecord[]) {
  */
 let nextcladeAutodetect: NextcladeSeqAutodetectWasm | undefined
 
+/** Guards every call into the WebAssembly instance of this worker against use after a fatal error */
+const wasmCallGuard = new WasmCallGuard()
+
 /** Creates the underlying WebAssembly module. */
 async function create(indexJson: DatasetsIndexJson, minimizerIndexJsonStr: MinimizerIndexJson) {
-  nextcladeAutodetect = NextcladeSeqAutodetectWasm.new(
-    JSON.stringify(indexJson),
-    JSON.stringify(minimizerIndexJsonStr),
-    JSON.stringify({ batchIntervalMs: 250, maxBatchSize: 1000 }),
+  const indexJsonStr = JSON.stringify(indexJson)
+  const minimizerIndexStr = JSON.stringify(minimizerIndexJsonStr)
+  const searchParamsStr = JSON.stringify({ batchIntervalMs: 250, maxBatchSize: 1000 })
+  nextcladeAutodetect = wasmCallGuard.call(() =>
+    NextcladeSeqAutodetectWasm.new(indexJsonStr, minimizerIndexStr, searchParamsStr),
   )
 }
 
@@ -36,7 +41,12 @@ async function destroy() {
     return
   }
 
-  nextcladeAutodetect.free()
+  try {
+    nextcladeAutodetect.free()
+  } catch {
+    // Ignore errors during cleanup - WASM state may be corrupted after a fatal error.
+    // Logging the cleanup error would mask the original error message.
+  }
   nextcladeAutodetect = undefined
 }
 
@@ -44,9 +54,10 @@ async function autodetect(fasta: string): Promise<void> {
   if (!nextcladeAutodetect) {
     throw new ErrorModuleNotInitialized('autodetect')
   }
+  const wasm = nextcladeAutodetect
 
   try {
-    nextcladeAutodetect.autodetect(fasta, onResultParsed)
+    wasmCallGuard.call(() => wasm.autodetect(fasta, onResultParsed))
   } catch (error: unknown) {
     gSubject.error(sanitizeError(error))
   }
@@ -58,7 +69,8 @@ async function findBestDatasets(): Promise<FindBestDatasetsResult> {
   if (!nextcladeAutodetect) {
     throw new ErrorModuleNotInitialized('find_best_datasets')
   }
-  return JSON.parse(nextcladeAutodetect.find_best_datasets()) as unknown as FindBestDatasetsResult
+  const wasm = nextcladeAutodetect
+  return JSON.parse(wasmCallGuard.call(() => wasm.find_best_datasets())) as unknown as FindBestDatasetsResult
 }
 
 const worker = {

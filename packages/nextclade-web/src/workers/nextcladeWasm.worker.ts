@@ -20,6 +20,7 @@ import { sanitizeError } from 'src/helpers/sanitizeError'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { prepareGeneMap } from 'src/io/prepareGeneMap'
 import { NextcladeWasm } from 'src/gen/nextclade-wasm'
+import { WasmCallGuard } from 'src/workers/WasmCallGuard'
 
 const gSubject = new Subject<FastaRecord>()
 
@@ -56,9 +57,13 @@ export class ErrorBothResultsAndErrorAreNull extends ErrorInternal {
  */
 let nextcladeWasm: NextcladeWasm | undefined
 
+/** Guards every call into the WebAssembly instance of this worker against use after a fatal error */
+const wasmCallGuard = new WasmCallGuard()
+
 /** Creates the underlying WebAssembly module. */
 async function create(params: NextcladeParamsRaw) {
-  nextcladeWasm = NextcladeWasm.new(JSON.stringify(params))
+  const paramsStr = JSON.stringify(params)
+  nextcladeWasm = wasmCallGuard.call(() => NextcladeWasm.new(paramsStr))
 }
 
 /** Destroys the underlying WebAssembly module. */
@@ -76,11 +81,16 @@ async function destroy() {
   nextcladeWasm = undefined
 }
 
-async function getInitialData(datasetName: string): Promise<AnalysisInitialData> {
+function getNextcladeWasm(fnName: string): NextcladeWasm {
   if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized('getInitialData')
+    throw new ErrorModuleNotInitialized(fnName)
   }
-  const initialDataStr = nextcladeWasm.get_initial_data(datasetName)
+  return nextcladeWasm
+}
+
+async function getInitialData(datasetName: string): Promise<AnalysisInitialData> {
+  const wasm = getNextcladeWasm('getInitialData')
+  const initialDataStr = wasmCallGuard.call(() => wasm.get_initial_data(datasetName))
   const initialData = JSON.parse(initialDataStr) as AnalysisInitialData
   return {
     ...initialData,
@@ -90,11 +100,10 @@ async function getInitialData(datasetName: string): Promise<AnalysisInitialData>
 
 /** Runs the underlying WebAssembly module. */
 async function analyze(datasetName: string, record: FastaRecord): Promise<NextcladeResult> {
-  if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized('analyze')
-  }
+  const wasm = getNextcladeWasm('analyze')
   const input = JSON.stringify(record)
-  const output = JSON.parse(nextcladeWasm.analyze(datasetName, input)) as NextcladeResult
+  const outputStr = wasmCallGuard.call(() => wasm.analyze(datasetName, input))
+  const output = JSON.parse(outputStr) as NextcladeResult
   if (!output.result && !output.error) {
     throw new ErrorBothResultsAndErrorAreNull()
   }
@@ -106,16 +115,16 @@ export async function getOutputTrees(
   datasetName: string,
   analysisResultsJsonStr: string,
 ): Promise<OutputTrees | undefined | null> {
-  if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized('getOutputTrees')
-  }
-  return JSON.parse(nextcladeWasm.get_output_trees(datasetName, analysisResultsJsonStr))
+  const wasm = getNextcladeWasm('getOutputTrees')
+  return JSON.parse(wasmCallGuard.call(() => wasm.get_output_trees(datasetName, analysisResultsJsonStr)))
 }
 
 export async function parseSequencesStreaming(fastaStr: string) {
   try {
-    NextcladeWasm.parse_query_sequences(fastaStr, (index: number, seqName: string, seq: string) =>
-      onSequence({ index: Number(index), seqName, seq }),
+    wasmCallGuard.call(() =>
+      NextcladeWasm.parse_query_sequences(fastaStr, (index: number, seqName: string, seq: string) =>
+        onSequence({ index: Number(index), seqName, seq }),
+      ),
     )
   } catch (error: unknown) {
     onError(sanitizeError(error))
@@ -124,7 +133,7 @@ export async function parseSequencesStreaming(fastaStr: string) {
 }
 
 export async function parseRefSequence(refFastaStr: string) {
-  return NextcladeWasm.parse_ref_seq_fasta(refFastaStr)
+  return wasmCallGuard.call(() => NextcladeWasm.parse_ref_seq_fasta(refFastaStr))
 }
 
 export async function serializeResultsJson(
@@ -135,18 +144,27 @@ export async function serializeResultsJson(
   refNodes: AuspiceRefNodesDesc,
   nextcladeWebVersion: string,
 ) {
-  return NextcladeWasm.serialize_results_json(
-    JSON.stringify(outputs),
-    JSON.stringify(errors),
-    JSON.stringify(cladeNodeAttrsJson),
-    JSON.stringify(phenotypeAttrsJson),
-    JSON.stringify(refNodes),
-    nextcladeWebVersion,
+  const outputsStr = JSON.stringify(outputs)
+  const errorsStr = JSON.stringify(errors)
+  const cladeNodeAttrsStr = JSON.stringify(cladeNodeAttrsJson)
+  const phenotypeAttrsStr = JSON.stringify(phenotypeAttrsJson)
+  const refNodesStr = JSON.stringify(refNodes)
+  return wasmCallGuard.call(() =>
+    NextcladeWasm.serialize_results_json(
+      outputsStr,
+      errorsStr,
+      cladeNodeAttrsStr,
+      phenotypeAttrsStr,
+      refNodesStr,
+      nextcladeWebVersion,
+    ),
   )
 }
 
 export async function serializeResultsNdjson(results: AnalysisResult[], errors: AnalysisError[]) {
-  return NextcladeWasm.serialize_results_ndjson(JSON.stringify(results), JSON.stringify(errors))
+  const resultsStr = JSON.stringify(results)
+  const errorsStr = JSON.stringify(errors)
+  return wasmCallGuard.call(() => NextcladeWasm.serialize_results_ndjson(resultsStr, errorsStr))
 }
 
 export async function serializeResultsCsv(
@@ -160,16 +178,26 @@ export async function serializeResultsCsv(
   delimiter: string,
   csvColumnConfig: CsvColumnConfig,
 ) {
-  return NextcladeWasm.serialize_results_csv(
-    JSON.stringify(results),
-    JSON.stringify(errors),
-    JSON.stringify(cladeNodeAttrsJson),
-    JSON.stringify(phenotypeAttrsJson),
-    JSON.stringify(refNodesJson),
-    JSON.stringify(aaMotifsDescs),
-    JSON.stringify(mutationPatternKeys),
-    delimiter,
-    JSON.stringify(csvColumnConfig),
+  const resultsStr = JSON.stringify(results)
+  const errorsStr = JSON.stringify(errors)
+  const cladeNodeAttrsStr = JSON.stringify(cladeNodeAttrsJson)
+  const phenotypeAttrsStr = JSON.stringify(phenotypeAttrsJson)
+  const refNodesStr = JSON.stringify(refNodesJson)
+  const aaMotifsDescsStr = JSON.stringify(aaMotifsDescs)
+  const mutationPatternKeysStr = JSON.stringify(mutationPatternKeys)
+  const csvColumnConfigStr = JSON.stringify(csvColumnConfig)
+  return wasmCallGuard.call(() =>
+    NextcladeWasm.serialize_results_csv(
+      resultsStr,
+      errorsStr,
+      cladeNodeAttrsStr,
+      phenotypeAttrsStr,
+      refNodesStr,
+      aaMotifsDescsStr,
+      mutationPatternKeysStr,
+      delimiter,
+      csvColumnConfigStr,
+    ),
   )
 }
 
@@ -181,13 +209,21 @@ export async function serializeResultsExcel(
   datasetNameToSeqIndices: Map<string, number[]>,
   seqIndicesWithoutDatasetSuggestions: number[],
 ) {
-  return NextcladeWasm.serialize_results_excel(
-    JSON.stringify(results),
-    JSON.stringify(errors),
-    JSON.stringify(Object.fromEntries(allInitialData)),
-    JSON.stringify(csvColumnConfig),
-    JSON.stringify(Object.fromEntries(datasetNameToSeqIndices)),
-    JSON.stringify(seqIndicesWithoutDatasetSuggestions),
+  const resultsStr = JSON.stringify(results)
+  const errorsStr = JSON.stringify(errors)
+  const allInitialDataStr = JSON.stringify(Object.fromEntries(allInitialData))
+  const csvColumnConfigStr = JSON.stringify(csvColumnConfig)
+  const datasetNameToSeqIndicesStr = JSON.stringify(Object.fromEntries(datasetNameToSeqIndices))
+  const seqIndicesWithoutDatasetSuggestionsStr = JSON.stringify(seqIndicesWithoutDatasetSuggestions)
+  return wasmCallGuard.call(() =>
+    NextcladeWasm.serialize_results_excel(
+      resultsStr,
+      errorsStr,
+      allInitialDataStr,
+      csvColumnConfigStr,
+      datasetNameToSeqIndicesStr,
+      seqIndicesWithoutDatasetSuggestionsStr,
+    ),
   )
 }
 
@@ -196,19 +232,21 @@ export async function serializeUnknownCsv(
   seqIndicesWithoutDatasetSuggestions: number[],
   delimiter: string,
 ) {
-  return NextcladeWasm.serialize_unknown_csv(
-    JSON.stringify(errors),
-    JSON.stringify(seqIndicesWithoutDatasetSuggestions),
-    delimiter,
+  const errorsStr = JSON.stringify(errors)
+  const seqIndicesWithoutDatasetSuggestionsStr = JSON.stringify(seqIndicesWithoutDatasetSuggestions)
+  return wasmCallGuard.call(() =>
+    NextcladeWasm.serialize_unknown_csv(errorsStr, seqIndicesWithoutDatasetSuggestionsStr, delimiter),
   )
 }
 
 export async function serializeResultsGff(results: AnalysisResult[]) {
-  return NextcladeWasm.serialize_results_gff(JSON.stringify(results))
+  const resultsStr = JSON.stringify(results)
+  return wasmCallGuard.call(() => NextcladeWasm.serialize_results_gff(resultsStr))
 }
 
 export async function serializeResultsTbl(results: AnalysisResult[]) {
-  return NextcladeWasm.serialize_results_tbl(JSON.stringify(results))
+  const resultsStr = JSON.stringify(results)
+  return wasmCallGuard.call(() => NextcladeWasm.serialize_results_tbl(resultsStr))
 }
 
 const worker = {

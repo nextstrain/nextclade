@@ -26,7 +26,7 @@ pub fn jserr2<T>(result: Result<T, JsValue>) -> Result<T, JsError> {
 /// This hook uses `wasm_bindgen::throw_val()` which does not run Rust destructors. This is
 /// acceptable because:
 /// - WASM defaults to `panic=abort` which doesn't run destructors anyway
-/// - Panic state means WASM instance is compromised and will be destroyed
+/// - Panic state means WASM instance is compromised: the worker refuses every later call on it
 /// - WASM linear memory is freed when the instance is garbage collected
 /// - Nextclade workers destroy the WASM instance after any panic
 ///
