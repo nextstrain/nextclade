@@ -183,6 +183,10 @@ jobs:
         run: |
           ./docker/dev web bun lint:ci
 
+      - name: "Run web app unit tests"
+        run: |
+          ./docker/dev app-test-unit
+
       - name: "Lint Rust code"
         run: |
           ./docker/dev lint-ci

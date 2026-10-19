@@ -54,6 +54,9 @@
 # * Lint web app (tsc only):
 #   ./docker/dev at
 #
+# * Run web app unit tests:
+#   ./docker/dev atu
+#
 # * Format Rust code:
 #   ./docker/dev f
 #
@@ -331,6 +334,12 @@ case "${1:-}" in
   shift
   WEB=1
   RELEASE="tsc:watch"
+  WATCH=0
+  ;;
+"app-test-unit" | "atu")
+  shift
+  WEB=1
+  RELEASE="run test:unit"
   WATCH=0
   ;;
 "app-format" | "af")
