@@ -2,24 +2,18 @@
 
 ## Motivation
 
-All WASM traps (OOM, panics, arithmetic errors, etc.) surface as `RuntimeError: unreachable` with no diagnostic context. Users see a cryptic error popup with message "unreachable" and a "Restart Nextclade" button. No guidance on cause or remediation.
+WASM traps (OOM, panics after the first one, arithmetic errors, etc.) surface as `RuntimeError: unreachable` with no diagnostic context. Users see a cryptic error popup with message "unreachable" and a "Restart Nextclade" button. No guidance on cause or remediation.
 
-The primary trigger is OOM when analyzing large-genome pathogens (mpox, ~197 kb) in the browser. Each of the 3 web workers loads a full dataset copy + alignment matrices into separate WASM instances, exceeding the 4 GB WASM address space. The CLI handles the same workload (4 GB RSS, single-threaded).
+The known trigger of OOM is a single large alignment: a sequence whose alignment band needs more memory than the 4 GiB WASM address space of one worker. Each web worker has its own WASM memory, so the number of workers does not change this limit. Matrix allocation of the nucleotide alignment is fallible and gives a per-sequence error, but other allocations still abort.
 
-## Background: why the current panic hook is broken
+## Background: the panic hook
 
-The panic hook at `packages/nextclade-web/src/wasm/jserr.rs:44` uses `wasm_bindgen::throw_val()` to throw a JS `Error` with name `ErrorInternalWasm`. This was intended to convert Rust panics into readable JS errors.
+The panic hook at `packages/nextclade-web/src/wasm/jserr.rs` uses `wasm_bindgen::throw_val()` to throw a JS `Error` with name `ErrorInternalWasm`. With `panic = "abort"` ([.cargo/config.toml#L62](../../.cargo/config.toml#L62)), the hook runs before the abort instruction. Since 3.19.0 the hook works for the first panic of an instance: the JS throw leaves the WASM frames before the abort can run, so the `ErrorInternalWasm` error reaches the JS caller. A probe build with the same hook confirmed this.
 
-With `panic = "abort"` (configured in `.cargo/config.toml:62`), the sequence is:
+Limits:
 
-1. Panic hook runs, calls `throw_val()` which calls JS import `__wbindgen_rethrow` (does `throw arg0`)
-2. The JS throw exits the imported function
-3. WASM abort instruction fires, producing `RuntimeError: unreachable`
-4. The `RuntimeError` is what propagates to the JS caller, masking the thrown error from step 1
-
-The custom error from `throw_val()` is lost. The panic hook has never produced its intended `ErrorInternalWasm` errors in production.
-
-OOM does not reach the panic hook at all: `std::alloc::handle_alloc_error` -> `abort()` directly, bypassing the panic mechanism entirely.
+- A second panic in the same instance skips the hook and traps with `RuntimeError: unreachable`
+- OOM does not reach the panic hook at all: `std::alloc::handle_alloc_error` -> `abort()` directly, bypassing the panic mechanism entirely
 
 ## Research findings
 
@@ -44,6 +38,8 @@ Results (identical across Chrome 146 and Node v24.15):
 
 Key finding: `error.message` is NOT useful for classification. OOM, panic, div-by-zero, and explicit unreachable all produce `"unreachable"`. Classification must use `error.stack` content or `error` type.
 
+Stack fingerprints work only in builds with function names. Release builds strip them (`strip = true`, [.cargo/config.toml#L63](../../.cargo/config.toml#L63)), and the error report of a 3.25.0 production crash shows only frames such as `wasm-function[6006]`. Matching `rust_oom` or `rust_panic` in `error.stack` therefore works only in dev builds. Production classification needs another signal, for example a name section kept for the Rust runtime functions, or a flag that a custom allocator sets before it aborts.
+
 Example OOM stack (Chrome 146):
 
 ```
@@ -67,7 +63,7 @@ RuntimeError: unreachable
 
 ### Stash-based panic message recovery
 
-The `throw_val()` approach fails (see "why the current panic hook is broken" above). An alternative was tested: the panic hook calls a JS import function that stores the message in a JS variable (the "stash"), instead of throwing.
+The `throw_val()` approach works only for the first panic of an instance (see "Background: the panic hook" above). An alternative was tested: the panic hook calls a JS import function that stores the message in a JS variable (the "stash"), instead of throwing.
 
 ```rust
 // In panic hook:
@@ -100,7 +96,7 @@ Combined results with stash hook + stack fingerprinting:
 
 This is a known gap in the Rust WASM ecosystem. When `std::alloc::handle_alloc_error` fires, it calls `abort()` which compiles to the WASM `unreachable` instruction. There is no stable Rust mechanism to convert OOM into a catchable error. The nightly `set_alloc_error_hook` API ([rust-lang/rust#51245](https://github.com/rust-lang/rust/issues/51245)) is the intended solution, but stabilization is blocked on reentrancy concerns. The `-Z oom=panic` compiler flag was [removed](https://github.com/rust-lang/rust/pull/147725) in 2025.
 
-The stack fingerprinting approach in this ticket works around the limitation by detecting OOM after the fact from the JS side, without requiring any unstable Rust features. The trade-off: the WASM instance is corrupted after the trap and must be destroyed. This ticket does not add recovery (restarting with fewer workers), only better error reporting.
+The stack fingerprinting approach in this ticket works around the limitation by detecting OOM after the fact from the JS side, without requiring any unstable Rust features. The trade-off: the WASM instance is corrupted after the trap and must be destroyed. This ticket does not add recovery (worker replacement), only better error reporting.
 
 ### Same problem in other Rust WASM projects
 
@@ -174,13 +170,13 @@ function callWasm<T>(fn: () => T): T {
 
 ### Error messages
 
-- `ErrorWasmOutOfMemory`: "Analysis ran out of memory. Try reducing the number of CPU threads in Settings (try 1), reducing the number of input sequences, or using Nextclade CLI which does not have browser memory limits."
+- `ErrorWasmOutOfMemory`: "Analysis ran out of memory while allocating {size}. Nextclade CLI does not have the 4 GiB memory limit of the browser." The size comes from the signal that detects the OOM, for example the allocation size that a custom allocator records before it aborts. Without a known size, the message omits it
 - `ErrorWasmPanic` (with message): the verbatim Rust panic message + source location, formatted as "Internal Error: {message}. Location: {location}. This is an internal issue. Please report it to developers."
 - `ErrorWasmPanic` (no message): "Internal error in the analysis engine. Please report it to developers."
 - `ErrorWasmInternal`: "Internal WebAssembly error ({detail}). Please report it to developers."
-- No fingerprint match (fallback, covers Firefox where stack symbols may be mangled): "Internal WebAssembly error, possibly caused by running out of memory. If analyzing large genomes, try reducing the number of CPU threads in Settings or using Nextclade CLI."
+- No fingerprint match (fallback, covers Firefox where stack symbols may be mangled): "Internal WebAssembly error, possibly caused by running out of memory. If analyzing large genomes, try Nextclade CLI."
 
-Firefox may mangle Rust symbols in WASM stack traces (Mozilla bug 1519569, also noted in `jserr.rs:63`). If `rust_oom` and `rust_panic` are absent from the stack, the fallback message applies. The fallback mentions memory as a possible cause so the advice to reduce threads is contextually motivated.
+Firefox may mangle Rust symbols in WASM stack traces (Mozilla bug 1519569, also noted in `jserr.rs:63`). If `rust_oom` and `rust_panic` are absent from the stack, the fallback message applies. The fallback mentions memory as a possible cause so the advice to use Nextclade CLI is contextually motivated.
 
 ### Error class serialization across worker boundaries
 
@@ -202,7 +198,7 @@ fn panic_hook(info: &PanicHookInfo<'_>) {
   error(console_message);                    // console.error (keep)
   let js_error = Error::new_with_message(&user_message);
   js_error.set_name("ErrorInternalWasm");
-  wasm_bindgen::throw_val(js_error.into());  // BROKEN: masked by abort
+  wasm_bindgen::throw_val(js_error.into());  // first panic of an instance only
 }
 ```
 
@@ -281,11 +277,10 @@ The enrichment happens at `nextcladeWasm.worker.ts` by wrapping the WASM call wi
 ## Verification
 
 1. Build WASM: `./docker/dev W`
-2. Reproduce mpox OOM: `http://localhost:3000/?dataset-name=nextstrain/mpox/all-clades&input-fasta=example` - verify OOM-specific message with advice appears instead of "unreachable"
+2. OOM: in a debug build, add temporary large allocations that stay alive together at the start of `nextclade_run_one()` in `packages/nextclade/src/run/nextclade_run_one.rs`, for example `let _big = [vec![1_u8; 1_500_000_000], vec![1_u8; 1_500_000_000], vec![1_u8; 1_500_000_000]];`. The third allocation exceeds the 4 GiB WASM memory. Keep each allocation below 2 GiB, because on wasm32 a larger `Vec` fails with a capacity-overflow panic instead of an out-of-memory abort. Rebuild WASM, run `http://localhost:3000/?dataset-name=sars-cov-2&input-fasta=example`, and verify that the OOM-specific message with advice appears instead of "unreachable"
 3. SARS-CoV-2 analysis: `http://localhost:3000/?dataset-name=sars-cov-2&input-fasta=example` - verify normal operation unaffected
 4. Panic recovery: introduce temporary `panic!("test panic message")` in `packages/nextclade/src/run/nextclade_run_one.rs` at start of `nextclade_run_one()`, rebuild WASM, run SARS-CoV-2 analysis, verify the error popup shows "test panic message" with source location
 
-## Related
+## Related issues
 
-- `kb/known-issues/wasm-oom-large-genomes.md` - large genome OOM root cause (prevention via thread count requires `pathogen.json` changes, separate feature)
-- `kb/tickets/feat-dataset-resource-hints.md` - dataset-driven thread count limits
+- [kb/issues/M-web-fatal-wasm-error-stops-run.md](../issues/M-web-fatal-wasm-error-stops-run.md)
