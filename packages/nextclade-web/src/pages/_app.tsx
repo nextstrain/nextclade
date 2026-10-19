@@ -2,7 +2,7 @@ import 'core-js'
 import 'css.escape'
 
 import { isEmpty, isNil } from 'lodash'
-import React, { useEffect, Suspense, useMemo } from 'react'
+import React, { useEffect, Suspense, useMemo, useRef } from 'react'
 import { RecoilEnv, RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { createStore as jotaiCreateStore, Provider as JotaiProvider } from 'jotai'
 import { AppProps } from 'next/app'
@@ -76,15 +76,21 @@ function RecoilStateInitializer() {
 
   const [initialized, setInitialized] = useRecoilState(isInitializedAtom)
 
+  // Set synchronously when the initialization starts. The `initialized` state is set only after the asynchronous
+  // steps, so a repeated effect run (React strict mode runs effects twice in development) would start a second
+  // initialization, with duplicate data fetches and a second analysis run.
+  const initializationStarted = useRef(false)
+
   const run = useRunAnalysis()
   const suggest = useRunSeqAutodetectAsync()
 
   const error = useRecoilValue(globalErrorAtom)
 
   const initialize = useRecoilCallback(({ set, snapshot }) => () => {
-    if (initialized) {
+    if (initialized || initializationStarted.current) {
       return
     }
+    initializationStarted.current = true
 
     const snapShotRelease = snapshot.retain()
     const { getPromise } = snapshot
@@ -249,9 +255,7 @@ function RecoilStateInitializer() {
   useEffect(() => {
     initialize()
 
-    // HACK: empty deps array means that this effect will run only once. This is to mitigate the issue with
-    // double (triple, ..., N-tuple) initialization of the app and associated redundant multiple data
-    // fetches, automatic worker launches and data races.
+    // Empty deps: run on mount only. `initialize()` ignores repeated runs, such as the second effect run of strict mode.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
