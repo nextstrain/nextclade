@@ -8,8 +8,10 @@ import { ErrorGeneric } from 'src/components/Error/error-types/ErrorGeneric'
 import { ErrorNetworkConnectionFailure } from 'src/components/Error/error-types/ErrorNetworkConnectionFailure'
 import { ErrorNetworkRequestFailure } from 'src/components/Error/error-types/ErrorNetworkRequestFailure'
 import { NextcladeV2ErrorContent } from 'src/components/Error/error-types/NextcladeV2ErrorContent'
+import { ErrorWasmFatal } from 'src/components/Error/error-types/ErrorWasmFatal'
 import { ErrorContentExplanation, getErrorReportText } from 'src/components/Error/ErrorContentExplanation'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+import { isFatalWasmErrorName } from 'src/helpers/ErrorWasm'
 import { NextcladeV2Error } from 'src/io/fetchSingleDatasetDirectory'
 import { HttpRequestError } from 'src/io/axiosFetch'
 import { ErrorMessageMonospace } from './ErrorStyles'
@@ -51,6 +53,11 @@ export function ErrorContentMessage({ error }: { error: Error }) {
 
   if (error instanceof NextcladeV2Error) {
     return <NextcladeV2ErrorContent error={error} />
+  }
+
+  // Errors from workers lose their class, so the fatal WebAssembly errors are recognized by name
+  if (isFatalWasmErrorName(error.name)) {
+    return <ErrorWasmFatal name={error.name} message={error.message} />
   }
 
   return <ErrorGeneric error={error} />
