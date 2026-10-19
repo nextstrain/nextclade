@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": ".cache/.tsbuildinfo.test",
+    "types": [
+      "node",
+      "vitest/globals"
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.d.ts",
+    "src/**/__tests__/**/*.ts",
+    "src/**/__tests__/**/*.tsx"
+  ],
+  "exclude": [
+    "**/.build/",
+    "**/.cache/",
+    "node_modules/",
+    "src/gen/**",
+    "vendor/**"
+  ]
+}

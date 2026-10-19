@@ -69,7 +69,7 @@
     "eslint:fix": "bun eslint --config eslint.config.mjs --fix",
     "eslint:ci": "bun eslint --config eslint.config.mjs --max-warnings=0",
     "eslint:inspector": "node node_modules/.bin/eslint-config-inspector --config eslint.config.mjs",
-    "tsc": "tsgo --project tsconfig.json --noEmit",
+    "tsc": "tsgo --project tsconfig.json --noEmit && tsgo --project tsconfig.test.json --noEmit",
     "tsc:watch": "nodemon -q --exec 'bun run tsc'",
     "format": "prettier --check '**/*.{astro,js,mjs,cjs,jsx,ts,mts,cts,tsx,json,html,css,less,scss,vue,yml,yaml}'",
     "format:fix": "bun format --write",
