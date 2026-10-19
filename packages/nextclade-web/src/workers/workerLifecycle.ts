@@ -51,3 +51,39 @@ export function canStartWorkerReplacement({ isClosing }: AnalysisPoolLifecycle):
 export function canDestroyPoolWorkers({ isClosing, numPendingReplacements }: AnalysisPoolLifecycle): boolean {
   return isClosing && numPendingReplacements === 0
 }
+
+/**
+ * Lifecycle phase of an export worker:
+ *  - `active`: the worker accepts calls
+ *  - `retired`: the worker refuses new calls and waits for its calls in progress to settle
+ *  - `terminated`: the Web Worker is terminated
+ */
+export type ExportWorkerPhase = 'active' | 'retired' | 'terminated'
+
+/** Lifecycle state of an export worker */
+export interface ExportWorkerLifecycle {
+  phase: ExportWorkerPhase
+  /** Number of calls sent to the Web Worker that have not yet settled */
+  numCallsInProgress: number
+}
+
+/** Return `true` if the export worker accepts a new call */
+export function canCallExportWorker({ phase }: ExportWorkerLifecycle): boolean {
+  return phase === 'active'
+}
+
+/**
+ * Return `true` if a retired export worker may terminate its Web Worker now. Terminating a thread does not reject its
+ * pending calls, so termination waits until every call in progress has settled.
+ */
+export function canTerminateExportWorker({ phase, numCallsInProgress }: ExportWorkerLifecycle): boolean {
+  return phase === 'retired' && numCallsInProgress === 0
+}
+
+/**
+ * Return `true` if retiring a worker also releases the singleton. The singleton is released only while it still holds
+ * the retiring worker, because a newer worker may have replaced it already.
+ */
+export function shouldReleaseSingleton<T>(singleton: T | undefined, retiring: T): boolean {
+  return singleton === retiring
+}

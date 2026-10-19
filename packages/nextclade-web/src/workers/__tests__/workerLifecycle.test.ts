@@ -1,7 +1,10 @@
 import {
   analysisErrorAction,
+  canCallExportWorker,
   canDestroyPoolWorkers,
   canStartWorkerReplacement,
+  canTerminateExportWorker,
+  shouldReleaseSingleton,
 } from 'src/workers/workerLifecycle'
 
 describe('analysisErrorAction', () => {
@@ -42,6 +45,38 @@ describe('analysis pool lifecycle', () => {
 
   it('does not destroy the workers of an open pool', () => {
     expect(canDestroyPoolWorkers({ isClosing: false, numPendingReplacements: 0 })).toBe(false)
+  })
+})
+
+describe('export worker lifecycle', () => {
+  it('accepts calls only while active', () => {
+    expect(canCallExportWorker({ phase: 'active', numCallsInProgress: 2 })).toBe(true)
+    expect(canCallExportWorker({ phase: 'retired', numCallsInProgress: 2 })).toBe(false)
+    expect(canCallExportWorker({ phase: 'terminated', numCallsInProgress: 0 })).toBe(false)
+  })
+
+  it('defers the termination of a retired worker until its calls in progress have settled', () => {
+    expect(canTerminateExportWorker({ phase: 'retired', numCallsInProgress: 5 })).toBe(false)
+    expect(canTerminateExportWorker({ phase: 'retired', numCallsInProgress: 0 })).toBe(true)
+  })
+
+  it('terminates neither an active worker nor a terminated worker', () => {
+    expect(canTerminateExportWorker({ phase: 'active', numCallsInProgress: 0 })).toBe(false)
+    expect(canTerminateExportWorker({ phase: 'terminated', numCallsInProgress: 0 })).toBe(false)
+  })
+
+  it('releases the singleton when it holds the retiring worker', () => {
+    const retiring = { id: 'retiring' }
+
+    expect(shouldReleaseSingleton(retiring, retiring)).toBe(true)
+  })
+
+  it('keeps the singleton when a newer worker has replaced the retiring worker', () => {
+    const retiring = { id: 'retiring' }
+    const newer = { id: 'newer' }
+
+    expect(shouldReleaseSingleton(newer, retiring)).toBe(false)
+    expect(shouldReleaseSingleton(undefined, retiring)).toBe(false)
   })
 })
 
