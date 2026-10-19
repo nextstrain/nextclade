@@ -8,6 +8,21 @@ import { isFatalWasmErrorName } from 'src/helpers/ErrorWasm'
  */
 export const MAX_WORKER_REPLACEMENTS_PER_RUN = 3
 
+/**
+ * Size of the WebAssembly memory of an analysis worker, in bytes, above which the analysis pool replaces the worker.
+ *
+ * WebAssembly memory grows and never shrinks, so a worker keeps the high-water mark of its largest alignment for the
+ * rest of the run. In an mpox run, ordinary workers used 270-330 MB, and the worker that aligned a sequence with a band
+ * of 424M cells grew to 3.8 GB. The limit lies far from both, so that ordinary workers are kept and a worker that
+ * served a huge alignment returns its memory to the browser.
+ */
+export const MAX_WORKER_WASM_MEMORY_BYTES = 1024 * 1024 * 1024
+
+/** Return `true` if an analysis worker whose WebAssembly memory has the given size in bytes is to be replaced */
+export function shouldReplaceWorkerForMemory(wasmMemoryBytes: number): boolean {
+  return wasmMemoryBytes > MAX_WORKER_WASM_MEMORY_BYTES
+}
+
 /** Return `true` if the error means that the WebAssembly instance which threw it is broken */
 export function isFatalWasmError(error: unknown): error is Error {
   return error instanceof Error && isFatalWasmErrorName(error.name)

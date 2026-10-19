@@ -8,21 +8,25 @@ import type {
   OutputTrees,
 } from 'src/types'
 import { Thread } from 'threads'
-import type { NextcladeWasmThread } from 'src/workers/nextcladeWasm.worker'
+import type { AnalysisOutput, NextcladeWasmThread } from 'src/workers/nextcladeWasm.worker'
 import { PoolExtended } from 'src/workers/ThreadPoolExtended'
 import {
   analysisErrorAction,
   AnalysisPoolLifecycle,
   canDestroyPoolWorkers,
   canStartWorkerReplacement,
+  MAX_WORKER_WASM_MEMORY_BYTES,
+  shouldReplaceWorkerForMemory,
 } from 'src/workers/workerLifecycle'
 
 /**
  * Pool of analysis workers for one analysis run.
  *
  * The pool owns the lifecycle of its workers. A fatal WebAssembly error during the analysis of a sequence fails only
- * that sequence and replaces the broken worker (see `analysisErrorAction()`). Termination waits for pending
- * replacements, so that it never sends calls to a thread that a replacement has terminated.
+ * that sequence and replaces the broken worker (see `analysisErrorAction()`). A worker whose WebAssembly memory grew
+ * past a limit is replaced as well, because WebAssembly memory never shrinks (see `shouldReplaceWorkerForMemory()`).
+ * Termination waits for pending replacements, so that it never sends calls to a thread that a replacement has
+ * terminated.
  */
 export class AnalysisWorkerPool {
   pool!: PoolExtended<NextcladeWasmThread>
@@ -70,13 +74,18 @@ export class AnalysisWorkerPool {
   }
 
   public async analyze(datasetName: string, record: FastaRecord): Promise<NextcladeResult> {
+    // A worker is replaced inside the task that found the reason, so that no other task runs on the old instance
     const result = await this.pool.queue(async (worker) => {
+      let output: AnalysisOutput
       try {
-        return await worker.analyze(datasetName, record)
+        output = await worker.analyze(datasetName, record)
       } catch (error: unknown) {
-        // The worker is replaced inside this task, so that no other task runs on the broken instance
         return this.onAnalysisError(worker, record, error)
       }
+      if (shouldReplaceWorkerForMemory(output.wasmMemoryBytes)) {
+        await this.onWasmMemoryLimitExceeded(worker, output.wasmMemoryBytes)
+      }
+      return output.nextcladeResult
     })
 
     if (result.result) {
@@ -131,23 +140,43 @@ export class AnalysisWorkerPool {
       throw error
     }
     this.numFatalErrors += 1
-
-    if (canStartWorkerReplacement(this.lifecycle())) {
-      const replacement = this.replaceWorker(worker)
-      this.pendingReplacements.add(replacement)
-      try {
-        await replacement
-      } finally {
-        this.pendingReplacements.delete(replacement)
-      }
-    }
-
+    await this.replaceWorkerUnlessClosing(worker)
     return { index: record.index, seqName: record.seqName, error: action.message }
   }
 
   /**
-   * Replace a broken worker with a new one, created with the parameters of the run. The new worker joins the pool only
-   * after its creation succeeded, so no task runs on a worker without a WebAssembly instance.
+   * Replace a worker whose WebAssembly memory grew past the limit. The replacement does not count as a fatal error. If
+   * it fails, the pool keeps the old worker, which still works.
+   */
+  private async onWasmMemoryLimitExceeded(worker: NextcladeWasmThread, wasmMemoryBytes: number) {
+    console.info(
+      `Replacing an analysis worker: its WebAssembly memory grew to ${formatMebibytes(wasmMemoryBytes)}, ` +
+        `above the limit of ${formatMebibytes(MAX_WORKER_WASM_MEMORY_BYTES)}`,
+    )
+    try {
+      await this.replaceWorkerUnlessClosing(worker)
+    } catch (error: unknown) {
+      console.warn('Unable to replace an analysis worker after its WebAssembly memory grew past the limit:', error)
+    }
+  }
+
+  /** Replace the worker, unless the pool is closing. Termination waits for the replacement */
+  private async replaceWorkerUnlessClosing(worker: NextcladeWasmThread) {
+    if (!canStartWorkerReplacement(this.lifecycle())) {
+      return
+    }
+    const replacement = this.replaceWorker(worker)
+    this.pendingReplacements.add(replacement)
+    try {
+      await replacement
+    } finally {
+      this.pendingReplacements.delete(replacement)
+    }
+  }
+
+  /**
+   * Replace a worker with a new one, created with the parameters of the run. The new worker joins the pool only after
+   * its creation succeeded, so no task runs on a worker without a WebAssembly instance.
    */
   private async replaceWorker(worker: NextcladeWasmThread) {
     const replacement = await this.pool.spawnWorker()
@@ -174,4 +203,8 @@ export class AnalysisWorkerPool {
   private lifecycle(): AnalysisPoolLifecycle {
     return { isClosing: this.isClosing, numPendingReplacements: this.pendingReplacements.size }
   }
+}
+
+function formatMebibytes(bytes: number): string {
+  return `${Math.round(bytes / (1024 * 1024))} MiB`
 }

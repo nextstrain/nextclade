@@ -20,6 +20,7 @@ import { sanitizeError } from 'src/helpers/sanitizeError'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { prepareGeneMap } from 'src/io/prepareGeneMap'
 import { NextcladeWasm } from 'src/gen/nextclade-wasm'
+import { memory as wasmMemory } from 'src/gen/nextclade-wasm_bg.wasm'
 import { WasmCallGuard } from 'src/workers/WasmCallGuard'
 
 const gSubject = new Subject<FastaRecord>()
@@ -98,8 +99,8 @@ async function getInitialData(datasetName: string): Promise<AnalysisInitialData>
   }
 }
 
-/** Runs the underlying WebAssembly module. */
-async function analyze(datasetName: string, record: FastaRecord): Promise<NextcladeResult> {
+/** Runs the underlying WebAssembly module, and reports the size of its memory after the analysis */
+async function analyze(datasetName: string, record: FastaRecord): Promise<AnalysisOutput> {
   const wasm = getNextcladeWasm('analyze')
   const input = JSON.stringify(record)
   const outputStr = wasmCallGuard.call(() => wasm.analyze(datasetName, input))
@@ -107,7 +108,14 @@ async function analyze(datasetName: string, record: FastaRecord): Promise<Nextcl
   if (!output.result && !output.error) {
     throw new ErrorBothResultsAndErrorAreNull()
   }
-  return output
+  return { nextcladeResult: output, wasmMemoryBytes: wasmMemory.buffer.byteLength }
+}
+
+/** Output of the analysis of one sequence */
+export interface AnalysisOutput {
+  nextcladeResult: NextcladeResult
+  /** Size of the WebAssembly memory of the worker, in bytes. The memory never shrinks, so this is its high-water mark */
+  wasmMemoryBytes: number
 }
 
 /** Retrieves the output tree from the WebAssembly module. */

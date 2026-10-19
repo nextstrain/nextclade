@@ -45,6 +45,10 @@ When the analysis engine of Nextclade Web ran out of browser memory or stopped o
 
 See the [errors and warnings documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/errors-and-warnings.html) for details.
 
+### Nextclade Web: free memory after sequences with very large alignments
+
+The memory of the analysis engine in Nextclade Web grows to fit the largest alignment it computed, and the browser cannot take it back while the engine runs. After a sequence with a very large alignment band, for example some mpox sequences, an analysis worker kept several GB of memory until the end of the run, and the browser tab could crash. Nextclade Web now replaces an analysis worker whose memory grew above 1 GiB with a new worker after it finishes the current sequence, which returns the memory to the browser. The results do not change.
+
 ## 3.25.0
 
 ### Alignment: optional penalty for deletions that enter a CDS
