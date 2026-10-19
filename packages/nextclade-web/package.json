@@ -82,6 +82,8 @@
     "i18n": "bun node_modules/.bin/i18next -c config/i18next/i18next.config.js",
     "i18n:fix": "bun run tools/fixLocales.ts",
     "i18n:translate": "json-autotranslate --config=json-autotranslate.json --input=src/i18n/resources --service=amazon-translate --matcher=i18next --fix-inconsistencies --delete-unused-strings",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
@@ -177,6 +179,7 @@
     "@hapi/content": "6.0.0",
     "@next/eslint-plugin-next": "15.3.2",
     "@nuxt/friendly-errors-webpack-plugin": "2.6.0",
+    "@playwright/test": "1.50.1",
     "@svgr/webpack": "8.1.0",
     "@swc/core": "1.12.1",
     "@swc/helpers": "0.5.17",
@@ -269,9 +272,10 @@
     "stylelint": "16.19.1",
     "typescript": "5.8.3",
     "typescript-eslint": "8.32.1",
+    "vite": "8.3.4",
+    "vitest": "5.0.4",
     "webpack": "5.99.9",
-    "webpackbar": "7.0.0",
-    "@playwright/test": "1.50.1"
+    "webpackbar": "7.0.0"
   },
   "trustedDependencies": [
     "@swc/core",
