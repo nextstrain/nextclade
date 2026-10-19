@@ -1,3 +1,7 @@
+// On wasm32 the platform queries compile out, so these functions could be `const` there but not natively.
+// A `const` that exists on one target only would let callers compile on wasm32 and break on native targets.
+#![cfg_attr(target_arch = "wasm32", allow(clippy::missing_const_for_fn))]
+
 use crate::make_error;
 use clap::ValueEnum;
 use console::{Color, Style};
