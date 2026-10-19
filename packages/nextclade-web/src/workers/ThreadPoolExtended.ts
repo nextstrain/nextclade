@@ -7,6 +7,7 @@ import { spawn } from 'src/workers/spawn'
 export class PoolExtended<ThreadType extends Thread> {
   private pool: PoolType<ThreadType>
   private workers: ThreadType[] = []
+  private readonly workerFn: () => Worker
 
   private getWorkers(): WorkerDescriptor<ThreadType>[] {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -15,7 +16,8 @@ export class PoolExtended<ThreadType extends Thread> {
   }
 
   private constructor(workerFn: () => Worker, options?: PoolOptions) {
-    this.pool = createPool<ThreadType>(() => spawn<ThreadType>(workerFn()), options)
+    this.workerFn = workerFn
+    this.pool = createPool<ThreadType>(async () => this.spawnWorker(), options)
   }
 
   public static async create<ThreadType extends Thread>(workerFn: () => Worker, options?: PoolOptions) {
@@ -47,6 +49,21 @@ export class PoolExtended<ThreadType extends Thread> {
 
   public async queue<Return>(task: TaskRunFunction<ThreadType, Return>): Promise<Return> {
     return this.pool.queue(task)
+  }
+
+  /** Spawn a thread that does not belong to the pool yet, for example as a replacement in `replaceWorker()` */
+  public async spawnWorker(): Promise<ThreadType> {
+    return spawn<ThreadType>(this.workerFn())
+  }
+
+  /**
+   * Replace the given pool thread with a replacement from `spawnWorker()`, and terminate the given thread.
+   *
+   * On failure the pool is unchanged and the caller still owns the replacement.
+   */
+  public async replaceWorker(thread: ThreadType, replacement: ThreadType): Promise<void> {
+    await this.pool.replaceWorker(thread, replacement)
+    this.workers = this.workers.map((worker) => (worker === thread ? replacement : worker))
   }
 
   public async terminate(force?: boolean) {

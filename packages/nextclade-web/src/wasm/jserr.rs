@@ -28,7 +28,8 @@ pub fn jserr2<T>(result: Result<T, JsValue>) -> Result<T, JsError> {
 /// - WASM defaults to `panic=abort` which doesn't run destructors anyway
 /// - Panic state means WASM instance is compromised: the worker refuses every later call on it
 /// - WASM linear memory is freed when the instance is garbage collected
-/// - Nextclade workers destroy the WASM instance after any panic
+/// - An analysis worker that panics is replaced with a new worker, the sequence it was
+///   analyzing gets an error row, and the analysis stops after repeated fatal errors
 ///
 /// # Idempotency
 ///

@@ -39,6 +39,8 @@ class LauncherWorkerImpl {
 
   assignment!: DatasetAssignment
 
+  private destruction: Promise<void> | undefined = undefined
+
   private constructor() {}
 
   public static async create(numThreads: number, assignment: DatasetAssignment, params: NextcladeParamsRaw) {
@@ -87,8 +89,10 @@ class LauncherWorkerImpl {
     }
   }
 
+  /** Destroy the parser and the analysis pool. Every call awaits the same destruction */
   public async destroy() {
-    await Promise.all([this.fastaParser.destroy(), this.pool.terminate()])
+    this.destruction ??= Promise.all([this.fastaParser.destroy(), this.pool.terminate()]).then(() => undefined)
+    return this.destruction
   }
 
   private onSequence(record: FastaRecord) {
