@@ -1,6 +1,7 @@
 /* eslint-disable security/detect-unsafe-regex */
 import { isEmpty, isNil, trim } from 'lodash'
 import pMemoize from 'p-memoize'
+import urljoin from 'url-join'
 import { DEFAULT_DATA_OWNER, DEFAULT_DATA_REPO, DEFAULT_DATA_REPO_PATH } from 'src/constants'
 import { removeTrailingSlash } from 'src/io/url'
 import { axiosFetch } from 'src/io/axiosFetch'
@@ -69,7 +70,7 @@ export async function parseGithubRepoUrl(url_: string): Promise<GitHubRepoUrlRes
     path = '/'
   }
 
-  const directUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
+  const directUrl = urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
   return { owner, repo, branch, path, directUrl, originalUrl: url_ }
 }
 
@@ -115,7 +116,7 @@ export async function parseGitHubRepoShortcut(shortcut: string): Promise<GitHubR
   }
 
   path = !isNil(path) && path !== '/' && path !== '' ? trim(path, '/') : '/'
-  const directUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
+  const directUrl = urljoin('https://raw.githubusercontent.com', owner, repo, branch, path)
   return { owner, repo, branch, path, originalUrl: shortcut, directUrl }
 }
 
