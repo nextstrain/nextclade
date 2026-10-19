@@ -89,7 +89,7 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub score_match: i32,
 
-  /// Maximum area of the band in the alignment matrix. Alignments with large bands are slow to compute and require substantial memory. Alignment of sequences requiring bands with area larger than this value, will not be attempted and a warning will be emitted.
+  /// Maximum area of the band in the alignment matrix. Alignments with large bands are slow to compute and require substantial memory. Alignment of sequences requiring bands with area larger than this value will not be attempted and an error will be reported for the sequence.
   #[clap(long)]
   pub max_band_area: u64,
 
@@ -149,6 +149,18 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub min_seed_cover: OrderedFloat<f64>,
 
+  /// Largest allowed deletion between two consecutive seeds of the seed chain, as a multiple of the query length. A finite number of at least 0.
+  ///
+  /// When a deletion between two seeds is longer, and both parts of the chain around it hold at least `--min-seed-chain-part-cover` of the seed length, the sequence is not aligned and an error is reported. This rejects sequences whose parts match distant regions of the reference, for example both inverted terminal repeats of mpox. Large values turn the check off. The `short-sequences` alignment preset turns the check off, because its short seeds can also match far from the true position of a short query.
+  #[clap(long)]
+  pub max_seed_chain_deletion_ratio: OrderedFloat<f64>,
+
+  /// Smallest fraction of the total seed length that each part of the seed chain, before and after the deletion that `--max-seed-chain-deletion-ratio` checks, must hold for the sequence to be rejected. A finite number between 0 and 1.
+  ///
+  /// A part with fewer seeds usually stays out of the final alignment, because terminal gaps are free. Values above 0.5 turn the check off.
+  #[clap(long)]
+  pub min_seed_chain_part_cover: OrderedFloat<f64>,
+
   /// Number of times Nextclade will retry alignment with more relaxed results if alignment band boundaries are hit
   #[clap(long)]
   pub max_alignment_attempts: usize,
@@ -201,6 +213,8 @@ impl Default for AlignPairwiseParams {
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
       min_seed_cover: OrderedFloat(0.33),
+      max_seed_chain_deletion_ratio: OrderedFloat(10.0),
+      min_seed_chain_part_cover: OrderedFloat(0.2),
       kmer_length: 10,       // Should not be much larger than 1/divergence of amino acids
       kmer_distance: 50,     // Distance between successive k-mers
       min_match_length: 40,  // Experimentally determined, to keep off-target matches reasonably low
@@ -249,6 +263,7 @@ impl AlignPairwiseParams {
         allowed_mismatches: 5, // increase to keep more seeds
         window_size: 20,
         excess_bandwidth: 20,
+        max_seed_chain_deletion_ratio: OrderedFloat(f64::MAX), // short seeds also match far from the true position
         ..AlignPairwiseParams::default()
       }),
     }
@@ -279,6 +294,99 @@ Refer to user documentation for more details."#
       );
     }
 
+    let max_seed_chain_deletion_ratio = *self.max_seed_chain_deletion_ratio;
+    if !(max_seed_chain_deletion_ratio.is_finite() && max_seed_chain_deletion_ratio >= 0.0) {
+      return make_error!(
+        "Alignment parameter '--max-seed-chain-deletion-ratio' (maxSeedChainDeletionRatio) must be a finite number of at least 0, but found: {max_seed_chain_deletion_ratio}"
+      );
+    }
+
+    let min_seed_chain_part_cover = *self.min_seed_chain_part_cover;
+    if !(min_seed_chain_part_cover.is_finite() && (0.0..=1.0).contains(&min_seed_chain_part_cover)) {
+      return make_error!(
+        "Alignment parameter '--min-seed-chain-part-cover' (minSeedChainPartCover) must be a finite number between 0 and 1, but found: {min_seed_chain_part_cover}"
+      );
+    }
+
+    Ok(())
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::analyze::virus_properties::VirusProperties;
+  use crate::assert_error;
+  use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::ratio_negative(       -1.0,          0.2,           "Alignment parameter '--max-seed-chain-deletion-ratio' (maxSeedChainDeletionRatio) must be a finite number of at least 0, but found: -1")]
+  #[case::ratio_infinite(       f64::INFINITY, 0.2,           "Alignment parameter '--max-seed-chain-deletion-ratio' (maxSeedChainDeletionRatio) must be a finite number of at least 0, but found: inf")]
+  #[case::ratio_nan(            f64::NAN,      0.2,           "Alignment parameter '--max-seed-chain-deletion-ratio' (maxSeedChainDeletionRatio) must be a finite number of at least 0, but found: NaN")]
+  #[case::part_cover_negative(  10.0,          -0.1,          "Alignment parameter '--min-seed-chain-part-cover' (minSeedChainPartCover) must be a finite number between 0 and 1, but found: -0.1")]
+  #[case::part_cover_above_one( 10.0,          1.5,           "Alignment parameter '--min-seed-chain-part-cover' (minSeedChainPartCover) must be a finite number between 0 and 1, but found: 1.5")]
+  #[case::part_cover_infinite(  10.0,          f64::INFINITY, "Alignment parameter '--min-seed-chain-part-cover' (minSeedChainPartCover) must be a finite number between 0 and 1, but found: inf")]
+  #[case::part_cover_nan(       10.0,          f64::NAN,      "Alignment parameter '--min-seed-chain-part-cover' (minSeedChainPartCover) must be a finite number between 0 and 1, but found: NaN")]
+  #[trace]
+  fn test_params_rejects_seed_chain_parameters_out_of_domain(
+    #[case] max_seed_chain_deletion_ratio: f64,
+    #[case] min_seed_chain_part_cover: f64,
+    #[case] expected_message: &str,
+  ) {
+    let params = AlignPairwiseParams {
+      max_seed_chain_deletion_ratio: OrderedFloat(max_seed_chain_deletion_ratio),
+      min_seed_chain_part_cover: OrderedFloat(min_seed_chain_part_cover),
+      ..AlignPairwiseParams::default()
+    };
+
+    assert_error!(params.validate(), expected_message);
+  }
+
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::ratio_zero(           0.0,      0.2 )]
+  #[case::preset_short_seqs(    f64::MAX, 0.2 )]
+  #[case::part_cover_zero(      10.0,     0.0 )]
+  #[case::part_cover_one(       10.0,     1.0 )]
+  #[trace]
+  fn test_params_accepts_seed_chain_parameters_at_domain_bounds(
+    #[case] max_seed_chain_deletion_ratio: f64,
+    #[case] min_seed_chain_part_cover: f64,
+  ) -> Result<(), Report> {
+    let params = AlignPairwiseParams {
+      max_seed_chain_deletion_ratio: OrderedFloat(max_seed_chain_deletion_ratio),
+      min_seed_chain_part_cover: OrderedFloat(min_seed_chain_part_cover),
+      ..AlignPairwiseParams::default()
+    };
+
+    params.validate()
+  }
+
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::preset_only(          r#"{ "schemaVersion": "3.0.0" }"#,                                                  f64::MAX )]
+  #[case::pathogen_json_value(  r#"{ "schemaVersion": "3.0.0", "alignmentParams": { "maxSeedChainDeletionRatio": 10 } }"#, 10.0     )]
+  #[trace]
+  fn test_params_short_sequences_preset_turns_off_seed_chain_check_unless_dataset_sets_it(
+    #[case] pathogen_json: &str,
+    #[case] expected_ratio: f64,
+  ) -> Result<(), Report> {
+    let virus_properties = VirusProperties::from_str(&pathogen_json)?;
+    let input_params = NextcladeInputParamsOptional {
+      alignment: Some(AlignPairwiseParamsOptional::try_parse_from([
+        "nextclade",
+        "--alignment-preset",
+        "short-sequences",
+      ])?),
+      ..NextcladeInputParamsOptional::default()
+    };
+
+    let params = NextcladeInputParams::from_optional(&input_params, &virus_properties)?;
+
+    assert_eq!(OrderedFloat(expected_ratio), params.alignment.max_seed_chain_deletion_ratio);
     Ok(())
   }
 }

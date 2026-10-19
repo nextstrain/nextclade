@@ -401,7 +401,7 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
    The codon-aware penalties apply where a deletion starts. Without this penalty, a deletion that starts before a CDS and ends inside of it pays only `--penalty-gap-open`, so an ambiguous deletion can be placed over the first bases of the CDS in reference coordinates: the start codon of a forward-strand CDS, or the last codon of a reverse-strand CDS. A value of 1 or more keeps such deletions outside of the CDS when an equally good placement exists. A value greater than `--penalty-gap-open-in-frame` minus `--penalty-gap-open` also makes a deletion that cuts into a CDS more costly than an in-frame deletion inside of the CDS. Values above `--score-match` plus `--penalty-mismatch` can make the aligner add a substitution to avoid a deletion that enters a CDS. 0 disables the penalty.
 * `--penalty-mismatch <PENALTY_MISMATCH>` — Penalty for aligned nucleotides or amino acids that differ in state during alignment. Note that this is redundantly parameterized with `--score-match`
 * `--score-match <SCORE_MATCH>` — Score for matching states in nucleotide or amino acid alignments
-* `--max-band-area <MAX_BAND_AREA>` — Maximum area of the band in the alignment matrix. Alignments with large bands are slow to compute and require substantial memory. Alignment of sequences requiring bands with area larger than this value, will not be attempted and a warning will be emitted
+* `--max-band-area <MAX_BAND_AREA>` — Maximum area of the band in the alignment matrix. Alignments with large bands are slow to compute and require substantial memory. Alignment of sequences requiring bands with area larger than this value will not be attempted and an error will be reported for the sequence
 * `--retry-reverse-complement <RETRY_REVERSE_COMPLEMENT>` — Retry seed matching step with a reverse complement if the first attempt failed
 
   Possible values: `true`, `false`
@@ -426,6 +426,12 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 * `--window-size <WINDOW_SIZE>` — Size of the window within which mismatches are accumulated during seed extension
 * `--min-match-length <MIN_MATCH_LENGTH>` — Minimum length of extended k-mers
 * `--min-seed-cover <MIN_SEED_COVER>` — Fraction of the query sequence that has to be covered by extended seeds to proceed with the banded alignment
+* `--max-seed-chain-deletion-ratio <MAX_SEED_CHAIN_DELETION_RATIO>` — Largest allowed deletion between two consecutive seeds of the seed chain, as a multiple of the query length. A finite number of at least 0.
+
+   When a deletion between two seeds is longer, and both parts of the chain around it hold at least `--min-seed-chain-part-cover` of the seed length, the sequence is not aligned and an error is reported. This rejects sequences whose parts match distant regions of the reference, for example both inverted terminal repeats of mpox. Large values turn the check off. The `short-sequences` alignment preset turns the check off, because its short seeds can also match far from the true position of a short query.
+* `--min-seed-chain-part-cover <MIN_SEED_CHAIN_PART_COVER>` — Smallest fraction of the total seed length that each part of the seed chain, before and after the deletion that `--max-seed-chain-deletion-ratio` checks, must hold for the sequence to be rejected. A finite number between 0 and 1.
+
+   A part with fewer seeds usually stays out of the final alignment, because terminal gaps are free. Values above 0.5 turn the check off.
 * `--max-alignment-attempts <MAX_ALIGNMENT_ATTEMPTS>` — Number of times Nextclade will retry alignment with more relaxed results if alignment band boundaries are hit
 
 

@@ -5,7 +5,10 @@ use crate::align::gap_open::GapScoreMap;
 use crate::align::params::AlignPairwiseParams;
 use crate::align::score_matrix::{ScoreMatrixResult, score_matrix};
 use crate::align::seed_alignment::create_alignment_band;
-use crate::align::seed_match::{CodonSpacedIndex, SeedMatchesResult, get_seed_matches_maybe_reverse_complement};
+use crate::align::seed_match::{
+  CodonSpacedIndex, DistantSeedChainGap, SeedMatchesResult, find_distant_seed_chain_gap,
+  get_seed_matches_maybe_reverse_complement,
+};
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
@@ -69,6 +72,30 @@ pub fn align_nuc(
     is_reverse_complement,
   } = get_seed_matches_maybe_reverse_complement(qry_seq, ref_seq, seed_index, params)
     .wrap_err("When calculating seed matches")?;
+
+  // Checked after the orientation is chosen, so that the rejection does not start the reverse-complement retry
+  if let Some(DistantSeedChainGap {
+    ref_range_before,
+    ref_range_after,
+    deletion,
+  }) = find_distant_seed_chain_gap(
+    &seed_matches,
+    qry_len,
+    *params.max_seed_chain_deletion_ratio,
+    *params.min_seed_chain_part_cover,
+  ) {
+    return make_error!(
+      "Unable to align: the sequence matches two distant parts of the reference (positions {}-{} and {}-{}), which would need a deletion of {} nt in a sequence of {} nt. \
+      This is likely due to a sequence from repeated regions (for example inverted terminal repeats), a chimeric or concatenated sequence, or an incorrect reference sequence. \
+      The limits can be changed with the Nextclade CLI flags '--max-seed-chain-deletion-ratio' and '--min-seed-chain-part-cover', or in 'alignmentParams' of pathogen.json.",
+      ref_range_before.start + 1,
+      ref_range_before.end,
+      ref_range_after.start + 1,
+      ref_range_after.end,
+      format_number_human(deletion as u64),
+      format_number_human(qry_len as u64)
+    );
+  }
 
   let mut terminal_bandwidth = params.terminal_bandwidth as isize;
   let mut excess_bandwidth = params.excess_bandwidth as isize;
@@ -232,9 +259,11 @@ pub mod tests {
   use super::*;
   use crate::align::gap_open::{GapScoreMap, get_gap_open_close_scores_codon_aware};
   use crate::align::params::GapAlignmentSide;
+  use crate::align::seed_match::{find_distant_seed_chain_gap, get_seed_matches2};
   use crate::alphabet::nuc::{from_nuc_seq, to_nuc_seq};
   use crate::assert_error;
   use crate::gene::gene_map::GeneMap;
+  use crate::translate::complement::reverse_complement_in_place;
   use eyre::Report;
   use itertools::Itertools;
   use pretty_assertions::assert_eq;
@@ -1135,8 +1164,132 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
     Ok(())
   }
 
+  const DISTANT_PARTS_ERROR: &str = "Unable to align: the sequence matches two distant parts of the reference (positions 1001-1400 and 21001-21400), which would need a deletion of 19,600 nt in a sequence of 800 nt. This is likely due to a sequence from repeated regions (for example inverted terminal repeats), a chimeric or concatenated sequence, or an incorrect reference sequence. The limits can be changed with the Nextclade CLI flags '--max-seed-chain-deletion-ratio' and '--min-seed-chain-part-cover', or in 'alignmentParams' of pathogen.json.";
+
+  // Query of two segments of a 30 kb reference, 19,600 nt apart
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::distant( &[1_000..1_400, 21_000..21_400], 10.0, DISTANT_PARTS_ERROR )]
+  #[trace]
+  fn test_align_rejects_seed_chain_linking_distant_parts_of_reference(
+    #[case] qry_ranges: &[Range<usize>],
+    #[case] max_seed_chain_deletion_ratio: f64,
+    #[case] expected_message: &str,
+  ) {
+    let ref_seq = helpers::random_nuc_seq(30_000, 1);
+    let qry_seq = helpers::cut_segments(&ref_seq, qry_ranges);
+    let params = AlignPairwiseParams {
+      max_seed_chain_deletion_ratio: max_seed_chain_deletion_ratio.into(),
+      ..AlignPairwiseParams::default()
+    };
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &GeneMap::new(), &params);
+
+    let result = align_nuc(0, "qry", &qry_seq, &ref_seq, &CodonSpacedIndex::from_sequence(&ref_seq), &gap_open_close, &params);
+
+    assert_error!(result, expected_message);
+  }
+
+  // Queries of two segments of a 30 kb reference. Expected: internal deletions of the aligned query
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::near(                     &[1_000..1_400,  2_000..2_400],   10.0, vec![600]    )]
+  #[case::distant_one_part_small(   &[1_000..2_000, 22_000..22_150],  10.0, vec![20_000] )]
+  #[case::distant_check_turned_off( &[1_000..1_400, 21_000..21_400], 100.0, vec![19_600] )]
+  #[trace]
+  fn test_align_aligns_seed_chain_of_near_or_small_distant_parts(
+    #[case] qry_ranges: &[Range<usize>],
+    #[case] max_seed_chain_deletion_ratio: f64,
+    #[case] expected_deletions: Vec<usize>,
+  ) -> Result<(), Report> {
+    let ref_seq = helpers::random_nuc_seq(30_000, 1);
+    let qry_seq = helpers::cut_segments(&ref_seq, qry_ranges);
+    let params = AlignPairwiseParams {
+      max_seed_chain_deletion_ratio: max_seed_chain_deletion_ratio.into(),
+      ..AlignPairwiseParams::default()
+    };
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &GeneMap::new(), &params);
+
+    let alignment = align_nuc(0, "qry", &qry_seq, &ref_seq, &CodonSpacedIndex::from_sequence(&ref_seq), &gap_open_close, &params)?;
+
+    assert_eq!(
+      (from_nuc_seq(&ref_seq), expected_deletions),
+      (from_nuc_seq(&alignment.ref_seq), helpers::internal_gap_lengths(&from_nuc_seq(&alignment.qry_seq)))
+    );
+    Ok(())
+  }
+
+  // The small part of `distant_one_part_small` must get seeds, otherwise the part-cover condition is not tested. With
+  // the part-cover condition turned off, the gap between the parts is found, and its deletion is the distance of the
+  // segments in the reference minus their distance in the query: 22,000 - 2,000 = 20,000
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::part_cover_turned_off( 0.0, Some(20_000) )]
+  #[case::part_cover_0_2(        0.2, None         )]
+  #[trace]
+  fn test_align_seed_chain_of_distant_small_part_fails_only_part_cover(
+    #[case] min_seed_chain_part_cover: f64,
+    #[case] expected_deletion: Option<usize>,
+  ) -> Result<(), Report> {
+    let ref_seq = helpers::random_nuc_seq(30_000, 1);
+    let qry_seq = helpers::cut_segments(&ref_seq, &[1_000..2_000, 22_000..22_150]);
+    let params = AlignPairwiseParams::default();
+
+    let seed_matches = get_seed_matches2(&qry_seq, &ref_seq, &CodonSpacedIndex::from_sequence(&ref_seq), &params)?;
+    let gap = find_distant_seed_chain_gap(
+      &seed_matches,
+      qry_seq.len(),
+      *params.max_seed_chain_deletion_ratio,
+      min_seed_chain_part_cover,
+    );
+
+    assert_eq!(expected_deletion, gap.map(|gap| gap.deletion));
+    Ok(())
+  }
+
+  // With the reverse-complement retry, the check runs once, on the chain of the chosen orientation
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::forward_rejected_without_retry( helpers::distant_parts_with_reverse_complemented_tail, "Unable to align: the sequence matches two distant parts of the reference (positions 1001-1400 and 21001-21400), which would need a deletion of 19,600 nt in a sequence of 1,300 nt. This is likely due to a sequence from repeated regions (for example inverted terminal repeats), a chimeric or concatenated sequence, or an incorrect reference sequence. The limits can be changed with the Nextclade CLI flags '--max-seed-chain-deletion-ratio' and '--min-seed-chain-part-cover', or in 'alignmentParams' of pathogen.json.")]
+  #[case::reverse_complement_rejected(    helpers::reverse_complemented_distant_parts,         DISTANT_PARTS_ERROR)]
+  #[trace]
+  fn test_align_rejects_distant_seed_chain_of_chosen_orientation(
+    #[case]
+    #[notrace]
+    input: helpers::Input,
+    #[case] expected_message: &str,
+  ) {
+    let (ref_seq, qry_seq) = input();
+    let params = AlignPairwiseParams {
+      retry_reverse_complement: true,
+      ..AlignPairwiseParams::default()
+    };
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &GeneMap::new(), &params);
+
+    let result = align_nuc(0, "qry", &qry_seq, &ref_seq, &CodonSpacedIndex::from_sequence(&ref_seq), &gap_open_close, &params);
+
+    assert_error!(result, expected_message);
+  }
+
+  // The reverse complement of `distant_parts_with_reverse_complemented_tail` passes seed matching, so a retry after the
+  // rejection of the forward chain would align the sequence
+  #[rstest]
+  fn test_align_reverse_complement_of_distant_parts_with_reverse_complemented_tail_passes_seed_matching()
+  -> Result<(), Report> {
+    let (ref_seq, mut qry_seq) = helpers::distant_parts_with_reverse_complemented_tail();
+    reverse_complement_in_place(&mut qry_seq);
+
+    get_seed_matches2(
+      &qry_seq,
+      &ref_seq,
+      &CodonSpacedIndex::from_sequence(&ref_seq),
+      &AlignPairwiseParams::default(),
+    )?;
+    Ok(())
+  }
+
   pub mod helpers {
     use crate::alphabet::nuc::Nuc;
+    use crate::translate::complement::reverse_complement_in_place;
     use proptest::prelude::RngCore;
     use proptest::test_runner::{RngAlgorithm, TestRng};
     use std::iter::repeat_with;
@@ -1159,6 +1312,34 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
         .iter()
         .flat_map(|range| seq[range.clone()].iter().copied())
         .collect()
+    }
+
+    /// Lengths of the gap runs of an aligned sequence, without the terminal gaps
+    pub fn internal_gap_lengths(aln: &str) -> Vec<usize> {
+      aln
+        .trim_matches('-')
+        .split(|c| c != '-')
+        .filter(|run| !run.is_empty())
+        .map(str::len)
+        .collect()
+    }
+
+    /// 30 kb reference, and a query of two 400 nt segments 19,600 nt apart, followed by the reverse complement of a
+    /// 500 nt segment between them
+    pub fn distant_parts_with_reverse_complemented_tail() -> (Vec<Nuc>, Vec<Nuc>) {
+      let ref_seq = random_nuc_seq(30_000, 1);
+      let mut tail = ref_seq[10_000..10_500].to_vec();
+      reverse_complement_in_place(&mut tail);
+      let qry_seq = [cut_segments(&ref_seq, &[1_000..1_400, 21_000..21_400]), tail].concat();
+      (ref_seq, qry_seq)
+    }
+
+    /// 30 kb reference, and the reverse complement of a query of two 400 nt segments 19,600 nt apart
+    pub fn reverse_complemented_distant_parts() -> (Vec<Nuc>, Vec<Nuc>) {
+      let ref_seq = random_nuc_seq(30_000, 1);
+      let mut qry_seq = cut_segments(&ref_seq, &[1_000..1_400, 21_000..21_400]);
+      reverse_complement_in_place(&mut qry_seq);
+      (ref_seq, qry_seq)
     }
 
     /// 10 kb reference, and a query with a 200 nt insertion 30 nt before the reference end. The insertion is wider than

@@ -18,6 +18,12 @@ The warning is in the `warnings` column of TSV and CSV outputs, in the `warnings
 
 The warning for a reverse-complemented sequence was missing for datasets without a genome annotation. Nextclade now reports it for all datasets.
 
+### Alignment: reject seed chains that link distant parts of the reference
+
+Some sequences match two distant parts of the reference, for example an mpox sequence from the inverted terminal repeats, which matches both ends of the genome. Nextclade aligned such a sequence with one deletion of almost the whole genome and reported good quality, and the alignment needed several GB of memory, which crashed Nextclade Web. Nextclade now reports an error for such a sequence before the alignment, and names both parts of the reference and the implied deletion.
+
+Two new alignment parameters control the check: `--max-seed-chain-deletion-ratio` (`maxSeedChainDeletionRatio` in `alignmentParams` of `pathogen.json`, default 10) is the largest allowed deletion between two successive seeds as a multiple of the query length, and `--min-seed-chain-part-cover` (`minSeedChainPartCover`, default 0.2) is the smallest fraction of the seed length that each part of the chain around such a deletion must hold for the sequence to be rejected. The `short-sequences` alignment preset turns the check off. Results of other sequences do not change.
+
 ## 3.25.0
 
 ### Alignment: optional penalty for deletions that enter a CDS

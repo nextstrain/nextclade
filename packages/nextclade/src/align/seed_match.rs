@@ -14,6 +14,7 @@ use itertools::Itertools;
 use std::borrow::Cow;
 use std::cmp::{Reverse, max, min};
 use std::collections::{BTreeMap, VecDeque};
+use std::ops::Range;
 
 /// Copied from https://stackoverflow.com/a/75084739/7483211
 struct SkipEvery<I> {
@@ -498,6 +499,60 @@ pub fn get_seed_matches2(
   Ok(seed_matches)
 }
 
+/// Gap between two consecutive seeds of a seed chain that implies a deletion longer than the query allows
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DistantSeedChainGap {
+  /// Reference range of the chain part before the gap, from the start of its first seed to the end of its last seed
+  pub ref_range_before: Range<usize>,
+  /// Reference range of the chain part after the gap
+  pub ref_range_after: Range<usize>,
+  /// Reference distance minus query distance between the two seeds of the gap
+  pub deletion: usize,
+}
+
+/// Find the gap of the seed chain with the largest implied deletion among the gaps whose deletion is longer than
+/// `max_deletion_ratio` times the query length, and around which each part of the chain holds at least
+/// `min_part_cover` of the total seed length.
+///
+/// Such a chain links distant parts of the reference, for example both inverted terminal repeats of mpox, and its
+/// alignment band spans the whole distance.
+pub fn find_distant_seed_chain_gap(
+  seed_matches: &[SeedMatch2],
+  qry_len: usize,
+  max_deletion_ratio: f64,
+  min_part_cover: f64,
+) -> Option<DistantSeedChainGap> {
+  let (first, last) = (seed_matches.first()?, seed_matches.last()?);
+  let total_seed_length: usize = seed_matches.iter().map(|seed| seed.length).sum();
+  let max_deletion = max_deletion_ratio * qry_len as f64;
+  let holds_part_cover = |part_seed_length: usize| part_seed_length as f64 / total_seed_length as f64 >= min_part_cover;
+
+  seed_matches
+    .iter()
+    .scan(0, |seed_length_before, seed| {
+      *seed_length_before += seed.length;
+      Some(*seed_length_before)
+    })
+    .zip(seed_matches.iter().tuple_windows())
+    .filter_map(|(seed_length_before, (prev, next))| {
+      let prev_ref_end = prev.ref_pos + prev.length;
+      let prev_qry_end = prev.qry_pos + prev.length;
+      let ref_gap = next.ref_pos as isize - prev_ref_end as isize;
+      let qry_gap = next.qry_pos as isize - prev_qry_end as isize;
+      // A negative difference is an insertion
+      let deletion = usize::try_from(ref_gap - qry_gap).ok()?;
+      let is_distant = deletion as f64 > max_deletion
+        && holds_part_cover(seed_length_before)
+        && holds_part_cover(total_seed_length - seed_length_before);
+      is_distant.then(|| DistantSeedChainGap {
+        ref_range_before: first.ref_pos..prev_ref_end,
+        ref_range_after: next.ref_pos..(last.ref_pos + last.length),
+        deletion,
+      })
+    })
+    .max_by_key(|gap| gap.deletion)
+}
+
 pub struct SeedMatchesResult<'a> {
   pub qry_seq: Cow<'a, [Nuc]>,
   pub seed_matches: Vec<SeedMatch2>,
@@ -560,5 +615,44 @@ mod tests {
 
     assert_eq!(expected, actual);
     Ok(())
+  }
+
+  // Query of 1,000 nt, so the default deletion limit is 10,000 nt and a part needs 20% of the seed length
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::deletion_at_limit(         &[(0, 0, 500), (10_500, 500, 500)],                       10.0, 0.2,  None                                    )]
+  #[case::deletion_above_limit(      &[(0, 0, 500), (10_501, 500, 500)],                       10.0, 0.2,  Some((0..500, 10_501..11_001, 10_001))  )]
+  #[case::part_at_cover(             &[(0, 0, 200), (20_200, 200, 800)],                       10.0, 0.2,  Some((0..200, 20_200..21_000, 20_000))  )]
+  #[case::part_below_cover(          &[(0, 0, 199), (20_199, 199, 801)],                       10.0, 0.2,  None                                    )]
+  #[case::part_cover_above_half(     &[(0, 0, 500), (20_500, 500, 500)],                       10.0, 0.51, None                                    )]
+  #[case::one_seed(                  &[(0, 0, 1_000)],                                         0.0,  0.0,  None                                    )]
+  #[case::insertions_only(           &[(0, 0, 300), (300, 500, 300), (600, 900, 100)],         0.0,  0.0,  None                                    )]
+  #[case::small_part_hides_no_gap(   &[(0, 0, 50), (30_050, 50, 450), (50_500, 500, 500)],     10.0, 0.2,  Some((0..30_500, 50_500..51_000, 20_000)) )]
+  #[case::largest_of_two_gaps(       &[(0, 0, 300), (20_300, 300, 400), (50_700, 700, 300)],   10.0, 0.2,  Some((0..20_700, 50_700..51_000, 30_000)) )]
+  #[trace]
+  fn test_seed_match_finds_distant_seed_chain_gap(
+    #[case] seeds: &[(usize, usize, usize)],
+    #[case] max_deletion_ratio: f64,
+    #[case] min_part_cover: f64,
+    #[case] expected: Option<(Range<usize>, Range<usize>, usize)>,
+  ) {
+    let seed_matches = seeds
+      .iter()
+      .map(|&(ref_pos, qry_pos, length)| SeedMatch2 {
+        ref_pos,
+        qry_pos,
+        length,
+        offset: ref_pos as isize - qry_pos as isize,
+      })
+      .collect_vec();
+
+    let actual = find_distant_seed_chain_gap(&seed_matches, 1_000, max_deletion_ratio, min_part_cover);
+
+    let expected = expected.map(|(ref_range_before, ref_range_after, deletion)| DistantSeedChainGap {
+      ref_range_before,
+      ref_range_after,
+      deletion,
+    });
+    assert_eq!(expected, actual);
   }
 }

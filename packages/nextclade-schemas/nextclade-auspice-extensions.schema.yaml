@@ -1237,7 +1237,7 @@ definitions:
         - 'null'
         format: int32
       maxBandArea:
-        description: Maximum area of the band in the alignment matrix. Alignments with large bands are slow to compute and require substantial memory. Alignment of sequences requiring bands with area larger than this value, will not be attempted and a warning will be emitted.
+        description: Maximum area of the band in the alignment matrix. Alignments with large bands are slow to compute and require substantial memory. Alignment of sequences requiring bands with area larger than this value will not be attempted and an error will be reported for the sequence.
         type:
         - integer
         - 'null'
@@ -1315,6 +1315,24 @@ definitions:
         minimum: 0.0
       minSeedCover:
         description: Fraction of the query sequence that has to be covered by extended seeds to proceed with the banded alignment.
+        type:
+        - number
+        - 'null'
+        format: double
+      maxSeedChainDeletionRatio:
+        description: |-
+          Largest allowed deletion between two consecutive seeds of the seed chain, as a multiple of the query length. A finite number of at least 0.
+
+          When a deletion between two seeds is longer, and both parts of the chain around it hold at least `--min-seed-chain-part-cover` of the seed length, the sequence is not aligned and an error is reported. This rejects sequences whose parts match distant regions of the reference, for example both inverted terminal repeats of mpox. Large values turn the check off. The `short-sequences` alignment preset turns the check off, because its short seeds can also match far from the true position of a short query.
+        type:
+        - number
+        - 'null'
+        format: double
+      minSeedChainPartCover:
+        description: |-
+          Smallest fraction of the total seed length that each part of the seed chain, before and after the deletion that `--max-seed-chain-deletion-ratio` checks, must hold for the sequence to be rejected. A finite number between 0 and 1.
+
+          A part with fewer seeds usually stays out of the final alignment, because terminal gaps are free. Values above 0.5 turn the check off.
         type:
         - number
         - 'null'
