@@ -1,6 +1,7 @@
 import { atom, atomFamily, selector, DefaultValue } from 'recoil'
 import { mapMaybe, notUndefinedOrNull } from 'src/helpers/notUndefined'
 import type { Dataset, DatasetCollectionMeta, MinimizerIndexVersion } from 'src/types'
+import type { DatasetAssignment } from 'src/helpers/datasetAssignment'
 import { multiAtom } from 'src/state/utils/multiAtom'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { findDatasetByPath, findDatasetByPathAndTag, isLatestDatasetVersion } from 'src/helpers/sortDatasetVersions'
@@ -163,15 +164,16 @@ export function createDatasetSelection(
 //   },
 // })
 
-export const datasetNamesForAnalysisAtom = atom<string[] | undefined>({
-  key: 'datasetNamesForAnalysisAtom',
+/** Assignment of sequences to datasets in the latest analysis run */
+export const datasetAssignmentForAnalysisAtom = atom<DatasetAssignment | undefined>({
+  key: 'datasetAssignmentForAnalysisAtom',
   default: undefined,
 })
 
 export const datasetsForAnalysisAtom = selector<Dataset[] | undefined>({
   key: 'datasetsForAnalysisAtom',
   get({ get }) {
-    const datasetNamesForAnalysis = get(datasetNamesForAnalysisAtom)
+    const datasetNamesForAnalysis = get(datasetAssignmentForAnalysisAtom)?.datasetNames
     const datasets = get(datasetsAtom)
     return datasetNamesForAnalysis
       ?.map((datasetName) => findDatasetByPath(datasets, datasetName))

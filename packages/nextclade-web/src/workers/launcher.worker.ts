@@ -10,6 +10,7 @@ import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AnalysisWorkerPool } from 'src/workers/AnalysisWorkerPool'
 import { FastaParserWorker } from 'src/workers/FastaParserThread'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { DatasetAssignment, datasetNameForSequence } from 'src/helpers/datasetAssignment'
 
 export class ErrorLauncherModuleNotInitialized extends ErrorInternal {
   constructor(fnName: string) {
@@ -36,38 +37,23 @@ class LauncherWorkerImpl {
 
   pool!: AnalysisWorkerPool
 
-  datasetNames!: string[]
-
-  seqIndexToTopDatasetName?: Map<number, string>
-
-  seqIndicesWithoutDatasetSuggestions?: number[]
+  assignment!: DatasetAssignment
 
   private constructor() {}
 
-  public static async create(
-    numThreads: number,
-    datasetNames: string[],
-    seqIndexToTopDatasetName: Map<number, string> | undefined,
-    seqIndicesWithoutDatasetSuggestions: number[] | undefined,
-    params: NextcladeParamsRaw,
-  ) {
+  public static async create(numThreads: number, assignment: DatasetAssignment, params: NextcladeParamsRaw) {
     const self = new LauncherWorkerImpl()
-    await self.init(numThreads, datasetNames, seqIndexToTopDatasetName, seqIndicesWithoutDatasetSuggestions, params)
+    await self.init(numThreads, assignment, params)
     return self
   }
 
-  private async init(
-    numThreads: number,
-    datasetNames: string[],
-    seqIndexToTopDatasetName: Map<number, string> | undefined,
-    seqIndicesWithoutDatasetSuggestions: number[] | undefined,
-    params: NextcladeParamsRaw,
-  ) {
+  private async init(numThreads: number, assignment: DatasetAssignment, params: NextcladeParamsRaw) {
+    if (assignment.datasetNames.length === 0) {
+      throw new ErrorInternal('Attempted to start analysis without datasets')
+    }
     this.fastaParser = await FastaParserWorker.create()
     this.pool = await AnalysisWorkerPool.create(numThreads, params)
-    this.seqIndexToTopDatasetName = seqIndexToTopDatasetName
-    this.seqIndicesWithoutDatasetSuggestions = seqIndicesWithoutDatasetSuggestions
-    this.datasetNames = datasetNames
+    this.assignment = assignment
   }
 
   async getInitialData(datasetName: string) {
@@ -88,7 +74,7 @@ class LauncherWorkerImpl {
       await this.pool.completed()
 
       this.analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.buildingTree)
-      const trees = await this.pool.getOutputTrees(this.datasetNames)
+      const trees = await this.pool.getOutputTrees(this.assignment.datasetNames)
 
       this.treeObservable.next(trees)
 
@@ -111,18 +97,14 @@ class LauncherWorkerImpl {
   }
 
   private async onSequenceImpl(record: FastaRecord) {
-    if (this.seqIndicesWithoutDatasetSuggestions?.includes(record.index)) {
+    const datasetName = datasetNameForSequence(this.assignment, record.index)
+    if (!datasetName) {
       this.analysisResultsObservable.next({
         index: record.index,
         seqName: record.seqName,
         error: 'Unable to detect reference dataset',
       })
       return
-    }
-
-    const datasetName = this.seqIndexToTopDatasetName?.get(record.index) ?? this.datasetNames[0]
-    if (!datasetName) {
-      throw new ErrorInternal(`Unable to find selected dataset for sequence #${record.index} '${record.seqName}'`)
     }
     const result = await this.pool.analyze(datasetName, record)
     this.analysisResultsObservable.next(result)
@@ -139,20 +121,8 @@ let launcher: LauncherWorkerImpl | undefined
 
 // noinspection JSUnusedGlobalSymbols
 const worker = {
-  async init(
-    numThreads: number,
-    datasetNames: string[],
-    seqIndexToTopDatasetName: Map<number, string> | undefined,
-    seqIndicesWithoutDatasetSuggestions: number[] | undefined,
-    params: NextcladeParamsRaw,
-  ) {
-    launcher = await LauncherWorkerImpl.create(
-      numThreads,
-      datasetNames,
-      seqIndexToTopDatasetName,
-      seqIndicesWithoutDatasetSuggestions,
-      params,
-    )
+  async init(numThreads: number, assignment: DatasetAssignment, params: NextcladeParamsRaw) {
+    launcher = await LauncherWorkerImpl.create(numThreads, assignment, params)
   },
   async getInitialData(datasetName: string) {
     if (!launcher) {

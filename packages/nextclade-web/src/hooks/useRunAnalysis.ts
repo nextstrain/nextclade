@@ -9,6 +9,7 @@ import { useRef } from 'react'
 import { REF_NODE_ROOT } from 'src/constants'
 import { resolveRefNodeIds } from 'src/helpers/refNodeDropdown'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import type { DatasetAssignment } from 'src/helpers/datasetAssignment'
 import {
   seqIndexToTopDatasetNameAtom,
   seqIndicesWithoutDatasetSuggestionsAtom,
@@ -29,7 +30,7 @@ import { sanitizeError } from 'src/helpers/sanitizeError'
 import {
   cdsOrderPreferenceAtom,
   allCdsOrderPreferenceAtom,
-  datasetNamesForAnalysisAtom,
+  datasetAssignmentForAnalysisAtom,
   datasetSingleCurrentAtom,
   viewedDatasetNameAtom,
 } from 'src/state/dataset.state'
@@ -203,15 +204,18 @@ export function useRunAnalysis() {
 
             const datasets = findDatasets(isSingle, datasetSingleCurrent, topSuggestedDatasets)
             const datasetNames = datasets.map((dataset) => dataset.path)
-            set(datasetNamesForAnalysisAtom, datasetNames)
+            const assignment: DatasetAssignment = {
+              datasetNames,
+              seqIndexToDatasetName: !isSingle ? seqIndexToTopDatasetName : undefined,
+              seqIndicesWithoutDataset: !isSingle ? new Set(seqIndicesWithoutDatasetSuggestions) : undefined,
+            }
+            set(datasetAssignmentForAnalysisAtom, assignment)
             if (!isNil(datasetNames[0])) {
               set(viewedDatasetNameAtom, datasetNames[0])
             }
             const params: NextcladeParamsRaw = await resolveParams(tree, overrides, datasets)
             return launchAnalysis(
-              datasetNames,
-              !isSingle ? seqIndexToTopDatasetName : undefined,
-              !isSingle ? seqIndicesWithoutDatasetSuggestions : undefined,
+              assignment,
               qry,
               params,
               callbacks,

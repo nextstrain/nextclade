@@ -28,6 +28,12 @@ Two new alignment parameters control the check: `--max-seed-chain-deletion-ratio
 
 Nextclade now compiles the regular expressions of `aaMotifs` in `pathogen.json` once, when the dataset loads. An invalid regular expression, for example `N[^P` with an unclosed character class, now gives an error that names the `aaMotifs` entry and the regular expression. Before, Nextclade CLI crashed with a backtrace and Nextclade Web aborted while it loaded the dataset. Results for valid datasets do not change.
 
+### Nextclade Web: failed sequences in the exported results
+
+The CSV, TSV, JSON and NDJSON results that Nextclade Web exports for a dataset, and the same files in the archive, now contain the sequences for which the analysis failed, with their error message. Before, Nextclade Web left these sequences out of the export files, and they were visible only in the results table. The Nextclade CLI output files already contained them.
+
+In a run with several datasets, a failed sequence is in the files of the dataset that Nextclade selected for this sequence. Sequences for which Nextclade did not find a dataset stay in the separate export of unclassified sequences.
+
 ## 3.25.0
 
 ### Alignment: optional penalty for deletions that enter a CDS

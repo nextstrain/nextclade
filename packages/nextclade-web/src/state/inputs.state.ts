@@ -7,6 +7,7 @@ import { AlgorithmGlobalStatus } from 'src/types'
 import { clearAllFiltersAtom } from 'src/state/resultFilters.state'
 import { allTreesAtom, allTreesNwkAtom, analysisResultsAtom, analysisStatusGlobalAtom } from 'src/state/results.state'
 import { allViewedCdsAtom } from 'src/state/seqViewSettings.state'
+import { datasetAssignmentForAnalysisAtom } from 'src/state/dataset.state'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { useResetSuggestionsAndDatasets } from 'src/hooks/useResetSuggestions'
 
@@ -22,6 +23,7 @@ export function useQuerySeqInputs() {
 
   const resetAnalysisStatusGlobal = useSetAtom(analysisStatusGlobalAtom)
   const resetAnalysisResults = useSetAtom(analysisResultsAtom)
+  const resetDatasetAssignment = useResetRecoilState(datasetAssignmentForAnalysisAtom)
   const resetTree = useResetRecoilState(allTreesAtom)
   const resetNwkTree = useResetRecoilState(allTreesNwkAtom)
   const resetViewedCds = useResetRecoilState(allViewedCdsAtom)
@@ -32,6 +34,7 @@ export function useQuerySeqInputs() {
     resetSuggestionsAndDatasets()
     resetAnalysisStatusGlobal(AlgorithmGlobalStatus.idle)
     resetAnalysisResults([])
+    resetDatasetAssignment()
     resetTree()
     resetNwkTree()
     resetViewedCds()
@@ -42,6 +45,7 @@ export function useQuerySeqInputs() {
     resetAnalysisResults,
     resetAnalysisStatusGlobal,
     resetCdsOrderPreference,
+    resetDatasetAssignment,
     resetNwkTree,
     resetSuggestionsAndDatasets,
     resetTree,

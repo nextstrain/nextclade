@@ -14,6 +14,7 @@ import type {
   PhenotypeAttrDesc,
 } from 'src/types'
 import type { CladeNodeAttrDesc } from 'auspice'
+import { DatasetAssignment, selectDatasetErrors } from 'src/helpers/datasetAssignment'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { saveBase64File, saveFile, saveZip, ZipFileDescription } from 'src/helpers/saveFile'
@@ -31,6 +32,7 @@ import {
   treeAtom,
   treeNwkAtom,
 } from 'src/state/results.state'
+import { datasetAssignmentForAnalysisAtom } from 'src/state/dataset.state'
 import { ExportWorker } from 'src/workers/ExportThread'
 
 // Stable fallback, so that hook dependencies do not change on every render
@@ -137,17 +139,15 @@ function mapGoodResults<T>(results: NextcladeResult[], datasetName: string, mapF
     })
 }
 
-function mapErrors<T>(results: NextcladeResult[], datasetName: string, mapFn: (result: AnalysisError) => T): T[] {
-  const filteredResults = results.filter((result) => result.result?.analysisResult.datasetName === datasetName)
-
-  return filteredResults
-    .filter((result) => notUndefinedOrNull(result.error))
-    .map(({ error, seqName, index }) => {
-      if (!error) {
-        throw new ErrorInternal('When preparing analysis errors for export: expected error to be non-nil')
-      }
-      return mapFn({ index, seqName, errors: [error] })
-    })
+function selectErrors(
+  analysisResults: NextcladeResult[],
+  datasetName: string,
+  assignment: DatasetAssignment | undefined,
+): AnalysisError[] {
+  if (!assignment) {
+    throw new ErrorInternal('When preparing analysis errors for export: dataset assignment is not initialized')
+  }
+  return selectDatasetErrors(analysisResults, datasetName, assignment)
 }
 
 async function prepareCsvData(
@@ -267,6 +267,7 @@ export function useExportExcel() {
 
 export function useExportJson({ datasetName }: { datasetName: string }) {
   const analysisResults = useAtomValue(analysisResultsAtom)
+  const datasetAssignment = useRecoilValue(datasetAssignmentForAnalysisAtom)
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
   const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
@@ -274,12 +275,12 @@ export function useExportJson({ datasetName }: { datasetName: string }) {
   const exportFn = useCallback(
     async (filename: string, worker: ExportWorker) => {
       const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
-      const errors = mapErrors(analysisResults, datasetName, (err) => err)
+      const errors = selectErrors(analysisResults, datasetName, datasetAssignment)
 
       const jsonStr = await prepareJsonData(results, errors, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, worker)
       saveFile(jsonStr, filename, 'application/json;charset=utf-8')
     },
-    [analysisResults, datasetName, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes],
+    [analysisResults, datasetName, datasetAssignment, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes],
   )
 
   return useResultsExport(exportFn)
@@ -356,6 +357,7 @@ export const useExportTbl = createSimpleResultExportHook(
 async function prepareAllExportData(
   analysisResults: NextcladeResult[],
   datasetName: string,
+  datasetAssignment: DatasetAssignment | undefined,
   cladeNodeAttrDescs: CladeNodeAttrDesc[] | undefined,
   phenotypeAttrDescs: PhenotypeAttrDesc[] | undefined,
   refNodes: AuspiceRefNodesDesc | undefined,
@@ -365,7 +367,7 @@ async function prepareAllExportData(
   worker: ExportWorker,
 ) {
   const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
-  const errors = mapErrors(analysisResults, datasetName, (err) => err)
+  const errors = selectErrors(analysisResults, datasetName, datasetAssignment)
 
   if (!csvColumnConfig) {
     throw new ErrorInternal('CSV column config is not initialized, but it should be')
@@ -419,6 +421,7 @@ async function prepareAllExportData(
 
 export function useExportZip({ datasetName }: { datasetName: string }) {
   const analysisResults = useAtomValue(analysisResultsAtom)
+  const datasetAssignment = useRecoilValue(datasetAssignmentForAnalysisAtom)
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
   const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
@@ -433,6 +436,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
       const exportData = await prepareAllExportData(
         analysisResults,
         datasetName,
+        datasetAssignment,
         cladeNodeAttrDescs,
         phenotypeAttrDescs,
         refNodes,
@@ -473,6 +477,7 @@ export function useExportZip({ datasetName }: { datasetName: string }) {
     [
       analysisResults,
       datasetName,
+      datasetAssignment,
       cladeNodeAttrDescs,
       phenotypeAttrDescs,
       refNodes,
@@ -506,6 +511,7 @@ export function useExportUnknownSeqTsv() {
 function createCsvExportHook(delimiter: string, mimeType: string) {
   return function csvExportHook({ datasetName }: { datasetName: string }) {
     const analysisResults = useAtomValue(analysisResultsAtom)
+    const datasetAssignment = useRecoilValue(datasetAssignmentForAnalysisAtom)
     const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
     const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
     const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
@@ -516,7 +522,7 @@ function createCsvExportHook(delimiter: string, mimeType: string) {
     const exportFn = useCallback(
       async (filename: string, worker: ExportWorker) => {
         const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
-        const errors = mapErrors(analysisResults, datasetName, (err) => err)
+        const errors = selectErrors(analysisResults, datasetName, datasetAssignment)
 
         if (!csvColumnConfig) {
           throw new ErrorInternal('CSV column config is not initialized, but it should be')
@@ -536,7 +542,17 @@ function createCsvExportHook(delimiter: string, mimeType: string) {
         )
         saveFile(csvStr, filename, mimeType)
       },
-      [analysisResults, datasetName, cladeNodeAttrDescs, phenotypeAttrDescs, refNodes, aaMotifsDescs, mutationPatternKeys, csvColumnConfig],
+      [
+        analysisResults,
+        datasetName,
+        datasetAssignment,
+        cladeNodeAttrDescs,
+        phenotypeAttrDescs,
+        refNodes,
+        aaMotifsDescs,
+        mutationPatternKeys,
+        csvColumnConfig,
+      ],
     )
 
     return useResultsExport(exportFn)
@@ -569,15 +585,16 @@ function createResultErrorExportHook(
 ) {
   return function resultErrorExportHook({ datasetName }: { datasetName: string }) {
     const analysisResults = useAtomValue(analysisResultsAtom)
+    const datasetAssignment = useRecoilValue(datasetAssignmentForAnalysisAtom)
 
     const exportFn = useCallback(
       async (filename: string, worker: ExportWorker) => {
         const results = mapGoodResults(analysisResults, datasetName, (result) => result.analysisResult)
-        const errors = mapErrors(analysisResults, datasetName, (err) => err)
+        const errors = selectErrors(analysisResults, datasetName, datasetAssignment)
         const data = await workerMethod(worker, results, errors)
         saveFile(data, filename, mimeType)
       },
-      [analysisResults, datasetName],
+      [analysisResults, datasetName, datasetAssignment],
     )
 
     return useResultsExport(exportFn)

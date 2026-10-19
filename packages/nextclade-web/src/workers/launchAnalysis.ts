@@ -9,6 +9,7 @@ import type {
   OutputTrees,
 } from 'src/types'
 import { AlgorithmGlobalStatus } from 'src/types'
+import type { DatasetAssignment } from 'src/helpers/datasetAssignment'
 import type { LauncherThread } from 'src/workers/launcher.worker'
 import { spawn } from 'src/workers/spawn'
 
@@ -29,9 +30,7 @@ export interface LaunchAnalysisCallbacks {
 }
 
 export async function launchAnalysis(
-  datasetNames: string[],
-  seqIndexToTopDatasetName: Map<number, string> | undefined,
-  seqIndicesWithoutDatasetSuggestions: number[] | undefined,
+  assignment: DatasetAssignment,
   qryFastaInputs: AlgorithmInput[],
   params: NextcladeParamsRaw,
   callbacks: LaunchAnalysisCallbacks,
@@ -48,13 +47,7 @@ export async function launchAnalysis(
   )
 
   try {
-    await launcherWorker.init(
-      numThreads,
-      datasetNames,
-      seqIndexToTopDatasetName,
-      seqIndicesWithoutDatasetSuggestions,
-      params,
-    )
+    await launcherWorker.init(numThreads, assignment, params)
 
     // Subscribe to launcher worker events
     const subscriptions = [
@@ -68,7 +61,7 @@ export async function launchAnalysis(
         const initialData = await launcherWorker.getInitialData(datasetName)
         initialData.csvColumnConfigDefault = merge(initialData.csvColumnConfigDefault, csvColumnConfig)
         onInitialData(datasetName, initialData)
-      }, datasetNames)
+      }, assignment.datasetNames)
 
       // Run the launcher worker
       await launcherWorker.launch(qryFastaStr)
