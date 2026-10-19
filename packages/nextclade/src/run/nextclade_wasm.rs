@@ -2,7 +2,7 @@ use crate::align::gap_open::{GapScoreMap, get_gap_open_close_scores_codon_aware,
 use crate::align::seed_match::CodonSpacedIndex;
 use crate::alphabet::letter::{serde_deserialize_seq, serde_serialize_seq};
 use crate::alphabet::nuc::{Nuc, to_nuc_seq, to_nuc_seq_replacing};
-use crate::analyze::find_aa_motifs::find_aa_motifs;
+use crate::analyze::find_aa_motifs::{AaMotifsSearch, find_aa_motifs};
 use crate::analyze::find_aa_motifs_changes::AaMotifsMap;
 use crate::analyze::find_lost_start_codons::find_cdses_with_start_codon;
 use crate::analyze::mutation_patterns::MutationPatterns;
@@ -294,6 +294,7 @@ pub struct Nextclade {
   pub aa_motifs_ref: AaMotifsMap,
   pub aa_motifs_descs: Vec<AaMotifsDesc>,
   pub aa_motifs_keys: Vec<String>,
+  pub aa_motifs_search: AaMotifsSearch,
 
   // If mutation patterns are configured
   pub mutation_patterns: MutationPatterns,
@@ -345,6 +346,8 @@ impl Nextclade {
 
     validate_ref_seq(&ref_record.seq_name, &ref_seq)?;
 
+    let aa_motifs_search = AaMotifsSearch::new(&virus_properties.aa_motifs)?;
+
     // If genome annotation is present, calculate AA-related parameters
     let InitialStateWithAa {
       gap_open_close_nuc,
@@ -360,8 +363,7 @@ impl Nextclade {
       let ref_translation =
         translate_genes_ref(&ref_seq, &gene_map, &params.alignment).wrap_err("When translating reference sequence")?;
 
-      let aa_motifs_ref = find_aa_motifs(&virus_properties.aa_motifs, &ref_translation)
-        .wrap_err("When searching AA motifs in reference translation")?;
+      let aa_motifs_ref = find_aa_motifs(&aa_motifs_search, &ref_translation);
 
       InitialStateWithAa {
         gap_open_close_nuc,
@@ -427,6 +429,7 @@ impl Nextclade {
       aa_motifs_ref,
       aa_motifs_descs,
       aa_motifs_keys,
+      aa_motifs_search,
       mutation_patterns,
       graph,
       clade_attr_descs,

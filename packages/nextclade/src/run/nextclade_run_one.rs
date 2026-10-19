@@ -444,7 +444,7 @@ pub fn nextclade_run_one(
     NextcladeResultWithGraph::default()
   };
 
-  let aa_motifs = find_aa_motifs(&virus_properties.aa_motifs, &translation)?;
+  let aa_motifs = find_aa_motifs(&state.aa_motifs_search, &translation);
   let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_translation, &translation)?;
 
   let nearest_node_mutations = graph
