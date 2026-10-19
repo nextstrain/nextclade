@@ -21,12 +21,12 @@ fn align_pairwise<T: Letter<T>>(
   gap_open_close: &GapScoreMap,
   params: &AlignPairwiseParams,
   stripes: &[Stripe],
-) -> AlignmentOutput<T> {
+) -> Result<AlignmentOutput<T>, Report> {
   trace!("Align pairwise: started. Params: {params:?}");
 
-  let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, stripes, params);
+  let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, stripes, params)?;
 
-  backtrace(qry_seq, ref_seq, &scores, &paths)
+  Ok(backtrace(qry_seq, ref_seq, &scores, &paths))
 }
 
 /// align nucleotide sequences via seed alignment and banded smith watermann without penalizing terminal gaps
@@ -54,7 +54,7 @@ pub fn align_nuc(
     trace!(
       "When processing sequence #{index} '{seq_name}': In nucleotide alignment: Band construction: short sequences, using full matrix"
     );
-    return Ok(align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes));
+    return align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes);
   }
 
   // otherwise, determine seed matches roughly regularly spaced along the query sequence
@@ -102,7 +102,7 @@ pub fn align_nuc(
     };
   }
 
-  let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+  let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes)?;
 
   while alignment.hit_boundary && attempt < params.max_alignment_attempts {
     info!(
@@ -129,7 +129,7 @@ pub fn align_nuc(
       break;
     }
     // realign
-    alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes);
+    alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes)?;
   }
   // report success/failure of broadening of band width
   if alignment.hit_boundary {
@@ -161,7 +161,7 @@ pub fn align_aa(
   params: &AlignPairwiseParams,
   band_width: usize,
   mean_shift: i32,
-) -> AlignmentOutput<Aa> {
+) -> Result<AlignmentOutput<Aa>, Report> {
   let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
   align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)

@@ -2,6 +2,7 @@ use crate::align::band_2d::{Band2d, Stripe};
 use crate::align::gap_open::GapScoreMap;
 use crate::align::params::{AlignPairwiseParams, GapAlignmentSide};
 use crate::alphabet::letter::Letter;
+use eyre::Report;
 use log::trace;
 
 // store direction info for backtrace as bits in paths matrix
@@ -27,7 +28,7 @@ pub fn score_matrix<T: Letter<T>>(
   gap_open_close: &GapScoreMap,
   stripes: &[Stripe],
   params: &AlignPairwiseParams,
-) -> ScoreMatrixResult {
+) -> Result<ScoreMatrixResult, Report> {
   assert!(!gap_open_close.open.is_empty());
   assert!(stripes.len() > 0);
 
@@ -38,8 +39,8 @@ pub fn score_matrix<T: Letter<T>>(
 
   trace!("Score matrix: started: query_size={query_size}, ref_len={ref_len}, n_rows={n_rows}, n_cols={n_cols}");
 
-  let mut paths = Band2d::<i8>::new(stripes);
-  let mut scores = Band2d::<i32>::new(stripes);
+  let mut paths = Band2d::<i8>::new(stripes)?;
+  let mut scores = Band2d::<i32>::new(stripes)?;
   let band_size = paths.data_len();
 
   trace!("Score matrix: allocated alignment band of size={band_size}");
@@ -202,7 +203,7 @@ pub fn score_matrix<T: Letter<T>>(
       scores[(ri, qpos)] = score;
     }
   }
-  ScoreMatrixResult { scores, paths }
+  Ok(ScoreMatrixResult { scores, paths })
 }
 
 #[cfg(test)]
@@ -249,7 +250,7 @@ mod tests {
     let mut stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
     stripes[2].end = stripes[2].end - 1;
     stripes[8].begin = stripes[8].begin + 1;
-    let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params);
+    let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params)?;
 
     #[rustfmt::skip]
     let expected_scores = Band2d::<i32>::with_data(
@@ -306,7 +307,7 @@ mod tests {
     stripes[8].begin = stripes[8].begin + 1;
 
     ctx.params.gap_alignment_side = GapAlignmentSide::Right;
-    let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params);
+    let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params)?;
 
     #[rustfmt::skip]
     let expected_scores = Band2d::<i32>::with_data(

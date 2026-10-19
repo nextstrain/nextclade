@@ -162,6 +162,24 @@ pub fn format_number_human(n: u64) -> String {
   HumanFormat::default().format(n)
 }
 
+/// Format a byte size in binary units with one decimal place (e.g., "512 B", "1.5 KiB", "2.2 GiB").
+pub fn format_bytes_human(bytes: u128) -> String {
+  const UNITS: [&str; 8] = ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
+  if bytes < 1024 {
+    return format!("{bytes} B");
+  }
+  let mut value = bytes as f64 / 1024.0;
+  let mut unit = UNITS[0];
+  for next_unit in &UNITS[1..] {
+    if value < 1024.0 {
+      break;
+    }
+    value /= 1024.0;
+    unit = next_unit;
+  }
+  format!("{value:.1} {unit}")
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -209,6 +227,22 @@ mod tests {
   #[case(10_000_000_000_000, "10T")]
   fn test_format_trillions(#[case] input: u64, #[case] expected: &str) {
     let actual = format_number_human(input);
+    assert_eq!(expected, actual);
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::zero(            0,                              "0 B")]
+  #[case::below_kibibyte(  1_023,                          "1023 B")]
+  #[case::kibibyte(        1_024,                          "1.0 KiB")]
+  #[case::fractional_mib(  1_572_864,                      "1.5 MiB")]
+  #[case::gibibytes(       2_362_232_012,                  "2.2 GiB")]
+  #[case::four_gibibytes(  4 << 30,                        "4.0 GiB")]
+  #[case::above_u64(       u128::from(u64::MAX) * 4,       "64.0 EiB")]
+  #[case::above_last_unit( 2048 << 80,                     "2048.0 YiB")]
+  #[trace]
+  fn test_num_human_format_bytes(#[case] input: u128, #[case] expected: &str) {
+    let actual = format_bytes_human(input);
     assert_eq!(expected, actual);
   }
 

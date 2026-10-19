@@ -1,3 +1,5 @@
+use crate::utils::num_human::{CompactStyle, HumanFormat, format_bytes_human};
+use eyre::{Report, eyre};
 use num_traits::{NumCast, ToPrimitive};
 use std::fmt::{self, Display};
 use std::ops::{Index, IndexMut};
@@ -84,10 +86,31 @@ impl<T> Band2d<T>
 where
   T: Default + Clone,
 {
-  pub fn new(stripes: &[Stripe]) -> Self {
-    let (n_rows, _, row_start_points) = calculate_dimensions(stripes);
-    let data: Vec<T> = vec![T::default(); row_start_points[n_rows]];
-    Self::with_data(stripes, &data)
+  /// Create a band with every cell set to the default value.
+  ///
+  /// Return an error instead of aborting when the cell buffer cannot be allocated, because large alignment bands can
+  /// exceed the available memory, in particular the 4 GiB address space of WebAssembly.
+  pub fn new(stripes: &[Stripe]) -> Result<Self, Report> {
+    let (n_rows, n_cols, row_start_points) = calculate_dimensions(stripes);
+    let len = row_start_points[n_rows];
+    let mut data = Vec::<T>::new();
+    data.try_reserve_exact(len).map_err(|err| {
+      // Byte size in `u128`, because it can exceed `usize`, for example 4 GiB of `i32` cells on wasm32
+      let bytes = len as u128 * size_of::<T>() as u128;
+      eyre!(
+        "Unable to allocate memory for the alignment matrix ({} cells, {}): {err}",
+        HumanFormat::new().compact_style(CompactStyle::Off).format(len as u64),
+        format_bytes_human(bytes)
+      )
+    })?;
+    data.resize(len, T::default());
+    Ok(Self {
+      data,
+      stripes: stripes.to_vec(),
+      row_start_points,
+      n_rows,
+      n_cols,
+    })
   }
 
   pub fn with_data(stripes: &[Stripe], data: &[T]) -> Self {
@@ -181,7 +204,7 @@ impl<T: Default + Clone + Display> fmt::Debug for Band2d<T> {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use eyre::Report;
+  use crate::assert_error;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -215,7 +238,7 @@ mod tests {
       Stripe { begin: 5, end: 8 },
     ];
 
-    let mut band = Band2d::<i32>::new(&stripes);
+    let mut band = Band2d::<i32>::new(&stripes)?;
 
     band[(0, 0)] = 11;
     band[(0, 1)] = 12;
@@ -235,6 +258,19 @@ mod tests {
     assert_eq!(&band.row_start_points, &[0, 3, 8, 12, 16, 20, 23]);
 
     Ok(())
+  }
+
+  #[rstest]
+  fn test_band_2d_returns_error_when_band_is_too_large_to_allocate() {
+    let stripes = vec![Stripe {
+      begin: 0,
+      end: usize::MAX,
+    }];
+
+    assert_error!(
+      Band2d::<i32>::new(&stripes),
+      "Unable to allocate memory for the alignment matrix (18,446,744,073,709,551,615 cells, 64.0 EiB): memory allocation failed because the computed capacity exceeded the collection's maximum"
+    );
   }
 
   #[rstest]
