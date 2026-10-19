@@ -38,6 +38,18 @@ export interface Pool<ThreadType extends Thread> {
      */
     queue<Return>(task: TaskRunFunction<ThreadType, Return>): QueuedTask<ThreadType, Return>;
     /**
+     * Replace a pool thread with another thread and terminate the replaced thread.
+     * The caller spawns and prepares the replacement, so no task can run on a thread
+     * that is not ready. A task that runs on the replaced thread keeps its worker slot,
+     * so no other task starts on the replacement before that task finishes.
+     * Rejects without changes if the pool is terminating or the thread is not in the
+     * pool; the caller then still owns the replacement.
+     *
+     * @param thread The pool thread to replace.
+     * @param replacement The thread that takes over the worker slot.
+     */
+    replaceWorker(thread: ThreadType, replacement: ThreadType): Promise<void>;
+    /**
      * Terminate all pool threads.
      *
      * @param force Set to `true` to kill the thread even if it cannot be stopped gracefully.
@@ -75,6 +87,8 @@ declare class WorkerPool<ThreadType extends Thread> implements Pool<ThreadType> 
     completed(allowResolvingImmediately?: boolean): Promise<void>;
     events(): Observable<PoolEvent<ThreadType>>;
     queue(taskFunction: TaskRunFunction<ThreadType, any>): QueuedTask<ThreadType, any>;
+    replaceWorker(thread: ThreadType, replacement: ThreadType): Promise<void>;
+    private findWorker;
     terminate(force?: boolean): Promise<void>;
 }
 /**

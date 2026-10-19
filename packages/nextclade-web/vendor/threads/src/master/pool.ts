@@ -91,6 +91,19 @@ export interface Pool<ThreadType extends Thread> {
   queue<Return>(task: TaskRunFunction<ThreadType, Return>): QueuedTask<ThreadType, Return>
 
   /**
+   * Replace a pool thread with another thread and terminate the replaced thread.
+   * The caller spawns and prepares the replacement, so no task can run on a thread
+   * that is not ready. A task that runs on the replaced thread keeps its worker slot,
+   * so no other task starts on the replacement before that task finishes.
+   * Rejects without changes if the pool is terminating or the thread is not in the
+   * pool; the caller then still owns the replacement.
+   *
+   * @param thread The pool thread to replace.
+   * @param replacement The thread that takes over the worker slot.
+   */
+  replaceWorker(thread: ThreadType, replacement: ThreadType): Promise<void>
+
+  /**
    * Terminate all pool threads.
    *
    * @param force Set to `true` to kill the thread even if it cannot be stopped gracefully.
@@ -370,6 +383,33 @@ class WorkerPool<ThreadType extends Thread> implements Pool<ThreadType> {
     return task
   }
 
+  public async replaceWorker(thread: ThreadType, replacement: ThreadType): Promise<void> {
+    const found = await this.findWorker(thread)
+
+    if (this.isClosing) {
+      throw Error(`Cannot replace pool workers after terminate() has been called.`)
+    }
+    // The descriptor can have been replaced while the search awaited its thread
+    if (!found || found.worker.init !== found.init) {
+      throw Error(`Cannot replace a thread that does not belong to the pool.`)
+    }
+
+    this.debug(`Replacing worker #${this.workers.indexOf(found.worker) + 1}...`)
+    found.worker.init = Promise.resolve(replacement)
+    await Thread.terminate(thread)
+  }
+
+  private async findWorker(thread: ThreadType) {
+    for (const worker of this.workers) {
+      const init = worker.init
+      const candidate = await init.catch(() => undefined)
+      if (candidate === thread) {
+        return { worker, init }
+      }
+    }
+    return undefined
+  }
+
   public async terminate(force?: boolean) {
     this.isClosing = true
     if (!force) {
@@ -381,7 +421,10 @@ class WorkerPool<ThreadType extends Thread> implements Pool<ThreadType> {
     })
     this.eventSubject.complete()
     await Promise.all(
-      this.workers.map(async worker => Thread.terminate(await worker.init))
+      this.workers.map(worker => worker.init.then(
+        thread => Thread.terminate(thread),
+        () => undefined   // a worker that failed to start has no thread to terminate
+      ))
     )
   }
 }

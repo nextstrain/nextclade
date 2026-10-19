@@ -256,6 +256,33 @@ class WorkerPool {
         this.scheduleWork();
         return task;
     }
+    replaceWorker(thread, replacement) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const found = yield this.findWorker(thread);
+            if (this.isClosing) {
+                throw Error(`Cannot replace pool workers after terminate() has been called.`);
+            }
+            // The descriptor can have been replaced while the search awaited its thread
+            if (!found || found.worker.init !== found.init) {
+                throw Error(`Cannot replace a thread that does not belong to the pool.`);
+            }
+            this.debug(`Replacing worker #${this.workers.indexOf(found.worker) + 1}...`);
+            found.worker.init = Promise.resolve(replacement);
+            yield thread_1.Thread.terminate(thread);
+        });
+    }
+    findWorker(thread) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const worker of this.workers) {
+                const init = worker.init;
+                const candidate = yield init.catch(() => undefined);
+                if (candidate === thread) {
+                    return { worker, init };
+                }
+            }
+            return undefined;
+        });
+    }
     terminate(force) {
         return __awaiter(this, void 0, void 0, function* () {
             this.isClosing = true;
@@ -267,7 +294,8 @@ class WorkerPool {
                 remainingQueue: [...this.taskQueue]
             });
             this.eventSubject.complete();
-            yield Promise.all(this.workers.map((worker) => __awaiter(this, void 0, void 0, function* () { return thread_1.Thread.terminate(yield worker.init); })));
+            yield Promise.all(this.workers.map(worker => worker.init.then(thread => thread_1.Thread.terminate(thread), () => undefined // a worker that failed to start has no thread to terminate
+            )));
         });
     }
 }
