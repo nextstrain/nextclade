@@ -34,6 +34,17 @@ The CSV, TSV, JSON and NDJSON results that Nextclade Web exports for a dataset, 
 
 In a run with several datasets, a failed sequence is in the files of the dataset that Nextclade selected for this sequence. Sequences for which Nextclade did not find a dataset stay in the separate export of unclassified sequences.
 
+### Nextclade Web: internal errors fail one sequence instead of the whole analysis
+
+When the analysis engine of Nextclade Web ran out of browser memory or stopped on an internal error, Nextclade Web stopped the whole analysis with an unclear message such as `RuntimeError: unreachable`, and later calls could run on the broken engine. Now:
+
+- the error names its cause, for example "Nextclade Web ran out of browser memory while allocating 2.4 GiB" with the size of the failed allocation, or the internal error message of the analysis engine
+- only the sequence that was analyzed when the error happened fails, with this error. Nextclade Web replaces the broken analysis worker and continues with the other sequences
+- after the fourth internal error of a run, Nextclade Web stops the analysis and shows the error, because an error that repeats most likely affects every sequence
+- an internal error during an export fails only this export, and the next export runs on a new worker instead of the broken engine
+
+See the [errors and warnings documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/errors-and-warnings.html) for details.
+
 ## 3.25.0
 
 ### Alignment: optional penalty for deletions that enter a CDS

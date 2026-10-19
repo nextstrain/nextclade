@@ -333,7 +333,7 @@ Note that there is no actual programmable backend server. Nextclade Web is a sta
    bun run wasm-prod
    ```
 
-   This step might take a lot of time. The WebAssembly module and accompanying Typescript code should be been generated into `packages/nextclade-web/src/gen/`. The web application should be able to find it there.
+   This step might take a lot of time. The WebAssembly module and accompanying Typescript code should be been generated into `packages/nextclade-web/src/gen/`. The web application should be able to find it there. The output also contains a `snippets/` directory with JavaScript code that the WebAssembly module imports, for example the code that reports a failed memory allocation.
 
    Repeat this step every time you are changing Rust code.
 

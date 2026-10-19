@@ -21,6 +21,14 @@ You can find the reason for a particular failure by reading:
 - `errors` array in JSON output
 - `error` field in each entry in NDJSON output
 
+Nextclade Web exports these results for each dataset with the same failed entries.
+
+## Internal errors in Nextclade Web
+
+An internal error of the analysis engine in Nextclade Web, for example a programming mistake or a lack of browser memory, fails only the sequence that was analyzed when it happened. The sequence gets an error that names the cause, for example "Nextclade Web ran out of browser memory while allocating 2.4 GiB", and the analysis of the other sequences continues. If internal errors repeat, the defect most likely affects every sequence, so Nextclade Web stops the analysis after the fourth internal error of a run and shows the error.
+
+An internal error during an export fails only this export. The next export works normally.
+
 ## Warnings
 
 A warning does not stop the analysis of a sequence. You can find warnings in:
