@@ -45,6 +45,9 @@
 # * Lint Rust code, apply automatic fixes:
 #   ./docker/dev lf
 #
+# * Lint Rust code of the web app for the WebAssembly target:
+#   ./docker/dev lw
+#
 # * Lint web app (eslint + tsc):
 #   ./docker/dev al
 #
@@ -205,6 +208,7 @@ E2E_TEST=0
 E2E_TEST_MODE=
 E2E_TEST_PROD=0
 LINT=0
+LINT_WASM=0
 FORMAT=0
 FIX=
 LINT_DENY=
@@ -463,6 +467,21 @@ case "${1:-}" in
   FIX=
   LINT_DENY='-- -Dwarnings' # Fail if there's warnings
   ;;
+"lint-wasm" | "lw")
+  shift
+  LINT=1
+  LINT_WASM=1
+  WATCH=0
+  FIX=
+  ;;
+"lint-wasm-ci" | "lwc")
+  shift
+  LINT=1
+  LINT_WASM=1
+  WATCH=0
+  FIX=
+  LINT_DENY='-- -Dwarnings' # Fail if there's warnings
+  ;;
 "format" | "f")
   shift
   FORMAT=1
@@ -481,7 +500,7 @@ case "${1:-}" in
   ;;
 esac
 
-if [ "${WASM}" == "1" ]; then
+if [ "${WASM}" == "1" ] || [ "${LINT_WASM}" == "1" ]; then
   CROSS="wasm32-unknown-unknown"
 fi
 
@@ -678,6 +697,9 @@ elif [ "${E2E_TEST}" == "1" ]; then
 elif [ "${BENCH}" == "1" ]; then
   PRETTY_BENCH="( grep --color=always --line-buffered -vP \"Benchmarking|Gnuplot not found, using plotters backend\" || true )"
   COMMAND="cargo -q bench --workspace --benches --color=always --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} | ${PRETTY_BENCH} ${SUCCESS_OR_FAILURE}"
+elif [ "${LINT_WASM}" == "1" ]; then
+  # Code compiled only for the WebAssembly target is invisible to the native lint
+  COMMAND="cargo clippy -q --target-dir=\"${BUILD_DIR_REL}\" ${RUST_TARGET} --package=nextclade-web --all-targets ${FIX:-} ${LINT_DENY}"
 elif [ "${LINT}" == "1" ]; then
   COMMAND="cargo clippy --exclude=thirdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all-targets --all ${FIX:-} ${LINT_DENY}"
 elif [ "${FORMAT}" == "1" ]; then
