@@ -230,13 +230,6 @@ pub fn nextclade_run_one(
           .map(LostStartCodon::to_warning),
       );
 
-      if alignment.is_reverse_complement {
-        warnings.push(PeptideWarning {
-          cds_name: "nuc".to_owned(),
-          warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID."),
-        });
-      }
-
       warnings
     };
 
@@ -326,6 +319,13 @@ pub fn nextclade_run_one(
     NextcladeResultWithAa::default()
   };
 
+  // Sequence-level warnings, also for datasets without a genome annotation
+  if alignment.is_reverse_complement {
+    warnings.push(PeptideWarning {
+      cds_name: "nuc".to_owned(),
+      warning: format!("When processing sequence #{index} '{seq_name}': Sequence is reverse-complemented: Seed matching failed for the original sequence, but succeeded for its reverse complement. Outputs will be derived from the reverse complement and 'reverse complement' suffix will be added to sequence ID."),
+    });
+  }
   warnings.extend(alignment.warnings.iter().map(|warning| PeptideWarning {
     cds_name: "nuc".to_owned(),
     warning: warning.clone(),
