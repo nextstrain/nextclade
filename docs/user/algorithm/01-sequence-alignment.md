@@ -10,6 +10,8 @@ These estimates are used to construct a band of variable width that covers the f
 The alignment algorithm is a variation of the classic [Smith–Waterman](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) algorithm restricted to the band.
 If the optimal alignment path hits the boundary of the allowed band, the parameters controlling the band are relaxed and alignment is redone.
 To prevent Nextclade from running out of memory during the alignment process, the total area of the band is limited to a configurable maximum (`--max-band-area`) and a query sequence that requires a larger band will be skipped.
+A query sequence is also skipped with an error when the memory for its alignment matrix cannot be allocated. This can happen in Nextclade Web, where each analysis thread has at most 4 GiB of memory, for a band below the limit.
+The number of retries with a relaxed band is configurable (`--max-alignment-attempts`). When the alignment still touches the band boundary and no wider band can be used, because the wider band exceeds the band area limit or does not fit into memory, because retries are disabled (`--max-alignment-attempts` is 0), or because all retries are used while the alignment score still rises, Nextclade keeps the last alignment and reports a warning with the reason (see [Errors and warnings](../output-files/errors-and-warnings.md)).
 
 
 Nextclade implements a few pre-defined alignment parameter presets. In Nextclade CLI they can be switched using  `--alignment-preset` argument of the `run` command. Currently available values are:

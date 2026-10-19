@@ -1,3 +1,23 @@
+## Unreleased
+
+### Nextclade Web: fix crash on sequences that need a large alignment band
+
+Nextclade Web stopped the whole analysis with the error `RuntimeError: unreachable` when one sequence needed a large nucleotide alignment band, for example some mpox sequences. The alignment matrix was copied once while it was created, so the alignment needed almost twice the memory of the matrix. The copy is removed, which lowers the peak memory of an alignment in Nextclade Web from 9 to 5 bytes per band cell. When the memory for an alignment matrix still cannot be allocated, the sequence gets an error, and the analysis of the other sequences continues. Results of Nextclade CLI do not change.
+
+### Alignment: corrected message when the alignment band exceeds the limit
+
+When the alignment band exceeds the band area limit, the error message described a query much shorter than the reference as similar in length. The message now has a separate description for short queries, with possible causes such as seed matches in distant repeated regions of the reference. The message now names both ways to raise the limit: the Nextclade CLI argument `--max-band-area` and `alignmentParams.maxBandArea` in `pathogen.json`.
+
+### Warning when the alignment band may limit the alignment
+
+Nextclade now warns when the nucleotide alignment touches the boundary of the alignment band and Nextclade cannot retry with a wider band: the wider band exceeds the band area limit, does not fit into memory, or all retries are used while the alignment score still rises. A wider band can give a better alignment in these cases. Before, Nextclade kept the alignment silently.
+
+The warning is in the `warnings` column of TSV and CSV outputs, in the `warnings` array of JSON and NDJSON outputs, in the tooltip of the sequence name in Nextclade Web, and in the console output of Nextclade CLI. See the [errors and warnings documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/errors-and-warnings.html) for details.
+
+### Reverse-complement warning for datasets without a genome annotation
+
+The warning for a reverse-complemented sequence was missing for datasets without a genome annotation. Nextclade now reports it for all datasets.
+
 ## 3.25.0
 
 ### Alignment: optional penalty for deletions that enter a CDS
