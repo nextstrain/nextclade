@@ -15,6 +15,10 @@ use eyre::{Report, WrapErr};
 use log::{info, trace};
 use std::cmp::max;
 
+/// Length ratio of query and reference above which the band-limit error describes the query as much longer than the
+/// reference, and below whose inverse as much shorter
+const MAX_SIMILAR_LENGTH_RATIO: f64 = 1.5;
+
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
   ref_seq: &[T],
@@ -85,19 +89,27 @@ pub fn align_nuc(
     let max_band_area_fmt = format_number_human(max_band_area);
     let qry_len_fmt = format_number_human(qry_len as u64);
     let ref_len_fmt = format_number_human(ref_len as u64);
-    return if length_ratio > 1.5 {
+    let limit_advice = "The limit can be raised with the Nextclade CLI flag '--max-band-area' or with 'alignmentParams.maxBandArea' in pathogen.json.";
+    return if length_ratio > MAX_SIMILAR_LENGTH_RATIO {
       make_error!(
         "Alignment band area ({band_area_fmt}) exceeds limit ({max_band_area_fmt}). \
         Query sequence length ({qry_len_fmt} nt) is significantly larger than reference ({ref_len_fmt} nt). \
         Possible reasons: concatenated sequences, assembly scaffolds, or wrong reference sequence. \
-        The threshold can be adjusted using '--max-band-area' CLI flag or 'maxBandArea' in pathogen.json."
+        {limit_advice}"
+      )
+    } else if length_ratio < 1.0 / MAX_SIMILAR_LENGTH_RATIO {
+      make_error!(
+        "Alignment band area ({band_area_fmt}) exceeds limit ({max_band_area_fmt}). \
+        Query sequence length ({qry_len_fmt} nt) is significantly smaller than reference ({ref_len_fmt} nt). \
+        Possible reasons: seed matches in distant parts of the reference (for example, in repeated regions), chimeric or rearranged sequence, or wrong reference sequence. \
+        {limit_advice}"
       )
     } else {
       make_error!(
         "Alignment band area ({band_area_fmt}) exceeds limit ({max_band_area_fmt}). \
         Sequence length ({qry_len_fmt} nt) is similar to reference ({ref_len_fmt} nt), but alignment requires excessive search space. \
         Possible reasons: large structural rearrangements, recombination, or wrong reference sequence. \
-        The threshold can be adjusted using '--max-band-area' CLI flag or 'maxBandArea' in pathogen.json."
+        {limit_advice}"
       )
     };
   }
@@ -168,20 +180,19 @@ pub fn align_aa(
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
   #![allow(clippy::needless_pass_by_value)]
-  use std::fs;
-  use std::path::PathBuf;
-
   // rstest fixtures are passed by value
   use super::*;
   use crate::align::gap_open::{GapScoreMap, get_gap_open_close_scores_codon_aware};
   use crate::align::params::GapAlignmentSide;
   use crate::alphabet::nuc::{from_nuc_seq, to_nuc_seq};
+  use crate::assert_error;
   use crate::gene::gene_map::GeneMap;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
+  use std::ops::Range;
 
   struct Context {
     params: AlignPairwiseParams,
@@ -202,25 +213,6 @@ mod tests {
 
     let dummy_ref_seq = vec![Nuc::Gap; 100];
     let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
-
-    Context { params, gap_open_close }
-  }
-
-  #[fixture]
-  fn more_realistic_ctx() -> Context {
-    let params = AlignPairwiseParams {
-      min_length: 3,
-      min_match_length: 5,
-      ..AlignPairwiseParams::default()
-    };
-
-    let gene_map = GeneMap::new();
-
-    let ref_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-      .join("test_data")
-      .join("reference.fasta");
-    let ref_seq = to_nuc_seq(fs::read_to_string(ref_path).unwrap().trim()).unwrap();
-    let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &params);
 
     Context { params, gap_open_close }
   }
@@ -999,5 +991,57 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
       (from_nuc_seq(&result.ref_seq), from_nuc_seq(&result.qry_seq))
     );
     Ok(())
+  }
+
+  // The band areas in the messages are regression values of `create_alignment_band`: the area depends on the seed
+  // chain and on the trapezoids that the band is built from, so it has no closed form in the test inputs
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::query_much_shorter( (0..10_000, vec![1_000..3_000]), "Alignment band area (104,315) exceeds limit (1). Query sequence length (2,000 nt) is significantly smaller than reference (10,000 nt). Possible reasons: seed matches in distant parts of the reference (for example, in repeated regions), chimeric or rearranged sequence, or wrong reference sequence. The limit can be raised with the Nextclade CLI flag '--max-band-area' or with 'alignmentParams.maxBandArea' in pathogen.json.")]
+  #[case::query_similar(      (0..10_000, vec![0..9_500]),     "Alignment band area (171,169) exceeds limit (1). Sequence length (9,500 nt) is similar to reference (10,000 nt), but alignment requires excessive search space. Possible reasons: large structural rearrangements, recombination, or wrong reference sequence. The limit can be raised with the Nextclade CLI flag '--max-band-area' or with 'alignmentParams.maxBandArea' in pathogen.json.")]
+  #[case::query_much_longer(  (0..4_000,  vec![0..10_000]),    "Alignment band area (79,454) exceeds limit (1). Query sequence length (10,000 nt) is significantly larger than reference (4,000 nt). Possible reasons: concatenated sequences, assembly scaffolds, or wrong reference sequence. The limit can be raised with the Nextclade CLI flag '--max-band-area' or with 'alignmentParams.maxBandArea' in pathogen.json.")]
+  #[trace]
+  // A query of one reference segment is a list of one range
+  #[allow(clippy::single_range_in_vec_init)]
+  fn test_align_rejects_band_above_limit(
+    #[case] (ref_range, qry_ranges): (Range<usize>, Vec<Range<usize>>),
+    #[case] expected_message: &str,
+  ) {
+    let random_seq = helpers::random_nuc_seq(10_000, 1);
+    let ref_seq = helpers::cut_segments(&random_seq, &[ref_range]);
+    let qry_seq = helpers::cut_segments(&random_seq, &qry_ranges);
+    let params = AlignPairwiseParams {
+      max_band_area: 1,
+      ..AlignPairwiseParams::default()
+    };
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &GeneMap::new(), &params);
+
+    let result = align_nuc(0, "qry", &qry_seq, &ref_seq, &CodonSpacedIndex::from_sequence(&ref_seq), &gap_open_close, &params);
+
+    assert_error!(result, expected_message);
+  }
+
+  pub mod helpers {
+    use crate::alphabet::nuc::Nuc;
+    use proptest::prelude::RngCore;
+    use proptest::test_runner::{RngAlgorithm, TestRng};
+    use std::iter::repeat_with;
+    use std::ops::Range;
+
+    /// Pseudo-random nucleotide sequence of `A`, `C`, `G` and `T`. The same seed gives the same sequence. In sequences
+    /// of tens of kilobases every seed k-mer is unique, so seed matching finds each segment at its origin
+    pub fn random_nuc_seq(len: usize, seed: u8) -> Vec<Nuc> {
+      const NUCS: [Nuc; 4] = [Nuc::A, Nuc::C, Nuc::G, Nuc::T];
+      let mut rng = TestRng::from_seed(RngAlgorithm::ChaCha, &[seed; 32]);
+      repeat_with(|| NUCS[(rng.next_u32() % 4) as usize]).take(len).collect()
+    }
+
+    /// Concatenation of the given ranges of a sequence
+    pub fn cut_segments(seq: &[Nuc], ranges: &[Range<usize>]) -> Vec<Nuc> {
+      ranges
+        .iter()
+        .flat_map(|range| seq[range.clone()].iter().copied())
+        .collect()
+    }
   }
 }
