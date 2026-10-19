@@ -1,1 +1,2 @@
+mod test_nextclade_run_one_warnings;
 mod test_nextclade_wasm_initial_data;

@@ -9,10 +9,11 @@ use crate::align::seed_match::{CodonSpacedIndex, SeedMatchesResult, get_seed_mat
 use crate::alphabet::aa::Aa;
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
-use crate::make_error;
+use crate::utils::error::report_to_string;
 use crate::utils::num_human::format_number_human;
+use crate::{make_error, o};
 use eyre::{Report, WrapErr};
-use log::{info, trace};
+use log::{info, trace, warn};
 use std::cmp::max;
 
 /// Length ratio of query and reference above which the band-limit error describes the query as much longer than the
@@ -75,7 +76,7 @@ pub fn align_nuc(
   let max_band_area = params.max_band_area;
   let mut attempt = 0;
 
-  let (mut stripes, mut band_area) = create_alignment_band(
+  let (stripes, band_area) = create_alignment_band(
     &seed_matches,
     qry_len as isize,
     ref_len as isize,
@@ -115,6 +116,10 @@ pub fn align_nuc(
   }
 
   let mut alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes)?;
+  // 1-based number of the attempt that produced `alignment`, and the score of the attempt before it
+  let mut kept_attempt = 1;
+  let mut previous_score: Option<i32> = None;
+  let mut retry_stop: Option<RetryStop> = None;
 
   while alignment.hit_boundary && attempt < params.max_alignment_attempts {
     info!(
@@ -128,7 +133,7 @@ pub fn align_nuc(
     minimal_bandwidth = max(2 * minimal_bandwidth, 1);
     attempt += 1;
     // make new band
-    (stripes, band_area) = create_alignment_band(
+    let (stripes, band_area) = create_alignment_band(
       &seed_matches,
       qry_len as isize,
       ref_len as isize,
@@ -138,20 +143,53 @@ pub fn align_nuc(
     );
     // discard stripes and break to return previous alignment
     if band_area > max_band_area {
+      retry_stop = Some(RetryStop::BandAreaLimit { band_area });
       break;
     }
-    // realign
-    alignment = align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes)?;
+    // realign, or keep the previous alignment if the wider band does not fit into memory
+    match align_pairwise(&qry_seq, ref_seq, gap_open_close, params, &stripes) {
+      Ok(retry) => {
+        previous_score = Some(alignment.alignment_score);
+        alignment = retry;
+        kept_attempt = attempt + 1;
+      }
+      Err(report) => {
+        retry_stop = Some(RetryStop::Allocation(report));
+        break;
+      }
+    }
   }
   // report success/failure of broadening of band width
   if alignment.hit_boundary {
-    info!(
-      "When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Returning last attempt with score: {}",
-      alignment.alignment_score
-    );
-    if band_area > max_band_area {
+    let score = alignment.alignment_score;
+    let reason = match retry_stop {
+      Some(RetryStop::Allocation(report)) => Some(report_to_string(&report)),
+      Some(RetryStop::BandAreaLimit { band_area }) => Some(format!(
+        "the band area of the next attempt ({}) exceeds the limit ({})",
+        format_number_human(band_area),
+        format_number_human(max_band_area)
+      )),
+      // All retries are used. A score that still rises shows that a wider band can find a better path. Equal scores
+      // are expected for a query with a long terminal overhang, which touches the boundary in the free terminal row
+      // with any band width
+      None => match previous_score {
+        None => Some(o!("retries are disabled (max alignment attempts is 0)")),
+        Some(previous_score) if score > previous_score => Some(format!(
+          "the retry limit ({}) is reached, and the last retry raised the alignment score from {previous_score} to {score}",
+          params.max_alignment_attempts
+        )),
+        Some(_) => None,
+      },
+    };
+    if let Some(reason) = reason {
+      let warning = format!(
+        "When processing sequence #{index} '{seq_name}': In nucleotide alignment: the alignment touches the band boundary on attempt {kept_attempt}, and a wider band cannot be used: {reason}. The alignment of attempt {kept_attempt} is kept and can be inaccurate near the band boundary"
+      );
+      warn!("{warning}");
+      alignment.warnings.push(warning);
+    } else {
       info!(
-        "When processing sequence #{index} '{seq_name}': final band area {band_area} exceeded the cutoff {max_band_area}"
+        "When processing sequence #{index} '{seq_name}': In nucleotide alignment: Attempted to relax band parameters {attempt} times, but still hitting the band boundary. Returning last attempt with score: {score}"
       );
     }
   } else if attempt > 0 {
@@ -179,6 +217,14 @@ pub fn align_aa(
   align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)
 }
 
+/// Reason why the retry loop of `align_nuc` did not try a wider band
+enum RetryStop {
+  /// The wider band exceeds `max_band_area`
+  BandAreaLimit { band_area: u64 },
+  /// The alignment matrix of the wider band cannot be allocated
+  Allocation(Report),
+}
+
 #[cfg(test)]
 pub mod tests {
   #![allow(clippy::needless_pass_by_value)]
@@ -190,6 +236,7 @@ pub mod tests {
   use crate::assert_error;
   use crate::gene::gene_map::GeneMap;
   use eyre::Report;
+  use itertools::Itertools;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
   use std::ops::Range;
@@ -1021,12 +1068,82 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
     assert_error!(result, expected_message);
   }
 
+  // Band areas of the attempts for `insertion_near_reference_end`: 178,151, 356,751, 746,389, 1,635,029. These are
+  // regression values of `create_alignment_band`: the area depends on the seed chain and on the trapezoids that the band
+  // is built from, so it has no closed form in the test inputs. Scores of the attempts: 29948, 29948, 29994 (still
+  // touching the boundary), 29994 (not touching it). The score of the full alignment is 10,000 matches minus the opening
+  // of one insertion: 10,000 * 3 - 6 = 29994
+  #[rstest]
+  #[rustfmt::skip]
+  #[case::band_limit(                     helpers::insertion_near_reference_end, (3,       200_000), (true,  vec!["When processing sequence #0 'qry': In nucleotide alignment: the alignment touches the band boundary on attempt 1, and a wider band cannot be used: the band area of the next attempt (356,751) exceeds the limit (200,000). The alignment of attempt 1 is kept and can be inaccurate near the band boundary"]))]
+  #[case::equal_scores_then_band_limit(   helpers::insertion_near_reference_end, (3,       500_000), (true,  vec!["When processing sequence #0 'qry': In nucleotide alignment: the alignment touches the band boundary on attempt 2, and a wider band cannot be used: the band area of the next attempt (746,389) exceeds the limit (500,000). The alignment of attempt 2 is kept and can be inaccurate near the band boundary"]))]
+  #[case::retries_used_while_improving(   helpers::insertion_near_reference_end, (2,   500_000_000), (true,  vec!["When processing sequence #0 'qry': In nucleotide alignment: the alignment touches the band boundary on attempt 3, and a wider band cannot be used: the retry limit (2) is reached, and the last retry raised the alignment score from 29948 to 29994. The alignment of attempt 3 is kept and can be inaccurate near the band boundary"]))]
+  #[case::no_retries_allowed(             helpers::insertion_near_reference_end, (0,   500_000_000), (true,  vec!["When processing sequence #0 'qry': In nucleotide alignment: the alignment touches the band boundary on attempt 1, and a wider band cannot be used: retries are disabled (max alignment attempts is 0). The alignment of attempt 1 is kept and can be inaccurate near the band boundary"]))]
+  #[case::retry_succeeds(                 helpers::insertion_near_reference_end, (3,   500_000_000), (false, vec![]))]
+  #[case::retries_used_with_equal_scores( helpers::reference_inside_long_query,   (3,   500_000_000), (true,  vec![]))]
+  #[trace]
+  fn test_align_warns_when_band_boundary_may_limit_alignment(
+    #[case]
+    #[notrace]
+    input: helpers::Input,
+    #[case] (max_alignment_attempts, max_band_area): (usize, u64),
+    #[case] (expected_hit_boundary, expected_warnings): (bool, Vec<&str>),
+  ) -> Result<(), Report> {
+    let (ref_seq, qry_seq) = input();
+    let params = AlignPairwiseParams {
+      max_band_area,
+      max_alignment_attempts,
+      ..AlignPairwiseParams::default()
+    };
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &GeneMap::new(), &params);
+
+    let result = align_nuc(0, "qry", &qry_seq, &ref_seq, &CodonSpacedIndex::from_sequence(&ref_seq), &gap_open_close, &params)?;
+
+    assert_eq!(
+      (expected_hit_boundary, expected_warnings),
+      (result.hit_boundary, result.warnings.iter().map(String::as_str).collect_vec())
+    );
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_align_reference_inside_long_query() -> Result<(), Report> {
+    let (ref_seq, qry_seq) = helpers::reference_inside_long_query();
+    let params = AlignPairwiseParams::default();
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &GeneMap::new(), &params);
+
+    let result = align_nuc(
+      0,
+      "qry",
+      &qry_seq,
+      &ref_seq,
+      &CodonSpacedIndex::from_sequence(&ref_seq),
+      &gap_open_close,
+      &params,
+    )?;
+
+    // The reference is the middle 1,000 nt of the 5,000 nt query, so the query overhangs by 2,000 nt on both sides
+    let expected_ref_aln = ["-".repeat(2_000), from_nuc_seq(&ref_seq), "-".repeat(2_000)].concat();
+    assert_eq!(
+      (expected_ref_aln, from_nuc_seq(&qry_seq), 1_000 * 3),
+      (
+        from_nuc_seq(&result.ref_seq),
+        from_nuc_seq(&result.qry_seq),
+        result.alignment_score
+      )
+    );
+    Ok(())
+  }
+
   pub mod helpers {
     use crate::alphabet::nuc::Nuc;
     use proptest::prelude::RngCore;
     use proptest::test_runner::{RngAlgorithm, TestRng};
     use std::iter::repeat_with;
     use std::ops::Range;
+
+    /// Function that returns a reference and a query
+    pub type Input = fn() -> (Vec<Nuc>, Vec<Nuc>);
 
     /// Pseudo-random nucleotide sequence of `A`, `C`, `G` and `T`. The same seed gives the same sequence. In sequences
     /// of tens of kilobases every seed k-mer is unique, so seed matching finds each segment at its origin
@@ -1042,6 +1159,22 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
         .iter()
         .flat_map(|range| seq[range.clone()].iter().copied())
         .collect()
+    }
+
+    /// 10 kb reference, and a query with a 200 nt insertion 30 nt before the reference end. The insertion is wider than
+    /// the terminal band of the first attempts, so the alignment touches the band boundary until the band is wide enough
+    pub fn insertion_near_reference_end() -> (Vec<Nuc>, Vec<Nuc>) {
+      let ref_seq = random_nuc_seq(10_000, 1);
+      let insertion = random_nuc_seq(200, 2);
+      let qry_seq = [&ref_seq[..9_970], &insertion, &ref_seq[9_970..]].concat();
+      (ref_seq, qry_seq)
+    }
+
+    /// 1 kb reference inside of a 5 kb query, as when a whole genome is analyzed with a single-gene dataset. The
+    /// alignment touches the band boundary in the free terminal gaps with any band width
+    pub fn reference_inside_long_query() -> (Vec<Nuc>, Vec<Nuc>) {
+      let random_seq = random_nuc_seq(10_000, 1);
+      (random_seq[4_000..5_000].to_vec(), random_seq[2_000..7_000].to_vec())
     }
   }
 }

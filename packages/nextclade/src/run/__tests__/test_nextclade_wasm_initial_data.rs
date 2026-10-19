@@ -1,14 +1,9 @@
 #[cfg(test)]
-mod tests {
-  use crate::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw, NextcladeParamsRawDir};
-  use crate::run::params::NextcladeInputParamsOptional;
+pub mod tests {
   use eyre::Report;
+  use helpers::{TestDataset, create_nextclade};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
-
-  const REFERENCE_FASTA: &str = ">reference\nATGACCTTCAAGGTTACCGTTAACCGGATCGAACCTTAG\n";
-
-  const PATHOGEN_JSON: &str = r#"{ "schemaVersion": "3.0.0" }"#;
 
   const TREE_JSON: &str = r#"{
     "version": "v2",
@@ -25,28 +20,46 @@ mod tests {
     #[case] tree_json: Option<&str>,
     #[case] expected: bool,
   ) -> Result<(), Report> {
-    let nextclade = create_nextclade(tree_json)?;
+    let nextclade = create_nextclade(TestDataset {
+      tree_json: tree_json.map(ToOwned::to_owned),
+      ..TestDataset::default()
+    })?;
     // The analysis outputs a tree if and only if the dataset provides a reference tree
     assert_eq!(expected, nextclade.get_initial_data().has_tree);
     Ok(())
   }
 
-  mod helpers {
-    use super::*;
+  pub mod helpers {
     use crate::o;
+    use crate::run::nextclade_wasm::{Nextclade, NextcladeParams, NextcladeParamsRaw, NextcladeParamsRawDir};
+    use crate::run::params::NextcladeInputParamsOptional;
+    use eyre::Report;
+    use smart_default::SmartDefault;
 
-    pub fn create_nextclade(tree_json: Option<&str>) -> Result<Nextclade, Report> {
+    /// Files of a test dataset. The default is a 39 nt reference, a pathogen.json with the schema version only, and no
+    /// genome annotation and tree
+    #[derive(SmartDefault)]
+    pub struct TestDataset {
+      /// Reference sequence, without FASTA header
+      #[default(o!("ATGACCTTCAAGGTTACCGTTAACCGGATCGAACCTTAG"))]
+      pub reference_seq: String,
+      pub genome_annotation: Option<String>,
+      pub tree_json: Option<String>,
+      #[default(o!(r#"{ "schemaVersion": "3.0.0" }"#))]
+      pub pathogen_json: String,
+    }
+
+    /// Nextclade state for a test dataset
+    pub fn create_nextclade(dataset: TestDataset) -> Result<Nextclade, Report> {
       let raw = NextcladeParamsRaw::Dir(vec![NextcladeParamsRawDir {
         dataset_name: o!("test"),
-        reference: o!(REFERENCE_FASTA),
-        genome_annotation: None,
-        tree_json: tree_json.map(ToOwned::to_owned),
-        pathogen_json: o!(PATHOGEN_JSON),
+        reference: format!(">reference\n{}\n", dataset.reference_seq),
+        genome_annotation: dataset.genome_annotation,
+        tree_json: dataset.tree_json,
+        pathogen_json: dataset.pathogen_json,
       }]);
       let params = NextcladeParams::from_raw(raw)?.remove(0);
       Nextclade::new(params, vec![], &NextcladeInputParamsOptional::default())
     }
   }
-
-  use helpers::create_nextclade;
 }

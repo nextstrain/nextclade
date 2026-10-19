@@ -10,6 +10,8 @@ pub struct AlignmentOutput<T> {
   pub alignment_score: i32,
   pub is_reverse_complement: bool,
   pub hit_boundary: bool,
+  /// Warnings about the alignment, for example when the band boundary may limit the alignment
+  pub warnings: Vec<String>,
 }
 
 pub fn backtrace<T: Letter<T>>(
@@ -92,6 +94,7 @@ pub fn backtrace<T: Letter<T>>(
     alignment_score: scores[(num_rows - 1, num_cols - 1)],
     is_reverse_complement: false,
     hit_boundary,
+    warnings: vec![],
   }
 }
 
@@ -138,6 +141,7 @@ mod tests {
       alignment_score: 18,
       is_reverse_complement: false,
       hit_boundary: false,
+      warnings: vec![],
     };
 
     let output = backtrace(&qry_seq, &ref_seq, &scores, &paths);

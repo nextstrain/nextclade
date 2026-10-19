@@ -181,7 +181,7 @@ pub fn nextclade_run_one(
     total_aminoacid_insertions,
     nuc_to_aa_muts,
     missing_genes,
-    warnings,
+    mut warnings,
     aa_insertions,
     frame_shifts,
     total_frame_shifts,
@@ -325,6 +325,11 @@ pub fn nextclade_run_one(
   } else {
     NextcladeResultWithAa::default()
   };
+
+  warnings.extend(alignment.warnings.iter().map(|warning| PeptideWarning {
+    cds_name: "nuc".to_owned(),
+    warning: warning.clone(),
+  }));
 
   let NextcladeResultWithGraph {
     clade,
