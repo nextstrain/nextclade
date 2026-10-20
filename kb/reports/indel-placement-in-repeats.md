@@ -1,38 +1,96 @@
 # Placement and naming of indels in repeats
 
-An indel inside a repeat has several placements with the same alignment score. Nextclade picks one placement per sequence with a fixed rule, so the same ancestral event can get different names in different sequences, and amino acid indels can contradict the nucleotide indel. This report measures the problem on the EV-D68 VP1 DE-loop, describes how other tools and standards handle it, and lists directions for Nextclade. None of the directions is decided.
+Nextclade aligns each sequence to the dataset reference on its own. When an indel lies in a repeat, several placements have the same score, and Nextclade picks one with a fixed rule, the `gapAlignmentSide` of the dataset. Amino acid indels come from a second, separate peptide alignment. As a result, one evolutionary event can get different names in different sequences and datasets, and an amino acid name can point to another codon than the nucleotide indel removes. This report explains the mechanism, measures the effect on the example sequences of 108 datasets, works through the EV-D68 VP1 DE-loop in detail, and compares Nextclade with other tools, representation standards and the literature. It ends with design directions, none of which is decided.
 
+## Summary
+
+- **Placement in a repeat is a convention**: every placement with the same score explains the sequence equally well, so every tool picks one by a rule. The defect in Nextclade is inconsistency: the chosen name depends on neighbouring substitutions and on a per-dataset setting, and the amino acid name comes from an alignment that does not know where the nucleotide indel is
+- **The problem is general**: on the example sequences of 108 datasets, amino acid names contradict the nucleotide deletion in 19 of the 27 datasets that can be checked, and switching the gap side changes indel names in 57 datasets
+- **Established names depend on a dataset setting**: the influenza B HA1 deletion `K162-,N163-,D164-` and the SARS-CoV-2 names come out right only because these datasets set `gapAlignmentSide` to `right`; the default `left` names them differently
+- **Multiple alignment gets consistency from other sequences**: MAFFT tends to put a new gap where other sequences already have one, and the Nextstrain EV-D68 build then moves DE-loop gaps onto codon boundaries with a script at fixed positions, whose comment says it "should be replaced by a codon-aware alignment method" [[src](https://github.com/nextstrain/enterovirus_d68/blob/b135b964ca7928556d4c193a5891c6e454296565/scripts/fixAlignmentGaps.R)]
+- **Standards make the change unique**: a deletion next to a substitution is one <a id="gloss-use-1"></a>delins <sup>[1](#gloss-1)</sup>, which has one name. For a pure indel in a repeat, NCBI SPDI and GA4GH VRS represent the whole <a id="gloss-use-2"></a>ambiguity window <sup>[2](#gloss-2)</sup>
+- **The literature treats an indel as one event on a tree**: phylogeny-aware aligners and indel-aware ancestral reconstruction place an indel once, on one branch, instead of once per sequence
+
+## How Nextclade places indels
 
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph NC["<b>Nextclade</b>, per sequence"]
-    direction TB
-    n1["<b>Nucleotide alignment</b><br/><small>ties broken by gapAlignmentSide</small>"] --> n2["<b>Remove gaps per CDS, translate</b>"]
-    n2 --> n3["<b>Peptide alignment</b><br/><small>ties broken by gapAlignmentSide again</small>"]
-    n3 --> n4["<b>aaDeletions</b><br/><small>can name another codon</small>"]
+    direction LR
+    n1["<b>Nucleotide alignment</b><br/><small>tie: gapAlignmentSide</small>"] --> n2["<b>Remove gaps, translate</b>"] --> n3["<b>Peptide alignment</b><br/><small>tie: gapAlignmentSide</small>"] --> n4["<b>aaDeletions</b><br/><small>can name another codon</small>"]
   end
   subgraph NS["<b>Nextstrain EV-D68</b>, all sequences"]
-    direction TB
-    s1["<b>MAFFT multiple alignment</b><br/><small>gaps follow profile gap columns</small>"] --> s2["<b>fixAlignmentGaps.R</b><br/><small>moves gaps at fixed VP1 positions</small>"]
-    s2 --> s3["<b>augur translate</b><br/><small>amino acids from the nucleotide alignment</small>"]
+    direction LR
+    s1["<b>MAFFT MSA</b><br/><small>gaps follow profile columns</small>"] --> s2["<b>fixAlignmentGaps.R</b><br/><small>fixed VP1 positions</small>"] --> s3["<b>augur translate</b><br/><small>aa from nucleotides</small>"]
   end
   style NC fill:#4a6a8a,color:#fff
   style NS fill:#6b7b5e,color:#fff
 ```
 
-## Summary
+- **Tie-break by side**: `enum GapAlignmentSide` [[src](https://github.com/nextstrain/nextclade/blob/d415f3c396fabc7f792c676d60ac9b50236830c1/packages/nextclade/src/align/params.rs#L10-L21)] turns a strict comparison into a non-strict one in `fn score_matrix()` [[src](https://github.com/nextstrain/nextclade/blob/d415f3c396fabc7f792c676d60ac9b50236830c1/packages/nextclade/src/align/score_matrix.rs#L47-L52)]. `left` places ambiguous gaps at their 3'-most position, `right` at their 5'-most position
+- **Separate peptide alignment**: `fn translate_cds()` removes all gaps from the aligned CDS, translates it, and aligns the peptide to the reference peptide again with the same parameters [[src](https://github.com/nextstrain/nextclade/blob/d415f3c396fabc7f792c676d60ac9b50236830c1/packages/nextclade/src/translate/translate_genes.rs#L254-L287)]
+- **Datasets differ**: in `nextclade_data` at `a6f7bcef`, 60 datasets set `right` and 19 set `left`, among them SARS-CoV-2 and EV-D68 on `right`, EV-A71, CVA16 and RSV on `left`
+- **Known since 2020**: [nextstrain/nextclade#274](https://github.com/nextstrain/nextclade/issues/274) reports out-of-frame gaps as "ambiguous", [nextstrain/nextclade#366](https://github.com/nextstrain/nextclade/issues/366) a 12-nt deletion named `G142-` to `Y145-` plus `L141Y`, and the open [nextstrain/nextclade#1670](https://github.com/nextstrain/nextclade/issues/1670) an ORF9b substitution next to a deletion named `M25-`
 
-- **No placement is correct by itself**: every placement with the same score explains the sequence equally well, so every tool applies a convention. The defect in Nextclade is inconsistency: one event gets several names, and amino acid names can point to another codon than the nucleotide deletion
-- **Nextstrain's EV-D68 placement is a manual fix**: the Nextstrain EV-D68 build aligns with MAFFT and then moves DE-loop gaps onto codon boundaries with a script at fixed positions, whose comment says it "should be replaced by a codon-aware alignment method" [[src](https://github.com/nextstrain/enterovirus_d68/blob/b135b964ca7928556d4c193a5891c6e454296565/scripts/fixAlignmentGaps.R)]
-- **Standards make the change unique**: a deletion next to a substitution is one <a id="gloss-use-1"></a>delins <sup>[1](#gloss-1)</sup>, which has one name. For a pure indel in a repeat, NCBI SPDI and GA4GH VRS represent the whole <a id="gloss-use-2"></a>ambiguity window <sup>[2](#gloss-2)</sup>
-- **The literature places indels as events on a tree**: phylogeny-aware aligners and indel-aware ancestral reconstruction treat an indel as one event on one branch, not as a per-sequence choice
+## Measurements across datasets
 
-## Problem: EV-D68 VP1 DE-loop
+Nextclade 3.25.0 (2026-10-13) on the example sequences of the 108 annotated datasets of `nextclade_data` at `a6f7bcef`, first with the gap side of each dataset, then with the opposite side. 4,264 sequences in total, 2,732 of them with at least one indel.
 
-Measurements with Nextclade 3.25.0 (2026-10-13) on 1,195 EV-D68 genomes from GenBank, with the dataset `enpen/enterovirus/ev-d68` of `nextclade_data` at `a6f7bcef`. The dataset sets `gapAlignmentSide` to `right` [[data](https://github.com/nextstrain/nextclade_data/blob/a6f7bcefac9f96c4ab2db5968699c5dfa412e506/data/enpen/enterovirus/ev-d68/pathogen.json#L28)], and VP1 is the CDS 2389-3315 [[data](https://github.com/nextstrain/nextclade_data/blob/a6f7bcefac9f96c4ab2db5968699c5dfa412e506/data/enpen/enterovirus/ev-d68/genome_annotation.gff3#L11)]. The reference reads `AVNGSSNSTY` at VP1 138-147, a serine and asparagine repeat inside the DE-loop epitope (VP1 140-148).
+### Amino acid names against nucleotide deletions
 
-- **Frequent deletions**: 322 genomes have a 3-nt deletion in the DE-loop
+Method: for each sequence and each single-segment CDS without a frameshift, take the deletions that lie fully inside the CDS. When all of them are in frame and start at a codon boundary, the removed codons are known exactly; compare them with the codons that `aaDeletions` names for that CDS. Cases with an in-frame deletion that cuts through codons are counted separately, because their amino acid name is ambiguous by construction (902 cases, mostly SARS-CoV-2 `S:69-70`).
 
+Mismatches occur in 19 of the 27 datasets that have such cases, 223 of 1,367 cases overall:
+
+| Dataset | Cases | Mismatches | Share |
+| --- | --- | --- | --- |
+| `community/neherlab/hiv-1/hxb2` | 110 | 65 | 59% |
+| `nextstrain/dengue/all` | 82 | 27 | 33% |
+| `community/moncla-lab/iav-h5/ha/all-clades` | 31 | 27 | 87% |
+| `nextstrain/sars-cov-2/BA.2.86` | 195 | 26 | 13% |
+| `community/pathoplexus/cchfv/M` | 18 | 17 | 94% |
+| `nextstrain/mpox/all-clades` | 37 | 16 | 43% |
+| `nextstrain/herpes/vzv/NC_001348` | 23 | 9 | 39% |
+| `nextstrain/mpox/clade-i` | 14 | 8 | 57% |
+| `nextstrain/hmpv/all-clades/NC_039199` | 6 | 6 | 100% |
+| `nextstrain/wnv/all-lineages` | 5 | 5 | 100% |
+| all other datasets | 846 | 17 | 2% |
+
+Examples:
+
+- **One-codon shift in a repeat**: H5 HA deletion of codon 345 named `HA:344-` (Vietnamese duck viruses); dengue E codons 156-157 named 157-158; dengue NS5 662 named 663
+- **SARS-CoV-2 against the BA.2.86 reference**: Delta-like S deletion of codons 156-157 named 154-155, the same error as the Wuhan-Hu-1 Delta example (codons 156-158 named `S:D138-,P139-`)
+- **Different deletion blocks**: in HIV-1 gp120 variable loops and CCHFV GPC, the peptide alignment creates its own gap blocks, for example nucleotide deletions of gp120 codons 109-110 and 159-160 against amino acid deletions 113-121 and 161-162
+
+### Sensitivity to the gap side
+
+Switching `gapAlignmentSide` changes indel names in 57 of 108 datasets. Of the 2,732 sequences with indels, 1,210 get different nucleotide indel names and 956 different amino acid indel names.
+
+| Dataset | Dataset side | Sequences with indels | Nucleotide names change | Amino acid names change |
+| --- | --- | --- | --- | --- |
+| `community/itps/orov/S/refseq` | `left` | 77 | 77 | 0 |
+| `nextstrain/sars-cov-2/wuhan-hu-1/orfs` | `right` | 136 | 70 | 118 |
+| `nextstrain/sars-cov-2/BA.2.86` | `right` | 136 | 68 | 118 |
+| `nextstrain/flu/b/ha/KX058884` | `right` | 49 | 49 | 49 |
+| `nextstrain/dengue/all` | `left` | 51 | 49 | 43 |
+| `community/pathoplexus/cchfv/M` | `left` | 41 | 37 | 23 |
+| `community/neherlab/hiv-1/hxb2` | `left` | 32 | 32 | 32 |
+| `enpen/enterovirus/cva16` | `left` | 32 | 30 | 2 |
+| `enpen/enterovirus/ev-d68` | `right` | 29 | 28 | 7 |
+
+The other SARS-CoV-2 datasets (`BA.2`, `XBB`, `wuhan-hu-1/proteins`) behave like `wuhan-hu-1/orfs`. Established names depend on the side:
+
+- **Influenza B HA1 deletion 162-164**: the shipped `right` reports nucleotides 562-570 as `HA1:K162-,N163-,D164-`, the name used in the literature for B/Victoria viruses; `left` would report `HA1:D164-,K165-,N166-` for every sequence
+- **SARS-CoV-2 BA.2 S 24-26 deletion**: `S:L24-,P25-,P26-` with `right`, `S:P25-,P26-,A27-` in a sequence with `left`
+- **SARS-CoV-2 insertions**: `S:143:T` with `right` becomes `S:145:N` with `left`, and `ORF1b:814:D` becomes `ORF1b:816:D`; the nucleotide deletion 28271 becomes 28273
+
+So a dataset's gap side is in practice a naming convention, and the default `left` does not reproduce the established names of influenza B or SARS-CoV-2.
+
+## Worked example: EV-D68 VP1 DE-loop
+
+Measurements with Nextclade 3.25.0 (2026-10-13) on 1,195 EV-D68 genomes from GenBank, with the dataset `enpen/enterovirus/ev-d68` of `nextclade_data` at `a6f7bcef`. The dataset sets `gapAlignmentSide` to `right` [[data](https://github.com/nextstrain/nextclade_data/blob/a6f7bcefac9f96c4ab2db5968699c5dfa412e506/data/enpen/enterovirus/ev-d68/pathogen.json#L28)], and VP1 is the CDS 2389-3315 [[data](https://github.com/nextstrain/nextclade_data/blob/a6f7bcefac9f96c4ab2db5968699c5dfa412e506/data/enpen/enterovirus/ev-d68/genome_annotation.gff3#L11)]. The reference reads `AVNGSSNSTY` at VP1 138-147, a serine and asparagine repeat inside the DE-loop epitope (VP1 140-148). 322 of the genomes have a 3-nt deletion in the DE-loop.
+
+### One event, two names
 
 The class of 61 genomes, example LC068708. Columns are nt 2800-2832, which are VP1 codons 138-148. The query has one codon less and a serine where the reference has `N G`:
 
@@ -59,9 +117,10 @@ query          GCA GTA --- GGT AGC AAC AAC AGC ACA TAC ATG    N140-
 ```
 
 With `left`, the two clades therefore name the same ancestral deletion `N140-` and `G141-`.
-- **One event, two names**: in a class of 61 genomes, `right` gives `AV-SSSN` (`N140-` and `G141S`) and `left` gives `AVS-SSN` (`G141-` and `N140S`). With `left`, 220 related genomes without the substitution get `N140-`, so one ancestral deletion has two names in one dataset
-- **Amino acid names contradict nucleotides**: in 25 genomes with `right` and 4 with `left`, the nucleotide deletion removes VP1 codon 145 while `aaDeletions` names codon 142. The cause is the separate peptide alignment, see [kb/issues/H-translate-aa-indels-ignore-nuc-alignment.md](../issues/H-translate-aa-indels-ignore-nuc-alignment.md)
 
+### Amino acid names against the nucleotide deletion
+
+In 25 genomes with `right` and 4 with `left`, the nucleotide deletion removes VP1 codon 145 while `aaDeletions` names codon 142. The cause is the separate peptide alignment, see [kb/issues/H-translate-aa-indels-ignore-nuc-alignment.md](../issues/H-translate-aa-indels-ignore-nuc-alignment.md).
 
 Example OP267495 with `right`. The nucleotide deletion removes codon 145, but the peptide alignment puts the amino acid gap at 142:
 
@@ -75,8 +134,10 @@ ref aa          A   V   N   G   S   S   N   S   T   Y   M
 query aa        A   V   N   G   -   S   N   N   T   Y   V     reported: S142-, S145N
                                 ^                             (with left: S143N, S145-)
 ```
-- **The reference tree is inconsistent too**: the tree of the dataset, built from Nextclade alignments, stores DE-loop deletions at codons 140, 141, 142 and 145. One node has the nucleotide deletion at codon 145 and the amino acid name `S142-`. Leaf MN240516 has `-140S S141G S142-`, a reversion of the parent deletion plus a new deletion two codons away, which is one event placed twice
 
+### The reference tree
+
+The tree of the dataset is built from Nextclade alignments and stores DE-loop deletions at codons 140, 141, 142 and 145. One node has the nucleotide deletion at codon 145 and the amino acid name `S142-`. Leaf MN240516 has `-140S S141G S142-`, a reversion of the parent deletion plus a new deletion two codons away, which is one event placed twice.
 
 ```mermaid
 flowchart TB
@@ -90,15 +151,17 @@ flowchart TB
   style MN fill:#7a6a8a,color:#fff
   style b1 fill:#7a6a8a,color:#fff
 ```
+
+### Consequences
+
 - **Placement noise becomes private mutations**: 29 genomes have private substitutions inside the DE-loop with `right` (the setting of the tree build), 91 with `left`
 - **The CDS entry penalty does not help**: `penaltyGapEnterCds` acts only on deletions that enter a CDS from outside, and these deletions are inside VP1. With `left` and penalty 5, the DE-loop numbers stay the same as with `left`
 
-## How Nextclade places indels
+### Epitopes and numbering
 
-- **Tie-break by side**: `enum GapAlignmentSide` [[src](https://github.com/nextstrain/nextclade/blob/d415f3c396fabc7f792c676d60ac9b50236830c1/packages/nextclade/src/align/params.rs#L10-L21)] turns a strict comparison into a non-strict one in `fn score_matrix()` [[src](https://github.com/nextstrain/nextclade/blob/d415f3c396fabc7f792c676d60ac9b50236830c1/packages/nextclade/src/align/score_matrix.rs#L47-L52)]. `left` places ambiguous gaps at their 3'-most position, `right` at their 5'-most position
-- **Separate peptide alignment**: `fn translate_cds()` removes all gaps from the aligned CDS, translates it, and aligns the peptide to the reference peptide again with the same parameters [[src](https://github.com/nextstrain/nextclade/blob/d415f3c396fabc7f792c676d60ac9b50236830c1/packages/nextclade/src/translate/translate_genes.rs#L254-L287)]
-- **Datasets differ**: in `nextclade_data` at `a6f7bcef`, 60 datasets set `right` and 19 set `left`, among them SARS-CoV-2 and EV-D68 on `right`, EV-A71, CVA16 and RSV on `left`
-- **Known since 2020**: [nextstrain/nextclade#274](https://github.com/nextstrain/nextclade/issues/274) reports out-of-frame gaps as "ambiguous", [nextstrain/nextclade#366](https://github.com/nextstrain/nextclade/issues/366) a 12-nt deletion named `G142-` to `Y145-` plus `L141Y`, and the open [nextstrain/nextclade#1670](https://github.com/nextstrain/nextclade/issues/1670) an ORF9b substitution next to a deletion named `M25-`
+- **Variable antigenic loops**: the VP1 BC and DE loops are the most variable antigenic regions, with diversity at VP1 positions 95, 97, 98, 142, 143 and 148 <a id="cite-12"></a>[Dyrdak et al. 2019](https://doi.org/10.1093/ve/vez007) [[12](#ref-12)], and signs of positive selection <a id="cite-13"></a>[Hodcroft et al. 2022](https://doi.org/10.1371/journal.ppat.1010515) [[13](#ref-13)]
+- **Neutralizing sites**: a neutralizing antibody binds the VP1 DE loop and blocks sialic acid binding <a id="cite-14"></a>[Zheng et al. 2018](https://doi.org/10.4049/jimmunol.1800655) [[14](#ref-14)]; four neutralizing sites are mapped, site I in the VP1 BC loop <a id="cite-15"></a>[Dai et al. 2023](https://doi.org/10.1128/jvi.01600-23) [[15](#ref-15)]; the capsid structure is in <a id="cite-16"></a>[Liu et al. 2015](https://doi.org/10.1126/science.1261962) [[16](#ref-16)]; the clades are described in <a id="cite-17"></a>[Tokarz et al. 2012](https://doi.org/10.1099/vir.0.043935-0) [[17](#ref-17)]
+- **Labels depend on reference and alignment**: Nextstrain numbers VP1 on KX675261.1 with manual gap fixes, the Nextclade dataset on its own reference with `right`. A DE-loop residue label is comparable between tools only with the same reference and the same placement convention
 
 ## How other tools place indels
 
@@ -110,7 +173,6 @@ flowchart TB
 - **Other tools**: minimap2 left-aligns gaps since release 2.3 (2017-10-22) [[changelog](https://github.com/lh3/minimap2/blob/3c28777e7e2dcc90f825de1b9f17a89cca7d4452/NEWS.md?plain=1#L880)]. UShER ignores indels [[doc](https://usher-wiki.readthedocs.io/en/latest/UShER.html#:~:text=ignores%20indels)]. No viral tool found defines a canonical indel representation
 
 ## Representation standards
-
 
 A pure deletion of one repeat unit has an ambiguity window: every placement inside it gives the same score and the same query. Example with a codon repeat `AGT AGT`:
 
@@ -137,12 +199,6 @@ VCF names the 5'-most placement, HGVS the 3'-most, and SPDI and VRS name the win
 - **Phylogeny-aware gap placement**: traditional aligners "infer systematically biased alignments with excess deletions and substitutions, too few insertions, and implausible insertion-deletion-event histories"; placing indels as events on a phylogeny prevents this <a id="cite-5"></a>[Löytynoja and Goldman 2008](https://doi.org/10.1126/science.1158395) [[5](#ref-5)]; the progressive algorithm is in <a id="cite-6"></a>[Löytynoja and Goldman 2005](https://doi.org/10.1073/pnas.0409137102) [[6](#ref-6)]
 - **Indels as phylogenetic events**: joint estimation of alignment and phylogeny uses shared indels to group sister taxa <a id="cite-7"></a>[Redelings and Suchard 2005](https://doi.org/10.1080/10635150590947041) [[7](#ref-7)]; ARPIP reconstructs ancestral sequences with an explicit indel model, one event per branch <a id="cite-8"></a>[Jowkar et al. 2023](https://doi.org/10.1093/sysbio/syac050) [[8](#ref-8)]
 - **Codon-aware alignment**: MACSE aligns nucleotides with amino acid scores over the three reading frames <a id="cite-9"></a>[Ranwez et al. 2011](https://doi.org/10.1371/journal.pone.0022594) [[9](#ref-9)]; <a id="cite-10"></a>[Ranwez et al. 2018](https://doi.org/10.1093/molbev/msy159) [[10](#ref-10)]. VIRULIGN derives the nucleotide alignment from the amino acid alignment <a id="cite-11"></a>[Libin et al. 2019](https://doi.org/10.1093/bioinformatics/bty851) [[11](#ref-11)]. In both, nucleotide and amino acid indels cannot disagree. Neither source states a tie-break rule
-
-## EV-D68 epitopes and numbering
-
-- **Variable antigenic loops**: the VP1 BC and DE loops are the most variable antigenic regions, with diversity at VP1 positions 95, 97, 98, 142, 143 and 148 <a id="cite-12"></a>[Dyrdak et al. 2019](https://doi.org/10.1093/ve/vez007) [[12](#ref-12)], and signs of positive selection <a id="cite-13"></a>[Hodcroft et al. 2022](https://doi.org/10.1371/journal.ppat.1010515) [[13](#ref-13)]
-- **Neutralizing sites**: a neutralizing antibody binds the VP1 DE loop and blocks sialic acid binding <a id="cite-14"></a>[Zheng et al. 2018](https://doi.org/10.4049/jimmunol.1800655) [[14](#ref-14)]; four neutralizing sites are mapped, site I in the VP1 BC loop <a id="cite-15"></a>[Dai et al. 2023](https://doi.org/10.1128/jvi.01600-23) [[15](#ref-15)]; the capsid structure is in <a id="cite-16"></a>[Liu et al. 2015](https://doi.org/10.1126/science.1261962) [[16](#ref-16)]; the clades are described in <a id="cite-17"></a>[Tokarz et al. 2012](https://doi.org/10.1099/vir.0.043935-0) [[17](#ref-17)]
-- **Labels depend on reference and alignment**: Nextstrain numbers VP1 on KX675261.1 with manual gap fixes, the Nextclade dataset on its own reference with `right`. A DE-loop residue label is comparable between tools only with the same reference and the same placement convention
 
 ## Directions (not decided)
 
@@ -172,7 +228,6 @@ Each change except the window field alters shipped output, so each needs a scien
 - **Biological**: keep start codons and codon boundaries; see [kb/issues/N-align-in-frame-deletion-tie-at-cds-start.md](../issues/N-align-in-frame-deletion-tie-at-cds-start.md)
 - **Phylogenetic**: match the nearest tree node first, then the biological rules, then the position rule
 
-
 ```mermaid
 flowchart TB
   t["<b>Placements with equal score</b>"] --> p["<b>Phylogenetic</b><br/><small>placement on the nearest tree node</small>"]
@@ -198,6 +253,7 @@ flowchart TB
 - The tree-consistent tie-break and the delins merge are not prototyped. Open: how far a shift may move, what to do when the nearest node is ambiguous itself, and how delins interact with frameshift and QC rules
 - Whether Nextclade amino acid names should follow HGVS or the nucleotide alignment is a product decision
 - The full texts of Tan et al. 2015, Holmes et al. 2020 and Tokarz et al. 2012 were not read; claims rest on abstracts, the vt documentation and the SPDI preprint
+- The measurements across datasets use the example sequences of each dataset and single-segment CDSs only; larger samples of public genomes may give different rates
 
 ## Glossary
 
