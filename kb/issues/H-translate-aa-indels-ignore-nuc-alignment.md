@@ -8,6 +8,7 @@ Examples with Nextclade 3.25.0:
 
 - **SARS-CoV-2 Delta** (USA/CO-CDC-MMB10752210/2021, `nextstrain/sars-cov-2/wuhan-hu-1/orfs` examples, `right`): the nucleotide deletion 22029-22034 covers S codons 156-158 (the known Delta `S:E156-`, `S:F157-`), but `aaDeletions` reports `S:D138-` and `S:P139-`
 - **CVA10** KY272007.1 (`left`): the nucleotide deletion 1390-1392 removes VP2 codon 147, but the output reports `VP2:G148-` and a substitution `VP2:P147R` that the genome does not have
+- **EV-D68 VP1 DE-loop** (`enpen/enterovirus/ev-d68`, shipped `right`, 1,195 GenBank genomes): reference VP1 138-147 is `AVNGSSNSTY`, an `S`/`N` repeat. In 25 of 322 genomes with a 3-nt deletion there, the nucleotide deletion removes VP1 codon 145, but `aaDeletions` reports codon 142. With `left`, 4 genomes disagree. Amino acid mutations in this epitope then differ from alignments of other tools
 - **Synthetic repeat** `CTT GAA CTC GAT` (`L E L D`) with `GAA CTC` missing, `right`: the nucleotide deletion is codons 11-12, the peptide output `L10-`, `E11-`, and `aaChangesGroups` shows `L10- ref=CTT qry=CTT`
 - **Start codon**: with `right`, the peptide alignment can delete `M1` although the nucleotide alignment keeps codon 1 (in-frame deletion next to a repeated `ATG`, reverse-strand CDS). The lost start codon warning reads codon 1 from the nucleotide alignment, so no warning appears
 
