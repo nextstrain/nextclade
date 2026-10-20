@@ -1,5 +1,32 @@
 ## Unreleased
 
+### Nextclade Web: update Auspice tree visualization to 3.0.0
+
+The Auspice tree visualization package is updated from 2.67.0 to 3.0.0. Tip labels stay inside the tree, also when you zoom into a clade, the SVG download contains the labels and the diversity chart, and the tree controls work with the keyboard. See the [Auspice changelog](https://github.com/nextstrain/auspice/blob/v3.0.0/CHANGELOG.md) for details.
+
+### Nextclade Web: more controls on the tree page
+
+The sidebar of the tree page has new controls:
+
+- **Explode Tree By** splits the tree into subtrees where an attribute changes along a branch, for example one subtree per clade
+- **Entropy** shows or hides the diversity chart of the genome below the tree
+- **Add metadata** adds the columns of your own CSV or TSV files to the tree as colorings and filters. You can also drop the files on the tree. The first column holds the sequence names, as in the input FASTA file. Node-data JSON files of Augur also work. The data stays in your browser. Excel files are not read: save the sheet as a CSV or TSV file and add that file
+- Shift-click a value in the legend of the tree to change the colors of the current coloring
+
+The tree keeps its coloring, filters, zoom, and added metadata while you visit other pages, until the next analysis. The sidebar is now also available in Chinese.
+
+See the [tree page documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-web/phylogenetic-tree-view.html) for details.
+
+### Nextclade Web: Newick download on the tree page
+
+A new "NWK" button on the tree page downloads the tree with the analyzed sequences placed onto it, in Newick format. The "JSON" and "NWK" buttons download the same files as the export page. The text below the SVG figure now names the Nextclade dataset, the Nextclade version, and the publications to cite. On narrow screens, the download buttons are in one "Download" menu.
+
+### Nextclade Web: tree page during the analysis
+
+During every analysis, the tree page showed the message that the dataset has no reference tree, until the tree was built at the end of the run. Now the tree page shows the stage of the analysis while the tree is expected. For a dataset without a reference tree, the page names the dataset, lists the results that are available, and explains how to use a custom reference tree.
+
+The navigation bar now shows "Building tree" after all sequences are analyzed. Before, it showed "Analyzed N/N" while the tree was built, and large runs looked stalled.
+
 ### Nextclade Web: fix crash on sequences that need a large alignment band
 
 Nextclade Web stopped the whole analysis with the error `RuntimeError: unreachable` when one sequence needed a large nucleotide alignment band, for example some mpox sequences. The alignment matrix was copied once while it was created, so the alignment needed almost twice the memory of the matrix. The copy is removed, which lowers the peak memory of an alignment in Nextclade Web from 9 to 5 bytes per band cell. When the memory for an alignment matrix still cannot be allocated, the sequence gets an error, and the analysis of the other sequences continues. Results of Nextclade CLI do not change.
@@ -48,6 +75,31 @@ See the [errors and warnings documentation](https://docs.nextstrain.org/projects
 ### Nextclade Web: free memory after sequences with very large alignments
 
 The memory of the analysis engine in Nextclade Web grows to fit the largest alignment it computed, and the browser cannot take it back while the engine runs. After a sequence with a very large alignment band, for example some mpox sequences, an analysis worker kept several GB of memory until the end of the run, and the browser tab could crash. Nextclade Web now replaces an analysis worker whose memory grew above 1 GiB with a new worker after it finishes the current sequence, which returns the memory to the browser. The results do not change.
+
+### Newick tree: quote sequence names with special characters
+
+Nextclade wrote sequence names into the Newick tree without change. Tree tools read a name with whitespace, brackets, quotes, colons, semicolons or commas as Newick syntax, for example as a subtree, or rejected the file. An example is `OV950637 (XL)` in the SARS-CoV-2 reference tree. Nextclade CLI and Nextclade Web now write such names in single quotes, as the Newick format requires, and double each single quote in the name, for example `'OV950637 (XL)'`. Other names do not change. See the [tree output documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/06-tree.html) for details.
+
+### Nextclade Web: layout on phones, tablets and laptops
+
+Nextclade Web is now usable on small screens:
+
+- the navigation bar stays in one row and does not cover the top of the page. The breadcrumbs scroll sideways when they do not fit, and the analysis status keeps its room on laptop screens
+- the navigation menu now contains the forum, Docker and GitHub links on screens narrower than 1200px. Before, these links were not available on such screens
+- the start page scrolls when its content does not fit the screen, so the Run button and the dataset card are always available
+- the dataset page shows the selected dataset and the Run button below the dataset list on screens narrower than 992px. Before, they were outside of the screen
+- tabs, dataset search, dataset dates and version badges, wide tables in dataset descriptions, the export page, the about page, and the footer fit phone screens
+- on narrow screens, the row with the tree filters and the download buttons moves above the tree
+
+Screen readers no longer announce the citation button in the navigation bar as disabled.
+
+### Nextclade CLI: Linux glibc binaries run in minimal container images
+
+The Linux glibc executables (`nextclade-x86_64-unknown-linux-gnu` and `nextclade-aarch64-unknown-linux-gnu`) needed the system library `libgcc_s.so.1`, which minimal glibc container images such as `gcr.io/distroless/base` do not have. The executables now contain the necessary code from this library, and run in these images.
+
+### Nextclade Web: security update of DOMPurify
+
+Auspice uses DOMPurify to remove unsafe HTML when it shows the Markdown descriptions of datasets. The DOMPurify version that Auspice includes is replaced from 2.5.8 to 3.4.16, which fixes known sanitizer bypasses ([GHSA-36jr-mh4h-2g58](https://github.com/advisories/GHSA-36jr-mh4h-2g58), [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq)).
 
 ## 3.25.0
 
