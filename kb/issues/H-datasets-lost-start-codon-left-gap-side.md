@@ -8,6 +8,18 @@ The nucleotide deletion is real. Only its position is incorrect. The alternative
 
 A related case affects both gap sides: a deletion that starts before a CDS and cuts into it can be cheaper than an in-frame deletion inside of the CDS. Example: mpox OPG112, Ivory_Coast_2012, translation `-XMDKR` with `left` and with `right`.
 
+## Status with Nextclade 3.25.0
+
+Nextclade 3.25.0 on the example sequences of the 108 annotated datasets of `nextclade_data` `master`, with their shipped settings:
+
+- **mpox**: lost start codon warnings from deletions in `all-clades` (9: 8 in OPG204, 1 in OPG112), `lineage-b.1` (3: 2 in OPG204, 1 in OPG208) and `clade-iib` (1: OPG208 next to an `N` run). With `--penalty-gap-enter-cds 2`, all 13 disappear. The mpox datasets do not set `penaltyGapEnterCds` yet, and their workflows still hard-code `--gap-alignment-side left` for the tree build
+- **Real deletions, warning correct**: mpox `clade-i` (1,141-nt deletion over OPG032), Marburg (1,430-nt deletion over the VP30 start in the partial sequence AX717721.1), SARS-CoV-2 (15-nt deletion across the ORF7b end and the ORF8 start, 5 datasets). The penalty does not move them
+- **Substitutions at a start codon**: 18 warnings in 9 datasets (CCHFV M, mpox OPG197, Andes virus, HIV-1, hMPV, measles, SARS-CoV-2, CVA16). Changes in the data, not alignment problems
+- **ENPEN `cva16` and `ev-a71`** (`left`, no penalty): no lost VP4 start in 1,071 and 1,991 GenBank genomes, and the penalty changes nothing
+- **CVA10**: branch `add-cva10` (nextclade_data#466) sets `penaltyGapEnterCds: 6`, the minimum version 3.25.0, and the example MW929252. The workflow repository `enterovirus-phylo/nextclade_a10` switched to `gapAlignmentSide: "right"` without the penalty, so a dataset rebuilt from it loses these settings
+- **Showcase**: the draft pull request [nextstrain/nextclade_data#482](https://github.com/nextstrain/nextclade_data/pull/482) sets `penaltyGapEnterCds: 2` in the four mpox datasets and `penaltyGapEnterCds: 6` in a copy of CVA10 with the example MW929252, with Nextclade Web and CLI reproduction steps. It is not for merge
+
+
 ## Affected datasets
 
 | Dataset                       | Shortcuts                 | CDS    | Evidence                                                                                               |
