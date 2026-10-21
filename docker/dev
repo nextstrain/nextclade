@@ -476,7 +476,7 @@ if [ "${WASM}" == "1" ]; then
   CROSS="wasm32-unknown-unknown"
 fi
 
-DOCKER_BASE_IMAGE="${DOCKER_BASE_IMAGE:=ubuntu:20.04}"
+DOCKER_BASE_IMAGE="${DOCKER_BASE_IMAGE:=ubuntu:20.04@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214}"
 CLANG_VERSION="${CLANG_VERSION:=13}"
 DOCKER_TARGET="${DOCKER_TARGET:-dev}"
 
@@ -490,10 +490,10 @@ if [ -n "${CROSS:-}" ]; then
     if [[ "${CROSS}" == x86_64-* ]]; then
       # 'manylinux2014_x86_64' image is based on 'centos:7.9.2009' and offers build environment with
       # the best compatibility across target Linux distros
-      DOCKER_BASE_IMAGE="quay.io/pypa/manylinux2014_x86_64"
+      DOCKER_BASE_IMAGE="quay.io/pypa/manylinux2014_x86_64:2026.10.21-1@sha256:55df5597db86b0a03d5f21a03b060271efffc78ef97123c60ee9c7ce0f10ec31"
       CLANG_VERSION="3.4"
     else
-      DOCKER_BASE_IMAGE="debian:9.13"
+      DOCKER_BASE_IMAGE="debian:9.13@sha256:c5c5200ff1e9c73ffbf188b4a67eb1c91531b644856b4aefe86a58d2f0cb05be"
       CLANG_VERSION="13"
     fi
   fi
