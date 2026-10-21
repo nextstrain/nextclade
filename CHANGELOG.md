@@ -1,5 +1,11 @@
 ## Unreleased
 
+### Alignment: `alignmentPreset` in `pathogen.json` takes effect
+
+Nextclade ignored `alignmentPreset` in `alignmentParams` of `pathogen.json` and used the `default` preset unless the `--alignment-preset` CLI argument was given, although the documentation describes the field and some datasets set it. Nextclade CLI and Nextclade Web now apply the preset of the dataset. The `--alignment-preset` CLI argument replaces the preset of the dataset, and alignment parameters set in `pathogen.json` or as CLI arguments still override the values of the preset. See the [sequence alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/01-sequence-alignment.html) for details.
+
+Results change for datasets that set `alignmentPreset`, for example the community datasets for the L segment of Oropouche virus, for Zika virus, and for hepatitis A virus.
+
 ### Nextclade Web: update Auspice tree visualization to 3.0.0
 
 The Auspice tree visualization package is updated from 2.67.0 to 3.0.0. Tip labels stay inside the tree, also when you zoom into a clade, the SVG download contains the labels and the diversity chart, and the tree controls work with the keyboard. See the [Auspice changelog](https://github.com/nextstrain/auspice/blob/v3.0.0/CHANGELOG.md) for details.

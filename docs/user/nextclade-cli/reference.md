@@ -379,7 +379,9 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
   Possible values: `true`, `false`
 
 * `--masked-muts-weight <MASKED_MUTS_WEIGHT>`
-* `--alignment-preset <ALIGNMENT_PRESET>` — Alignment parameter presets. EXPERIMENTAL feature subject to adjustments
+* `--alignment-preset <ALIGNMENT_PRESET>` — Alignment parameter preset. EXPERIMENTAL feature subject to adjustments.
+
+   The preset gives the base values of all alignment parameters. Alignment parameters set in `pathogen.json` or as CLI arguments override these values. The preset is taken from the `--alignment-preset` CLI argument, then from `alignmentPreset` in `pathogen.json`, then the `default` preset is used.
 
   Possible values:
   - `default`:

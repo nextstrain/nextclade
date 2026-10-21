@@ -15,12 +15,16 @@ A query sequence is also skipped with an error when the memory for its alignment
 The number of retries with a relaxed band is configurable (`--max-alignment-attempts`). When the alignment still touches the band boundary and no wider band can be used, because the wider band exceeds the band area limit or does not fit into memory, because retries are disabled (`--max-alignment-attempts` is 0), or because all retries are used while the alignment score still rises, Nextclade keeps the last alignment and reports a warning with the reason (see [Errors and warnings](../output-files/errors-and-warnings.md)).
 
 
-Nextclade implements a few pre-defined alignment parameter presets. In Nextclade CLI they can be switched using  `--alignment-preset` argument of the `run` command. Currently available values are:
+Nextclade implements a few pre-defined alignment parameter presets. Currently available values are:
   - `default`: Suitable for aligning very similar sequences (this is the default)
   - `high-diversity`: Suitable for more diverse viruses
   - `short-sequences`: Suitable for short and partial sequences
 
 This is an experimental feature. Presets other than default are subject to change.
+
+A preset can be selected in two places. If both are set, the CLI argument is used:
+ - the `--alignment-preset` argument of the `run` command of Nextclade CLI
+ - `alignmentPreset` in `alignmentParams` of the dataset's [pathogen config file](../input-files/05-pathogen-config), if defined by the dataset author. This also applies in Nextclade Web
 
 Other than built-in presets, alignment parameters can be provided:
  - (if a [dataset](../datasets) is used) by the dataset's [pathogen config file](../input-files/05-pathogen-config), if defined by the dataset author
@@ -30,6 +34,8 @@ If a parameter present in multiple sources, the order of preference of parameter
  - built-in preset
  - dataset's pathogen config file (overrides parameters in preset)
  - CLI arguments (overrides parameters in preset and in dataset config)
+
+A parameter that the dataset's pathogen config file sets therefore also overrides a preset selected with the `--alignment-preset` CLI argument. For example, with `--alignment-preset high-diversity` and `"penaltyGapOpen": 8` in the pathogen config file, `penaltyGapOpen` is 8, and all other parameters that the pathogen config file does not set have the values of the `high-diversity` preset.
 
 
 After alignment, Nextclade strips insertions relative to the reference from the aligned sequences and lists them in a separate file.

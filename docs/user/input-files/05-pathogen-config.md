@@ -163,7 +163,7 @@ Optional `dict[str,bool]`. General flags that affect the analysis and output. Th
 
 Optional `dict`. Parameters for the alignment algorithm. These are identical to the corresponding CLI arguments (though here _camelCase_ needs to be used). If not provided, default values are used.
 
-An `alignmentPreset` field can be used as a shorthand for common parameter combinations: `"default"`, `"high-diversity"`, or `"short-sequences"`. Individual parameters override the preset values.
+An `alignmentPreset` field can be used as a shorthand for common parameter combinations: `"default"`, `"high-diversity"`, or `"short-sequences"`. Individual parameters override the preset values. The `--alignment-preset` CLI argument replaces the preset of the dataset. See [sequence alignment](../algorithm/01-sequence-alignment) for the order in which presets and parameters apply.
 
 #### `treeBuilderParams`
 

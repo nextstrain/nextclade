@@ -3,6 +3,7 @@ use crate::analyze::aa_changes_find_for_cds::{AaChangesParams, AaChangesParamsOp
 use crate::analyze::virus_properties::VirusProperties;
 use crate::run::params_general::{NextcladeGeneralParams, NextcladeGeneralParamsOptional};
 use crate::tree::params::{TreeBuilderParams, TreeBuilderParamsOptional};
+use crate::utils::option::find_some;
 use clap::Parser;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
@@ -36,6 +37,8 @@ impl NextcladeInputParams {
   /// Resolve parameters from the user (`params`: CLI arguments) and from the dataset (`virus_properties`: `pathogen.json`).
   ///
   /// Each parameter takes the value from the first source that sets it: user, then dataset, then the base values.
+  /// The alignment preset is selected the same way and gives the base values of the alignment parameters, so a
+  /// parameter that the dataset sets also overrides a preset that the user selects.
   pub fn from_optional(
     params: &NextcladeInputParamsOptional,
     virus_properties: &VirusProperties,
@@ -47,11 +50,15 @@ impl NextcladeInputParams {
       NextcladeGeneralParams::merge_opt,
     );
 
-    let preset = params
-      .alignment
-      .as_ref()
-      .and_then(|a| a.alignment_preset)
-      .unwrap_or_default();
+    let preset = find_some(&[
+      &params.alignment.as_ref().and_then(|a| a.alignment_preset),
+      &virus_properties
+        .alignment_params
+        .as_ref()
+        .and_then(|a| a.alignment_preset),
+    ])
+    .copied()
+    .unwrap_or_default();
 
     let alignment = resolve_params(
       AlignPairwiseParams::from_preset(preset)?,

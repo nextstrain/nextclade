@@ -49,7 +49,9 @@ pub enum AlignmentPreset {
 #[derive(Parser, Debug, Clone, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AlignPairwiseParams {
-  /// Alignment parameter presets. EXPERIMENTAL feature subject to adjustments.
+  /// Alignment parameter preset. EXPERIMENTAL feature subject to adjustments.
+  ///
+  /// The preset gives the base values of all alignment parameters. Alignment parameters set in `pathogen.json` or as CLI arguments override these values. The preset is taken from the `--alignment-preset` CLI argument, then from `alignmentPreset` in `pathogen.json`, then the `default` preset is used.
   #[clap(long, value_enum)]
   pub alignment_preset: AlignmentPreset,
 
