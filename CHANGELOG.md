@@ -4,7 +4,12 @@
 
 Nextclade ignored `alignmentPreset` in `alignmentParams` of `pathogen.json` and used the `default` preset unless the `--alignment-preset` CLI argument was given, although the documentation describes the field and some datasets set it. Nextclade CLI and Nextclade Web now apply the preset of the dataset. The `--alignment-preset` CLI argument replaces the preset of the dataset, and alignment parameters set in `pathogen.json` or as CLI arguments still override the values of the preset. See the [sequence alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/01-sequence-alignment.html) for details.
 
-Results change for datasets that set `alignmentPreset`, for example the community datasets for the L segment of Oropouche virus, for Zika virus, and for hepatitis A virus.
+Results change for these datasets, which set `alignmentPreset`:
+
+- `community/itps/orov/L/refseq`
+- `community/itps/zikav`
+- `community/masphl-bioinformatics/hav/vp1-2b-junction`
+- `community/masphl-bioinformatics/hav/whole-genome`
 
 ### Nextclade Web: update Auspice tree visualization to 3.0.0
 
