@@ -100,7 +100,7 @@ validator = { version = "=0.20.0", features = ["derive"] }
 wasm-bindgen = { version = "=0.2.106", features = ["serde-serialize"] }
 wasm-logger = "=0.2.0"
 web-sys = { version = "=0.3.83", features = ["console"] }
-webpki-root-certs = "=1.0.5"
+webpki-root-certs = "=1.0.10"
 xz2 = { version = "=0.1.7", features = ["static"] }
 zip = { version = "=7.0.0", default-features = false, features = ["aes-crypto", "deflate", "time"] }
 zstd = { version = "=0.13.3", features = ["zstdmt"] }
