@@ -49,6 +49,8 @@ RUN set -euxo pipefail >/dev/null \
 ARG CLANG_VERSION
 
 # Install required packages if running Debian or Ubuntu
+# The `sed` distrusts the roots of the compromised eMudhra intermediate CAs, because the archives of Ubuntu 20.04
+# and Debian 9 have no fixed `ca-certificates` (https://emudhra.we-have-a-problem.com/)
 RUN set -euxo pipefail >/dev/null \
 && if [[ "$DOCKER_BASE_IMAGE" != debian* ]] && [[ "$DOCKER_BASE_IMAGE" != ubuntu* ]]; then exit 0; fi \
 && if grep stretch "/etc/apt/sources.list"; then printf "deb http://archive.debian.org/debian/ stretch main non-free contrib\ndeb http://archive.debian.org/debian-security/ stretch/updates main non-free contrib\n" > "/etc/apt/sources.list"; fi \
@@ -79,6 +81,8 @@ RUN set -euxo pipefail >/dev/null \
   time \
   xz-utils \
 >/dev/null \
+&& sed -i -e 's|^mozilla/emSign_ECC_Root_CA_-_G3.crt|!&|' -e 's|^mozilla/Comodo_AAA_Services_root.crt|!&|' "/etc/ca-certificates.conf" \
+&& update-ca-certificates --fresh >/dev/null \
 && echo "deb https://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${CLANG_VERSION} main" >> "/etc/apt/sources.list.d/llvm.list" \
 && curl -fsSL "https://apt.llvm.org/llvm-snapshot.gpg.key" | sudo apt-key add - \
 && export DEBIAN_FRONTEND=noninteractive \
