@@ -95,6 +95,23 @@ pub fn run(
   minimizer_index: &MinimizerIndexJson,
   verbose: bool,
 ) -> Result<(), Report> {
+  sort_sequences(
+    args,
+    ref_names,
+    minimizer_index,
+    verbose,
+    StdoutWriter::new(io::stdout()),
+  )
+}
+
+/// Sort the sequences, and print the table of the suggested datasets to `stats_output` when `verbose`
+pub(crate) fn sort_sequences(
+  args: &NextcladeSortArgs,
+  ref_names: &[String],
+  minimizer_index: &MinimizerIndexJson,
+  verbose: bool,
+  stats_output: impl io::Write + Send,
+) -> Result<(), Report> {
   let NextcladeSortArgs {
     input_fastas,
     search_params,
@@ -155,7 +172,7 @@ pub fn run(
     drop(fasta_receiver);
     drop(result_sender);
 
-    let writer = s.spawn(move || writer_thread(args, ref_names, result_receiver, verbose));
+    let writer = s.spawn(move || writer_thread(args, ref_names, result_receiver, verbose, stats_output));
 
     chain!([reader], searchers, [writer])
       .map(|thread| thread.join().unwrap_or_else(|panic| std::panic::resume_unwind(panic)))
@@ -178,6 +195,7 @@ fn writer_thread(
   ref_names: &[String],
   result_receiver: crossbeam_channel::Receiver<MinimizerSearchRecord>,
   verbose: bool,
+  stats_output: impl io::Write,
 ) -> Result<(), Report> {
   let NextcladeSortArgs {
     input_fastas,
@@ -209,7 +227,7 @@ fn writer_thread(
     let mut stats = StatsPrinter::new(
       "Suggested datasets for each sequence (after global optimization)",
       verbose,
-      StdoutWriter::new(io::stdout()),
+      stats_output,
     )?;
     let mut reader = FastaReader::from_paths(input_fastas)?;
     let mut writer = DatasetSortWriter::new(output_path, output_dir, output_results_tsv)?;
@@ -229,11 +247,7 @@ fn writer_thread(
     }
     writer.finish()?;
   } else {
-    let mut stats = StatsPrinter::new(
-      "Suggested datasets for each sequence",
-      verbose,
-      StdoutWriter::new(io::stdout()),
-    )?;
+    let mut stats = StatsPrinter::new("Suggested datasets for each sequence", verbose, stats_output)?;
     let mut writer = DatasetSortWriter::new(output_path, output_dir, output_results_tsv)?;
     for MinimizerSearchRecord { fasta_record, result } in result_receiver {
       let datasets = {
