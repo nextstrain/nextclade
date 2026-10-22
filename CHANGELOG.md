@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Nextclade CLI: read errors of input files
+
+When an input file cannot be read, for example a truncated or damaged compressed file such as `sequences.fasta.gz`, the error message now names the file once, along with the compression format and the cause. Before, the message said "Filename: None" and did not say which input file failed.
+
 ### Nextclade CLI: `nextclade sort --global` with sequences from standard input
 
 `nextclade sort --global` reads the input sequences twice: once to find the best datasets, and once to write the outputs. With sequences from standard input, the second read found no sequences, so the output files were empty. Nextclade now copies standard input into a temporary file and reads it from there both times.
