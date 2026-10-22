@@ -21,13 +21,13 @@ pub fn nextclade_dataset_list(
     json,
     only_names,
     server,
-    proxy_config,
+    network,
     ..
   }: NextcladeDatasetListArgs,
 ) -> Result<(), Report> {
   let verbose = log::max_level() > LevelFilter::Info;
 
-  let http = HttpClient::new(&server, &proxy_config, verbose)?;
+  let http = HttpClient::new(&server, &network, verbose)?;
   let DatasetsIndexJson { collections, .. } = download_datasets_index_json(&http)?;
 
   let (compatible, incompatible) = collections

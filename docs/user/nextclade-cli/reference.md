@@ -194,6 +194,36 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
    Supports the following compression formats: "gz", "bz2", "xz", "zstd". Use "-" to read uncompressed data from standard input (stdin).
 * `--server <SERVER>` — Use custom dataset server
+* `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported.
+
+   A value without a scheme, for example `10.0.0.1:3128`, is an HTTP proxy. Credentials can be part of the URL, for example `http://user:password@proxy.example.com:3128`.
+
+   Hosts listed in the environment variable `NO_PROXY` (or `no_proxy`) are reached directly, without the proxy.
+
+   Without this option, Nextclade uses the standard proxy environment variables `HTTPS_PROXY`, `HTTP_PROXY` and `ALL_PROXY` (upper or lower case) together with `NO_PROXY`. When none of these variables is set, Nextclade uses the system proxy settings on macOS and Windows. A variable set to an empty value also counts as set, so for example `HTTPS_PROXY=` alone makes Nextclade connect directly instead of through the system proxy.
+
+   You can also provide the proxy in the environment variable `NEXTCLADE_PROXY`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and a password (`--proxy-pass` or `--proxy-pass-file`) must be either both specified or both omitted
+
+   You can also provide the username in the environment variable `NEXTCLADE_PROXY_USER`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and a password (`--proxy-pass` or `--proxy-pass-file`) must be either both specified or both omitted
+
+   Other users of the machine can see command-line arguments. Prefer the environment variable `NEXTCLADE_PROXY_PASS` or `--proxy-pass-file`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-pass-file <PROXY_PASS_FILE>` — Path to a file that contains the password for basic authentication on proxy server. One trailing newline is removed.
+
+   You can also provide the path in the environment variable `NEXTCLADE_PROXY_PASS_FILE`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+
+   Give the password either with `--proxy-pass` or with `--proxy-pass-file`. If one of them is a command-line argument and the other an environment variable, the command-line argument is used.
+* `--extra-ca-certs <EXTRA_CA_CERTS>` — Path to extra CA certificates as a PEM bundle.
+
+   You can also provide the path to CA certificates in the environment variable `NEXTCLADE_EXTRA_CA_CERTS`. The argument takes precedence over the environment variable if both are provided.
+
+   Default CA certificates are those obtained from the platform/OS-level trust store plus those from a baked-in copy of Mozilla's common CA trust store. You can override the certs obtained from the platform trust store by setting `SSL_CERT_FILE` or `SSL_CERT_DIR`. Filenames in the latter must be hashed in the style of OpenSSL's `c_rehash` utility.
+* `--http-timeout <SECONDS>` — Maximum time in seconds for each HTTP request, from connecting until the last byte of the response is received. 0 disables the limit.
+
+   You can also provide the value in the environment variable `NEXTCLADE_HTTP_TIMEOUT`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+
+  Default value: `600`
 
 
 
@@ -500,14 +530,36 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
    You can host your own dataset server, with one or more datasets, grouped into dataset collections, and use this server to provide datasets to users of Nextclade CLI and Nextclade Web. Refer to Nextclade dataset documentation for more details.
 
   
-* `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
-* `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
-* `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
+* `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported.
+
+   A value without a scheme, for example `10.0.0.1:3128`, is an HTTP proxy. Credentials can be part of the URL, for example `http://user:password@proxy.example.com:3128`.
+
+   Hosts listed in the environment variable `NO_PROXY` (or `no_proxy`) are reached directly, without the proxy.
+
+   Without this option, Nextclade uses the standard proxy environment variables `HTTPS_PROXY`, `HTTP_PROXY` and `ALL_PROXY` (upper or lower case) together with `NO_PROXY`. When none of these variables is set, Nextclade uses the system proxy settings on macOS and Windows. A variable set to an empty value also counts as set, so for example `HTTPS_PROXY=` alone makes Nextclade connect directly instead of through the system proxy.
+
+   You can also provide the proxy in the environment variable `NEXTCLADE_PROXY`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and a password (`--proxy-pass` or `--proxy-pass-file`) must be either both specified or both omitted
+
+   You can also provide the username in the environment variable `NEXTCLADE_PROXY_USER`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and a password (`--proxy-pass` or `--proxy-pass-file`) must be either both specified or both omitted
+
+   Other users of the machine can see command-line arguments. Prefer the environment variable `NEXTCLADE_PROXY_PASS` or `--proxy-pass-file`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-pass-file <PROXY_PASS_FILE>` — Path to a file that contains the password for basic authentication on proxy server. One trailing newline is removed.
+
+   You can also provide the path in the environment variable `NEXTCLADE_PROXY_PASS_FILE`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+
+   Give the password either with `--proxy-pass` or with `--proxy-pass-file`. If one of them is a command-line argument and the other an environment variable, the command-line argument is used.
 * `--extra-ca-certs <EXTRA_CA_CERTS>` — Path to extra CA certificates as a PEM bundle.
 
    You can also provide the path to CA certificates in the environment variable `NEXTCLADE_EXTRA_CA_CERTS`. The argument takes precedence over the environment variable if both are provided.
 
    Default CA certificates are those obtained from the platform/OS-level trust store plus those from a baked-in copy of Mozilla's common CA trust store. You can override the certs obtained from the platform trust store by setting `SSL_CERT_FILE` or `SSL_CERT_DIR`. Filenames in the latter must be hashed in the style of OpenSSL's `c_rehash` utility.
+* `--http-timeout <SECONDS>` — Maximum time in seconds for each HTTP request, from connecting until the last byte of the response is received. 0 disables the limit.
+
+   You can also provide the value in the environment variable `NEXTCLADE_HTTP_TIMEOUT`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+
+  Default value: `600`
 
 
 
@@ -543,14 +595,36 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
    This flag is mutually exclusive with `--output-dir`, and provides the equivalent output, but in the form of compressed zip archive instead of a directory with files.
 
    If the required directory tree does not exist, it will be created.
-* `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
-* `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
-* `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
+* `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported.
+
+   A value without a scheme, for example `10.0.0.1:3128`, is an HTTP proxy. Credentials can be part of the URL, for example `http://user:password@proxy.example.com:3128`.
+
+   Hosts listed in the environment variable `NO_PROXY` (or `no_proxy`) are reached directly, without the proxy.
+
+   Without this option, Nextclade uses the standard proxy environment variables `HTTPS_PROXY`, `HTTP_PROXY` and `ALL_PROXY` (upper or lower case) together with `NO_PROXY`. When none of these variables is set, Nextclade uses the system proxy settings on macOS and Windows. A variable set to an empty value also counts as set, so for example `HTTPS_PROXY=` alone makes Nextclade connect directly instead of through the system proxy.
+
+   You can also provide the proxy in the environment variable `NEXTCLADE_PROXY`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and a password (`--proxy-pass` or `--proxy-pass-file`) must be either both specified or both omitted
+
+   You can also provide the username in the environment variable `NEXTCLADE_PROXY_USER`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and a password (`--proxy-pass` or `--proxy-pass-file`) must be either both specified or both omitted
+
+   Other users of the machine can see command-line arguments. Prefer the environment variable `NEXTCLADE_PROXY_PASS` or `--proxy-pass-file`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-pass-file <PROXY_PASS_FILE>` — Path to a file that contains the password for basic authentication on proxy server. One trailing newline is removed.
+
+   You can also provide the path in the environment variable `NEXTCLADE_PROXY_PASS_FILE`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+
+   Give the password either with `--proxy-pass` or with `--proxy-pass-file`. If one of them is a command-line argument and the other an environment variable, the command-line argument is used.
 * `--extra-ca-certs <EXTRA_CA_CERTS>` — Path to extra CA certificates as a PEM bundle.
 
    You can also provide the path to CA certificates in the environment variable `NEXTCLADE_EXTRA_CA_CERTS`. The argument takes precedence over the environment variable if both are provided.
 
    Default CA certificates are those obtained from the platform/OS-level trust store plus those from a baked-in copy of Mozilla's common CA trust store. You can override the certs obtained from the platform trust store by setting `SSL_CERT_FILE` or `SSL_CERT_DIR`. Filenames in the latter must be hashed in the style of OpenSSL's `c_rehash` utility.
+* `--http-timeout <SECONDS>` — Maximum time in seconds for each HTTP request, from connecting until the last byte of the response is received. 0 disables the limit.
+
+   You can also provide the value in the environment variable `NEXTCLADE_HTTP_TIMEOUT`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+
+  Default value: `600`
 
 
 
@@ -634,14 +708,36 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
    You can host your own dataset server, with one or more datasets, grouped into dataset collections, and use this server to provide datasets to users of Nextclade CLI and Nextclade Web. Refer to Nextclade dataset documentation for more details.
 
   
-* `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported
-* `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
-* `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and `--proxy-pass` must be either both specified or both omitted
+* `-x`, `--proxy <PROXY>` — Pass all traffic over proxy server. HTTP, HTTPS, and SOCKS5 proxies are supported.
+
+   A value without a scheme, for example `10.0.0.1:3128`, is an HTTP proxy. Credentials can be part of the URL, for example `http://user:password@proxy.example.com:3128`.
+
+   Hosts listed in the environment variable `NO_PROXY` (or `no_proxy`) are reached directly, without the proxy.
+
+   Without this option, Nextclade uses the standard proxy environment variables `HTTPS_PROXY`, `HTTP_PROXY` and `ALL_PROXY` (upper or lower case) together with `NO_PROXY`. When none of these variables is set, Nextclade uses the system proxy settings on macOS and Windows. A variable set to an empty value also counts as set, so for example `HTTPS_PROXY=` alone makes Nextclade connect directly instead of through the system proxy.
+
+   You can also provide the proxy in the environment variable `NEXTCLADE_PROXY`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-user <PROXY_USER>` — Username for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and a password (`--proxy-pass` or `--proxy-pass-file`) must be either both specified or both omitted
+
+   You can also provide the username in the environment variable `NEXTCLADE_PROXY_USER`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-pass <PROXY_PASS>` — Password for basic authentication on proxy server, if applicable. Only valid when `--proxy` is also supplied. `--proxy-user` and a password (`--proxy-pass` or `--proxy-pass-file`) must be either both specified or both omitted
+
+   Other users of the machine can see command-line arguments. Prefer the environment variable `NEXTCLADE_PROXY_PASS` or `--proxy-pass-file`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+* `--proxy-pass-file <PROXY_PASS_FILE>` — Path to a file that contains the password for basic authentication on proxy server. One trailing newline is removed.
+
+   You can also provide the path in the environment variable `NEXTCLADE_PROXY_PASS_FILE`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+
+   Give the password either with `--proxy-pass` or with `--proxy-pass-file`. If one of them is a command-line argument and the other an environment variable, the command-line argument is used.
 * `--extra-ca-certs <EXTRA_CA_CERTS>` — Path to extra CA certificates as a PEM bundle.
 
    You can also provide the path to CA certificates in the environment variable `NEXTCLADE_EXTRA_CA_CERTS`. The argument takes precedence over the environment variable if both are provided.
 
    Default CA certificates are those obtained from the platform/OS-level trust store plus those from a baked-in copy of Mozilla's common CA trust store. You can override the certs obtained from the platform trust store by setting `SSL_CERT_FILE` or `SSL_CERT_DIR`. Filenames in the latter must be hashed in the style of OpenSSL's `c_rehash` utility.
+* `--http-timeout <SECONDS>` — Maximum time in seconds for each HTTP request, from connecting until the last byte of the response is received. 0 disables the limit.
+
+   You can also provide the value in the environment variable `NEXTCLADE_HTTP_TIMEOUT`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
+
+  Default value: `600`
 
 
 

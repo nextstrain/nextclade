@@ -5,9 +5,9 @@ use crate::cli::nextclade_read_annotation::nextclade_read_annotation;
 use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
 use crate::cli::print_help_markdown::print_help_markdown;
 use crate::cli::verbosity::Verbosity;
-use crate::io::http_client::ProxyConfig;
+use crate::io::network_args::NetworkArgs;
 use clap::builder::styling;
-use clap::{ArgGroup, CommandFactory, Parser, Subcommand, ValueEnum, ValueHint};
+use clap::{ArgGroup, CommandFactory, FromArgMatches, Parser, Subcommand, ValueEnum, ValueHint};
 use clap_complete::{Shell, generate};
 use clap_complete_fig::Fig;
 use eyre::{ContextCompat, Report, WrapErr, eyre};
@@ -19,6 +19,7 @@ use nextclade::schema::schema::{NextcladeSchemaArgs, cli_handle_schema};
 use nextclade::sort::params::NextcladeSeqSortParams;
 use nextclade::utils::global_init::{GlobalInitConfig, global_init};
 use nextclade::{getenv, make_error};
+use std::ffi::OsString;
 use std::fmt::Debug;
 use std::io;
 use std::path::PathBuf;
@@ -198,7 +199,7 @@ pub struct NextcladeDatasetListArgs {
   pub server: Url,
 
   #[clap(flatten)]
-  pub proxy_config: ProxyConfig,
+  pub network: NetworkArgs,
 
   // Deprecated args
   /// REMOVED
@@ -264,7 +265,7 @@ pub struct NextcladeDatasetGetArgs {
   pub output_zip: Option<PathBuf>,
 
   #[clap(flatten)]
-  pub proxy_config: ProxyConfig,
+  pub network: NetworkArgs,
 
   // Deprecated arguments
   /// REMOVED
@@ -450,6 +451,9 @@ pub struct NextcladeRunInputArgs {
   #[clap(value_hint = ValueHint::Url)]
   #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
   pub server: Url,
+
+  #[clap(flatten)]
+  pub network: NetworkArgs,
 
   // Deprecated arguments. Kept in oder to detect usage and print error messages.
   /// REMOVED. Use --input-ref instead
@@ -824,7 +828,7 @@ pub struct NextcladeSortArgs {
   pub server: Url,
 
   #[clap(flatten)]
-  pub proxy_config: ProxyConfig,
+  pub network: NetworkArgs,
 }
 
 #[allow(clippy::struct_excessive_bools)]
@@ -1174,13 +1178,50 @@ pub fn nextclade_check_column_config_args(run_args: &NextcladeRunArgs) -> Result
   Ok(())
 }
 
+impl NextcladeCommands {
+  /// Return the network options of commands that download data
+  pub fn network_mut(&mut self) -> Option<&mut NetworkArgs> {
+    match self {
+      NextcladeCommands::Run(run_args) => Some(&mut run_args.inputs.network),
+      NextcladeCommands::Dataset(dataset) => match &mut dataset.command {
+        NextcladeDatasetCommands::List(args) => Some(&mut args.network),
+        NextcladeDatasetCommands::Get(args) => Some(&mut args.network),
+      },
+      NextcladeCommands::Sort(args) => Some(&mut args.network),
+      NextcladeCommands::Completions { .. }
+      | NextcladeCommands::HelpMarkdown
+      | NextcladeCommands::ReadAnnotation(_)
+      | NextcladeCommands::Schema(_) => None,
+    }
+  }
+}
+
+/// Parse the arguments, like `NextcladeArgs::try_parse_from()`, and record where the network values came from
+pub fn nextclade_parse_args<I, T>(args: I) -> Result<NextcladeArgs, clap::Error>
+where
+  I: IntoIterator<Item = T>,
+  T: Into<OsString> + Clone,
+{
+  let matches = NextcladeArgs::command().try_get_matches_from(args)?;
+  let mut parsed =
+    NextcladeArgs::from_arg_matches(&matches).map_err(|err| err.format(&mut NextcladeArgs::command()))?;
+  if let Some(network) = parsed.command.network_mut() {
+    network.record_value_sources(&matches);
+  }
+  Ok(parsed)
+}
+
 pub fn nextclade_parse_cli_args() -> Result<(), Report> {
-  let args = NextcladeArgs::parse();
+  let mut args = nextclade_parse_args(std::env::args_os()).unwrap_or_else(|err| err.exit());
 
   global_init(&GlobalInitConfig {
     colors: CliColorMode::resolve(args.verbosity.color, args.verbosity.no_color),
     log_level: args.verbosity.get_filter_level(),
   });
+
+  if let Some(warning) = args.command.network_mut().and_then(|conf| conf.proxy_pass_warning()) {
+    log::warn!("{warning}");
+  }
 
   match args.command {
     NextcladeCommands::Completions { shell } => {

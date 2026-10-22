@@ -31,7 +31,7 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
 
   let NextcladeSortArgs {
     server,
-    proxy_config,
+    network,
     input_minimizer_index_json,
     ..
   } = args;
@@ -45,7 +45,7 @@ pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
     Ok((minimizer_index, ref_names))
   } else {
     // Otherwise fetch from dataset server
-    let http = HttpClient::new(server, proxy_config, verbose)?;
+    let http = HttpClient::new(server, network, verbose)?;
     let index = download_datasets_index_json(&http)?;
     let minimizer_index_path = index
       .minimizer_index

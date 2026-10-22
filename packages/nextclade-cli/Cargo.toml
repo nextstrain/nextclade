@@ -45,6 +45,7 @@ rayon = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true }
 schemars = { workspace = true }
+secrecy = { workspace = true }
 semver = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

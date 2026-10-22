@@ -21,13 +21,13 @@ pub fn nextclade_dataset_get(
     server,
     output_dir,
     output_zip,
-    proxy_config,
+    network,
     ..
   }: &NextcladeDatasetGetArgs,
 ) -> Result<(), Report> {
   let verbose = log::max_level() > LevelFilter::Info;
 
-  let http = HttpClient::new(server, proxy_config, verbose)?;
+  let http = HttpClient::new(server, network, verbose)?;
   let dataset = dataset_http_get(&http, name, tag.as_ref())?;
 
   if let Some(output_dir) = &output_dir {

@@ -1,7 +1,8 @@
 use crate::cli::nextclade_cli::{NextcladeRunArgs, NextcladeRunInputArgs};
 use crate::cli::nextclade_dataset_get::{dataset_file_http_get, dataset_http_get};
 use crate::dataset::dataset_zip_extract::{DATASET_ZIP_MAX_ENTRIES, DATASET_ZIP_MAX_UNPACKED_BYTES, zip_extract_safe};
-use crate::io::http_client::{HttpClient, ProxyConfig};
+use crate::io::http_client::HttpClient;
+use crate::io::proxy::ProxyEnv;
 use color_eyre::{Section, SectionExt};
 use eyre::{ContextCompat, Report, WrapErr, eyre};
 use itertools::Itertools;
@@ -458,12 +459,21 @@ pub fn read_from_path_or_url(
   Ok(None)
 }
 
+/// Create the HTTP client that `nextclade run --dataset-name` downloads the dataset with
+pub fn run_http_client(
+  inputs: &NextcladeRunInputArgs,
+  proxy_env: &ProxyEnv,
+  verbose: bool,
+) -> Result<HttpClient, Report> {
+  HttpClient::with_proxy_env(&inputs.server, &inputs.network, proxy_env, verbose)
+}
+
 pub fn dataset_str_download_and_load(
   run_args: &NextcladeRunArgs,
   cdses: &Option<Vec<String>>,
 ) -> Result<NextcladeParams, Report> {
   let verbose = log::max_level() > LevelFilter::Info;
-  let http = HttpClient::new(&run_args.inputs.server, &ProxyConfig::default(), verbose)?;
+  let http = run_http_client(&run_args.inputs, &ProxyEnv::from_process_env(), verbose)?;
 
   let name = run_args
     .inputs
