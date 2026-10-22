@@ -49,7 +49,7 @@ jobs:
 
       - name: "Get docker build checksum"
         id: docker-build-checksum
-        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> $GITHUB_OUTPUT
+        run: echo "checksum=$(./scripts/docker_build_checksum.sh)" >> "${GITHUB_OUTPUT}"
 
       - name: "Setup cache for Docker buildx"
         uses: actions/cache@v6
