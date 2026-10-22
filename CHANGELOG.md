@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Nextclade CLI: update TLS and network libraries
+
+Nextclade CLI uses TLS to download datasets. The TLS library rustls is updated to version 0.23.46, which fixes the security advisories [RUSTSEC-2026-0285](https://rustsec.org/advisories/RUSTSEC-2026-0285.html) and [RUSTSEC-2026-0349](https://rustsec.org/advisories/RUSTSEC-2026-0349.html). The libraries bytes, crossbeam-epoch, and time are updated to versions that fix published security advisories. The HTTP library reqwest is also updated to a newer version.
+
 ### Alignment: `alignmentPreset` in `pathogen.json` takes effect
 
 Nextclade ignored `alignmentPreset` in `alignmentParams` of `pathogen.json` and used the `default` preset unless the `--alignment-preset` CLI argument was given, although the documentation describes the field and some datasets set it. Nextclade CLI and Nextclade Web now apply the preset of the dataset. The `--alignment-preset` CLI argument replaces the preset of the dataset, and alignment parameters set in `pathogen.json` or as CLI arguments still override the values of the preset. See the [sequence alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/01-sequence-alignment.html) for details.
