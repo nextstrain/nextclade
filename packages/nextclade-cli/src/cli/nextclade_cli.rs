@@ -6,7 +6,7 @@ use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
 use crate::cli::print_help_markdown::print_help_markdown;
 use crate::cli::verbosity::Verbosity;
 use crate::io::network_args::NetworkArgs;
-use clap::builder::styling;
+use clap::builder::{RangedU64ValueParser, styling};
 use clap::{ArgGroup, CommandFactory, FromArgMatches, Parser, Subcommand, ValueEnum, ValueHint};
 use clap_complete::{Shell, generate};
 use clap_complete_fig::Fig;
@@ -736,7 +736,7 @@ pub struct NextcladeRunOutputArgs {
 #[derive(Parser, Debug, Clone)]
 pub struct NextcladeRunOtherParams {
   /// Number of processing jobs. If not specified, all available CPU threads will be used.
-  #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get())]
+  #[clap(global = false, long, short = 'j', default_value_t = num_cpus::get(), value_parser = RangedU64ValueParser::<usize>::new().range(1..))]
   pub jobs: usize,
 }
 
