@@ -36,13 +36,12 @@ mod tests {
   }
 
   mod helpers {
+    use crate::cli::__tests__::common::helpers::SEQUENCE;
     use crate::cli::nextclade_cli::{NextcladeCommands, NextcladeRunArgs, nextclade_parse_args};
     use nextclade::io::json::json_parse;
     use serde_json::Value;
     use std::path::PathBuf;
     use tempfile::TempDir;
-
-    const REFERENCE: &str = "ATGGCTAGCTTCGATCGGATCCTAGGCTTAACGGTACCTGAGCTCAAGCTTGCATGCCTGCAGGTCGACTCTAGAGGATCCCCGGGTACCGAGCTCGAATTCACTGGCCGTCGTTTTACAACGTCGTGACTGGGAAAACCCTGGCGTTACCCAACTTAATCGCCTTGCAGCACATCCCCCTTTCGCCAGCTGGCGTAATAGCGAAGAGGCCCGCACCGATCGCCCTTCCCAACAGTTGCGCAGCCTGAATGGCGAATGG";
 
     /// Temporary directory with a reference sequence and two query sequences, for runs without a dataset
     pub struct RunDir {
@@ -52,10 +51,10 @@ mod tests {
     impl RunDir {
       pub fn new() -> Self {
         let dir = tempfile::tempdir().unwrap();
-        std::fs::write(dir.path().join("reference.fasta"), format!(">ref\n{REFERENCE}\n")).unwrap();
+        std::fs::write(dir.path().join("reference.fasta"), format!(">ref\n{SEQUENCE}\n")).unwrap();
         std::fs::write(
           dir.path().join("sequences.fasta"),
-          format!(">seq1\n{REFERENCE}\n>seq2\n{REFERENCE}\n"),
+          format!(">seq1\n{SEQUENCE}\n>seq2\n{SEQUENCE}\n"),
         )
         .unwrap();
         Self { dir }
