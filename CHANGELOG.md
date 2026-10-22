@@ -39,6 +39,16 @@ The zip library is updated from 7.0.0 to 9.0.5, and the Excel export library `ru
 
 Release pages now include a `SHA256SUMS` file with the SHA-256 checksum of every executable, and a GitHub build provenance attestation for every executable. With them you can check that a downloaded executable is complete and that the Nextclade release workflow on GitHub built it. See the [installation documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/standalone.html) for the commands.
 
+### Nextclade CLI: trust the certificate decisions of the operating system
+
+Nextclade CLI checks the TLS certificate of the dataset server against a list of trusted certificate authorities (CAs). Before, Nextclade added its built-in copy of Mozilla's CA list to the CAs of the operating system on every platform. A CA that Apple or Microsoft no longer trusts was then still trusted by Nextclade through the built-in list.
+
+- macOS and Windows: the operating system now decides alone which CAs to trust
+- Linux and other Unix systems except macOS: Nextclade trusts the CAs of the system certificate store, so keep the system certificates up to date. It uses the built-in Mozilla list only when the system has no usable CA certificates, for example in minimal containers such as the official `scratch` Docker image. When the environment variable `SSL_CERT_FILE` is set, or `SSL_CERT_DIR` names a directory, but they provide no usable CA certificates, Nextclade now stops with an error instead of using the built-in list. An `SSL_CERT_DIR` without a directory, such as an empty value, counts as not set
+- A file given with `--extra-ca-certs` that contains no certificates or an invalid certificate is now an error that names the file
+
+If downloads now fail with a certificate error on an outdated system, update the CA certificates of the operating system (for example the `ca-certificates` package on Linux), or add the missing CA certificate with `--extra-ca-certs`.
+
 ### Alignment: `alignmentPreset` in `pathogen.json` takes effect
 
 Nextclade ignored `alignmentPreset` in `alignmentParams` of `pathogen.json` and used the `default` preset unless the `--alignment-preset` CLI argument was given, although the documentation describes the field and some datasets set it. Nextclade CLI and Nextclade Web now apply the preset of the dataset. The `--alignment-preset` CLI argument replaces the preset of the dataset, and alignment parameters set in `pathogen.json` or as CLI arguments still override the values of the preset. See the [sequence alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/01-sequence-alignment.html) for details.
@@ -156,6 +166,8 @@ Auspice uses DOMPurify to remove unsafe HTML when it shows the Markdown descript
 ### Nextclade CLI: distrust compromised eMudhra certificate authorities
 
 In October 2026 the private keys of several eMudhra intermediate certificate authorities became public, so anyone can issue TLS certificates under them. Nextclade CLI no longer trusts certificates from these intermediates, and no longer trusts the root certificate "emSign ECC Root CA - G3" that cross-signed them. Before this change, an attacker who intercepts the connection could use such a certificate to impersonate the dataset server and serve modified datasets. The incident is tracked as [CVE-2026-111943](https://www.cve.org/CVERecord?id=CVE-2026-111943). See [emudhra.we-have-a-problem.com](https://emudhra.we-have-a-problem.com/) for details.
+
+On Linux, Nextclade rejects certificates from the compromised intermediates itself. The root "emSign ECC Root CA - G3" is removed from the built-in CA list of Nextclade, but Nextclade uses the system certificate store when the system has one, so update the CA certificates of the system (for example the `ca-certificates` package) to remove that root there too. On macOS and Windows, the certificate verifier of the operating system decides, so keep the operating system up to date.
 
 ## 3.25.0
 
