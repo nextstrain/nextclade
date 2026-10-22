@@ -1,6 +1,7 @@
 use crate::cli::nextclade_cli::{NextcladeOutputSelection, NextcladeRunArgs, NextcladeRunOutputArgs};
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::cli::stdout::finish_outputs;
+use crate::cli::upstream_failure::UpstreamFailure;
 use crate::dataset::dataset_download::nextclade_get_inputs;
 use eyre::{ContextCompat, Report, WrapErr};
 use log::info;
@@ -64,6 +65,7 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
   info!("Genome annotation:\n{}", gene_map_to_table_string(&nextclade.gene_map)?);
 
   let thread_errors: Arc<Mutex<Vec<Report>>> = Arc::new(Mutex::new(Vec::new()));
+  let upstream_failure = UpstreamFailure::default();
 
   std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
@@ -73,6 +75,7 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
     let nextclade = &nextclade;
     let outputs = &mut outputs;
     let run_args = &run_args;
+    let upstream_failure = &upstream_failure;
 
     let thread_errors_cloned = Arc::clone(&thread_errors);
     s.spawn(move || {
@@ -92,6 +95,7 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
         Ok::<_, Report>(())
       })();
       if let Err(e) = result {
+        upstream_failure.mark_failed();
         thread_errors_cloned.lock().unwrap().push(e);
       }
       drop(fasta_sender);
@@ -174,6 +178,11 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
           if !should_write_tree && !output_writer.has_outputs() {
             break;
           }
+        }
+
+        // Dropped without `finish`, the outputs warn that they are incomplete. The failed thread reports its error.
+        if upstream_failure.has_failed() {
+          return Ok(());
         }
 
         output_writer.finish().wrap_err("When finalizing output writer")?;

@@ -1,5 +1,6 @@
 use crate::cli::nextclade_cli::{NextcladeRunOtherParams, NextcladeSortArgs};
 use crate::cli::stdout::{finish_outputs, write_line, write_output};
+use crate::cli::upstream_failure::UpstreamFailure;
 use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use console::style;
@@ -113,6 +114,8 @@ pub(crate) fn sort_sequences(
   verbose: bool,
   stats_output: impl io::Write + Send,
 ) -> Result<(), Report> {
+  let upstream_failure = UpstreamFailure::default();
+
   let NextcladeSortArgs {
     input_fastas,
     search_params,
@@ -124,46 +127,53 @@ pub(crate) fn sort_sequences(
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<MinimizerSearchRecord>(CHANNEL_SIZE);
+    let upstream_failure = &upstream_failure;
 
     let reader = s.spawn(move || -> Result<(), Report> {
-      let mut reader = FastaReader::from_paths(input_fastas)?;
-      loop {
-        let mut record = FastaRecord::default();
-        reader.read(&mut record)?;
-        if record.is_empty() {
-          break;
+      (|| {
+        let mut reader = FastaReader::from_paths(input_fastas)?;
+        loop {
+          let mut record = FastaRecord::default();
+          reader.read(&mut record)?;
+          if record.is_empty() {
+            break;
+          }
+          // A closed channel means that all search threads stopped, and the thread that failed reports its error
+          if fasta_sender.send(record).is_err() {
+            break;
+          }
         }
-        // A closed channel means that all search threads stopped, and the thread that failed reports its error
-        if fasta_sender.send(record).is_err() {
-          break;
-        }
-      }
-      Ok(())
+        Ok(())
+      })()
+      .inspect_err(|_| upstream_failure.mark_failed())
     });
 
     let searchers = std::iter::repeat_with(|| {
       let fasta_receiver = fasta_receiver.clone();
       let result_sender = result_sender.clone();
       s.spawn(move || -> Result<(), Report> {
-        for fasta_record in &fasta_receiver {
-          trace!("Processing sequence '{}'", fasta_record.seq_name);
+        (|| {
+          for fasta_record in &fasta_receiver {
+            trace!("Processing sequence '{}'", fasta_record.seq_name);
 
-          let result = run_minimizer_search(&fasta_record, minimizer_index, search_params).wrap_err_with(|| {
-            format!(
-              "When processing sequence #{} '{}'",
-              fasta_record.index, fasta_record.seq_name
-            )
-          })?;
+            let result = run_minimizer_search(&fasta_record, minimizer_index, search_params).wrap_err_with(|| {
+              format!(
+                "When processing sequence #{} '{}'",
+                fasta_record.index, fasta_record.seq_name
+              )
+            })?;
 
-          // A closed channel means that the writer stopped, and it reports its own error
-          if result_sender
-            .send(MinimizerSearchRecord { fasta_record, result })
-            .is_err()
-          {
-            break;
+            // A closed channel means that the writer stopped, and it reports its own error
+            if result_sender
+              .send(MinimizerSearchRecord { fasta_record, result })
+              .is_err()
+            {
+              break;
+            }
           }
-        }
-        Ok(())
+          Ok(())
+        })()
+        .inspect_err(|_| upstream_failure.mark_failed())
       })
     })
     .take(*jobs)
@@ -173,7 +183,16 @@ pub(crate) fn sort_sequences(
     drop(fasta_receiver);
     drop(result_sender);
 
-    let writer = s.spawn(move || writer_thread(args, ref_names, result_receiver, verbose, stats_output));
+    let writer = s.spawn(move || {
+      writer_thread(
+        args,
+        ref_names,
+        result_receiver,
+        upstream_failure,
+        verbose,
+        stats_output,
+      )
+    });
 
     let results = chain!([reader], searchers, [writer])
       .map(|thread| thread.join().unwrap_or_else(|panic| std::panic::resume_unwind(panic)))
@@ -196,6 +215,7 @@ fn writer_thread(
   args: &NextcladeSortArgs,
   ref_names: &[String],
   result_receiver: crossbeam_channel::Receiver<MinimizerSearchRecord>,
+  upstream_failure: &UpstreamFailure,
   verbose: bool,
   stats_output: impl io::Write,
 ) -> Result<(), Report> {
@@ -215,6 +235,11 @@ fn writer_thread(
       .iter()
       .map(|result| (result.fasta_record.index, result.result))
       .collect();
+
+    // Without the results of all sequences, the outputs would be incomplete. The failed thread reports its error.
+    if upstream_failure.has_failed() {
+      return Ok(());
+    }
 
     // let seqs_with_no_hits = results
     //   .iter()
@@ -274,6 +299,12 @@ fn writer_thread(
         break;
       }
     }
+
+    // Dropped without `finish`, the outputs warn that they are incomplete. The failed thread reports its error.
+    if upstream_failure.has_failed() {
+      return Ok(());
+    }
+
     writer.finish()?;
     stats.finish()?;
   }

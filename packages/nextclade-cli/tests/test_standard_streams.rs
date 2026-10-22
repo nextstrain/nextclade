@@ -45,6 +45,32 @@ mod tests {
     );
   }
 
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::run_file(  &["run", "--input-ref=reference.fasta", "--output-tsv=results.tsv"],                             "The output to file results.tsv is incomplete")]
+  #[case::sort_file( &["sort", "--input-minimizer-index-json=minimizer_index.json", "--output-results-tsv=results.tsv"], "The output to file results.tsv is incomplete")]
+  #[trace]
+  fn test_standard_streams_input_read_error_leaves_outputs_incomplete(#[case] args: &[&str], #[case] warning: &str) {
+    let dir = TestDir::new();
+    dir.write("reference.fasta", &fasta(&["ref"]));
+    dir.write("minimizer_index.json", helpers::MINIMIZER_INDEX_JSON);
+    dir.write_truncated_gzip("sequences.fasta.gz", &fasta(&["seq1", "seq2", "seq3"]));
+
+    let output = nextclade()
+      .current_dir(dir.path())
+      .args(args)
+      .arg("sequences.fasta.gz")
+      .output()
+      .unwrap();
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert_eq!(
+      (false, true),
+      (output.status.success(), stderr.contains(warning)),
+      "{stderr}"
+    );
+  }
+
   #[test]
   fn test_standard_streams_results_json_on_stdout_is_written_once() {
     let dir = TestDir::new();
@@ -135,7 +161,10 @@ mod tests {
   }
 
   mod helpers {
+    use nextclade::io::file::create_file_or_stdout;
     use std::fmt::Write;
+    use std::fs::OpenOptions;
+    use std::io::Write as _;
     use std::path::Path;
     use std::process::{Command, Output, Stdio};
     use tempfile::TempDir;
@@ -185,6 +214,18 @@ mod tests {
 
       pub fn read(&self, name: &str) -> String {
         std::fs::read_to_string(self.dir.path().join(name)).unwrap()
+      }
+
+      /// Write `content` compressed with gzip, and cut the file in the middle of the compressed stream
+      pub fn write_truncated_gzip(&self, name: &str, content: &str) {
+        let filepath = self.dir.path().join(name);
+        let mut file = create_file_or_stdout(&filepath).unwrap();
+        file.write_all(content.as_bytes()).unwrap();
+        file.finish().unwrap();
+
+        let file = OpenOptions::new().write(true).open(&filepath).unwrap();
+        let len = file.metadata().unwrap().len();
+        file.set_len(len / 2).unwrap();
       }
     }
 
