@@ -10,7 +10,7 @@ use log::{LevelFilter, trace};
 use maplit::btreemap;
 use nextclade::io::csv::CsvStructFileWriter;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
-use nextclade::io::file::{StdoutWriter, is_stdout_closed};
+use nextclade::io::file::{StdoutWriter, is_path_stdin, is_stdout_closed, open_stdin};
 use nextclade::io::fs::path_to_string;
 use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MINIMIZER_INDEX_ALGO_VERSION, MinimizerIndexJson};
@@ -30,6 +30,7 @@ use std::fmt::{Display, Write};
 use std::io;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use tempfile::{NamedTempFile, TempPath};
 use tinytemplate::TinyTemplate;
 
 pub fn nextclade_seq_sort(args: &NextcladeSortArgs) -> Result<(), Report> {
@@ -123,6 +124,14 @@ pub(crate) fn sort_sequences(
     ..
   } = args;
 
+  // The global search reads the input twice. Standard input can be read only once, so it is copied to a file first.
+  let input = if search_params.global {
+    SortInput::rereadable(input_fastas)?
+  } else {
+    SortInput::once(input_fastas)
+  };
+  let input_fastas = &input.input_fastas;
+
   std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
@@ -186,6 +195,7 @@ pub(crate) fn sort_sequences(
     let writer = s.spawn(move || {
       writer_thread(
         args,
+        input_fastas,
         ref_names,
         result_receiver,
         upstream_failure,
@@ -213,6 +223,7 @@ struct SeqSortCsvEntry<'a> {
 
 fn writer_thread(
   args: &NextcladeSortArgs,
+  input_fastas: &[PathBuf],
   ref_names: &[String],
   result_receiver: crossbeam_channel::Receiver<MinimizerSearchRecord>,
   upstream_failure: &UpstreamFailure,
@@ -220,7 +231,6 @@ fn writer_thread(
   stats_output: impl io::Write,
 ) -> Result<(), Report> {
   let NextcladeSortArgs {
-    input_fastas,
     output_dir,
     output_path,
     output_results_tsv,
@@ -612,6 +622,53 @@ fn get_filepath(
 #[derive(Serialize)]
 struct OutputTemplateContext<'a> {
   name: &'a str,
+}
+
+/// Input files of the sort. Standard input copied to a temporary file stays there until the input is dropped.
+struct SortInput {
+  input_fastas: Vec<PathBuf>,
+  _stdin_copy: Option<TempPath>,
+}
+
+impl SortInput {
+  /// Input that is read once
+  fn once(input_fastas: &[PathBuf]) -> Self {
+    Self {
+      input_fastas: input_fastas.to_vec(),
+      _stdin_copy: None,
+    }
+  }
+
+  /// Input that can be read several times: standard input is copied to a temporary file, which replaces it
+  fn rereadable(input_fastas: &[PathBuf]) -> Result<Self, Report> {
+    if !input_fastas.is_empty() && !input_fastas.iter().any(is_path_stdin) {
+      return Ok(Self::once(input_fastas));
+    }
+
+    let mut file = NamedTempFile::new().wrap_err("When creating a temporary file for standard input")?;
+    io::copy(&mut open_stdin()?, &mut file).wrap_err("When copying standard input to a temporary file")?;
+    let stdin_copy = file.into_temp_path();
+
+    let input_fastas = if input_fastas.is_empty() {
+      vec![stdin_copy.to_path_buf()]
+    } else {
+      input_fastas
+        .iter()
+        .map(|input| {
+          if is_path_stdin(input) {
+            stdin_copy.to_path_buf()
+          } else {
+            input.clone()
+          }
+        })
+        .collect()
+    };
+
+    Ok(Self {
+      input_fastas,
+      _stdin_copy: Some(stdin_copy),
+    })
+  }
 }
 
 fn check_args(args: &NextcladeSortArgs) -> Result<(), Report> {

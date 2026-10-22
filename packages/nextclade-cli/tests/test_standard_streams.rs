@@ -1,11 +1,13 @@
-//! Standard output of the `nextclade` executable: a reader that closes standard output early, and standard output
-//! that fails
+//! Standard input and output of the `nextclade` executable: a reader that closes standard output early, standard
+//! output that fails, and standard input that a command reads twice
 
 #[cfg(test)]
 mod tests {
-  use helpers::{TestDir, fasta, nextclade, run_with_closed_stdout};
+  use helpers::{MINIMIZER_INDEX, SEQUENCE, TestDir, fasta, nextclade, run_with_closed_stdout};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
+  use std::io::Write;
+  use std::process::Stdio;
 
   #[rustfmt::skip]
   #[rstest]
@@ -163,6 +165,40 @@ mod tests {
     );
   }
 
+  #[test]
+  fn test_standard_streams_sort_global_reads_stdin_in_both_passes() {
+    let dir = TestDir::new();
+    dir.write("minimizer_index.json", MINIMIZER_INDEX);
+    let mut child = nextclade()
+      .current_dir(dir.path())
+      .args([
+        "sort",
+        "--global",
+        "--input-minimizer-index-json=minimizer_index.json",
+        "--output-results-tsv=results.tsv",
+      ])
+      .stdin(Stdio::piped())
+      .spawn()
+      .unwrap();
+    child
+      .stdin
+      .take()
+      .unwrap()
+      .write_all(format!(">seq1\n{SEQUENCE}\n>seq2\n{SEQUENCE}\n").as_bytes())
+      .unwrap();
+    let output = child.wait_with_output().unwrap();
+
+    assert_eq!(
+      (
+        true,
+        "index\tseqName\tdataset\tscore\tnumHits\n0\tseq1\t\t\t\n1\tseq2\t\t\t\n".to_owned()
+      ),
+      (output.status.success(), dir.read("results.tsv")),
+      "{}",
+      String::from_utf8_lossy(&output.stderr)
+    );
+  }
+
   mod helpers {
     use nextclade::io::file::create_file_or_stdout;
     use std::fmt::Write;
@@ -173,6 +209,16 @@ mod tests {
     use tempfile::TempDir;
 
     pub const SEQUENCE: &str = "ATGGCTAGCTTCGATCGGATCCTAGGCTTAACGGTACCTGAGCTCAAGCTTGCATGCCTGCAGGTCGACTCTAGAGGATCCCCGGGTACCGAGCTCGAATTCACTGGCCGTCGTTTTACAACGTCGTGACTGGGAAAACCCTGGCGTTACCCAACTTAATCGCCTTGCAGCACATCCCCCTTTCGCCAGCTGGCGTAATAGCGAAGAGGCCCGCACCGATCGCCCTTCCCAACAGTTGCGCAGCCTGAATGGCGAATGG";
+
+    /// Minimizer index without references: every sequence is undetected
+    pub const MINIMIZER_INDEX: &str = r#"{
+      "schemaVersion": "3.0.0",
+      "version": "1",
+      "params": { "k": 17, "cutoff": 28 },
+      "minimizers": {},
+      "references": [],
+      "normalization": []
+    }"#;
 
     /// The `nextclade` executable, without input and with captured output
     pub fn nextclade() -> Command {
