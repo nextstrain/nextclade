@@ -402,6 +402,11 @@ jobs:
     if: endsWith(github.ref, '/release')
     runs-on: ubuntu-22.04
 
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v7
@@ -415,6 +420,18 @@ jobs:
           pattern: out-*
           merge-multiple: true
           path: ".out"
+
+      # Covers every file that the publish step uploads with `.out/*`
+      - name: "Generate checksums"
+        working-directory: ".out"
+        run: |
+          sha256sum -- * > SHA256SUMS
+          sha256sum -c SHA256SUMS
+
+      - name: "Generate build provenance attestations"
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-checksums: ".out/SHA256SUMS"
 
       - name: "Install deploy dependencies"
         run: |
