@@ -278,6 +278,7 @@ fn writer_thread(
       }
     }
     writer.finish()?;
+    stats.finish()?;
   } else {
     let mut stats = StatsPrinter::new("Suggested datasets for each sequence", verbose, stats_output)?;
     let mut writer = DatasetSortWriter::new(output_path, output_dir, output_results_tsv)?;

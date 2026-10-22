@@ -202,6 +202,24 @@ mod tests {
     );
   }
 
+  #[rstest]
+  #[case::local(&[])]
+  #[case::global(&["--global"])]
+  #[trace]
+  fn test_nextclade_seq_sort_verbose_prints_summary(#[case] mode_args: &[&str]) {
+    let dir = SortDir::new();
+    let input = dir.write("sequences.fasta", ">seq1\nACGT\n>seq2\nACGT\n");
+    let index = MinimizerIndexJson::from_path(dir.path("minimizer_index.json")).unwrap();
+    let mut output = Vec::new();
+
+    sort_sequences(&sort_args(&dir, &input, mode_args), &[], &index, true, &mut output).unwrap();
+
+    assert_eq!(
+      vec![vec!["undetected", "2", "100.000%"], vec!["total", "2", "100.000%"]],
+      summary_rows(&output)
+    );
+  }
+
   mod helpers {
     pub use crate::cli::__tests__::common::helpers::{FailingWriter, SEQUENCE};
     use crate::cli::nextclade_cli::{NextcladeCommands, NextcladeSortArgs, nextclade_parse_args};
@@ -247,10 +265,13 @@ mod tests {
       }
     }
 
-    /// Cells of the rows of the summary table that follows the per-sequence table, without colors and borders
+    /// Cells of the rows of the summary table that follows the per-sequence table, without colors and borders.
+    /// Empty when the output has no summary table.
     pub fn summary_rows(output: &[u8]) -> Vec<Vec<String>> {
       let output = console::strip_ansi_codes(std::str::from_utf8(output).unwrap()).into_owned();
-      let (_, summary) = output.split_once("\n\n\nSuggested datasets\n").unwrap();
+      let Some((_, summary)) = output.split_once("\n\n\nSuggested datasets\n") else {
+        return vec![];
+      };
       summary
         .lines()
         .filter(|line| line.contains('│') && !line.contains("Num. seq"))
