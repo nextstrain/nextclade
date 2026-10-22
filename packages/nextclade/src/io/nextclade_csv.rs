@@ -180,6 +180,11 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
     Ok(Self { writer, row })
   }
 
+  /// Return the underlying writer
+  pub fn into_inner(self) -> W {
+    self.writer
+  }
+
   /// Writes one row into the nextclade.csv or .tsv file
   pub fn write(&mut self, nextclade_outputs: &NextcladeOutputs) -> Result<(), Report> {
     self.row.format(nextclade_outputs)?;
@@ -238,6 +243,11 @@ impl NextcladeResultsCsvFileWriter {
   /// Writes one row into the nextclade.csv or.tsv file for the case of error
   pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &str) -> Result<(), Report> {
     self.writer.write_nuc_error(index, seq_name, errors)
+  }
+
+  /// Write the buffered rows, and report the errors of writing them
+  pub fn finish(self) -> Result<(), Report> {
+    self.writer.into_inner().finish()
   }
 }
 

@@ -257,12 +257,34 @@ impl NextcladeOrderedWriter {
     Ok(())
   }
 
-  /// Finalizes output by writing all queued records
+  /// Finalizes output by writing all queued records and the buffered data of every output
   pub fn finish(mut self) -> Result<(), Report> {
     self.write_queued_records()?;
-    if let Some(output_json_writer) = self.output_json_writer.take() {
-      output_json_writer.finish()?;
-    }
+
+    let Self {
+      fasta_writer,
+      fasta_peptide_writer,
+      output_json_writer,
+      output_ndjson_writer,
+      output_csv_writer,
+      output_tsv_writer,
+      output_gff_writer,
+      output_tbl_writer,
+      ..
+    } = self;
+
+    fasta_writer.map(FastaWriter::finish).transpose()?;
+    fasta_peptide_writer.map(FastaPeptideWriter::finish).transpose()?;
+    output_json_writer.map(ResultsJsonWriter::finish).transpose()?;
+    output_ndjson_writer.map(NdjsonFileWriter::finish).transpose()?;
+    output_csv_writer
+      .map(NextcladeResultsCsvFileWriter::finish)
+      .transpose()?;
+    output_tsv_writer
+      .map(NextcladeResultsCsvFileWriter::finish)
+      .transpose()?;
+    output_gff_writer.map(Gff3FileWriter::finish).transpose()?;
+    output_tbl_writer.map(GenbankTblFileWriter::finish).transpose()?;
     Ok(())
   }
 }

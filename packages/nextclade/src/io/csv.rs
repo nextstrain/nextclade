@@ -1,4 +1,4 @@
-use crate::io::file::create_file_or_stdout;
+use crate::io::file::{OutputWriter, create_file_or_stdout};
 use crate::io::fs::read_file_to_string;
 use crate::utils::error::to_eyre_error;
 use csv::{ReaderBuilder as CsvReaderBuilder, Writer as CsvWriterImpl, WriterBuilder as CsvWriterBuilder};
@@ -22,12 +22,17 @@ impl<W: Write + Send> CsvStructWriter<W> {
     self.writer.serialize(record)?;
     Ok(())
   }
+
+  /// Write the buffered rows and return the underlying writer
+  pub fn into_inner(self) -> Result<W, Report> {
+    Ok(self.writer.into_inner().map_err(csv::IntoInnerError::into_error)?)
+  }
 }
 
 /// Writes CSV files. Each row is a serde-annotated struct.
 pub struct CsvStructFileWriter {
   pub filepath: PathBuf,
-  pub writer: CsvStructWriter<Box<dyn Write + Send>>,
+  pub writer: CsvStructWriter<OutputWriter>,
 }
 
 impl CsvStructFileWriter {
@@ -44,6 +49,11 @@ impl CsvStructFileWriter {
   pub fn write<T: Serialize>(&mut self, record: &T) -> Result<(), Report> {
     self.writer.write(record)?;
     Ok(())
+  }
+
+  /// Write the buffered rows, and report the errors of writing them
+  pub fn finish(self) -> Result<(), Report> {
+    self.writer.into_inner()?.finish()
   }
 }
 
@@ -66,6 +76,11 @@ impl<W: Write + Send> CsvVecWriter<W> {
       writer,
     })
   }
+
+  /// Write the buffered rows and return the underlying writer
+  pub fn into_inner(self) -> Result<W, Report> {
+    Ok(self.writer.into_inner().map_err(csv::IntoInnerError::into_error)?)
+  }
 }
 
 impl<W: Write + Send> VecWriter for CsvVecWriter<W> {
@@ -79,7 +94,7 @@ impl<W: Write + Send> VecWriter for CsvVecWriter<W> {
 pub struct CsvVecFileWriter {
   pub filepath: PathBuf,
   pub headers: Vec<String>,
-  pub writer: CsvVecWriter<Box<dyn Write + Send>>,
+  pub writer: CsvVecWriter<OutputWriter>,
 }
 
 impl CsvVecFileWriter {
@@ -92,6 +107,11 @@ impl CsvVecFileWriter {
       headers: headers.to_owned(),
       writer,
     })
+  }
+
+  /// Write the buffered rows, and report the errors of writing them
+  pub fn finish(self) -> Result<(), Report> {
+    self.writer.into_inner()?.finish()
   }
 }
 

@@ -44,6 +44,20 @@ mod tests {
     );
   }
 
+  #[cfg(target_os = "linux")]
+  #[test]
+  fn test_nextclade_seq_sort_output_write_error_is_an_error() {
+    let dir = SortDir::new();
+    let input = dir.write("sequences.fasta", ">seq\nACGT\n");
+
+    let result = nextclade_seq_sort(&sort_args(&dir, &input, &["--output-results-tsv=/dev/full"]));
+
+    assert_eq!(
+      Some("When writing to file /dev/full: No space left on device (os error 28)".to_owned()),
+      result.err().map(|report| report_to_string(&report))
+    );
+  }
+
   #[test]
   fn test_nextclade_seq_sort_writes_results_tsv() {
     let dir = SortDir::new();

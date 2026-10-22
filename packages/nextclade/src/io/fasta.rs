@@ -3,7 +3,7 @@ use crate::constants::REVERSE_COMPLEMENT_SUFFIX;
 use crate::gene::gene_map::GeneMap;
 use crate::io::compression::Decompressor;
 use crate::io::concat::Concat;
-use crate::io::file::{create_file_or_stdout, open_file_or_stdin, open_stdin};
+use crate::io::file::{OutputWriter, create_file_or_stdout, open_file_or_stdin, open_stdin};
 use crate::translate::translate_genes::CdsTranslation;
 use crate::utils::string::truncate_right;
 use crate::{make_error, make_internal_error};
@@ -12,7 +12,7 @@ use eyre::{Report, WrapErr};
 use log::{info, trace};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
@@ -191,11 +191,11 @@ pub fn read_one_fasta_from_fasta_reader(mut reader: FastaReader) -> Result<Fasta
 
 // Writes sequences into given fasta file
 pub struct FastaWriter {
-  writer: Box<dyn std::io::Write>,
+  writer: OutputWriter,
 }
 
 impl FastaWriter {
-  pub fn new(writer: Box<dyn std::io::Write>) -> Self {
+  pub const fn new(writer: OutputWriter) -> Self {
     Self { writer }
   }
 
@@ -214,9 +214,9 @@ impl FastaWriter {
     Ok(())
   }
 
-  pub fn flush(&mut self) -> Result<(), Report> {
-    self.writer.flush()?;
-    Ok(())
+  /// Write the buffered data, and report the errors of writing it
+  pub fn finish(self) -> Result<(), Report> {
+    self.writer.finish()
   }
 }
 
@@ -262,6 +262,11 @@ impl FastaPeptideWriter {
       None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.name),
       Some(writer) => writer.write(seq_name, &from_aa_seq(&translation.seq), false),
     }
+  }
+
+  /// Write the buffered data of all files, and report the errors of writing it
+  pub fn finish(self) -> Result<(), Report> {
+    self.writers.into_values().try_for_each(FastaWriter::finish)
   }
 }
 

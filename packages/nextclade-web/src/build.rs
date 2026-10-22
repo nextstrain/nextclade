@@ -37,7 +37,9 @@ fn main() -> Result<(), Report> {
 /// Create JSON schema file from a given Rust struct type and write it to a specified file.
 fn write_jsonschema<T: JsonSchema>(output_file: impl AsRef<Path>) -> Result<(), Report> {
   let schema = schema_for!(T);
-  json_write_impl(create_file_or_stdout(output_file)?, &schema, JsonPretty(true))
+  let mut file = create_file_or_stdout(output_file)?;
+  json_write_impl(&mut file, &schema, JsonPretty(true))?;
+  file.finish()
 }
 
 // Dummy struct containing the types we want to expose (recursively).

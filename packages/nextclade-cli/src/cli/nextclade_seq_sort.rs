@@ -227,6 +227,7 @@ fn writer_thread(
       stats.print_seq(&datasets, &record.seq_name)?;
       writer.write_one(&record, &datasets)?;
     }
+    writer.finish()?;
   } else {
     let mut stats = StatsPrinter::new(
       "Suggested datasets for each sequence",
@@ -247,6 +248,7 @@ fn writer_thread(
       stats.print_seq(datasets, &fasta_record.seq_name)?;
       writer.write_one(&fasta_record, datasets)?;
     }
+    writer.finish()?;
     stats.finish()?;
   }
 
@@ -325,6 +327,13 @@ impl<'t> DatasetSortWriter<'t> {
         writer.write(&record.seq_name, &record.seq, false)?;
       }
     }
+    Ok(())
+  }
+
+  /// Write the buffered data of every output, and report the errors of writing it
+  pub fn finish(self) -> Result<(), Report> {
+    self.writers.into_values().try_for_each(FastaWriter::finish)?;
+    self.results_csv.map(CsvStructFileWriter::finish).transpose()?;
     Ok(())
   }
 }

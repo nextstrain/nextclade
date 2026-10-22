@@ -80,12 +80,16 @@ pub fn dataset_zip_download(
 
   let content = dataset_zip_fetch(http, dataset, tag)?;
 
-  file.write_all(&content).wrap_err_with(|| {
-    format!(
-      "When writing downloaded dataset zip file to {}",
-      output_file_path.display()
-    )
-  })
+  file
+    .write_all(&content)
+    .map_err(Report::from)
+    .and_then(|()| file.finish())
+    .wrap_err_with(|| {
+      format!(
+        "When writing downloaded dataset zip file to {}",
+        output_file_path.display()
+      )
+    })
 }
 
 pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: impl AsRef<str>) -> Result<String, Report> {

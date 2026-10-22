@@ -14,8 +14,9 @@ where
   E: GraphEdge,
 {
   let filepath = filepath.as_ref();
-  let file = create_file_or_stdout(filepath)?;
-  nwk_write_to_writer(file, graph)
+  let mut file = create_file_or_stdout(filepath)?;
+  nwk_write_to_writer(&mut file, graph)
+    .and_then(|()| file.finish())
     .wrap_err_with(|| format!("When writing graph to Newick file: {}", filepath.display()))
 }
 

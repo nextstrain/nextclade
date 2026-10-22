@@ -1,8 +1,8 @@
-use crate::io::file::create_file_or_stdout;
+use crate::io::file::{OutputWriter, create_file_or_stdout};
 use crate::types::outputs::NextcladeErrorOutputs;
 use eyre::{Report, WrapErr};
 
-use std::io::{LineWriter, Write};
+use std::io::{IntoInnerError, LineWriter, Write};
 use std::path::{Path, PathBuf};
 
 pub struct NdjsonWriter<W: Write + Send> {
@@ -28,11 +28,16 @@ impl<W: Write + Send> NdjsonWriter<W> {
       errors: errors.to_vec(),
     })
   }
+
+  /// Write the buffered line and return the underlying writer
+  pub fn into_inner(self) -> Result<W, Report> {
+    Ok(self.line_writer.into_inner().map_err(IntoInnerError::into_error)?)
+  }
 }
 
 pub struct NdjsonFileWriter {
   filepath: PathBuf,
-  ndjson_writer: NdjsonWriter<Box<dyn Write + Send>>,
+  ndjson_writer: NdjsonWriter<OutputWriter>,
 }
 
 impl NdjsonFileWriter {
@@ -58,5 +63,10 @@ impl NdjsonFileWriter {
       .ndjson_writer
       .write_nuc_error(index, seq_name, errors)
       .wrap_err_with(|| format!("When writing ndjson error entry to file {}", &self.filepath.display()))
+  }
+
+  /// Write the buffered entries, and report the errors of writing them
+  pub fn finish(self) -> Result<(), Report> {
+    self.ndjson_writer.into_inner()?.finish()
   }
 }

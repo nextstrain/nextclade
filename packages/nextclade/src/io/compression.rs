@@ -5,7 +5,7 @@ use eyre::{Report, WrapErr};
 use flate2::Compression as GzCompressionLevel;
 use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
-use log::trace;
+use log::{debug, trace};
 use std::env;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -27,7 +27,6 @@ use bzip2::write::BzEncoder;
 use xz2::read::XzDecoder;
 #[cfg(not(target_arch = "wasm32"))]
 use xz2::write::XzEncoder;
-#[cfg(not(target_arch = "wasm32"))]
 #[cfg(not(target_arch = "wasm32"))]
 use zstd::Decoder as ZstdDecoder;
 #[cfg(not(target_arch = "wasm32"))]
@@ -142,75 +141,144 @@ fn get_comp_level<I: FromStr + From<u8>>(ext: &str) -> I {
     .unwrap_or_else(|| I::from(2))
 }
 
+/// Compressing writer that writes the end of the compressed stream in `finish`
+trait Encoder: Write + Send {
+  /// Write the end of the compressed stream and flush the underlying writer
+  fn finish_stream(&mut self) -> std::io::Result<()>;
+}
+
+impl<W: Write + Send> Encoder for GzEncoder<W> {
+  fn finish_stream(&mut self) -> std::io::Result<()> {
+    self.try_finish()?;
+    self.get_mut().flush()
+  }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl<W: Write + Send> Encoder for BzEncoder<W> {
+  fn finish_stream(&mut self) -> std::io::Result<()> {
+    self.try_finish()?;
+    self.get_mut().flush()
+  }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl<W: Write + Send> Encoder for XzEncoder<W> {
+  fn finish_stream(&mut self) -> std::io::Result<()> {
+    self.try_finish()?;
+    self.get_mut().flush()
+  }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl<W: Write + Send> Encoder for ZstdEncoder<'static, W> {
+  fn finish_stream(&mut self) -> std::io::Result<()> {
+    self.do_finish()?;
+    self.get_mut().flush()
+  }
+}
+
+/// Writer without compression
+struct Uncompressed<W: Write + Send>(W);
+
+impl<W: Write + Send> Write for Uncompressed<W> {
+  fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+    self.0.write(buf)
+  }
+
+  fn flush(&mut self) -> std::io::Result<()> {
+    self.0.flush()
+  }
+}
+
+impl<W: Write + Send> Encoder for Uncompressed<W> {
+  fn finish_stream(&mut self) -> std::io::Result<()> {
+    self.0.flush()
+  }
+}
+
+/// Writer that compresses the data as the file extension asks. Call `finish` after the last write: dropping the
+/// writer finishes the compressed stream too, but it can only log the errors.
 pub struct Compressor<'w> {
-  compressor: Box<dyn Write + Send + 'w>,
+  compressor: Box<dyn Encoder + 'w>,
   compression_type: CompressionType,
   filepath: Option<String>,
+  is_finished: bool,
 }
 
 impl<'w> Compressor<'w> {
   pub fn new<W: 'w + Write + Send>(writer: W, compression_type: &CompressionType) -> Result<Self, Report> {
-    let compressor: Box<dyn Write + Send + 'w> = match compression_type {
+    let compressor: Box<dyn Encoder + 'w> = match compression_type {
       #[cfg(not(target_arch = "wasm32"))]
       CompressionType::Bzip2 => Box::new(BzEncoder::new(writer, BzCompressionLevel::new(get_comp_level("BZ2")))),
       #[cfg(not(target_arch = "wasm32"))]
       CompressionType::Xz => Box::new(XzEncoder::new(writer, get_comp_level("XZ"))),
       #[cfg(not(target_arch = "wasm32"))]
-      CompressionType::Zstd => Box::new(ZstdEncoder::new(writer, get_comp_level("ZST"))?.auto_finish()),
+      CompressionType::Zstd => Box::new(ZstdEncoder::new(writer, get_comp_level("ZST"))?),
       CompressionType::Gzip => Box::new(GzEncoder::new(writer, GzCompressionLevel::new(get_comp_level("GZ")))),
-      CompressionType::None => Box::new(writer),
+      CompressionType::None => Box::new(Uncompressed(writer)),
     };
 
     Ok(Self {
       compressor,
       compression_type: compression_type.clone(),
       filepath: None,
+      is_finished: false,
     })
   }
 
   pub fn from_path<W: 'w + Write + Send>(writer: W, filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     let (compression_type, _) = guess_compression_from_filepath(filepath);
-    Self::new(writer, &compression_type)
+    let mut this = Self::new(writer, &compression_type)?;
+    this.filepath = Some(filepath.to_string_lossy().into_owned());
+    Ok(this)
+  }
+
+  /// Write the end of the compressed stream and flush the underlying writer
+  pub fn finish(mut self) -> std::io::Result<()> {
+    self.is_finished = true;
+    let result = self.compressor.finish_stream();
+    self.io_error(result, "While finishing compressed file")
+  }
+
+  /// Add the compression details to an error of a compressed file
+  fn io_error<T>(&self, result: std::io::Result<T>, context: &'static str) -> std::io::Result<T> {
+    if matches!(self.compression_type, CompressionType::None) {
+      return result;
+    }
+    result
+      .wrap_err(context)
+      .with_section(|| {
+        self
+          .filepath
+          .clone()
+          .unwrap_or_else(|| "None".to_owned())
+          .header("Filename")
+      })
+      .with_section(|| self.compression_type.clone().header("Compressor"))
+      .map_err(|report| std::io::Error::other(report_to_string(&report)))
   }
 }
 
 impl Write for Compressor<'_> {
   fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-    self
-      .compressor
-      .write(buf)
-      .wrap_err_with(|| "While compressing file")
-      .with_section(|| {
-        self
-          .filepath
-          .clone()
-          .unwrap_or_else(|| "None".to_owned())
-          .header("Filename")
-      })
-      .with_section(|| self.compression_type.clone().header("Compressor"))
-      .map_err(|report| std::io::Error::other(report_to_string(&report)))
+    let result = self.compressor.write(buf);
+    self.io_error(result, "While compressing file")
   }
 
   fn flush(&mut self) -> std::io::Result<()> {
-    self
-      .compressor
-      .flush()
-      .wrap_err_with(|| "While flushing compressed file")
-      .with_section(|| {
-        self
-          .filepath
-          .clone()
-          .unwrap_or_else(|| "None".to_owned())
-          .header("Filename")
-      })
-      .with_section(|| self.compression_type.clone().header("Compressor"))
-      .map_err(|report| std::io::Error::other(report_to_string(&report)))
+    let result = self.compressor.flush();
+    self.io_error(result, "While flushing compressed file")
   }
 }
 
 impl Drop for Compressor<'_> {
   fn drop(&mut self) {
-    self.flush().unwrap();
+    if !self.is_finished
+      && let Err(error) = self.compressor.finish_stream()
+    {
+      debug!("When finishing compressed file on drop: {error}");
+    }
   }
 }

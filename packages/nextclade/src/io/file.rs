@@ -4,9 +4,9 @@ use eyre::{Report, WrapErr};
 use log::info;
 use std::error::Error;
 use std::fs::File;
-use std::io::{self, BufRead, BufReader, BufWriter, ErrorKind, Stdout, Write, stdin, stdout};
+use std::io::{self, BufRead, BufReader, BufWriter, ErrorKind, IntoInnerError, Stdout, Write, stdin, stdout};
 use std::iter::successors;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub const DEFAULT_FILE_BUF_SIZE: usize = 256 * 1024;
 
@@ -45,21 +45,91 @@ pub fn open_stdout() -> StdoutWriter<BufWriter<Stdout>> {
 }
 
 /// Open file for writing. If the path does not exist it will be created recursively. If the path is stdout, then
-/// write to stdout.
-pub fn create_file_or_stdout(filepath: impl AsRef<Path>) -> Result<Box<dyn Write + Send>, Report> {
+/// write to stdout. Call `OutputWriter::finish` after the last write.
+pub fn create_file_or_stdout(filepath: impl AsRef<Path>) -> Result<OutputWriter, Report> {
   let filepath = filepath.as_ref();
 
   if is_path_stdout(filepath) {
     info!("File path is '{}'. Writing to standard output.", filepath.display());
-    return Ok(Box::new(open_stdout()));
+    return Ok(OutputWriter::Stdout(open_stdout()));
   }
 
   ensure_dir(filepath)?;
   let file = File::create(filepath).wrap_err_with(|| format!("When creating file: {}", filepath.display()))?;
   let buf_file = BufWriter::with_capacity(DEFAULT_FILE_BUF_SIZE, file);
   let compressor = Compressor::from_path(buf_file, filepath)?;
-  let buf_compressor = BufWriter::with_capacity(DEFAULT_FILE_BUF_SIZE, compressor);
-  Ok(Box::new(buf_compressor))
+  let writer = BufWriter::with_capacity(DEFAULT_FILE_BUF_SIZE, compressor);
+  Ok(OutputWriter::File {
+    filepath: filepath.to_owned(),
+    writer,
+  })
+}
+
+/// Writer of an output file or of stdout, created by `create_file_or_stdout`.
+///
+/// Call `finish` after the last write: it writes the buffered data and the end of a compressed stream, and returns
+/// their errors. Dropping the writer without `finish` writes them too, but cannot report their errors. Write errors of
+/// a file name the file.
+pub enum OutputWriter {
+  Stdout(StdoutWriter<BufWriter<Stdout>>),
+  File {
+    filepath: PathBuf,
+    writer: BufWriter<Compressor<'static>>,
+  },
+}
+
+impl OutputWriter {
+  /// Write the buffered data and the end of a compressed stream
+  pub fn finish(self) -> Result<(), Report> {
+    match self {
+      Self::Stdout(mut writer) => writer.flush().wrap_err("When writing to standard output"),
+      Self::File { filepath, writer } => writer
+        .into_inner()
+        .map_err(IntoInnerError::into_error)
+        .and_then(Compressor::finish)
+        .map_err(|error| Report::new(file_write_error(&filepath, error))),
+    }
+  }
+}
+
+impl Write for OutputWriter {
+  fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+    match self {
+      Self::Stdout(writer) => writer.write(buf),
+      Self::File { filepath, writer } => writer.write(buf).map_err(|error| file_write_error(filepath, error)),
+    }
+  }
+
+  fn flush(&mut self) -> io::Result<()> {
+    match self {
+      Self::Stdout(writer) => writer.flush(),
+      Self::File { filepath, writer } => writer.flush().map_err(|error| file_write_error(filepath, error)),
+    }
+  }
+}
+
+/// Error of a write to an output file, which names the file
+#[derive(Debug, derive_more::Display)]
+#[display("When writing to file {}", filepath.display())]
+struct FileWriteError {
+  filepath: PathBuf,
+  source: io::Error,
+}
+
+impl Error for FileWriteError {
+  fn source(&self) -> Option<&(dyn Error + 'static)> {
+    Some(&self.source)
+  }
+}
+
+fn file_write_error(filepath: &Path, error: io::Error) -> io::Error {
+  io::Error::new(
+    error.kind(),
+    FileWriteError {
+      filepath: filepath.to_owned(),
+      source: error,
+    },
+  )
 }
 
 /// Writer to stdout. When the reader closes stdout, as `head` does in `nextclade run --output-fasta - | head`, its

@@ -93,6 +93,7 @@ criterion = { workspace = true }
 indoc = { workspace = true }
 proptest = { workspace = true }
 rstest = { workspace = true }
+tempfile = { workspace = true }
 
 [build-dependencies]
 eyre = { workspace = true }

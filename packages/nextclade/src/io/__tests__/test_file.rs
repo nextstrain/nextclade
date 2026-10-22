@@ -1,11 +1,13 @@
 #[cfg(test)]
 mod tests {
-  use crate::io::file::is_stdout_closed;
+  use crate::io::file::{create_file_or_stdout, is_stdout_closed, open_file_or_stdin};
   use crate::io::json::{JsonPretty, json_write_impl};
+  #[cfg(target_os = "linux")]
+  use crate::utils::error::report_to_string;
   use helpers::{write_csv, write_plain, writer};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
-  use std::io::ErrorKind;
+  use std::io::{ErrorKind, Read, Write};
 
   #[rustfmt::skip]
   #[rstest]
@@ -33,6 +35,50 @@ mod tests {
       vec![("write", Some(expected)), ("json", Some(expected)), ("csv", Some(expected))],
       detected
     );
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::uncompressed( "txt")]
+  #[case::gzip(         "gz")]
+  #[case::bzip2(        "bz2")]
+  #[case::xz(           "xz")]
+  #[case::zstd(         "zst")]
+  #[trace]
+  fn test_file_output_is_complete_after_finish(#[case] extension: &str) {
+    let dir = tempfile::tempdir().unwrap();
+    let filepath = dir.path().join(format!("output.{extension}"));
+
+    let mut file = create_file_or_stdout(&filepath).unwrap();
+    file.write_all(b">seq\nACGT\n").unwrap();
+    file.finish().unwrap();
+
+    let mut content = String::new();
+    open_file_or_stdin(Some(&filepath)).unwrap().read_to_string(&mut content).unwrap();
+    assert_eq!(">seq\nACGT\n", content);
+  }
+
+  #[cfg(target_os = "linux")]
+  #[test]
+  fn test_file_output_write_error_names_the_file() {
+    let mut file = create_file_or_stdout("/dev/full").unwrap();
+    file.write_all(b">seq\nACGT\n").unwrap();
+
+    let result = file.finish();
+
+    assert_eq!(
+      Some("When writing to file /dev/full: No space left on device (os error 28)".to_owned()),
+      result.err().map(|report| report_to_string(&report))
+    );
+  }
+
+  #[cfg(target_os = "linux")]
+  #[test]
+  fn test_file_output_dropped_after_write_error_does_not_panic() {
+    let mut file = create_file_or_stdout("/dev/full").unwrap();
+    file.write_all(b">seq\nACGT\n").unwrap();
+
+    drop(file);
   }
 
   mod helpers {

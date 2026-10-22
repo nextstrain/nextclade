@@ -2,7 +2,7 @@ use crate::coord::position::PositionLike;
 use crate::gene::cds_segment::CdsSegment;
 use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
-use crate::io::file::create_file_or_stdout;
+use crate::io::file::{OutputWriter, create_file_or_stdout};
 use crate::io::gff3_encoding::{gff_encode_attribute, gff_encode_non_attribute};
 use crate::o;
 use crate::types::outputs::NextcladeOutputs;
@@ -28,6 +28,11 @@ impl<W: Write> Gff3Writer<W> {
       writer,
       has_header_written: false,
     })
+  }
+
+  /// Return the underlying writer
+  pub fn into_inner(self) -> W {
+    self.writer
   }
 
   pub fn write_genemap(
@@ -153,7 +158,7 @@ fn gff_write_convert_attributes(key: impl AsRef<str>, values: &[String]) -> Resu
 }
 
 pub struct Gff3FileWriter {
-  writer: Gff3Writer<Box<dyn Write + Send>>,
+  writer: Gff3Writer<OutputWriter>,
 }
 
 impl Gff3FileWriter {
@@ -176,6 +181,11 @@ impl Gff3FileWriter {
 
   pub fn write_record(&mut self, record: &BioGffRecord) -> Result<(), Report> {
     self.writer.write_record(record)
+  }
+
+  /// Write the buffered records, and report the errors of writing them
+  pub fn finish(self) -> Result<(), Report> {
+    self.writer.into_inner().finish()
   }
 }
 

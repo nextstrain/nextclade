@@ -4,7 +4,7 @@ use crate::gene::cds_segment::Truncation;
 use crate::gene::gene::Gene;
 use crate::gene::gene::GeneStrand::Reverse;
 use crate::gene::gene_map::GeneMap;
-use crate::io::file::create_file_or_stdout;
+use crate::io::file::{OutputWriter, create_file_or_stdout};
 use crate::types::outputs::NextcladeOutputs;
 use csv::{Writer as CsvWriter, WriterBuilder as CsvWriterBuilder};
 use eyre::Report;
@@ -26,6 +26,11 @@ impl<W: Write + Send> GenbankTblWriter<W> {
       .has_headers(false)
       .from_writer(writer);
     Ok(Self { writer })
+  }
+
+  /// Write the buffered rows and return the underlying writer
+  pub fn into_inner(self) -> Result<W, Report> {
+    Ok(self.writer.into_inner().map_err(csv::IntoInnerError::into_error)?)
   }
 
   pub fn write_genemap(&mut self, gene_map: &GeneMap) -> Result<(), Report> {
@@ -136,7 +141,7 @@ impl<W: Write + Send> GenbankTblWriter<W> {
 ///
 /// See: https://www.ncbi.nlm.nih.gov/genbank/feature_table/
 pub struct GenbankTblFileWriter {
-  writer: GenbankTblWriter<Box<dyn Write + Send>>,
+  writer: GenbankTblWriter<OutputWriter>,
 }
 
 impl GenbankTblFileWriter {
@@ -149,6 +154,11 @@ impl GenbankTblFileWriter {
 
   pub fn write_genemap(&mut self, gene_map: &GeneMap) -> Result<(), Report> {
     self.writer.write_genemap(gene_map)
+  }
+
+  /// Write the buffered rows, and report the errors of writing them
+  pub fn finish(self) -> Result<(), Report> {
+    self.writer.into_inner()?.finish()
   }
 }
 
