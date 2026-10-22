@@ -27,7 +27,7 @@ authors = ["Nextstrain team"]
 approx = "=0.5.1"
 assert2 = "=0.3.16"
 auto_ops = "=0.3.0"
-base64 = "=0.22.1"
+base64 = "=0.23.1"
 bio = "=1.3.1"
 bio-types = "=1.0.0"
 bzip2 = { version = "=0.6.1", features = ["static"] }
