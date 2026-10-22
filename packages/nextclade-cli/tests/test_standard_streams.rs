@@ -74,6 +74,34 @@ mod tests {
     );
   }
 
+  #[test]
+  fn test_standard_streams_sort_closed_stdout_keeps_output_files_complete() {
+    let dir = TestDir::new();
+    dir.write("minimizer_index.json", helpers::MINIMIZER_INDEX_JSON);
+    // Enough sequences that the results table exceeds the output buffer, so that a write fails before the end
+    let seq_names = (0..20_000).map(|index| format!("seq{index}")).collect::<Vec<_>>();
+    dir.write("sequences.fasta", &fasta(&seq_names));
+
+    let output = run_with_closed_stdout(nextclade().current_dir(dir.path()).args([
+      "sort",
+      "--input-minimizer-index-json=minimizer_index.json",
+      "--output-results-tsv=-",
+      "--output-dir=sorted",
+      "sequences.fasta",
+    ]));
+
+    let sorted = dir.read("sorted/ref/sequences.fasta");
+    assert_eq!(
+      (true, seq_names.len()),
+      (
+        output.status.success(),
+        sorted.lines().filter(|line| line.starts_with('>')).count()
+      ),
+      "{}",
+      String::from_utf8_lossy(&output.stderr)
+    );
+  }
+
   #[cfg(target_os = "linux")]
   #[test]
   fn test_standard_streams_stdout_write_error_names_standard_output() {
@@ -159,5 +187,8 @@ mod tests {
         std::fs::read_to_string(self.dir.path().join(name)).unwrap()
       }
     }
+
+    /// Minimizer index with one reference, "ref", whose minimizers are those of `SEQUENCE`
+    pub const MINIMIZER_INDEX_JSON: &str = include_str!("../src/cli/__tests__/__fixtures__/minimizer_index.json");
   }
 }

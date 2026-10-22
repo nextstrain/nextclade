@@ -116,36 +116,57 @@ mod tests {
   #[trace]
   fn test_nextclade_seq_sort_closed_stdout_keeps_output_files_complete(#[case] mode_args: &[&str]) {
     let dir = SortDir::new();
-    let input = dir.write("sequences.fasta", ">seq1\nACGT\n>seq2\nACGT\n>seq3\nACGT\n");
+    let input = dir.write(
+      "sequences.fasta",
+      &format!(">seq1\n{0}\n>seq2\nACGT\n>seq3\n{0}\n", helpers::SEQUENCE),
+    );
     let output = dir.path("results.tsv");
+    let output_dir = dir.path("sorted");
     let index = MinimizerIndexJson::from_path(dir.path("minimizer_index.json")).unwrap();
-    let output_arg = format!("--output-results-tsv={}", output.display());
-    let args = [&[output_arg.as_str()][..], mode_args].concat();
+    let output_args = [
+      format!("--output-results-tsv={}", output.display()),
+      format!("--output-dir={}", output_dir.display()),
+    ];
+    let args = output_args
+      .iter()
+      .map(String::as_str)
+      .chain(mode_args.iter().copied())
+      .collect::<Vec<_>>();
     let closed_stdout = StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe));
 
-    sort_sequences(&sort_args(&dir, &input, &args), &[], &index, true, closed_stdout).unwrap();
+    sort_sequences(
+      &sort_args(&dir, &input, &args),
+      &["ref".to_owned()],
+      &index,
+      true,
+      closed_stdout,
+    )
+    .unwrap();
 
     assert_eq!(
-      "index\tseqName\tdataset\tscore\tnumHits\n0\tseq1\t\t\t\n1\tseq2\t\t\t\n2\tseq3\t\t\t\n",
-      std::fs::read_to_string(&output).unwrap()
+      (
+        // seq1 and seq3 are the reference: all 19 minimizers of the reference hit, so the score is 19 / 19
+        "index\tseqName\tdataset\tscore\tnumHits\n0\tseq1\tref\t1.0\t19\n1\tseq2\t\t\t\n2\tseq3\tref\t1.0\t19\n"
+          .to_owned(),
+        format!(">seq1\n{0}\n>seq3\n{0}\n", helpers::SEQUENCE)
+      ),
+      (
+        std::fs::read_to_string(&output).unwrap(),
+        std::fs::read_to_string(output_dir.join("ref/sequences.fasta")).unwrap()
+      )
     );
   }
 
   mod helpers {
+    pub use crate::cli::__tests__::common::helpers::SEQUENCE;
     use crate::cli::nextclade_cli::{NextcladeCommands, NextcladeSortArgs, nextclade_parse_args};
     use std::io::{self, ErrorKind, Write};
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
 
-    /// Minimizer index without references: every sequence is undetected
-    const MINIMIZER_INDEX: &str = r#"{
-      "schemaVersion": "3.0.0",
-      "version": "1",
-      "params": { "k": 17, "cutoff": 28 },
-      "minimizers": {},
-      "references": [],
-      "normalization": []
-    }"#;
+    /// Minimizer index with one reference, "ref": the 19 minimizers of `SEQUENCE` for k = 17 and the cutoff 2^28.
+    /// Sequences shorter than k, such as "ACGT", are undetected.
+    const MINIMIZER_INDEX: &str = include_str!("__fixtures__/minimizer_index.json");
 
     /// Temporary directory with a minimizer index, for runs of `nextclade sort` without a dataset server
     pub struct SortDir {
