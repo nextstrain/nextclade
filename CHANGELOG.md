@@ -1,5 +1,30 @@
 ## Unreleased
 
+### Nextclade CLI: network options for `nextclade run` and environment variables
+
+`nextclade run` now accepts the same network options as `nextclade dataset get` and uses them when it downloads a dataset with `--dataset-name`: `--proxy`, `--proxy-user`, `--proxy-pass`, `--extra-ca-certs`, and the new options `--proxy-pass-file` and `--http-timeout`.
+
+Each network option can also be set with an environment variable. A command-line argument takes precedence over its variable:
+
+- `--proxy`: `NEXTCLADE_PROXY`
+- `--proxy-user`: `NEXTCLADE_PROXY_USER`
+- `--proxy-pass`: `NEXTCLADE_PROXY_PASS`
+- `--proxy-pass-file`: `NEXTCLADE_PROXY_PASS_FILE`
+- `--extra-ca-certs`: `NEXTCLADE_EXTRA_CA_CERTS`
+- `--http-timeout`: `NEXTCLADE_HTTP_TIMEOUT`
+
+A variable set to an empty value, for example `NEXTCLADE_PROXY=` from `${VAR:-}` in a container configuration, counts as not set. Nextclade checks the network values only when it downloads data, so an invalid value does not stop a command that does not download. When Nextclade downloads, an invalid value, including a value that is not valid UTF-8 text, gives an error that names both the option and the variable.
+
+Other users of the machine can see command-line arguments, so a password given with `--proxy-pass` is visible to them. Nextclade now prints a warning in this case. Give the password in the `NEXTCLADE_PROXY_PASS` variable instead, or in a file with `--proxy-pass-file <PATH>` (one trailing newline is removed). If one password option is a command-line argument and the other an environment variable, the command-line argument is used. Two command-line arguments, or two variables, are an error when Nextclade downloads data. `--help` does not print the values of the proxy variables.
+
+### Nextclade CLI: proxy settings and download timeout
+
+- With `--proxy`, hosts listed in the `NO_PROXY` (or `no_proxy`) environment variable are now reached directly, without the proxy
+- `--proxy` and `NEXTCLADE_PROXY` now also accept a proxy without a scheme, for example `10.0.0.1:3128`, as the standard proxy variables do. Such a value is an HTTP proxy
+- `--proxy-user`, `--proxy-pass`, and `--proxy-pass-file` apply only to a proxy given with `--proxy` or `NEXTCLADE_PROXY`. When they are given for a proxy from `HTTPS_PROXY`, `HTTP_PROXY`, or `ALL_PROXY`, Nextclade now prints a warning; put the credentials into the URL of that variable instead, for example `http://user:password@proxy.example.com:3128`. Nextclade checks these options for every download, also when it does not use them, so for example a user without a password is always an error
+- Without `--proxy`, Nextclade uses the standard variables `HTTPS_PROXY`, `HTTP_PROXY`, and `ALL_PROXY` (upper or lower case) together with `NO_PROXY`. When none of these variables is set, Nextclade now uses the system proxy settings on macOS and Windows. A variable set to an empty value also counts as set, so for example `HTTPS_PROXY=` alone makes Nextclade connect directly. A value that is not valid UTF-8 text is an error when Nextclade uses the variable
+- Downloads are no longer cut off after 30 seconds. Each HTTP request may now take up to 600 seconds, from connecting until the last byte. Change the limit with `--http-timeout <SECONDS>` or `NEXTCLADE_HTTP_TIMEOUT`; `0` disables it. When a request exceeds the limit, the error message names the option
+
 ### Nextclade CLI: update TLS and network libraries
 
 Nextclade CLI uses TLS to download datasets. The TLS library rustls is updated to version 0.23.46, which fixes the security advisories [RUSTSEC-2026-0285](https://rustsec.org/advisories/RUSTSEC-2026-0285.html) and [RUSTSEC-2026-0349](https://rustsec.org/advisories/RUSTSEC-2026-0349.html). The libraries bytes, crossbeam-epoch, and time are updated to versions that fix published security advisories. The HTTP library reqwest is also updated to a newer version.

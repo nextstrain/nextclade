@@ -12,8 +12,8 @@ pub const DEFAULT_HTTP_TIMEOUT_SECS: u64 = 600;
 
 /// Network options shared by all commands that download data.
 ///
-/// The values are kept as given, in any encoding, and checked only when an HTTP client is built, so that a command
-/// that does not download anything is not affected by the network variables. An empty value, for example from
+/// The values are kept as given, in any encoding, and checked only when an HTTP client is built, so that an invalid
+/// value does not stop a command that does not download anything. An empty value, for example from
 /// `NEXTCLADE_PROXY=` in a container configuration, counts as not set. The proxy URL, user, and password are
 /// `SecretBytes`, so that the `Debug` output of the arguments, which `nextclade run -v` logs, does not show them.
 #[derive(Parser, Debug, Clone)]
