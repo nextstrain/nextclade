@@ -4,7 +4,7 @@ mod tests {
   #[cfg(target_os = "linux")]
   use helpers::tree_seq_names;
   use helpers::{RunDir, result_seq_names, run_args};
-  #[cfg(target_os = "linux")]
+  #[cfg(unix)]
   use nextclade::utils::error::report_to_string;
   use pretty_assertions::assert_eq;
 
@@ -64,6 +64,26 @@ mod tests {
         result.err().map(|report| report_to_string(&report)),
         tree_seq_names(&std::fs::read_to_string(&output_tree).unwrap())
       )
+    );
+  }
+
+  #[cfg(unix)]
+  #[test]
+  fn test_nextclade_loop_missing_pathogen_json_is_an_error() {
+    let dir = RunDir::new();
+    let missing = dir.path("missing.json");
+
+    let result = nextclade_run(run_args(
+      &dir,
+      &[&format!("--input-pathogen-json={}", missing.display())],
+    ));
+
+    assert_eq!(
+      Some(format!(
+        "When reading pathogen JSON: When reading pathogen.json: When opening file {}: No such file or directory (os error 2)",
+        missing.display()
+      )),
+      result.err().map(|report| report_to_string(&report))
     );
   }
 

@@ -397,8 +397,7 @@ pub fn dataset_individual_files_load(
         .inputs
         .input_pathogen_json
         .as_ref()
-        .and_then(|input_pathogen_json| read_file_to_string(input_pathogen_json).ok())
-        .map_ref_fallible(VirusProperties::from_str)
+        .map_ref_fallible(VirusProperties::from_path)
         .wrap_err("When reading pathogen JSON")?
         .unwrap_or_default();
 
