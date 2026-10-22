@@ -22,3 +22,6 @@ pub mod results_json;
 pub mod schema_version;
 pub mod xlsx;
 pub mod yaml;
+
+#[cfg(test)]
+mod __tests__;

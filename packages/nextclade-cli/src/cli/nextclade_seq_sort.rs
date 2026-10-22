@@ -1,5 +1,5 @@
 use crate::cli::nextclade_cli::{NextcladeRunOtherParams, NextcladeSortArgs};
-use crate::cli::stdout::{is_stdout_closed, write_stdout};
+use crate::cli::stdout::write_stdout;
 use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use console::style;
@@ -9,6 +9,7 @@ use log::{LevelFilter, trace};
 use maplit::btreemap;
 use nextclade::io::csv::CsvStructFileWriter;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
+use nextclade::io::file::is_stdout_closed;
 use nextclade::io::fs::path_to_string;
 use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MINIMIZER_INDEX_ALGO_VERSION, MinimizerIndexJson};

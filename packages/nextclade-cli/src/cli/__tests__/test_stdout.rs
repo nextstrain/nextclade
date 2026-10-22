@@ -3,6 +3,7 @@ mod tests {
   use crate::cli::stdout::{ignore_stdout_closed, write_bytes, write_line};
   use eyre::WrapErr;
   use helpers::FailingWriter;
+  use nextclade::io::file::StdoutWriter;
   use nextclade::utils::error::report_to_string;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
@@ -34,7 +35,7 @@ mod tests {
   #[case::bytes_when_flushing(true,  true)]
   #[trace]
   fn test_stdout_closed_pipe_is_success(#[case] fails_on_flush: bool, #[case] bytes: bool) {
-    let mut writer = FailingWriter::new(ErrorKind::BrokenPipe, fails_on_flush);
+    let mut writer = StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe, fails_on_flush));
 
     let written = if bytes {
       write_bytes(&mut writer, b"line\n")
@@ -48,7 +49,7 @@ mod tests {
 
   #[test]
   fn test_stdout_closed_pipe_is_success_below_added_context() {
-    let mut writer = FailingWriter::new(ErrorKind::BrokenPipe, false);
+    let mut writer = StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe, false));
 
     let result = ignore_stdout_closed(write_line(&mut writer, "line").wrap_err("When generating completions"));
 
@@ -57,7 +58,7 @@ mod tests {
 
   #[test]
   fn test_stdout_other_write_errors_are_errors() {
-    let mut writer = FailingWriter::new(ErrorKind::StorageFull, false);
+    let mut writer = StdoutWriter::new(FailingWriter::new(ErrorKind::StorageFull, false));
 
     let result = ignore_stdout_closed(write_line(&mut writer, "line"));
 
