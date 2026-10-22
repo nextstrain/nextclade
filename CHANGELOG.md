@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Nextclade CLI: summary of `nextclade sort --global --verbose`
+
+`nextclade sort --global --verbose` now prints the "Suggested datasets" summary after the per-sequence table, as `nextclade sort --verbose` without `--global` does.
+
 ### Nextclade CLI: dataset counts of `nextclade sort --verbose`
 
 The "Suggested datasets" summary of `nextclade sort --verbose` counted the first sequence of each dataset twice, so the "Num. seq" column, the total and the "Percent" column were wrong: the percentages were too low for datasets with many sequences. With `--all-matches`, the total counted each pair of a sequence and a matching dataset, so a sequence that matches several datasets counted several times. The summary now counts each sequence once for each of its datasets, and once in the total. With `--all-matches`, the percentages of the datasets can add up to more than 100%.
