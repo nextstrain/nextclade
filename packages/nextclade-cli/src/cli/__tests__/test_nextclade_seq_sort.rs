@@ -1,9 +1,13 @@
 #[cfg(test)]
 mod tests {
-  use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
-  use helpers::{SortDir, sort_args};
+  use crate::cli::nextclade_seq_sort::{nextclade_seq_sort, sort_sequences};
+  use helpers::{FailingWriter, SortDir, sort_args};
+  use nextclade::io::file::StdoutWriter;
+  use nextclade::sort::minimizer_index::MinimizerIndexJson;
   use nextclade::utils::error::report_to_string;
   use pretty_assertions::assert_eq;
+  use rstest::rstest;
+  use std::io::ErrorKind;
 
   #[test]
   fn test_nextclade_seq_sort_missing_input_is_an_error() {
@@ -77,8 +81,30 @@ mod tests {
     );
   }
 
+  #[rstest]
+  #[case::local(&[])]
+  #[case::global(&["--global"])]
+  #[trace]
+  fn test_nextclade_seq_sort_closed_stdout_keeps_output_files_complete(#[case] mode_args: &[&str]) {
+    let dir = SortDir::new();
+    let input = dir.write("sequences.fasta", ">seq1\nACGT\n>seq2\nACGT\n>seq3\nACGT\n");
+    let output = dir.path("results.tsv");
+    let index = MinimizerIndexJson::from_path(dir.path("minimizer_index.json")).unwrap();
+    let output_arg = format!("--output-results-tsv={}", output.display());
+    let args = [&[output_arg.as_str()][..], mode_args].concat();
+    let closed_stdout = StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe));
+
+    sort_sequences(&sort_args(&dir, &input, &args), &[], &index, true, closed_stdout).unwrap();
+
+    assert_eq!(
+      "index\tseqName\tdataset\tscore\tnumHits\n0\tseq1\t\t\t\n1\tseq2\t\t\t\n2\tseq3\t\t\t\n",
+      std::fs::read_to_string(&output).unwrap()
+    );
+  }
+
   mod helpers {
     use crate::cli::nextclade_cli::{NextcladeCommands, NextcladeSortArgs, nextclade_parse_args};
+    use std::io::{self, ErrorKind, Write};
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
 
@@ -130,6 +156,27 @@ mod tests {
       match nextclade_parse_args(args).unwrap().command {
         NextcladeCommands::Sort(sort_args) => *sort_args,
         _ => panic!("expected `sort` command"),
+      }
+    }
+
+    /// Writer that fails every write and flush with an error of the given kind
+    pub struct FailingWriter {
+      kind: ErrorKind,
+    }
+
+    impl FailingWriter {
+      pub fn new(kind: ErrorKind) -> Self {
+        Self { kind }
+      }
+    }
+
+    impl Write for FailingWriter {
+      fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
+        Err(io::Error::new(self.kind, "test write error"))
+      }
+
+      fn flush(&mut self) -> io::Result<()> {
+        Err(io::Error::new(self.kind, "test write error"))
       }
     }
   }

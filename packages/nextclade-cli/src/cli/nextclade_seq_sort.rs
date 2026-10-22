@@ -1,5 +1,5 @@
 use crate::cli::nextclade_cli::{NextcladeRunOtherParams, NextcladeSortArgs};
-use crate::cli::stdout::write_line;
+use crate::cli::stdout::{finish_outputs, write_line, write_output};
 use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use console::style;
@@ -17,7 +17,7 @@ use nextclade::sort::minimizer_search::{
   MinimizerSearchDatasetResult, MinimizerSearchRecord, find_best_datasets, find_best_suggestion_for_seq,
   run_minimizer_search,
 };
-use nextclade::utils::option::{OptionMapMutFallible, OptionMapRefFallible};
+use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::utils::string::truncate;
 use ordered_float::OrderedFloat;
 use schemars::JsonSchema;
@@ -244,6 +244,11 @@ fn writer_thread(
 
       stats.print_seq(&datasets, &record.seq_name)?;
       writer.write_one(&record, &datasets)?;
+
+      // The reader closed standard output, and nothing is left to write
+      if !writer.has_outputs() && !stats.is_printing() {
+        break;
+      }
     }
     writer.finish()?;
   } else {
@@ -261,6 +266,11 @@ fn writer_thread(
       };
       stats.print_seq(datasets, &fasta_record.seq_name)?;
       writer.write_one(&fasta_record, datasets)?;
+
+      // The reader closed standard output, and nothing is left to write
+      if !writer.has_outputs() && !stats.is_printing() {
+        break;
+      }
     }
     writer.finish()?;
     stats.finish()?;
@@ -303,20 +313,18 @@ impl<'t> DatasetSortWriter<'t> {
   }
 
   pub fn write_one(&mut self, record: &FastaRecord, datasets: &[MinimizerSearchDatasetResult]) -> Result<(), Report> {
-    if datasets.is_empty() {
-      self.results_csv.map_mut_fallible(|results_csv| {
+    write_output(&mut self.results_csv, |results_csv| {
+      if datasets.is_empty() {
         results_csv.write(&SeqSortCsvEntry {
           index: record.index,
           seq_name: &record.seq_name,
           dataset: None,
           score: None,
           num_hits: None,
-        })
-      })?;
-    }
+        })?;
+      }
 
-    for dataset in datasets {
-      self.results_csv.map_mut_fallible(|results_csv| {
+      datasets.iter().try_for_each(|dataset| {
         results_csv.write(&SeqSortCsvEntry {
           index: record.index,
           seq_name: &record.seq_name,
@@ -324,8 +332,8 @@ impl<'t> DatasetSortWriter<'t> {
           score: Some(dataset.score),
           num_hits: Some(dataset.n_hits),
         })
-      })?;
-    }
+      })
+    })?;
 
     let dataset_names = datasets
       .iter()
@@ -345,11 +353,20 @@ impl<'t> DatasetSortWriter<'t> {
     Ok(())
   }
 
-  /// Write the buffered data of every output, and report the errors of writing it
+  /// Whether any output is left. The writer drops the results table when the reader closes standard output.
+  pub const fn has_outputs(&self) -> bool {
+    self.results_csv.is_some() || self.template.is_some() || self.output_dir.is_some()
+  }
+
+  /// Write the buffered data of every output, also when another output fails, and report the errors of all outputs
   pub fn finish(self) -> Result<(), Report> {
-    self.writers.into_values().try_for_each(FastaWriter::finish)?;
-    self.results_csv.map(CsvStructFileWriter::finish).transpose()?;
-    Ok(())
+    finish_outputs(
+      self
+        .writers
+        .into_values()
+        .map(FastaWriter::finish)
+        .chain([self.results_csv.map_or(Ok(()), CsvStructFileWriter::finish)]),
+    )
   }
 }
 
@@ -504,6 +521,11 @@ impl<W: io::Write> StatsPrinter<W> {
     )?;
     write!(table, "{}┘", "─".repeat(67))?;
     self.print(table)
+  }
+
+  /// Whether the printer prints. It stops printing when the reader closes standard output.
+  pub(crate) const fn is_printing(&self) -> bool {
+    self.enabled
   }
 
   /// Print `content` and a newline, and stop printing when standard output is closed

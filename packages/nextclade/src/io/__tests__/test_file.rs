@@ -1,40 +1,39 @@
 #[cfg(test)]
 mod tests {
-  use crate::io::file::{create_file_or_stdout, is_stdout_closed, open_file_or_stdin};
-  use crate::io::json::{JsonPretty, json_write_impl};
+  #[cfg(unix)]
+  use crate::io::file::is_stdout_closed;
+  use crate::io::file::{create_file_or_stdout, open_file_or_stdin};
   #[cfg(target_os = "linux")]
   use crate::utils::error::report_to_string;
-  use helpers::{write_csv, write_plain, writer};
+  #[cfg(unix)]
+  use helpers::{Format, Output};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
-  use std::io::{ErrorKind, Read, Write};
+  use std::io::{Read, Write};
 
+  #[cfg(unix)]
   #[rustfmt::skip]
   #[rstest]
-  #[case::closed_stdout(          ErrorKind::BrokenPipe,  true,  true)]
-  #[case::closed_pipe_of_a_file(  ErrorKind::BrokenPipe,  false, false)]
-  #[case::other_stdout_error(     ErrorKind::StorageFull, true,  false)]
+  #[case::plain_closed_stdout( Format::Plain, Output::ClosedStdout, true )]
+  #[case::plain_closed_fifo(   Format::Plain, Output::ClosedFifo,   false)]
+  #[case::plain_stdout_error(  Format::Plain, Output::StdoutError,  false)]
+  #[case::json_closed_stdout(  Format::Json,  Output::ClosedStdout, true )]
+  #[case::json_closed_fifo(    Format::Json,  Output::ClosedFifo,   false)]
+  #[case::json_stdout_error(   Format::Json,  Output::StdoutError,  false)]
+  #[case::csv_closed_stdout(   Format::Csv,   Output::ClosedStdout, true )]
+  #[case::csv_closed_fifo(     Format::Csv,   Output::ClosedFifo,   false)]
+  #[case::csv_stdout_error(    Format::Csv,   Output::StdoutError,  false)]
   #[trace]
   fn test_file_stdout_closed_is_detected_only_for_stdout(
-    #[case] kind: ErrorKind,
-    #[case] is_stdout: bool,
+    #[case] format: Format,
+    #[case] output: Output,
     #[case] expected: bool,
   ) {
-    let writers = [
-      ("write", write_plain(writer(kind, is_stdout))),
-      ("json", json_write_impl(writer(kind, is_stdout), &[1, 2], JsonPretty(false))),
-      ("csv", write_csv(writer(kind, is_stdout))),
-    ];
+    let dir = tempfile::tempdir().unwrap();
 
-    let detected = writers
-      .iter()
-      .map(|(name, result)| (*name, result.as_ref().err().map(is_stdout_closed)))
-      .collect::<Vec<_>>();
+    let result = format.write(output.writer(dir.path()));
 
-    assert_eq!(
-      vec![("write", Some(expected)), ("json", Some(expected)), ("csv", Some(expected))],
-      detected
-    );
+    assert_eq!(Some(expected), result.err().map(|report| is_stdout_closed(&report)));
   }
 
   #[rustfmt::skip]
@@ -74,6 +73,26 @@ mod tests {
 
   #[cfg(target_os = "linux")]
   #[test]
+  fn test_file_compressed_output_write_error_names_the_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let filepath = dir.path().join("output.fasta.gz");
+    std::os::unix::fs::symlink("/dev/full", &filepath).unwrap();
+    let mut file = create_file_or_stdout(&filepath).unwrap();
+    file.write_all(b">seq\nACGT\n").unwrap();
+
+    let result = file.finish();
+
+    assert_eq!(
+      Some(format!(
+        "When writing to file {}: While flushing compressed file (Gzip): No space left on device (os error 28)",
+        filepath.display()
+      )),
+      result.err().map(|report| report_to_string(&report))
+    );
+  }
+
+  #[cfg(target_os = "linux")]
+  #[test]
   fn test_file_output_dropped_after_write_error_does_not_panic() {
     let mut file = create_file_or_stdout("/dev/full").unwrap();
     file.write_all(b">seq\nACGT\n").unwrap();
@@ -82,51 +101,109 @@ mod tests {
   }
 
   mod helpers {
-    use crate::io::csv::CsvStructWriter;
-    use crate::io::file::StdoutWriter;
-    use eyre::{Report, WrapErr};
-    use std::io::{self, ErrorKind, Write};
+    #[cfg(unix)]
+    pub use closed_output::{Format, Output};
 
-    /// Failing writer, wrapped in `StdoutWriter` when it stands for stdout
-    pub fn writer(kind: ErrorKind, is_stdout: bool) -> Box<dyn Write + Send> {
-      if is_stdout {
-        Box::new(StdoutWriter::new(FailingWriter::new(kind)))
-      } else {
-        Box::new(FailingWriter::new(kind))
-      }
-    }
+    /// Outputs whose writes fail, for the tests of a closed standard output. Unix only, because one of them is a
+    /// named pipe
+    #[cfg(unix)]
+    mod closed_output {
+      use crate::io::csv::CsvStructWriter;
+      use crate::io::file::{OutputWriter, StdoutWriter, create_file_or_stdout};
+      use crate::io::json::{JsonPretty, json_write_impl};
+      use eyre::{Report, WrapErr};
+      use std::fs::File;
+      use std::io::{self, ErrorKind, Write};
+      use std::path::Path;
+      use std::process::Command;
+      use std::thread;
 
-    pub fn write_plain(mut writer: Box<dyn Write + Send>) -> Result<(), Report> {
-      writer.write_all(b"data").wrap_err("When writing output")
-    }
+      /// Number of items to write: enough to fill the buffers of every writer, so that a write fails before the flush
+      const NUM_ITEMS: usize = 100_000;
 
-    pub fn write_csv(writer: Box<dyn Write + Send>) -> Result<(), Report> {
-      // Enough rows to fill the internal buffer of the CSV writer, so that a row write fails
-      let mut csv = CsvStructWriter::new(writer, b'\t')?;
-      for index in 0..1000 {
-        csv.write(&("sequence name", index)).wrap_err("When writing CSV")?;
-      }
-      csv.writer.flush().wrap_err("When writing CSV")
-    }
-
-    /// Writer that fails every write and flush with an error of the given kind
-    pub struct FailingWriter {
-      kind: ErrorKind,
-    }
-
-    impl FailingWriter {
-      pub fn new(kind: ErrorKind) -> Self {
-        Self { kind }
-      }
-    }
-
-    impl Write for FailingWriter {
-      fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
-        Err(io::Error::new(self.kind, "test write error"))
+      #[derive(Clone, Copy, Debug)]
+      pub enum Format {
+        Plain,
+        Json,
+        Csv,
       }
 
-      fn flush(&mut self) -> io::Result<()> {
-        Err(io::Error::new(self.kind, "test write error"))
+      impl Format {
+        /// Write many items in this format to `writer`, and flush it
+        pub fn write(self, mut writer: Box<dyn Write + Send>) -> Result<(), Report> {
+          match self {
+            Self::Plain => (0..NUM_ITEMS)
+              .try_for_each(|index| writeln!(writer, "sequence name\t{index}"))
+              .and_then(|()| writer.flush())
+              .wrap_err("When writing output"),
+            Self::Json => {
+              json_write_impl(&mut writer, &vec![("sequence name", 1); NUM_ITEMS], JsonPretty(false))?;
+              writer.flush().wrap_err("When writing JSON")
+            }
+            Self::Csv => {
+              let mut csv = CsvStructWriter::new(writer, b'\t')?;
+              (0..NUM_ITEMS).try_for_each(|index| csv.write(&("sequence name", index)))?;
+              csv.into_inner()?.flush().wrap_err("When writing CSV")
+            }
+          }
+        }
+      }
+
+      #[derive(Clone, Copy, Debug)]
+      pub enum Output {
+        /// Stdout after the reader closed it
+        ClosedStdout,
+        /// Stdout that fails with another error
+        StdoutError,
+        /// Output file that is a named pipe whose reader closed it
+        ClosedFifo,
+      }
+
+      impl Output {
+        pub fn writer(self, dir: &Path) -> Box<dyn Write + Send> {
+          match self {
+            Self::ClosedStdout => Box::new(StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe))),
+            Self::StdoutError => Box::new(StdoutWriter::new(FailingWriter::new(ErrorKind::StorageFull))),
+            Self::ClosedFifo => Box::new(closed_fifo(dir)),
+          }
+        }
+      }
+
+      /// Output file that is a named pipe, after its reader opened and closed it
+      fn closed_fifo(dir: &Path) -> OutputWriter {
+        let filepath = dir.join("fifo");
+        let status = Command::new("mkfifo").arg(&filepath).status().unwrap();
+        assert!(status.success(), "mkfifo failed: {status}");
+
+        // Opening a named pipe waits until the other end opens it too
+        let reader = {
+          let filepath = filepath.clone();
+          thread::spawn(move || drop(File::open(filepath).unwrap()))
+        };
+        let writer = create_file_or_stdout(&filepath).unwrap();
+        reader.join().unwrap();
+        writer
+      }
+
+      /// Writer that fails every write and flush with an error of the given kind
+      pub struct FailingWriter {
+        kind: ErrorKind,
+      }
+
+      impl FailingWriter {
+        pub fn new(kind: ErrorKind) -> Self {
+          Self { kind }
+        }
+      }
+
+      impl Write for FailingWriter {
+        fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
+          Err(io::Error::new(self.kind, "test write error"))
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+          Err(io::Error::new(self.kind, "test write error"))
+        }
       }
     }
   }

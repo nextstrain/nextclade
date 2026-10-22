@@ -1,5 +1,6 @@
 use crate::cli::nextclade_cli::NextcladeRunOutputArgs;
 use crate::cli::nextclade_loop::NextcladeRecord;
+use crate::cli::stdout::{finish_outputs, write_output};
 use eyre::Report;
 use itertools::Itertools;
 use log::{info, warn};
@@ -116,21 +117,27 @@ impl NextcladeOrderedWriter {
     })
   }
 
+  /// Whether any output is left. The writer drops an output to standard output when the reader closes it.
+  pub const fn has_outputs(&self) -> bool {
+    self.fasta_writer.is_some()
+      || self.fasta_peptide_writer.is_some()
+      || self.output_json_writer.is_some()
+      || self.output_ndjson_writer.is_some()
+      || self.output_csv_writer.is_some()
+      || self.output_tsv_writer.is_some()
+      || self.output_gff_writer.is_some()
+      || self.output_tbl_writer.is_some()
+  }
+
   pub fn write_ref(&mut self, ref_record: &FastaRecord, ref_translation: &Translation) -> Result<(), Report> {
     let FastaRecord { seq_name, seq, .. } = &ref_record;
 
-    if let Some(fasta_writer) = &mut self.fasta_writer {
-      fasta_writer.write(seq_name, seq, false)?;
-    }
-
-    ref_translation.cdses().try_for_each(|cds_tr| {
-      if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
-        fasta_peptide_writer.write(seq_name, cds_tr)?;
-      }
-      Result::<(), Report>::Ok(())
-    })?;
-
-    Ok(())
+    write_output(&mut self.fasta_writer, |writer| writer.write(seq_name, seq, false))?;
+    write_output(&mut self.fasta_peptide_writer, |writer| {
+      ref_translation
+        .cdses()
+        .try_for_each(|cds_tr| writer.write(seq_name, cds_tr))
+    })
   }
 
   /// Writes output record into output files
@@ -153,63 +160,55 @@ impl NextcladeOrderedWriter {
           ..
         } = &analysis_result;
 
-        if let Some(fasta_writer) = &mut self.fasta_writer {
-          fasta_writer.write(&seq_name, &from_nuc_seq(&query), *is_reverse_complement)?;
-        }
+        write_output(&mut self.fasta_writer, |writer| {
+          writer.write(&seq_name, &from_nuc_seq(&query), *is_reverse_complement)
+        })?;
 
-        if let Some(fasta_peptide_writer) = &mut self.fasta_peptide_writer {
-          for cds_tr in translation.cdses() {
-            fasta_peptide_writer.write(&seq_name, cds_tr)?;
-          }
-        }
+        write_output(&mut self.fasta_peptide_writer, |writer| {
+          translation
+            .cdses()
+            .try_for_each(|cds_tr| writer.write(&seq_name, cds_tr))
+        })?;
 
         for warning in warnings {
           info!("In sequence #{index} '{seq_name}': {}", warning.warning);
         }
 
-        if let Some(output_csv_writer) = &mut self.output_csv_writer {
-          output_csv_writer.write(&analysis_result)?;
-        }
-
-        if let Some(output_tsv_writer) = &mut self.output_tsv_writer {
-          output_tsv_writer.write(&analysis_result)?;
-        }
-
-        if let Some(output_ndjson_writer) = &mut self.output_ndjson_writer {
-          output_ndjson_writer.write(&analysis_result)?;
-        }
+        write_output(&mut self.output_csv_writer, |writer| writer.write(&analysis_result))?;
+        write_output(&mut self.output_tsv_writer, |writer| writer.write(&analysis_result))?;
+        write_output(&mut self.output_ndjson_writer, |writer| writer.write(&analysis_result))?;
 
         if let Some(output_json_writer) = &mut self.output_json_writer {
           output_json_writer.write(&analysis_result);
         }
 
-        if let Some(output_gff_writer) = &mut self.output_gff_writer {
-          output_gff_writer.write_genemap(
+        write_output(&mut self.output_gff_writer, |writer| {
+          writer.write_genemap(
             &analysis_result.annotation,
             analysis_result.index,
             &analysis_result.seq_id,
             analysis_result.len_unaligned,
-          )?;
-        }
+          )
+        })?;
 
-        if let Some(output_tbl_writer) = &mut self.output_tbl_writer {
-          output_tbl_writer.write_genemap(&analysis_result.annotation)?;
-        }
+        write_output(&mut self.output_tbl_writer, |writer| {
+          writer.write_genemap(&analysis_result.annotation)
+        })?;
       }
       Err(report) => {
         let cause = report_to_string(&report);
         warn!(
           "In sequence #{index} '{seq_name}': {cause}. Note that this sequence will not be included in the results."
         );
-        if let Some(output_csv_writer) = &mut self.output_csv_writer {
-          output_csv_writer.write_nuc_error(index, &seq_name, &cause)?;
-        }
-        if let Some(output_tsv_writer) = &mut self.output_tsv_writer {
-          output_tsv_writer.write_nuc_error(index, &seq_name, &cause)?;
-        }
-        if let Some(output_ndjson_writer) = &mut self.output_ndjson_writer {
-          output_ndjson_writer.write_nuc_error(index, &seq_name, std::slice::from_ref(&cause))?;
-        }
+        write_output(&mut self.output_csv_writer, |writer| {
+          writer.write_nuc_error(index, &seq_name, &cause)
+        })?;
+        write_output(&mut self.output_tsv_writer, |writer| {
+          writer.write_nuc_error(index, &seq_name, &cause)
+        })?;
+        write_output(&mut self.output_ndjson_writer, |writer| {
+          writer.write_nuc_error(index, &seq_name, std::slice::from_ref(&cause))
+        })?;
         if let Some(output_json_writer) = &mut self.output_json_writer {
           output_json_writer.write_nuc_error(index, &seq_name, std::slice::from_ref(&cause));
         }
@@ -258,9 +257,10 @@ impl NextcladeOrderedWriter {
     Ok(())
   }
 
-  /// Finalizes output by writing all queued records and the buffered data of every output
+  /// Finalizes output by writing all queued records and the buffered data of every output. Finishes every output,
+  /// also when another output fails, and reports the errors of all outputs.
   pub fn finish(mut self) -> Result<(), Report> {
-    self.write_queued_records()?;
+    let queued = self.write_queued_records();
 
     let Self {
       fasta_writer,
@@ -274,18 +274,16 @@ impl NextcladeOrderedWriter {
       ..
     } = self;
 
-    fasta_writer.map(FastaWriter::finish).transpose()?;
-    fasta_peptide_writer.map(FastaPeptideWriter::finish).transpose()?;
-    output_json_writer.map(ResultsJsonWriter::finish).transpose()?;
-    output_ndjson_writer.map(NdjsonFileWriter::finish).transpose()?;
-    output_csv_writer
-      .map(NextcladeResultsCsvFileWriter::finish)
-      .transpose()?;
-    output_tsv_writer
-      .map(NextcladeResultsCsvFileWriter::finish)
-      .transpose()?;
-    output_gff_writer.map(Gff3FileWriter::finish).transpose()?;
-    output_tbl_writer.map(GenbankTblFileWriter::finish).transpose()?;
-    Ok(())
+    finish_outputs([
+      queued,
+      fasta_writer.map_or(Ok(()), FastaWriter::finish),
+      fasta_peptide_writer.map_or(Ok(()), FastaPeptideWriter::finish),
+      output_json_writer.map_or(Ok(()), ResultsJsonWriter::finish),
+      output_ndjson_writer.map_or(Ok(()), NdjsonFileWriter::finish),
+      output_csv_writer.map_or(Ok(()), NextcladeResultsCsvFileWriter::finish),
+      output_tsv_writer.map_or(Ok(()), NextcladeResultsCsvFileWriter::finish),
+      output_gff_writer.map_or(Ok(()), Gff3FileWriter::finish),
+      output_tbl_writer.map_or(Ok(()), GenbankTblFileWriter::finish),
+    ])
   }
 }

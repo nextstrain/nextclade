@@ -1,5 +1,6 @@
-use crate::cli::nextclade_cli::{NextcladeOutputSelection, NextcladeRunArgs};
+use crate::cli::nextclade_cli::{NextcladeOutputSelection, NextcladeRunArgs, NextcladeRunOutputArgs};
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
+use crate::cli::stdout::finish_outputs;
 use crate::dataset::dataset_download::nextclade_get_inputs;
 use eyre::{ContextCompat, Report, WrapErr};
 use log::info;
@@ -13,6 +14,7 @@ use nextclade::io::nwk_writer::nwk_write_to_file;
 use nextclade::run::nextclade_wasm::{AnalysisInitialData, AnalysisOutput, Nextclade};
 use nextclade::tree::tree_builder::graph_attach_new_nodes_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
+use nextclade::utils::error::join_errors;
 use nextclade::utils::option::OptionMapRefFallible;
 use std::sync::{Arc, Mutex};
 
@@ -167,6 +169,11 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
           output_writer
             .write_record(record)
             .wrap_err("When writing output record")?;
+
+          // The reader closed standard output, and nothing is left to write
+          if !should_write_tree && !output_writer.has_outputs() {
+            break;
+          }
         }
 
         output_writer.finish().wrap_err("When finalizing output writer")?;
@@ -180,10 +187,8 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
     });
   });
 
-  let mut errors = Arc::try_unwrap(thread_errors).unwrap_or_default().into_inner()?;
-  if !errors.is_empty() {
-    return Err(errors.remove(0));
-  }
+  let errors = Arc::try_unwrap(thread_errors).unwrap_or_default().into_inner()?;
+  join_errors(errors)?;
 
   if should_write_tree {
     let Nextclade {
@@ -192,18 +197,24 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
     if let Some(mut graph) = graph {
       graph_attach_new_nodes_in_place(&mut graph, outputs, ref_seq.len(), &params.tree_builder)?;
 
-      if let Some(output_tree) = run_args.outputs.output_tree {
-        let tree = Graph::to_auspice_tree(&graph)?;
-        json_write(output_tree, &tree, JsonPretty(true))?;
-      }
+      let NextcladeRunOutputArgs {
+        output_tree,
+        output_tree_nwk,
+        output_graph,
+        ..
+      } = &run_args.outputs;
 
-      if let Some(output_tree_nwk) = run_args.outputs.output_tree_nwk {
-        nwk_write_to_file(output_tree_nwk, &graph)?;
-      }
-
-      if let Some(output_graph) = run_args.outputs.output_graph {
-        json_write(output_graph, &graph, JsonPretty(true))?;
-      }
+      finish_outputs([
+        output_tree.as_ref().map_or(Ok(()), |output_tree| {
+          json_write(output_tree, &Graph::to_auspice_tree(&graph)?, JsonPretty(true))
+        }),
+        output_tree_nwk
+          .as_ref()
+          .map_or(Ok(()), |output_tree_nwk| nwk_write_to_file(output_tree_nwk, &graph)),
+        output_graph.as_ref().map_or(Ok(()), |output_graph| {
+          json_write(output_graph, &graph, JsonPretty(true))
+        }),
+      ])?;
     }
   }
 

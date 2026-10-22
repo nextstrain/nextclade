@@ -2191,6 +2191,7 @@ dependencies = [
  "eyre",
  "icu_normalizer",
  "indexmap 1.9.3",
+ "indoc",
  "itertools 0.14.0",
  "log",
  "maplit",

@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod tests {
-  use crate::cli::stdout::{ignore_stdout_closed, write_bytes, write_line};
-  use eyre::WrapErr;
+  use crate::cli::stdout::{finish_outputs, ignore_stdout_closed, write_bytes, write_line, write_output};
+  use eyre::{WrapErr, eyre};
   use helpers::FailingWriter;
+  use indoc::indoc;
   use nextclade::io::file::StdoutWriter;
   use nextclade::utils::error::report_to_string;
   use pretty_assertions::assert_eq;
@@ -29,20 +30,26 @@ mod tests {
 
   #[rustfmt::skip]
   #[rstest]
-  #[case::line_when_writing(  false, false)]
-  #[case::line_when_flushing( true,  false)]
-  #[case::bytes_when_writing( false, true)]
-  #[case::bytes_when_flushing(true,  true)]
+  #[case::when_writing(  false)]
+  #[case::when_flushing( true )]
   #[trace]
-  fn test_stdout_closed_pipe_is_success(#[case] fails_on_flush: bool, #[case] bytes: bool) {
+  fn test_stdout_closed_pipe_is_success_for_lines(#[case] fails_on_flush: bool) {
     let mut writer = StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe, fails_on_flush));
 
-    let written = if bytes {
-      write_bytes(&mut writer, b"line\n")
-    } else {
-      write_line(&mut writer, "line")
-    };
-    let result = ignore_stdout_closed(written);
+    let result = ignore_stdout_closed(write_line(&mut writer, "line"));
+
+    assert_eq!(None, result.err().map(|report| report_to_string(&report)));
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::when_writing(  false)]
+  #[case::when_flushing( true )]
+  #[trace]
+  fn test_stdout_closed_pipe_is_success_for_bytes(#[case] fails_on_flush: bool) {
+    let mut writer = StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe, fails_on_flush));
+
+    let result = ignore_stdout_closed(write_bytes(&mut writer, b"line\n"));
 
     assert_eq!(None, result.err().map(|report| report_to_string(&report)));
   }
@@ -77,6 +84,48 @@ mod tests {
     assert_eq!(
       Some("connection to the dataset server closed".to_owned()),
       result.err().map(|report| report_to_string(&report))
+    );
+  }
+
+  #[test]
+  fn test_stdout_finish_outputs_reports_all_errors_except_closed_stdout() {
+    let closed_stdout = write_line(
+      &mut StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe, false)),
+      "line",
+    );
+
+    let result = finish_outputs([
+      Ok(()),
+      closed_stdout,
+      Err(eyre!("When writing to file a.tsv: disk full")),
+      Err(eyre!("When writing to file b.fasta: disk full")),
+    ]);
+
+    assert_eq!(
+      Some(
+        indoc! {"
+        2 errors occurred:
+          - When writing to file a.tsv: disk full
+          - When writing to file b.fasta: disk full"}
+        .to_owned()
+      ),
+      result.err().map(|report| report_to_string(&report))
+    );
+  }
+
+  #[test]
+  fn test_stdout_write_output_drops_only_closed_stdout() {
+    let mut closed = Some(StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe, false)));
+    let mut full = Some(StdoutWriter::new(FailingWriter::new(ErrorKind::StorageFull, false)));
+
+    let results = (
+      write_output(&mut closed, |writer| write_line(writer, "line")).is_ok(),
+      write_output(&mut full, |writer| write_line(writer, "line")).is_ok(),
+    );
+
+    assert_eq!(
+      ((true, false), (false, true)),
+      (results, (closed.is_some(), full.is_some()))
     );
   }
 

@@ -63,6 +63,7 @@ webpki-root-certs = { workspace = true }
 [dev-dependencies]
 assert2 = { workspace = true }
 criterion = { workspace = true }
+indoc = { workspace = true }
 proptest = { workspace = true }
 rstest = { workspace = true }
 tempfile = { workspace = true }
