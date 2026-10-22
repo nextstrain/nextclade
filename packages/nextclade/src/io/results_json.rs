@@ -8,6 +8,7 @@ use crate::types::outputs::{
 use crate::utils::datetime::date_iso_now;
 use crate::utils::info::this_package_version_str;
 use eyre::Report;
+use log::warn;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -88,9 +89,11 @@ impl ResultsJson {
   }
 }
 
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct ResultsJsonWriter {
   filepath: PathBuf,
   result: ResultsJson,
+  is_finished: bool,
 }
 
 impl ResultsJsonWriter {
@@ -103,6 +106,7 @@ impl ResultsJsonWriter {
     Ok(Self {
       filepath: filepath.as_ref().to_owned(),
       result: ResultsJson::new(clade_node_attrs, phenotype_attr_keys, ref_nodes),
+      is_finished: false,
     })
   }
 
@@ -119,8 +123,20 @@ impl ResultsJsonWriter {
   }
 
   /// Write the collected results to the file
-  pub fn finish(self) -> Result<(), Report> {
+  pub fn finish(mut self) -> Result<(), Report> {
+    self.is_finished = true;
     json_write(&self.filepath, &self.result, JsonPretty(true))
+  }
+}
+
+impl Drop for ResultsJsonWriter {
+  fn drop(&mut self) {
+    if !self.is_finished {
+      warn!(
+        "The output to file {} is missing, because writing stopped before its end",
+        self.filepath.display()
+      );
+    }
   }
 }
 

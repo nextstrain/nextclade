@@ -208,6 +208,7 @@ impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
 }
 
 /// Writes nextclade.csv and nextclade.tsv files
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct NextcladeResultsCsvFileWriter {
   writer: NextcladeResultsCsvWriter<CsvVecFileWriter>,
 }

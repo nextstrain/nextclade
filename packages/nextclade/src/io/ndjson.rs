@@ -35,6 +35,7 @@ impl<W: Write + Send> NdjsonWriter<W> {
   }
 }
 
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct NdjsonFileWriter {
   ndjson_writer: NdjsonWriter<OutputWriter>,
 }

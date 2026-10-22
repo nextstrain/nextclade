@@ -30,6 +30,7 @@ impl<W: Write + Send> CsvStructWriter<W> {
 }
 
 /// Writes CSV files. Each row is a serde-annotated struct.
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct CsvStructFileWriter {
   pub filepath: PathBuf,
   pub writer: CsvStructWriter<OutputWriter>,
@@ -90,6 +91,7 @@ impl<W: Write + Send> VecWriter for CsvVecWriter<W> {
 }
 
 /// Writes CSV files. Each row is a vec of strings.
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct CsvVecFileWriter {
   pub filepath: PathBuf,
   pub headers: Vec<String>,

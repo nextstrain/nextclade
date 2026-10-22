@@ -143,6 +143,7 @@ impl<W: Write + Send> GenbankTblWriter<W> {
 /// Writes Genbank Feature Table into a file
 ///
 /// See: https://www.ncbi.nlm.nih.gov/genbank/feature_table/
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct GenbankTblFileWriter {
   writer: GenbankTblWriter<OutputWriter>,
 }

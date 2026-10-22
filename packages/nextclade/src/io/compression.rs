@@ -232,7 +232,7 @@ impl<'w> Compressor<'w> {
   }
 
   /// Write the end of the compressed stream and flush the underlying writer
-  pub fn finish(mut self) -> std::io::Result<()> {
+  pub fn finish(&mut self) -> std::io::Result<()> {
     self.is_finished = true;
     let result = self.compressor.finish_stream();
     self.io_error(result, "While finishing compressed file")

@@ -160,6 +160,7 @@ fn gff_write_convert_attributes(key: impl AsRef<str>, values: &[String]) -> Resu
   Ok((key, values))
 }
 
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct Gff3FileWriter {
   writer: Gff3Writer<OutputWriter>,
 }

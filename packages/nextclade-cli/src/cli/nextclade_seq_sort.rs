@@ -269,6 +269,7 @@ fn writer_thread(
   Ok(())
 }
 
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct DatasetSortWriter<'t> {
   writers: BTreeMap<PathBuf, FastaWriter>,
   results_csv: Option<CsvStructFileWriter>,
@@ -369,6 +370,7 @@ pub fn get_all_prefix_names(name: impl AsRef<str>) -> Result<Vec<String>, Report
 ///
 /// The table is a report beside the output files. When the reader closes standard output, the printer stops
 /// printing and the sort continues, so that the output files are complete.
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub(crate) struct StatsPrinter<W: io::Write> {
   enabled: bool,
   writer: W,

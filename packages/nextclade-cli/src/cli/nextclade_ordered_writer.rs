@@ -23,6 +23,7 @@ use nextclade::utils::option::OptionMapRefFallible;
 use std::collections::HashMap;
 
 /// Writes output files, potentially preserving the initial order of records (same as in the inputs)
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct NextcladeOrderedWriter {
   fasta_writer: Option<FastaWriter>,
   fasta_peptide_writer: Option<FastaPeptideWriter>,

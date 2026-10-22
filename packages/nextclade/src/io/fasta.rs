@@ -190,6 +190,7 @@ pub fn read_one_fasta_from_fasta_reader(mut reader: FastaReader) -> Result<Fasta
 }
 
 // Writes sequences into given fasta file
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct FastaWriter {
   writer: OutputWriter,
 }
@@ -228,6 +229,7 @@ struct OutputTranslationsTemplateContext<'a> {
 pub type FastaPeptideWritersMap = BTreeMap<String, FastaWriter>;
 
 /// Writes peptides, each into a separate fasta file
+#[must_use = "call `finish` after the last write, to complete the output and report its errors"]
 pub struct FastaPeptideWriter {
   writers: FastaPeptideWritersMap,
 }
