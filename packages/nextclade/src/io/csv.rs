@@ -1,5 +1,6 @@
 use crate::io::file::{OutputWriter, create_file_or_stdout};
 use crate::io::fs::read_file_to_string;
+use crate::make_internal_report;
 use crate::utils::error::to_eyre_error;
 use csv::{ReaderBuilder as CsvReaderBuilder, Writer as CsvWriterImpl, WriterBuilder as CsvWriterBuilder};
 use eyre::Report;
@@ -19,8 +20,7 @@ impl<W: Write + Send> CsvStructWriter<W> {
   }
 
   pub fn write<T: Serialize>(&mut self, record: &T) -> Result<(), Report> {
-    self.writer.serialize(record)?;
-    Ok(())
+    self.writer.serialize(record).map_err(csv_write_error)
   }
 
   /// Write the buffered rows and return the underlying writer
@@ -70,7 +70,7 @@ pub struct CsvVecWriter<W: Write + Send> {
 impl<W: Write + Send> CsvVecWriter<W> {
   pub fn new(writer: W, delimiter: u8, headers: &[String]) -> Result<Self, Report> {
     let mut writer = CsvWriterBuilder::new().delimiter(delimiter).from_writer(writer);
-    writer.write_record(headers)?;
+    writer.write_record(headers).map_err(csv_write_error)?;
     Ok(Self {
       headers: headers.to_owned(),
       writer,
@@ -85,8 +85,7 @@ impl<W: Write + Send> CsvVecWriter<W> {
 
 impl<W: Write + Send> VecWriter for CsvVecWriter<W> {
   fn write<I: IntoIterator<Item = T>, T: AsRef<[u8]>>(&mut self, values: I) -> Result<(), Report> {
-    self.writer.write_record(values)?;
-    Ok(())
+    self.writer.write_record(values).map_err(csv_write_error)
   }
 }
 
@@ -119,6 +118,18 @@ impl VecWriter for CsvVecFileWriter {
   fn write<I: IntoIterator<Item = T>, T: AsRef<[u8]>>(&mut self, values: I) -> Result<(), Report> {
     self.writer.write(values)?;
     Ok(())
+  }
+}
+
+/// Convert an error of a CSV writer to a report. `csv::Error` does not report the `io::Error` inside it as its cause,
+/// so the report of a write error is the `io::Error` itself, which keeps the name of the output and the cause
+pub fn csv_write_error(error: csv::Error) -> Report {
+  if !error.is_io_error() {
+    return Report::new(error);
+  }
+  match error.into_kind() {
+    csv::ErrorKind::Io(error) => Report::new(error),
+    kind => make_internal_report!("Expected an IO error of the CSV writer, but found: {kind:?}"),
   }
 }
 

@@ -5,7 +5,6 @@ use log::info;
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, BufWriter, ErrorKind, IntoInnerError, Stdout, Write, stdin, stdout};
-use std::iter::successors;
 use std::path::{Path, PathBuf};
 
 pub const DEFAULT_FILE_BUF_SIZE: usize = 256 * 1024;
@@ -190,12 +189,7 @@ pub fn is_stdout_closed(report: &Report) -> bool {
 }
 
 fn is_stdout_closed_error(error: &(dyn Error + 'static)) -> bool {
-  // `csv::Error` does not report its inner `io::Error` as its cause
-  let csv_io_error = match error.downcast_ref::<csv::Error>().map(csv::Error::kind) {
-    Some(csv::ErrorKind::Io(io_error)) => io_error.source(),
-    _ => None,
-  };
-  error.is::<StdoutClosed>() || successors(csv_io_error, |&cause| cause.source()).any(<dyn Error>::is::<StdoutClosed>)
+  error.is::<StdoutClosed>()
 }
 
 pub fn is_path_stdin(filepath: impl AsRef<Path>) -> bool {

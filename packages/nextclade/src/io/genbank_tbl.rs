@@ -4,6 +4,7 @@ use crate::gene::cds_segment::Truncation;
 use crate::gene::gene::Gene;
 use crate::gene::gene::GeneStrand::Reverse;
 use crate::gene::gene_map::GeneMap;
+use crate::io::csv::csv_write_error;
 use crate::io::file::{OutputWriter, create_file_or_stdout};
 use crate::types::outputs::NextcladeOutputs;
 use csv::{Writer as CsvWriter, WriterBuilder as CsvWriterBuilder};
@@ -47,7 +48,7 @@ impl<W: Write + Send> GenbankTblWriter<W> {
     // Write a line with sequence name
     // Example:
     // >Feature gb|MN908947.3|
-    self.writer.write_record(&[format!(">Feature {seq_id}")])?;
+    self.write_row(&[format!(">Feature {seq_id}")])?;
 
     for gene in &gene_map.genes {
       self.write_gene(gene)?;
@@ -69,7 +70,7 @@ impl<W: Write + Send> GenbankTblWriter<W> {
     // Write a line with feature's boundaries and feature's kind
     // Example:
     // 21563 <TAB> 25384 <TAB> gene
-    self.writer.write_record([&start, &end, "gene"])?;
+    self.write_row([&start, &end, "gene"])?;
 
     // Write lines with feature's qualifiers
     // Example:
@@ -78,7 +79,7 @@ impl<W: Write + Send> GenbankTblWriter<W> {
     // <TAB> <TAB> <TAB> note       <TAB> structural protein
     for (key, values) in &gene.attributes {
       for value in values {
-        self.writer.write_record(["", "", "", key, value])?;
+        self.write_row(["", "", "", key, value])?;
       }
     }
 
@@ -108,7 +109,7 @@ impl<W: Write + Send> GenbankTblWriter<W> {
       // Write a line with feature's boundaries and feature's kind
       // Example:
       // 21563 <TAB> 25384 <TAB> CDS
-      self.writer.write_record([&start, &end, feature_type])?;
+      self.write_row([&start, &end, feature_type])?;
 
       // Write lines with feature's qualifiers
       // Example:
@@ -117,7 +118,7 @@ impl<W: Write + Send> GenbankTblWriter<W> {
       // <TAB> <TAB> <TAB> note       <TAB> structural protein
       for (key, values) in &seg.attributes {
         for value in values {
-          self.writer.write_record(["", "", "", key, value])?;
+          self.write_row(["", "", "", key, value])?;
         }
       }
 
@@ -126,14 +127,16 @@ impl<W: Write + Send> GenbankTblWriter<W> {
       if i == 0 {
         let codon_start = seg.phase.to_usize() + 1;
         if codon_start != 1 {
-          self
-            .writer
-            .write_record(["", "", "", "codon_start", &codon_start.to_string()])?;
+          self.write_row(["", "", "", "codon_start", &codon_start.to_string()])?;
         }
       }
     }
 
     Ok(())
+  }
+
+  fn write_row<I: IntoIterator<Item = T>, T: AsRef<[u8]>>(&mut self, row: I) -> Result<(), Report> {
+    self.writer.write_record(row).map_err(csv_write_error)
   }
 }
 
