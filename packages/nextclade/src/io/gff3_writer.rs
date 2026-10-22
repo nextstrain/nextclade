@@ -74,13 +74,16 @@ impl<W: Write> Gff3Writer<W> {
   }
 
   pub fn write_record(&mut self, record: &BioGffRecord) -> Result<(), Report> {
-    // HACK: this creates a new writer for each row. This is inefficient, but bio GFF writer consumes original writer
-    // and does not provide access to it afterward. So in order to be able to write a GFF where feature rows and
-    // pragmas are interleaved, we have to construct a new writer every time.
+    // The bio GFF writer consumes its writer and flushes it on drop, where it ignores write errors. So in order to
+    // interleave feature rows and pragmas, and to report write errors, each row is formatted into a buffer by a new
+    // bio writer, and the buffer is written to the output.
     // TODO: use CSV writer directly instead: bio GFF writer provides very little value added and has a defective
     // inconvenient interface.
-    let mut writer = BioGffWriter::new(&mut self.writer, BioGffType::GFF3);
-    writer.write(record).wrap_err("When writing GFF3 record")
+    let mut row = Vec::new();
+    BioGffWriter::new(&mut row, BioGffType::GFF3)
+      .write(record)
+      .wrap_err("When formatting GFF3 record")?;
+    self.writer.write_all(&row).wrap_err("When writing GFF3 record")
   }
 }
 
