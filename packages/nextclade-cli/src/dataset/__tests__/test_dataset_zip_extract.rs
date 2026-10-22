@@ -8,7 +8,7 @@ mod tests {
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use std::fs;
-  use std::io::{Cursor, sink};
+  use std::io::Cursor;
   use std::path::PathBuf;
   use tempfile::tempdir;
 
@@ -99,17 +99,6 @@ mod tests {
     let mut output = vec![];
     let copied = copy_limited(&mut Cursor::new(data), &mut output, limit).unwrap();
     assert_eq!((expected, expected), (copied, output.len() as u64));
-  }
-
-  #[test]
-  fn test_dataset_zip_extract_counts_real_bytes_when_declared_size_is_smaller() {
-    let data = vec![b'A'; 1000];
-    let archive = zip_patch_uncompressed_size(zip_build(&[("big.txt", Entry::File(&data))]), 10);
-    let mut zip = zip_open(&archive);
-    let mut entry = zip.by_index(0).unwrap();
-    assert_eq!(10, entry.size());
-    let copied = copy_limited(&mut entry, &mut sink(), 100).unwrap();
-    assert_eq!(101, copied);
   }
 
   #[test]
@@ -261,16 +250,21 @@ mod tests {
   }
 
   #[test]
-  fn test_dataset_zip_extract_limits_real_size_when_declared_size_is_smaller() {
+  fn test_dataset_zip_extract_rejects_entry_larger_than_declared_size() {
     let dir = tempdir().unwrap();
     let data = vec![b'A'; 1000];
     let archive = zip_patch_uncompressed_size(zip_build(&[("big.txt", Entry::File(&data))]), 10);
 
-    let result = zip_extract_safe(&mut zip_open(&archive), dir.path(), MAX_ENTRIES, 100);
+    let error = zip_extract_safe(&mut zip_open(&archive), dir.path(), MAX_ENTRIES, 100).unwrap_err();
 
+    // Only the messages of Nextclade, without the message of the zip library at the end of the chain
+    let expected = vec![
+      "When extracting entry 'big.txt'".to_owned(),
+      format!("When writing file '{}'", dir.path().join("big.txt").display()),
+    ];
     assert_eq!(
-      Err("Dataset archive exceeds the limit of 100 bytes when unpacked (at entry 'big.txt')".to_owned()),
-      result.map_err(|err| report_to_string(&err))
+      expected,
+      error.chain().take(2).map(ToString::to_string).collect::<Vec<_>>()
     );
   }
 

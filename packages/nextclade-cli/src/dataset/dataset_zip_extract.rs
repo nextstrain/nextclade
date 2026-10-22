@@ -5,6 +5,7 @@ use eyre::{Report, WrapErr};
 use icu_normalizer::ComposingNormalizerBorrowed;
 use itertools::Itertools;
 use nextclade::make_error;
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
 use std::fs;
@@ -71,7 +72,7 @@ pub fn zip_extract_safe<R: Read + Seek>(
     let mut entry = zip
       .by_index(index)
       .wrap_err_with(|| format!("When reading entry #{index} of the dataset archive"))?;
-    let name = escape_for_display(entry.name());
+    let name = escape_for_display(&zip_entry_name(&entry)?);
     match kind {
       ZipEntryKind::Dir(path) => {
         dir_create_inside(&root, output_dir, &path).wrap_err_with(|| format!("When extracting entry '{name}'"))?;
@@ -93,8 +94,8 @@ pub fn zip_extract_safe<R: Read + Seek>(
 
 /// Classify an archive entry and validate its path and type
 pub(crate) fn zip_entry_kind<R: Read>(entry: &ZipFile<'_, R>) -> Result<ZipEntryKind, Report> {
-  let raw_name = entry.name();
-  let name = escape_for_display(raw_name);
+  let raw_name = zip_entry_name(entry)?;
+  let name = escape_for_display(&raw_name);
 
   if entry.is_symlink() {
     return make_error!(
@@ -102,7 +103,7 @@ pub(crate) fn zip_entry_kind<R: Read>(entry: &ZipFile<'_, R>) -> Result<ZipEntry
     );
   }
 
-  let path = zip_entry_path(raw_name)?;
+  let path = zip_entry_path(&raw_name)?;
 
   // Second, independent check of the same name by the zip library
   if entry.enclosed_name().is_none() {
@@ -131,6 +132,13 @@ pub(crate) fn zip_entry_kind<R: Read>(entry: &ZipFile<'_, R>) -> Result<ZipEntry
   }
 
   Ok(ZipEntryKind::File(path))
+}
+
+/// Name of an archive entry as stored in the archive
+fn zip_entry_name<'a, R: Read>(entry: &'a ZipFile<'_, R>) -> Result<Cow<'a, str>, Report> {
+  entry
+    .name()
+    .wrap_err("When reading the name of an entry of the dataset archive")
 }
 
 /// Copy at most `limit + 1` bytes from `reader` to `writer` and return the number of bytes copied.
@@ -214,7 +222,7 @@ fn zip_entries_validate<R: Read + Seek>(
       let entry = zip
         .by_index(index)
         .wrap_err_with(|| format!("When reading entry #{index} of the dataset archive"))?;
-      Ok::<_, Report>((escape_for_display(entry.name()), zip_entry_kind(&entry)?))
+      Ok::<_, Report>((escape_for_display(&zip_entry_name(&entry)?), zip_entry_kind(&entry)?))
     })
     .try_collect()?;
   zip_entries_check_clashes(&entries)?;

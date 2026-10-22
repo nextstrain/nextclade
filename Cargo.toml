@@ -82,7 +82,7 @@ regex-automata = "=0.4.13"
 regex-syntax = "=0.8.8"
 reqwest = { version = "=0.13.5", default-features = false, features = ["blocking", "socks", "gzip", "deflate", "brotli", "zstd", "rustls"] }
 rstest = "=0.26.1"
-rust_xlsxwriter = { version = "=0.92.2", features = ["wasm"] }
+rust_xlsxwriter = { version = "=0.101.0", features = ["wasm"] }
 schemars = { version = "=0.8.22", features = ["chrono", "either", "enumset", "indexmap", "raw_value", "preserve_order"] }
 semver = { version = "=1.0.27", features = ["serde"] }
 serde = { version = "=1.0.228", features = ["derive"] }
@@ -106,7 +106,7 @@ wasm-logger = "=0.2.0"
 web-sys = { version = "=0.3.83", features = ["console"] }
 webpki-root-certs = "=1.0.10"
 xz2 = { version = "=0.1.7", features = ["static"] }
-zip = { version = "=7.0.0", default-features = false, features = ["aes-crypto", "deflate", "time"] }
+zip = { version = "=9.0.5", default-features = false, features = ["deflate", "time"] }
 zstd = { version = "=0.13.3", features = ["zstdmt"] }
 
 

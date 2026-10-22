@@ -84,7 +84,6 @@ wasm-bindgen = { workspace = true }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 bzip2 = { workspace = true }
 xz2 = { workspace = true }
-zip = { workspace = true }
 zstd = { workspace = true }
 
 [dev-dependencies]

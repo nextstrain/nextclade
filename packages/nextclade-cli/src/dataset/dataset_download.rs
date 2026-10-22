@@ -18,6 +18,7 @@ use nextclade::utils::fs::list_files_recursive;
 use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::utils::string::{Indent, format_list, surround_with_quotes};
 use nextclade::{make_error, make_internal_error, o};
+use std::borrow::Cow;
 use std::collections::BTreeSet;
 use std::fs::File;
 use std::io::{BufReader, Cursor, Read, Seek, Write};
@@ -104,7 +105,8 @@ pub fn read_from_path_or_zip(
       .map(Some)
       .wrap_err_with(|| format!("When extracting file {:#?}", zip_filename.as_ref()))
       .with_section(|| {
-        let files = zip.file_names().take(30).sorted().map(surround_with_quotes);
+        // Only a hint for the error message, so names that cannot be decoded are left out
+        let files = zip.file_names().flatten().take(30).sorted().map(surround_with_quotes);
         format_list(Indent::default(), files).header("The archive contains the following files:")
       })
   } else {
@@ -158,7 +160,12 @@ pub fn dataset_zip_load(
   .map_ref_fallible(AuspiceTree::from_str)
   .wrap_err("When reading reference tree JSON from dataset")?;
 
-  verify_dataset_files(&virus_properties, zip.file_names());
+  let files_present: Vec<String> = zip
+    .file_names()
+    .map_ok(Cow::into_owned)
+    .try_collect()
+    .wrap_err("When reading file names of the dataset archive")?;
+  verify_dataset_files(&virus_properties, files_present.iter());
 
   if let Some(tree) = &tree
     && let Some(tree_ref) = tree.root_sequence()
