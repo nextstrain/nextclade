@@ -2186,6 +2186,7 @@ dependencies = [
  "crossbeam",
  "crossbeam-channel",
  "ctor",
+ "derive_more",
  "dotenvy_macro",
  "eyre",
  "icu_normalizer",

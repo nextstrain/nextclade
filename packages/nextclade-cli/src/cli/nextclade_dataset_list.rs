@@ -1,4 +1,5 @@
 use crate::cli::nextclade_cli::NextcladeDatasetListArgs;
+use crate::cli::stdout::write_stdout;
 use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::dataset::dataset_table::format_dataset_table;
 use crate::io::http_client::HttpClient;
@@ -83,7 +84,7 @@ pub fn nextclade_dataset_list(
     } else {
       json_stringify::<DatasetListJson>(&filtered, JsonPretty(true))
     }?;
-    println!("{content}");
+    write_stdout(content)?;
   } else {
     if filtered.is_empty() {
       if n_incompatible > 0 {
@@ -103,7 +104,7 @@ pub fn nextclade_dataset_list(
       format_dataset_table(&filtered)
     };
 
-    println!("{content}");
+    write_stdout(content)?;
   }
 
   Ok(())

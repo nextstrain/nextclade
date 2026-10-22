@@ -4,6 +4,7 @@ use crate::cli::nextclade_loop::nextclade_run;
 use crate::cli::nextclade_read_annotation::nextclade_read_annotation;
 use crate::cli::nextclade_seq_sort::nextclade_seq_sort;
 use crate::cli::print_help_markdown::print_help_markdown;
+use crate::cli::stdout::write_stdout_bytes;
 use crate::cli::verbosity::Verbosity;
 use crate::io::network_args::NetworkArgs;
 use clap::builder::{RangedU64ValueParser, styling};
@@ -21,7 +22,6 @@ use nextclade::utils::global_init::{GlobalInitConfig, global_init};
 use nextclade::{getenv, make_error};
 use std::ffi::OsString;
 use std::fmt::Debug;
-use std::io;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::LazyLock;
@@ -863,9 +863,11 @@ pub struct NextcladeReadAnnotationArgs {
 fn generate_completions(shell: &str) -> Result<(), Report> {
   let mut command = NextcladeArgs::command();
 
+  // Generate into memory, because the generators panic when the writer fails
   if shell.to_lowercase() == "fig" {
-    generate(Fig, &mut command, "nextclade", &mut io::stdout());
-    return Ok(());
+    let mut completions = Vec::new();
+    generate(Fig, &mut command, "nextclade", &mut completions);
+    return write_stdout_bytes(&completions);
   }
 
   let generator = <Shell as ValueEnum>::from_str(&shell.to_lowercase(), true)
@@ -873,9 +875,9 @@ fn generate_completions(shell: &str) -> Result<(), Report> {
 
   let bin_name = command.get_name().to_owned();
 
-  generate(generator, &mut command, bin_name, &mut io::stdout());
-
-  Ok(())
+  let mut completions = Vec::new();
+  generate(generator, &mut command, bin_name, &mut completions);
+  write_stdout_bytes(&completions)
 }
 
 /// Get output filenames provided by user or, if not provided, create filenames based on input fasta

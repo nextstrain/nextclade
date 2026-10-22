@@ -1,4 +1,5 @@
 use crate::cli::nextclade_cli::{NextcladeRunOtherParams, NextcladeSortArgs};
+use crate::cli::stdout::{is_stdout_closed, write_stdout};
 use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use console::style;
@@ -22,6 +23,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::collections::btree_map::Entry::{Occupied, Vacant};
+use std::fmt::{Display, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
@@ -202,7 +204,7 @@ fn writer_thread(
     let mut stats = StatsPrinter::new(
       "Suggested datasets for each sequence (after global optimization)",
       verbose,
-    );
+    )?;
     let mut reader = FastaReader::from_paths(input_fastas)?;
     let mut writer = DatasetSortWriter::new(output_path, output_dir, output_results_tsv)?;
     loop {
@@ -216,11 +218,11 @@ fn writer_thread(
         .into_iter()
         .collect_vec();
 
-      stats.print_seq(&datasets, &record.seq_name);
+      stats.print_seq(&datasets, &record.seq_name)?;
       writer.write_one(&record, &datasets)?;
     }
   } else {
-    let mut stats = StatsPrinter::new("Suggested datasets for each sequence", verbose);
+    let mut stats = StatsPrinter::new("Suggested datasets for each sequence", verbose)?;
     let mut writer = DatasetSortWriter::new(output_path, output_dir, output_results_tsv)?;
     for MinimizerSearchRecord { fasta_record, result } in result_receiver {
       let datasets = {
@@ -232,10 +234,10 @@ fn writer_thread(
           &result.datasets[0..1]
         }
       };
-      stats.print_seq(datasets, &fasta_record.seq_name);
+      stats.print_seq(datasets, &fasta_record.seq_name)?;
       writer.write_one(&fasta_record, datasets)?;
     }
-    stats.finish();
+    stats.finish()?;
   }
 
   Ok(())
@@ -330,6 +332,10 @@ pub fn get_all_prefix_names(name: impl AsRef<str>) -> Result<Vec<String>, Report
     .collect()
 }
 
+/// Table of the suggested datasets, printed to standard output while the sequences are sorted.
+///
+/// The table is a report beside the output files. When the reader closes standard output, the printer stops
+/// printing and the sort continues, so that the output files are complete.
 struct StatsPrinter {
   enabled: bool,
   stats: BTreeMap<String, usize>,
@@ -337,27 +343,37 @@ struct StatsPrinter {
 }
 
 impl StatsPrinter {
-  fn new(title: impl AsRef<str>, enabled: bool) -> Self {
-    if enabled {
-      println!("{}", title.as_ref());
-      println!("{}┐", "─".repeat(110));
-      println!(
-        "{:^40} │ {:^40} │ {:^10} │ {:^10} │",
-        "Sequence name", "Dataset", "Score", "Num. hits"
-      );
-      println!("{}┤", "─".repeat(110));
-    }
-
-    Self {
+  fn new(title: impl AsRef<str>, enabled: bool) -> Result<Self, Report> {
+    let mut printer = Self {
       enabled,
       stats: BTreeMap::new(),
       n_undetected: 0,
-    }
+    };
+
+    printer.print(format_args!(
+      "{}\n{}┐\n{:^40} │ {:^40} │ {:^10} │ {:^10} │\n{}┤",
+      title.as_ref(),
+      "─".repeat(110),
+      "Sequence name",
+      "Dataset",
+      "Score",
+      "Num. hits",
+      "─".repeat(110)
+    ))?;
+
+    Ok(printer)
   }
 
-  fn print_seq(&mut self, datasets: &[MinimizerSearchDatasetResult], seq_name: &str) {
+  fn print_seq(&mut self, datasets: &[MinimizerSearchDatasetResult], seq_name: &str) -> Result<(), Report> {
+    if datasets.is_empty() {
+      self.n_undetected += 1;
+    }
+    for dataset in datasets {
+      *self.stats.entry(dataset.name.clone()).or_insert(1) += 1;
+    }
+
     if !self.enabled {
-      return;
+      return Ok(());
     }
 
     let datasets = datasets
@@ -365,41 +381,47 @@ impl StatsPrinter {
       .sorted_by_key(|dataset| -OrderedFloat(dataset.score))
       .collect_vec();
 
-    print!("{:<40}", truncate(seq_name, 40));
+    let mut rows = String::new();
+    write!(rows, "{:<40}", truncate(seq_name, 40))?;
 
     if datasets.is_empty() {
-      println!(" │ {:40} │ {:>10.3} │ {:>10} │", style("undetected").red(), "", "");
-      self.n_undetected += 1;
+      writeln!(
+        rows,
+        " │ {:40} │ {:>10.3} │ {:>10} │",
+        style("undetected").red(),
+        "",
+        ""
+      )?;
     }
 
     for (i, dataset) in datasets.into_iter().enumerate() {
-      let name = &dataset.name;
-      *self.stats.entry(name.clone()).or_insert(1) += 1;
-
       if i != 0 {
-        print!("{:<40}", "");
+        write!(rows, "{:<40}", "")?;
       }
 
-      println!(
+      writeln!(
+        rows,
         " │ {:40} │ {:>10.3} │ {:>10} │",
         &truncate(&dataset.name, 40),
         &dataset.score,
         &dataset.n_hits,
-      );
+      )?;
     }
 
-    println!("{}┤", "─".repeat(110));
+    write!(rows, "{}┤", "─".repeat(110))?;
+    self.print(rows)
   }
 
-  fn finish(&self) {
+  fn finish(&mut self) -> Result<(), Report> {
     if !self.enabled {
-      return;
+      return Ok(());
     }
 
-    println!("\n\nSuggested datasets");
-    println!("{}┐", "─".repeat(67));
-    println!("{:^40} │ {:^10} │ {:^10} │", "Dataset", "Num. seq", "Percent");
-    println!("{}┤", "─".repeat(67));
+    let mut table = String::new();
+    writeln!(table, "\n\nSuggested datasets")?;
+    writeln!(table, "{}┐", "─".repeat(67))?;
+    writeln!(table, "{:^40} │ {:^10} │ {:^10} │", "Dataset", "Num. seq", "Percent")?;
+    writeln!(table, "{}┤", "─".repeat(67))?;
 
     let total_seq = self.stats.values().sum::<usize>() + self.n_undetected;
     let stats = self
@@ -408,17 +430,19 @@ impl StatsPrinter {
       .sorted_by_key(|(name, n_seq)| (-(**n_seq as isize), (*name).clone()));
 
     for (name, n_seq) in stats {
-      println!(
+      writeln!(
+        table,
         "{:<40} │ {:>10} │ {:>9.3}% │",
         name,
         n_seq,
         100.0 * (*n_seq as f64 / total_seq as f64)
-      );
+      )?;
     }
 
     if self.n_undetected > 0 {
-      println!("{}┤", "─".repeat(67));
-      println!(
+      writeln!(table, "{}┤", "─".repeat(67))?;
+      writeln!(
+        table,
         "{:<40} │ {:>10} │ {:>10} │",
         style("undetected").red(),
         style(self.n_undetected).red(),
@@ -427,17 +451,33 @@ impl StatsPrinter {
           100.0 * (self.n_undetected as f64 / total_seq as f64)
         ))
         .red()
-      );
+      )?;
     }
 
-    println!("{}┤", "─".repeat(67));
-    println!(
+    writeln!(table, "{}┤", "─".repeat(67))?;
+    writeln!(
+      table,
       "{:>40} │ {:>10} │ {:>10} │",
       style("total").bold(),
       style(total_seq).bold(),
       style(format!("{:>9.3}%", 100.0)).bold()
-    );
-    println!("{}┘", "─".repeat(67));
+    )?;
+    write!(table, "{}┘", "─".repeat(67))?;
+    self.print(table)
+  }
+
+  /// Print `content` and a newline, and stop printing when standard output is closed
+  fn print(&mut self, content: impl Display) -> Result<(), Report> {
+    if !self.enabled {
+      return Ok(());
+    }
+    match write_stdout(content) {
+      Err(report) if is_stdout_closed(&report) => {
+        self.enabled = false;
+        Ok(())
+      }
+      result => result,
+    }
   }
 }
 

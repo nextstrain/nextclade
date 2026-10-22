@@ -29,6 +29,7 @@ console = { workspace = true }
 crossbeam = { workspace = true }
 crossbeam-channel = { workspace = true }
 ctor = { workspace = true }
+derive_more = { workspace = true }
 dotenvy_macro = { workspace = true }
 eyre = { workspace = true }
 icu_normalizer = { workspace = true }

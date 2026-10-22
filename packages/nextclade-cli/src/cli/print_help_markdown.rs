@@ -1,4 +1,5 @@
 use crate::cli::nextclade_cli::NextcladeArgs;
+use crate::cli::stdout::write_stdout;
 use eyre::{Report, WrapErr};
 use regex::Regex;
 use std::borrow::Cow;
@@ -43,8 +44,7 @@ If you have Nextclade CLI installed, you can type `nextclade --help` to read the
 
   let help = replace(&help, "", "")?;
 
-  println!("{help}");
-  Ok(())
+  write_stdout(help)
 }
 
 fn replace<'t>(text: &'t str, what: &str, with_what: &str) -> Result<Cow<'t, str>, Report> {

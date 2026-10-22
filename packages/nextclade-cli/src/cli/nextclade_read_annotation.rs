@@ -1,4 +1,5 @@
 use crate::cli::nextclade_cli::NextcladeReadAnnotationArgs;
+use crate::cli::stdout::write_stdout;
 use eyre::Report;
 use nextclade::features::feature_tree::FeatureTree;
 use nextclade::gene::gene_map::GeneMap;
@@ -24,14 +25,14 @@ pub fn nextclade_read_annotation(args: &NextcladeReadAnnotationArgs) -> Result<(
 fn handle_genome_annotation(args: &NextcladeReadAnnotationArgs, content: &str) -> Result<(), Report> {
   let data = GeneMap::from_str(content)?;
 
-  if args.json {
-    println!("{}\n", json_stringify(&data, JsonPretty(true))?);
-  } else {
-    println!("{}", gene_map_to_table_string(&data)?);
-  }
-
   if let Some(output) = &args.output {
     json_or_yaml_write(output, &data)?;
+  }
+
+  if args.json {
+    write_stdout(format_args!("{}\n", json_stringify(&data, JsonPretty(true))?))?;
+  } else {
+    write_stdout(gene_map_to_table_string(&data)?)?;
   }
 
   Ok(())
@@ -40,14 +41,14 @@ fn handle_genome_annotation(args: &NextcladeReadAnnotationArgs, content: &str) -
 fn handle_feature_tree(args: &NextcladeReadAnnotationArgs, content: &str) -> Result<(), Report> {
   let data = FeatureTree::from_gff3_str(content)?;
 
-  if args.json {
-    println!("{}\n", json_stringify(&data, JsonPretty(true))?);
-  } else {
-    println!("{}", data.to_pretty_string()?);
-  }
-
   if let Some(output) = &args.output {
     json_or_yaml_write(output, &data)?;
+  }
+
+  if args.json {
+    write_stdout(format_args!("{}\n", json_stringify(&data, JsonPretty(true))?))?;
+  } else {
+    write_stdout(data.to_pretty_string()?)?;
   }
 
   Ok(())
