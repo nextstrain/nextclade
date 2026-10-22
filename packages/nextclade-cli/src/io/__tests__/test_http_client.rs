@@ -45,6 +45,28 @@ mod tests {
     );
   }
 
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::without_trailing_slash( "v3",  "index.json",  "GET /v3/index.json HTTP/1.1")]
+  #[case::with_trailing_slash(    "v3/", "index.json",  "GET /v3/index.json HTTP/1.1")]
+  #[case::with_leading_slash(     "v3/", "/index.json", "GET /v3/index.json HTTP/1.1")]
+  #[case::at_host_root(           "",    "index.json",  "GET /index.json HTTP/1.1")]
+  #[trace]
+  fn test_http_client_requests_paths_below_the_server_root(
+    #[case] root_path: &str,
+    #[case] url: &str,
+    #[case] expected_request_line: &str,
+  ) {
+    let (server, requests) = serve_once(helpers::OK);
+    let root = format!("{server}{root_path}");
+
+    let content = client(&root, &NetworkArgs::default(), &direct_env()).get(url).unwrap();
+
+    assert_eq!(b"ok".to_vec(), content);
+    let request = requests.recv().unwrap();
+    assert_eq!(Some(expected_request_line), request.lines().next());
+  }
+
   #[test]
   fn test_http_client_explicit_proxy_sends_basic_auth() {
     let (proxy, requests) = serve_once(helpers::OK);

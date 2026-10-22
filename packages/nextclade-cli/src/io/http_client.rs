@@ -6,7 +6,6 @@ use log::info;
 use nextclade::utils::info::{this_package_name, this_package_version_str};
 use reqwest::blocking::Client;
 use reqwest::{Method, StatusCode, retry};
-use std::str::FromStr;
 use std::time::Duration;
 use url::Url;
 
@@ -29,7 +28,7 @@ impl HttpClient {
     verbose: bool,
   ) -> Result<Self, Report> {
     let timeout = network.request_timeout()?;
-    let root = Url::from_str(&format!("{}/", root.as_str()))?;
+    let root = directory_url(root);
 
     let mut client_builder = Client::builder();
 
@@ -111,6 +110,15 @@ impl HttpClient {
       _ => Report::new(error),
     }
   }
+}
+
+/// Return the URL with a trailing `/` in its path, so that relative URLs join below its last path segment
+fn directory_url(url: &Url) -> Url {
+  let mut url = url.clone();
+  if !url.path().ends_with('/') {
+    url.set_path(&format!("{}/", url.path()));
+  }
+  url
 }
 
 /// Configure the trust roots for HTTPS connections, as chosen by `tls::choose_trust_roots`.
