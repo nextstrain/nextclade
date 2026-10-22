@@ -1,5 +1,5 @@
 use crate::cli::nextclade_cli::{NextcladeRunOtherParams, NextcladeSortArgs};
-use crate::cli::stdout::write_stdout;
+use crate::cli::stdout::write_line;
 use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use console::style;
@@ -9,7 +9,7 @@ use log::{LevelFilter, trace};
 use maplit::btreemap;
 use nextclade::io::csv::CsvStructFileWriter;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
-use nextclade::io::file::is_stdout_closed;
+use nextclade::io::file::{StdoutWriter, is_stdout_closed};
 use nextclade::io::fs::path_to_string;
 use nextclade::make_error;
 use nextclade::sort::minimizer_index::{MINIMIZER_INDEX_ALGO_VERSION, MinimizerIndexJson};
@@ -25,6 +25,7 @@ use serde::Serialize;
 use std::collections::BTreeMap;
 use std::collections::btree_map::Entry::{Occupied, Vacant};
 use std::fmt::{Display, Write};
+use std::io;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tinytemplate::TinyTemplate;
@@ -208,6 +209,7 @@ fn writer_thread(
     let mut stats = StatsPrinter::new(
       "Suggested datasets for each sequence (after global optimization)",
       verbose,
+      StdoutWriter::new(io::stdout()),
     )?;
     let mut reader = FastaReader::from_paths(input_fastas)?;
     let mut writer = DatasetSortWriter::new(output_path, output_dir, output_results_tsv)?;
@@ -226,7 +228,11 @@ fn writer_thread(
       writer.write_one(&record, &datasets)?;
     }
   } else {
-    let mut stats = StatsPrinter::new("Suggested datasets for each sequence", verbose)?;
+    let mut stats = StatsPrinter::new(
+      "Suggested datasets for each sequence",
+      verbose,
+      StdoutWriter::new(io::stdout()),
+    )?;
     let mut writer = DatasetSortWriter::new(output_path, output_dir, output_results_tsv)?;
     for MinimizerSearchRecord { fasta_record, result } in result_receiver {
       let datasets = {
@@ -340,16 +346,19 @@ pub fn get_all_prefix_names(name: impl AsRef<str>) -> Result<Vec<String>, Report
 ///
 /// The table is a report beside the output files. When the reader closes standard output, the printer stops
 /// printing and the sort continues, so that the output files are complete.
-struct StatsPrinter {
+pub(crate) struct StatsPrinter<W: io::Write> {
   enabled: bool,
+  writer: W,
   stats: BTreeMap<String, usize>,
   n_undetected: usize,
 }
 
-impl StatsPrinter {
-  fn new(title: impl AsRef<str>, enabled: bool) -> Result<Self, Report> {
+impl<W: io::Write> StatsPrinter<W> {
+  /// Print the table header to `writer`, which stands for standard output, when `enabled`
+  pub(crate) fn new(title: impl AsRef<str>, enabled: bool, writer: W) -> Result<Self, Report> {
     let mut printer = Self {
       enabled,
+      writer,
       stats: BTreeMap::new(),
       n_undetected: 0,
     };
@@ -368,7 +377,8 @@ impl StatsPrinter {
     Ok(printer)
   }
 
-  fn print_seq(&mut self, datasets: &[MinimizerSearchDatasetResult], seq_name: &str) -> Result<(), Report> {
+  /// Count and print the suggested datasets of one sequence
+  pub(crate) fn print_seq(&mut self, datasets: &[MinimizerSearchDatasetResult], seq_name: &str) -> Result<(), Report> {
     if datasets.is_empty() {
       self.n_undetected += 1;
     }
@@ -416,7 +426,8 @@ impl StatsPrinter {
     self.print(rows)
   }
 
-  fn finish(&mut self) -> Result<(), Report> {
+  /// Print the number of sequences per suggested dataset
+  pub(crate) fn finish(&mut self) -> Result<(), Report> {
     if !self.enabled {
       return Ok(());
     }
@@ -475,7 +486,7 @@ impl StatsPrinter {
     if !self.enabled {
       return Ok(());
     }
-    match write_stdout(content) {
+    match write_line(&mut self.writer, content) {
       Err(report) if is_stdout_closed(&report) => {
         self.enabled = false;
         Ok(())
