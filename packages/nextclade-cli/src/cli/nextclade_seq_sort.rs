@@ -17,6 +17,7 @@ use nextclade::sort::minimizer_search::{
   MinimizerSearchDatasetResult, MinimizerSearchRecord, find_best_datasets, find_best_suggestion_for_seq,
   run_minimizer_search,
 };
+use nextclade::utils::error::join_errors;
 use nextclade::utils::option::OptionMapRefFallible;
 use nextclade::utils::string::truncate;
 use ordered_float::OrderedFloat;
@@ -174,9 +175,10 @@ pub(crate) fn sort_sequences(
 
     let writer = s.spawn(move || writer_thread(args, ref_names, result_receiver, verbose, stats_output));
 
-    chain!([reader], searchers, [writer])
+    let results = chain!([reader], searchers, [writer])
       .map(|thread| thread.join().unwrap_or_else(|panic| std::panic::resume_unwind(panic)))
-      .collect::<Result<(), Report>>()
+      .collect_vec();
+    join_errors(results.into_iter().filter_map(Result::err))
   })
 }
 

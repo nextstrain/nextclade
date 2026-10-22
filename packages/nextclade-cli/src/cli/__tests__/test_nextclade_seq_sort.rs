@@ -48,6 +48,32 @@ mod tests {
     );
   }
 
+  #[cfg(unix)]
+  #[test]
+  fn test_nextclade_seq_sort_reports_errors_of_all_threads() {
+    let dir = SortDir::new();
+    let input = dir.write("sequences.fasta", "not a FASTA record\n");
+    let blocking_file = dir.write("file", "");
+    let output = blocking_file.join("results.tsv");
+
+    let result = nextclade_seq_sort(&sort_args(
+      &dir,
+      &input,
+      &[&format!("--output-results-tsv={}", output.display())],
+    ));
+
+    assert_eq!(
+      Some(indoc::formatdoc! {"
+        2 errors occurred:
+          - Expected character '>' at record start.
+          - When ensuring parent directory for {}: When creating directory {}: File exists (os error 17)",
+        output.display(),
+        blocking_file.display()
+      }),
+      result.err().map(|report| report_to_string(&report))
+    );
+  }
+
   #[cfg(target_os = "linux")]
   #[test]
   fn test_nextclade_seq_sort_output_write_error_is_an_error() {
