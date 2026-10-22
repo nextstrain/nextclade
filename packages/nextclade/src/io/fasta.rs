@@ -5,6 +5,7 @@ use crate::io::compression::Decompressor;
 use crate::io::concat::Concat;
 use crate::io::file::{OutputWriter, create_file_or_stdout, open_file_or_stdin, open_stdin};
 use crate::translate::translate_genes::CdsTranslation;
+use crate::utils::error::join_errors;
 use crate::utils::string::truncate_right;
 use crate::{make_error, make_internal_error};
 use color_eyre::{Section, SectionExt};
@@ -266,9 +267,15 @@ impl FastaPeptideWriter {
     }
   }
 
-  /// Write the buffered data of all files, and report the errors of writing it
+  /// Write the buffered data of every file, also when another file fails, and report the errors of all files
   pub fn finish(self) -> Result<(), Report> {
-    self.writers.into_values().try_for_each(FastaWriter::finish)
+    join_errors(
+      self
+        .writers
+        .into_values()
+        .map(FastaWriter::finish)
+        .filter_map(Result::err),
+    )
   }
 }
 
