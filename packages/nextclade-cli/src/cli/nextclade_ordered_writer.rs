@@ -1,6 +1,6 @@
 use crate::cli::nextclade_cli::NextcladeRunOutputArgs;
 use crate::cli::nextclade_loop::NextcladeRecord;
-use eyre::{Report, WrapErr};
+use eyre::Report;
 use itertools::Itertools;
 use log::{info, warn};
 use nextclade::alphabet::nuc::from_nuc_seq;
@@ -258,17 +258,11 @@ impl NextcladeOrderedWriter {
   }
 
   /// Finalizes output by writing all queued records
-  pub fn finish(&mut self) -> Result<(), Report> {
+  pub fn finish(mut self) -> Result<(), Report> {
     self.write_queued_records()?;
-    if let Some(output_json_writer) = &mut self.output_json_writer {
+    if let Some(output_json_writer) = self.output_json_writer.take() {
       output_json_writer.finish()?;
     }
     Ok(())
-  }
-}
-
-impl Drop for NextcladeOrderedWriter {
-  fn drop(&mut self) {
-    self.finish().wrap_err("When finalizing output writer").unwrap();
   }
 }

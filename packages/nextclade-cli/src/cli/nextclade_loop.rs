@@ -82,7 +82,10 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
           if record.is_empty() {
             break;
           }
-          fasta_sender.send(record).wrap_err("When sending a FastaRecord")?;
+          // A closed channel means that all analysis threads stopped, and the thread that failed reports its error
+          if fasta_sender.send(record).is_err() {
+            break;
+          }
         }
         Ok::<_, Report>(())
       })();
@@ -95,37 +98,32 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
     for _ in 0..run_args.other_params.jobs {
       let fasta_receiver = fasta_receiver.clone();
       let result_sender = result_sender.clone();
-      let thread_errors = Arc::clone(&thread_errors);
 
       s.spawn(move || {
-        let result = (|| {
-          for fasta_record in &fasta_receiver {
-            info!("Processing sequence '{}'", fasta_record.seq_name);
+        for fasta_record in &fasta_receiver {
+          info!("Processing sequence '{}'", fasta_record.seq_name);
 
-            let outputs_or_err = nextclade.run(&fasta_record).wrap_err_with(|| {
-              format!(
-                "When processing sequence #{} '{}'",
-                fasta_record.index, fasta_record.seq_name
-              )
-            });
+          let outputs_or_err = nextclade.run(&fasta_record).wrap_err_with(|| {
+            format!(
+              "When processing sequence #{} '{}'",
+              fasta_record.index, fasta_record.seq_name
+            )
+          });
 
-            // Important: **all** records should be sent into this channel, without skipping.
-            // In in-order mode, writer that receives from this channel expects a contiguous stream of indices. Gaps in
-            // the indices will cause writer to stall waiting for the missing index and the buffering queue to grow. Any
-            // filtering of records should be done in the writer, instead of here.
-            result_sender
-              .send(NextcladeRecord {
-                index: fasta_record.index,
-                seq_name: fasta_record.seq_name,
-                outputs_or_err,
-              })
-              .wrap_err("When sending NextcladeRecord")?;
+          // Important: **all** records should be sent into this channel, without skipping.
+          // In in-order mode, writer that receives from this channel expects a contiguous stream of indices. Gaps in
+          // the indices will cause writer to stall waiting for the missing index and the buffering queue to grow. Any
+          // filtering of records should be done in the writer, instead of here.
+          let record = NextcladeRecord {
+            index: fasta_record.index,
+            seq_name: fasta_record.seq_name,
+            outputs_or_err,
+          };
+
+          // A closed channel means that the writer stopped, and it reports its own error
+          if result_sender.send(record).is_err() {
+            break;
           }
-          Ok::<_, Report>(())
-        })();
-
-        if let Err(e) = result {
-          thread_errors.lock().unwrap().push(e);
         }
         drop(result_sender);
       });
@@ -170,6 +168,8 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
             .write_record(record)
             .wrap_err("When writing output record")?;
         }
+
+        output_writer.finish().wrap_err("When finalizing output writer")?;
 
         Ok::<_, Report>(())
       })();

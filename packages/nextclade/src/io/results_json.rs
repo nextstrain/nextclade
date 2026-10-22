@@ -118,15 +118,9 @@ impl ResultsJsonWriter {
     });
   }
 
-  pub fn finish(&self) -> Result<(), Report> {
+  /// Write the collected results to the file
+  pub fn finish(self) -> Result<(), Report> {
     json_write(&self.filepath, &self.result, JsonPretty(true))
-  }
-}
-
-impl Drop for ResultsJsonWriter {
-  #[allow(unused_must_use)]
-  fn drop(&mut self) {
-    self.finish();
   }
 }
 
