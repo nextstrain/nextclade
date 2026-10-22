@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Nextclade CLI: server URL with a trailing slash
+
+`--server` now also accepts a URL that ends with `/`, for example `--server https://data.clades.nextstrain.org/v3/`. Before, Nextclade requested such URLs as `https://data.clades.nextstrain.org/v3//index.json`, which some servers do not serve.
+
 ### Nextclade CLI: network options for `nextclade run` and environment variables
 
 `nextclade run` now accepts the same network options as `nextclade dataset get` and uses them when it downloads a dataset with `--dataset-name`: `--proxy`, `--proxy-user`, `--proxy-pass`, `--extra-ca-certs`, and the new options `--proxy-pass-file` and `--http-timeout`.
