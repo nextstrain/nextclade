@@ -1,17 +1,23 @@
 #[cfg(test)]
 mod tests {
+  use crate::analyze::pcr_primers::PcrPrimer;
+  use crate::analyze::virus_properties::VirusProperties;
   use crate::io::fasta::read_one_fasta_from_file;
   #[cfg(unix)]
   use crate::io::file::is_stdout_closed;
   use crate::io::file::{create_file_or_stdout, open_file_or_stdin};
+  use crate::qc::qc_config::QcConfig;
+  use crate::sort::minimizer_index::MinimizerIndexJson;
+  use crate::tree::tree::AuspiceTree;
   use crate::utils::error::report_to_string;
   use eyre::Report;
-  use helpers::truncated_gzip_fasta;
+  use helpers::truncated_gzip;
   #[cfg(unix)]
   use helpers::{Format, Output};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use std::io::{ErrorKind, Read, Write};
+  use std::path::Path;
 
   #[cfg(unix)]
   #[rustfmt::skip]
@@ -111,7 +117,7 @@ mod tests {
   #[test]
   fn test_file_input_read_error_names_the_file_and_keeps_the_kind() {
     let dir = tempfile::tempdir().unwrap();
-    let filepath = truncated_gzip_fasta(dir.path());
+    let filepath = truncated_gzip(dir.path());
 
     let mut content = String::new();
     let error = open_file_or_stdin(Some(&filepath))
@@ -129,16 +135,29 @@ mod tests {
     assert_eq!(expected, (error.kind(), report_to_string(&Report::new(error))));
   }
 
-  #[test]
-  fn test_file_fasta_read_error_names_the_file_once() {
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::fasta(           |path: &Path| read_one_fasta_from_file(path).map(drop),           ""                                )]
+  #[case::auspice_tree(    |path: &Path| AuspiceTree::from_path(path).map(drop),             "When reading Auspice Tree JSON: ")]
+  #[case::pathogen_json(   |path: &Path| VirusProperties::from_path(path).map(drop),         "When reading pathogen.json: "    )]
+  #[case::qc_config(       |path: &Path| QcConfig::from_path(path).map(drop),                "When reading QC config: "        )]
+  #[case::pcr_primers(     |path: &Path| PcrPrimer::from_path(path, "ACGT").map(drop),       "When reading PCR primers: "      )]
+  #[case::minimizer_index( |path: &Path| MinimizerIndexJson::from_path(path).map(drop),      "When reading minimizer index: "  )]
+  #[trace]
+  fn test_file_input_read_error_names_the_file_once(
+    #[case]
+    #[notrace]
+    read: fn(&Path) -> Result<(), Report>,
+    #[case] context: &str,
+  ) {
     let dir = tempfile::tempdir().unwrap();
-    let filepath = truncated_gzip_fasta(dir.path());
+    let filepath = truncated_gzip(dir.path());
 
-    let result = read_one_fasta_from_file(&filepath);
+    let result = read(&filepath);
 
     assert_eq!(
       Some(format!(
-        "When reading file {}: While decompressing file (Gzip): unexpected end of file",
+        "{context}When reading file {}: While decompressing file (Gzip): unexpected end of file",
         filepath.display()
       )),
       result.err().map(|report| report_to_string(&report))
@@ -154,9 +173,9 @@ mod tests {
     #[cfg(unix)]
     pub use closed_output::{Format, Output};
 
-    /// Gzip-compressed FASTA file that ends in the middle of the compressed stream
-    pub fn truncated_gzip_fasta(dir: &Path) -> PathBuf {
-      let filepath = dir.join("input.fasta.gz");
+    /// Gzip-compressed file that ends in the middle of the compressed stream
+    pub fn truncated_gzip(dir: &Path) -> PathBuf {
+      let filepath = dir.join("input.gz");
       let mut file = create_file_or_stdout(&filepath).unwrap();
       file.write_all(b">seq\nACGT\n").unwrap();
       file.finish().unwrap();

@@ -70,12 +70,13 @@ pub fn add_extension(filepath: impl AsRef<Path>, extension: impl AsRef<OsStr>) -
 }
 
 /// Reads entire file into a string.
-/// Compared to `std::fs::read_to_string` uses buffered reader
+/// Compared to `std::fs::read_to_string` uses buffered reader and decompresses compressed files.
+/// Errors name the file, so callers name only the role of the file in their context.
 pub fn read_file_to_string(filepath: impl AsRef<Path>) -> Result<String, Report> {
   let filepath = filepath.as_ref();
   let mut data = vec![];
   open_file_or_stdin(Some(&filepath))?.read_to_end(&mut data)?;
-  String::from_utf8(data).wrap_err_with(|| format!("When reading file: {}", filepath.display()))
+  String::from_utf8(data).wrap_err_with(|| format!("When reading file {}", filepath.display()))
 }
 
 /// Reads entire reader into a string.

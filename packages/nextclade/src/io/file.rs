@@ -21,7 +21,7 @@ pub fn open_stdin() -> Result<Box<dyn BufRead>, Report> {
 }
 
 /// Open file for reading given a filepath. If the filepath is None, then read from stdin. Compressed files are
-/// decompressed. Read errors name the file, see `is_input_read_error`.
+/// decompressed. Read errors name the file.
 pub fn open_file_or_stdin<P: AsRef<Path>>(filepath: Option<&P>) -> Result<Box<dyn BufRead>, Report> {
   match filepath {
     Some(filepath) => {
@@ -38,17 +38,6 @@ pub fn open_file_or_stdin<P: AsRef<Path>>(filepath: Option<&P>) -> Result<Box<dy
     }
     None => open_stdin(),
   }
-}
-
-/// Whether the error, or one of its causes, is a read error of a reader from `open_file_or_stdin` or `open_stdin`.
-/// Such an error names the input already.
-pub fn is_input_read_error(report: &Report) -> bool {
-  report.chain().any(|error| {
-    error
-      .downcast_ref::<io::Error>()
-      .and_then(io::Error::get_ref)
-      .is_some_and(<dyn Error + Send + Sync>::is::<InputReadError>)
-  })
 }
 
 /// Reader of an input that names the input in its read errors

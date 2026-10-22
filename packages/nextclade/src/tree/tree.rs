@@ -972,8 +972,7 @@ pub type AuspiceTreeNodeIterFn<'a> = fn(&'a AuspiceTreeNode) -> AuspiceTreeNodeI
 impl AuspiceTree {
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
-    let data = read_file_to_string(filepath)
-      .wrap_err_with(|| format!("When reading Auspice Tree JSON file {}", filepath.display()))?;
+    let data = read_file_to_string(filepath).wrap_err("When reading Auspice Tree JSON")?;
     Self::from_str(data).wrap_err_with(|| format!("When parsing Auspice Tree JSON file {}", filepath.display()))
   }
 
