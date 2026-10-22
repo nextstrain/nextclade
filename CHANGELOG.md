@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Nextclade CLI: `--jobs 0` is an error
+
+`nextclade run --jobs 0` and `nextclade sort --jobs 0` started no processing threads. `nextclade run` then failed with the unclear error "When sending a FastaRecord" and left empty output files, and `nextclade sort` crashed. `--jobs` now requires a number of 1 or more.
+
 ### Nextclade CLI: server URL with a trailing slash
 
 `--server` now also accepts a URL that ends with `/`, for example `--server https://data.clades.nextstrain.org/v3/`. Before, Nextclade requested such URLs as `https://data.clades.nextstrain.org/v3//index.json`, which some servers do not serve.
