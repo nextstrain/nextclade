@@ -124,9 +124,9 @@ mod tests {
 
     assert_eq!(
       vec![
-        vec!["a", "2", "50.000%"],
-        vec!["b", "1", "25.000%"],
-        vec!["undetected", "1", "25.000%"],
+        vec!["a", "2", "50.000%"],          // 2 of 4 sequences
+        vec!["b", "1", "25.000%"],          // 1 of 4 sequences
+        vec!["undetected", "1", "25.000%"], // 1 of 4 sequences
         vec!["total", "4", "100.000%"],
       ],
       summary_rows(&output)
@@ -146,10 +146,10 @@ mod tests {
 
     assert_eq!(
       vec![
-        vec!["a", "2", "66.667%"],
-        vec!["b", "1", "33.333%"],
-        vec!["undetected", "1", "33.333%"],
-        vec!["total", "3", "100.000%"],
+        vec!["a", "2", "66.667%"],          // 2 of 3 sequences
+        vec!["b", "1", "33.333%"],          // 1 of 3 sequences
+        vec!["undetected", "1", "33.333%"], // 1 of 3 sequences
+        vec!["total", "3", "100.000%"],     // seq1 counts once, although it matches 2 datasets
       ],
       summary_rows(&output)
     );
