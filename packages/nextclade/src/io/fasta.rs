@@ -3,7 +3,7 @@ use crate::constants::REVERSE_COMPLEMENT_SUFFIX;
 use crate::gene::gene_map::GeneMap;
 use crate::io::compression::Decompressor;
 use crate::io::concat::Concat;
-use crate::io::file::{OutputWriter, create_file_or_stdout, open_file_or_stdin, open_stdin};
+use crate::io::file::{OutputWriter, create_file_or_stdout, is_input_read_error, open_file_or_stdin, open_stdin};
 use crate::translate::translate_genes::CdsTranslation;
 use crate::utils::error::join_errors;
 use crate::utils::string::truncate_right;
@@ -162,7 +162,13 @@ pub fn read_many_fasta<P: AsRef<Path>>(filepaths: &[P]) -> Result<Vec<FastaRecor
 pub fn read_one_fasta_from_file(filepath: impl AsRef<Path>) -> Result<FastaRecord, Report> {
   let filepath = filepath.as_ref();
   let reader = FastaReader::from_path(filepath)?;
-  read_one_fasta_from_fasta_reader(reader).wrap_err_with(|| format!("When reading file {}", filepath.display()))
+  read_one_fasta_from_fasta_reader(reader).map_err(|report| {
+    if is_input_read_error(&report) {
+      report
+    } else {
+      report.wrap_err(format!("When reading file {}", filepath.display()))
+    }
+  })
 }
 
 pub fn read_one_fasta_from_str(contents: impl AsRef<str>) -> Result<FastaRecord, Report> {

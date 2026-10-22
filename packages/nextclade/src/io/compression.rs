@@ -1,7 +1,5 @@
 use crate::io::fs::extension;
-use crate::utils::error::report_to_string;
-use color_eyre::{Help, SectionExt};
-use eyre::{Report, WrapErr};
+use eyre::Report;
 use flate2::Compression as GzCompressionLevel;
 use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
@@ -76,10 +74,10 @@ pub fn guess_compression_from_filepath(filepath: impl AsRef<Path>) -> (Compressi
   }
 }
 
+/// Reader that decompresses the data as the file extension asks
 pub struct Decompressor<'r> {
   decompressor: Box<dyn Read + 'r>,
   compression_type: CompressionType,
-  filepath: Option<String>,
 }
 
 impl<'r> Decompressor<'r> {
@@ -98,19 +96,16 @@ impl<'r> Decompressor<'r> {
     Ok(Self {
       decompressor,
       compression_type: compression_type.clone(),
-      filepath: None,
     })
   }
 
   pub fn from_str_and_path(content: &'r str, filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    let filepath = filepath.as_ref();
     let reader = content.as_bytes();
     let (compression_type, _) = guess_compression_from_filepath(filepath);
     Self::new(reader, &compression_type)
   }
 
   pub fn from_path<R: 'r + Read>(reader: R, filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    let filepath = filepath.as_ref();
     let (compression_type, _) = guess_compression_from_filepath(filepath);
     Self::new(reader, &compression_type)
   }
@@ -118,19 +113,8 @@ impl<'r> Decompressor<'r> {
 
 impl Read for Decompressor<'_> {
   fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-    self
-      .decompressor
-      .read(buf)
-      .wrap_err_with(|| "While decompressing file")
-      .with_section(|| {
-        self
-          .filepath
-          .clone()
-          .unwrap_or_else(|| "None".to_owned())
-          .header("Filename")
-      })
-      .with_section(|| self.compression_type.clone().header("Decompressor"))
-      .map_err(|report| std::io::Error::other(report_to_string(&report)))
+    let result = self.decompressor.read(buf);
+    compression_io_error(&self.compression_type, result, "While decompressing file")
   }
 }
 
@@ -235,36 +219,19 @@ impl<'w> Compressor<'w> {
   pub fn finish(&mut self) -> std::io::Result<()> {
     self.is_finished = true;
     let result = self.compressor.finish_stream();
-    self.io_error(result, "While finishing compressed file")
-  }
-
-  /// Add the compression type to an error of a compressed file, and keep the error kind and the cause
-  fn io_error<T>(&self, result: std::io::Result<T>, context: &'static str) -> std::io::Result<T> {
-    if matches!(self.compression_type, CompressionType::None) {
-      return result;
-    }
-    result.map_err(|error| {
-      std::io::Error::new(
-        error.kind(),
-        CompressionError {
-          context,
-          compression_type: self.compression_type.clone(),
-          source: error,
-        },
-      )
-    })
+    compression_io_error(&self.compression_type, result, "While finishing compressed file")
   }
 }
 
 impl Write for Compressor<'_> {
   fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
     let result = self.compressor.write(buf);
-    self.io_error(result, "While compressing file")
+    compression_io_error(&self.compression_type, result, "While compressing file")
   }
 
   fn flush(&mut self) -> std::io::Result<()> {
     let result = self.compressor.flush();
-    self.io_error(result, "While flushing compressed file")
+    compression_io_error(&self.compression_type, result, "While flushing compressed file")
   }
 }
 
@@ -276,6 +243,27 @@ impl Drop for Compressor<'_> {
       debug!("When finishing compressed file on drop: {error}");
     }
   }
+}
+
+/// Add the compression type to an error of a compressed file, and keep the error kind and the cause
+fn compression_io_error<T>(
+  compression_type: &CompressionType,
+  result: std::io::Result<T>,
+  context: &'static str,
+) -> std::io::Result<T> {
+  if matches!(compression_type, CompressionType::None) {
+    return result;
+  }
+  result.map_err(|error| {
+    std::io::Error::new(
+      error.kind(),
+      CompressionError {
+        context,
+        compression_type: compression_type.clone(),
+        source: error,
+      },
+    )
+  })
 }
 
 /// Error of a compressed file, with the compression type

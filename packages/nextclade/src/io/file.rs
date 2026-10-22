@@ -4,23 +4,24 @@ use eyre::{Report, WrapErr};
 use log::{info, warn};
 use std::error::Error;
 use std::fs::File;
-use std::io::{self, BufRead, BufReader, BufWriter, ErrorKind, Stdout, Write, stdin, stdout};
+use std::io::{self, BufRead, BufReader, BufWriter, ErrorKind, Read, Stdout, Write, stdin, stdout};
 use std::iter::successors;
 use std::path::{Path, PathBuf};
 
 pub const DEFAULT_FILE_BUF_SIZE: usize = 256 * 1024;
 
-/// Open stdin
+/// Open stdin. Read errors name standard input.
 pub fn open_stdin() -> Result<Box<dyn BufRead>, Report> {
   info!("Reading from standard input");
 
   #[cfg(not(target_arch = "wasm32"))]
   non_wasm::warn_if_tty();
 
-  Ok(Box::new(BufReader::new(stdin())))
+  Ok(Box::new(BufReader::new(InputReader::new(InputName::Stdin, stdin()))))
 }
 
-/// Open file for reading given a filepath. If the filepath is None, then read from stdin.
+/// Open file for reading given a filepath. If the filepath is None, then read from stdin. Compressed files are
+/// decompressed. Read errors name the file, see `is_input_read_error`.
 pub fn open_file_or_stdin<P: AsRef<Path>>(filepath: Option<&P>) -> Result<Box<dyn BufRead>, Report> {
   match filepath {
     Some(filepath) => {
@@ -31,11 +32,71 @@ pub fn open_file_or_stdin<P: AsRef<Path>>(filepath: Option<&P>) -> Result<Box<dy
         let file = File::open(filepath).wrap_err_with(|| format!("When opening file {}", filepath.display()))?;
         let buf_file = BufReader::with_capacity(DEFAULT_FILE_BUF_SIZE, file);
         let decompressor = Decompressor::from_path(buf_file, filepath)?;
-        let buf_decompressor = BufReader::with_capacity(DEFAULT_FILE_BUF_SIZE, decompressor);
-        Ok(Box::new(buf_decompressor))
+        let reader = InputReader::new(InputName::File(filepath.to_owned()), decompressor);
+        Ok(Box::new(BufReader::with_capacity(DEFAULT_FILE_BUF_SIZE, reader)))
       }
     }
     None => open_stdin(),
+  }
+}
+
+/// Whether the error, or one of its causes, is a read error of a reader from `open_file_or_stdin` or `open_stdin`.
+/// Such an error names the input already.
+pub fn is_input_read_error(report: &Report) -> bool {
+  report.chain().any(|error| {
+    error
+      .downcast_ref::<io::Error>()
+      .and_then(io::Error::get_ref)
+      .is_some_and(<dyn Error + Send + Sync>::is::<InputReadError>)
+  })
+}
+
+/// Reader of an input that names the input in its read errors
+struct InputReader<R: Read> {
+  name: InputName,
+  inner: R,
+}
+
+impl<R: Read> InputReader<R> {
+  const fn new(name: InputName, inner: R) -> Self {
+    Self { name, inner }
+  }
+}
+
+impl<R: Read> Read for InputReader<R> {
+  fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+    self.inner.read(buf).map_err(|error| {
+      io::Error::new(
+        error.kind(),
+        InputReadError {
+          input: self.name.clone(),
+          source: error,
+        },
+      )
+    })
+  }
+}
+
+/// Input of an `InputReader`, as error messages name it
+#[derive(Clone, Debug, derive_more::Display)]
+enum InputName {
+  #[display("standard input")]
+  Stdin,
+  #[display("file {}", _0.display())]
+  File(PathBuf),
+}
+
+/// Error of a read from an input, which names the input
+#[derive(Debug, derive_more::Display)]
+#[display("When reading {input}")]
+struct InputReadError {
+  input: InputName,
+  source: io::Error,
+}
+
+impl Error for InputReadError {
+  fn source(&self) -> Option<&(dyn Error + 'static)> {
+    Some(&self.source)
   }
 }
 

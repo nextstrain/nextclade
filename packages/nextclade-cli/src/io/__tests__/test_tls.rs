@@ -159,7 +159,7 @@ mod tests {
     let actual = extra_ca_certs(Some(&path)).map_err(|report| report_to_string(&report));
 
     let expected = format!(
-      "When reading extra CA certificates from '{}' given with `--extra-ca-certs` or `NEXTCLADE_EXTRA_CA_CERTS`: {expected_cause}",
+      "When reading extra CA certificates given with `--extra-ca-certs` or `NEXTCLADE_EXTRA_CA_CERTS`: When parsing file {}: {expected_cause}",
       path.display()
     );
     assert_eq!(Err(expected), actual);

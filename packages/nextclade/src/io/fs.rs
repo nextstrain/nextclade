@@ -73,12 +73,9 @@ pub fn add_extension(filepath: impl AsRef<Path>, extension: impl AsRef<OsStr>) -
 /// Compared to `std::fs::read_to_string` uses buffered reader
 pub fn read_file_to_string(filepath: impl AsRef<Path>) -> Result<String, Report> {
   let filepath = filepath.as_ref();
-  let mut file = open_file_or_stdin(Some(&filepath))?;
-  let mut data = String::new();
-  file
-    .read_to_string(&mut data)
-    .wrap_err_with(|| format!("When reading file: {}", filepath.display()))?;
-  Ok(data)
+  let mut data = vec![];
+  open_file_or_stdin(Some(&filepath))?.read_to_end(&mut data)?;
+  String::from_utf8(data).wrap_err_with(|| format!("When reading file: {}", filepath.display()))
 }
 
 /// Reads entire reader into a string.

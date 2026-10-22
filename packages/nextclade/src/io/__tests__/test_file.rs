@@ -1,15 +1,17 @@
 #[cfg(test)]
 mod tests {
+  use crate::io::fasta::read_one_fasta_from_file;
   #[cfg(unix)]
   use crate::io::file::is_stdout_closed;
   use crate::io::file::{create_file_or_stdout, open_file_or_stdin};
-  #[cfg(target_os = "linux")]
   use crate::utils::error::report_to_string;
+  use eyre::Report;
+  use helpers::truncated_gzip_fasta;
   #[cfg(unix)]
   use helpers::{Format, Output};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
-  use std::io::{Read, Write};
+  use std::io::{ErrorKind, Read, Write};
 
   #[cfg(unix)]
   #[rustfmt::skip]
@@ -106,9 +108,64 @@ mod tests {
     );
   }
 
+  #[test]
+  fn test_file_input_read_error_names_the_file_and_keeps_the_kind() {
+    let dir = tempfile::tempdir().unwrap();
+    let filepath = truncated_gzip_fasta(dir.path());
+
+    let mut content = String::new();
+    let error = open_file_or_stdin(Some(&filepath))
+      .unwrap()
+      .read_to_string(&mut content)
+      .unwrap_err();
+
+    let expected = (
+      ErrorKind::UnexpectedEof,
+      format!(
+        "When reading file {}: While decompressing file (Gzip): unexpected end of file",
+        filepath.display()
+      ),
+    );
+    assert_eq!(expected, (error.kind(), report_to_string(&Report::new(error))));
+  }
+
+  #[test]
+  fn test_file_fasta_read_error_names_the_file_once() {
+    let dir = tempfile::tempdir().unwrap();
+    let filepath = truncated_gzip_fasta(dir.path());
+
+    let result = read_one_fasta_from_file(&filepath);
+
+    assert_eq!(
+      Some(format!(
+        "When reading file {}: While decompressing file (Gzip): unexpected end of file",
+        filepath.display()
+      )),
+      result.err().map(|report| report_to_string(&report))
+    );
+  }
+
   mod helpers {
+    use crate::io::file::create_file_or_stdout;
+    use std::fs::OpenOptions;
+    use std::io::Write;
+    use std::path::{Path, PathBuf};
+
     #[cfg(unix)]
     pub use closed_output::{Format, Output};
+
+    /// Gzip-compressed FASTA file that ends in the middle of the compressed stream
+    pub fn truncated_gzip_fasta(dir: &Path) -> PathBuf {
+      let filepath = dir.join("input.fasta.gz");
+      let mut file = create_file_or_stdout(&filepath).unwrap();
+      file.write_all(b">seq\nACGT\n").unwrap();
+      file.finish().unwrap();
+
+      let file = OpenOptions::new().write(true).open(&filepath).unwrap();
+      let len = file.metadata().unwrap().len();
+      file.set_len(len / 2).unwrap();
+      filepath
+    }
 
     /// Outputs whose writes fail, for the tests of a closed standard output. Unix only, because one of them is a
     /// named pipe

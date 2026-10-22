@@ -53,7 +53,10 @@ impl GeneMap {
     let mut file = open_file_or_stdin(Some(&filename))?;
     let mut buf = vec![];
     file.read_to_end(&mut buf)?;
-    Self::from_str(String::from_utf8(buf)?).wrap_err_with(|| eyre!("When reading file: {}", filename.display()))
+    String::from_utf8(buf)
+      .map_err(Report::from)
+      .and_then(Self::from_str)
+      .wrap_err_with(|| eyre!("When reading file: {}", filename.display()))
   }
 
   pub fn from_str(content: impl AsRef<str>) -> Result<Self, Report> {

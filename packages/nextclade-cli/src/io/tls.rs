@@ -278,14 +278,9 @@ pub fn extra_ca_certs(filepath: Option<impl AsRef<Path>>) -> Result<Vec<Certific
   let read = || {
     let mut pem_bundle = vec![];
     open_file_or_stdin(Some(&filepath))?.read_to_end(&mut pem_bundle)?;
-    parse_ca_certs_pem(&pem_bundle)
+    parse_ca_certs_pem(&pem_bundle).wrap_err_with(|| format!("When parsing file {}", filepath.display()))
   };
-  read().wrap_err_with(|| {
-    format!(
-      "When reading extra CA certificates from '{}' given with `--extra-ca-certs` or `NEXTCLADE_EXTRA_CA_CERTS`",
-      filepath.display()
-    )
-  })
+  read().wrap_err("When reading extra CA certificates given with `--extra-ca-certs` or `NEXTCLADE_EXTRA_CA_CERTS`")
 }
 
 /// Parse a PEM bundle of CA certificates, requiring at least one certificate, each usable as a trust anchor
