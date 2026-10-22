@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Nextclade CLI: dataset counts of `nextclade sort --verbose`
+
+The "Suggested datasets" summary of `nextclade sort --verbose` counted the first sequence of each dataset twice, so the "Num. seq" column, the total and the "Percent" column were wrong: the percentages were too low for datasets with many sequences. With `--all-matches`, the total counted each pair of a sequence and a matching dataset, so a sequence that matches several datasets counted several times. The summary now counts each sequence once for each of its datasets, and once in the total. With `--all-matches`, the percentages of the datasets can add up to more than 100%.
+
 ### Nextclade CLI: write errors of output files
 
 `nextclade run`, `nextclade sort` and the other commands no longer crash when an output file cannot be written, for example when the disk is full. They now end with an error message that names the file, or standard output, and the cause reported by the operating system, and exit code 1. This includes write errors of CSV, TSV, TBL and GFF3 outputs, which lost their cause or, for GFF3, went unnoticed. When one output fails at the end of `nextclade run` or `nextclade sort`, Nextclade still completes the other outputs, including the tree outputs of `nextclade run`, and reports the errors of all outputs. When a command stops before the end of its outputs, for example after an error in another output or in an input file, it prints a warning that names each incomplete or missing output.
