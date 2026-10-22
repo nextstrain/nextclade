@@ -75,8 +75,7 @@ pub fn dataset_zip_download(
   tag: Option<&String>,
   output_file_path: &Path,
 ) -> Result<(), Report> {
-  let mut file = create_file_or_stdout(output_file_path)
-    .wrap_err_with(|| format!("When opening file {}", output_file_path.display()))?;
+  let mut file = create_file_or_stdout(output_file_path)?;
 
   let content = dataset_zip_fetch(http, dataset, tag)?;
 
@@ -84,12 +83,7 @@ pub fn dataset_zip_download(
     .write_all(&content)
     .map_err(Report::from)
     .and_then(|()| file.finish())
-    .wrap_err_with(|| {
-      format!(
-        "When writing downloaded dataset zip file to {}",
-        output_file_path.display()
-      )
-    })
+    .wrap_err_with(|| format!("When writing the zip file of dataset '{}'", dataset.path))
 }
 
 pub fn zip_read_str<R: Read + Seek>(zip: &mut ZipArchive<R>, name: impl AsRef<str>) -> Result<String, Report> {

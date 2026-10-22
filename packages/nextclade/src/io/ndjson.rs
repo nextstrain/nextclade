@@ -3,7 +3,7 @@ use crate::types::outputs::NextcladeErrorOutputs;
 use eyre::{Report, WrapErr};
 
 use std::io::{IntoInnerError, LineWriter, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub struct NdjsonWriter<W: Write + Send> {
   line_writer: LineWriter<W>,
@@ -36,33 +36,23 @@ impl<W: Write + Send> NdjsonWriter<W> {
 }
 
 pub struct NdjsonFileWriter {
-  filepath: PathBuf,
   ndjson_writer: NdjsonWriter<OutputWriter>,
 }
 
 impl NdjsonFileWriter {
   pub fn new(filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    let filepath = filepath.as_ref();
     let file = create_file_or_stdout(filepath)?;
-    let line_writer = NdjsonWriter::new(file)?;
     Ok(Self {
-      filepath: filepath.to_owned(),
-      ndjson_writer: line_writer,
+      ndjson_writer: NdjsonWriter::new(file)?,
     })
   }
 
   pub fn write<T: serde::Serialize>(&mut self, entry: &T) -> Result<(), Report> {
-    self
-      .ndjson_writer
-      .write(entry)
-      .wrap_err_with(|| format!("When writing ndjson output entry to file {}", &self.filepath.display()))
+    self.ndjson_writer.write(entry)
   }
 
   pub fn write_nuc_error(&mut self, index: usize, seq_name: &str, errors: &[String]) -> Result<(), Report> {
-    self
-      .ndjson_writer
-      .write_nuc_error(index, seq_name, errors)
-      .wrap_err_with(|| format!("When writing ndjson error entry to file {}", &self.filepath.display()))
+    self.ndjson_writer.write_nuc_error(index, seq_name, errors)
   }
 
   /// Write the buffered entries, and report the errors of writing them

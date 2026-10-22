@@ -13,11 +13,9 @@ where
   N: GraphNode + HasDivergence + HasName,
   E: GraphEdge,
 {
-  let filepath = filepath.as_ref();
   let mut file = create_file_or_stdout(filepath)?;
-  nwk_write_to_writer(&mut file, graph)
-    .and_then(|()| file.finish())
-    .wrap_err_with(|| format!("When writing graph to Newick file: {}", filepath.display()))
+  nwk_write_to_writer(&mut file, graph).wrap_err("When writing graph in Newick format")?;
+  file.finish()
 }
 
 pub fn nwk_write_to_string<N, E, D>(graph: &Graph<N, E, D>) -> Result<String, Report>

@@ -58,11 +58,9 @@ pub fn json_write_impl<W: Write, T: Serialize>(writer: W, obj: &T, pretty: JsonP
 }
 
 pub fn json_write<T: Serialize>(filepath: impl AsRef<Path>, obj: &T, pretty: JsonPretty) -> Result<(), Report> {
-  let filepath = filepath.as_ref();
   let mut file = create_file_or_stdout(filepath)?;
-  json_write_impl(&mut file, &obj, pretty)
-    .and_then(|()| file.finish())
-    .wrap_err_with(|| format!("When writing JSON to file: {}", filepath.display()))
+  json_write_impl(&mut file, &obj, pretty)?;
+  file.finish()
 }
 
 pub fn json_or_yaml_write<T: Serialize>(filepath: impl AsRef<Path>, obj: &T) -> Result<(), Report> {

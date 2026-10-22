@@ -18,9 +18,7 @@ pub fn yaml_write_impl<W: Write, T: Serialize>(writer: W, obj: &T) -> Result<(),
 }
 
 pub fn yaml_write<T: Serialize>(filepath: impl AsRef<Path>, obj: &T) -> Result<(), Report> {
-  let filepath = filepath.as_ref();
   let mut file = create_file_or_stdout(filepath)?;
-  yaml_write_impl(&mut file, &obj)
-    .and_then(|()| file.finish())
-    .wrap_err_with(|| format!("When writing yaml to file: {}", filepath.display()))
+  yaml_write_impl(&mut file, &obj)?;
+  file.finish()
 }

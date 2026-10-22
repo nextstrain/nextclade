@@ -7,6 +7,7 @@ use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
 use log::{debug, trace};
 use std::env;
+use std::error::Error;
 use std::io::{Read, Write};
 use std::path::Path;
 use std::str::FromStr;
@@ -32,7 +33,7 @@ use zstd::Decoder as ZstdDecoder;
 #[cfg(not(target_arch = "wasm32"))]
 use zstd::Encoder as ZstdEncoder;
 
-#[derive(strum_macros::Display, Clone)]
+#[derive(strum_macros::Display, Clone, Debug)]
 pub enum CompressionType {
   #[cfg(not(target_arch = "wasm32"))]
   Bzip2,
@@ -202,7 +203,6 @@ impl<W: Write + Send> Encoder for Uncompressed<W> {
 pub struct Compressor<'w> {
   compressor: Box<dyn Encoder + 'w>,
   compression_type: CompressionType,
-  filepath: Option<String>,
   is_finished: bool,
 }
 
@@ -222,17 +222,13 @@ impl<'w> Compressor<'w> {
     Ok(Self {
       compressor,
       compression_type: compression_type.clone(),
-      filepath: None,
       is_finished: false,
     })
   }
 
   pub fn from_path<W: 'w + Write + Send>(writer: W, filepath: impl AsRef<Path>) -> Result<Self, Report> {
-    let filepath = filepath.as_ref();
     let (compression_type, _) = guess_compression_from_filepath(filepath);
-    let mut this = Self::new(writer, &compression_type)?;
-    this.filepath = Some(filepath.to_string_lossy().into_owned());
-    Ok(this)
+    Self::new(writer, &compression_type)
   }
 
   /// Write the end of the compressed stream and flush the underlying writer
@@ -242,22 +238,21 @@ impl<'w> Compressor<'w> {
     self.io_error(result, "While finishing compressed file")
   }
 
-  /// Add the compression details to an error of a compressed file
+  /// Add the compression type to an error of a compressed file, and keep the error kind and the cause
   fn io_error<T>(&self, result: std::io::Result<T>, context: &'static str) -> std::io::Result<T> {
     if matches!(self.compression_type, CompressionType::None) {
       return result;
     }
-    result
-      .wrap_err(context)
-      .with_section(|| {
-        self
-          .filepath
-          .clone()
-          .unwrap_or_else(|| "None".to_owned())
-          .header("Filename")
-      })
-      .with_section(|| self.compression_type.clone().header("Compressor"))
-      .map_err(|report| std::io::Error::other(report_to_string(&report)))
+    result.map_err(|error| {
+      std::io::Error::new(
+        error.kind(),
+        CompressionError {
+          context,
+          compression_type: self.compression_type.clone(),
+          source: error,
+        },
+      )
+    })
   }
 }
 
@@ -280,5 +275,20 @@ impl Drop for Compressor<'_> {
     {
       debug!("When finishing compressed file on drop: {error}");
     }
+  }
+}
+
+/// Error of a compressed file, with the compression type
+#[derive(Debug, derive_more::Display)]
+#[display("{context} ({compression_type})")]
+struct CompressionError {
+  context: &'static str,
+  compression_type: CompressionType,
+  source: std::io::Error,
+}
+
+impl Error for CompressionError {
+  fn source(&self) -> Option<&(dyn Error + 'static)> {
+    Some(&self.source)
   }
 }
