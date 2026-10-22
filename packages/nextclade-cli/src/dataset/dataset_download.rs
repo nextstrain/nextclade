@@ -1,5 +1,6 @@
 use crate::cli::nextclade_cli::{NextcladeRunArgs, NextcladeRunInputArgs};
 use crate::cli::nextclade_dataset_get::{dataset_file_http_get, dataset_http_get};
+use crate::dataset::dataset_zip_extract::{DATASET_ZIP_MAX_ENTRIES, DATASET_ZIP_MAX_UNPACKED_BYTES, zip_extract_safe};
 use crate::io::http_client::{HttpClient, ProxyConfig};
 use color_eyre::{Section, SectionExt};
 use eyre::{ContextCompat, Report, WrapErr, eyre};
@@ -10,7 +11,7 @@ use nextclade::gene::gene_map::{GeneMap, filter_gene_map};
 use nextclade::io::dataset::{Dataset, DatasetsIndexJson};
 use nextclade::io::fasta::{read_one_fasta_from_file, read_one_fasta_from_str};
 use nextclade::io::file::create_file_or_stdout;
-use nextclade::io::fs::{ensure_dir, has_extension, read_file_to_string};
+use nextclade::io::fs::{has_extension, read_file_to_string};
 use nextclade::run::nextclade_wasm::{NextcladeParams, NextcladeParamsOptional};
 use nextclade::tree::tree::{AuspiceTree, check_ref_seq_mismatch};
 use nextclade::utils::fs::list_files_recursive;
@@ -234,11 +235,13 @@ pub fn dataset_dir_download(
   let mut reader = Cursor::new(content.as_mut_slice());
   let mut zip = ZipArchive::new(&mut reader)?;
 
-  ensure_dir(output_dir).wrap_err_with(|| format!("When creating directory {}", output_dir.display()))?;
-
-  zip
-    .extract(output_dir)
-    .wrap_err_with(|| format!("When extracting zip archive of dataset '{}'", dataset.path))
+  zip_extract_safe(
+    &mut zip,
+    output_dir,
+    DATASET_ZIP_MAX_ENTRIES,
+    DATASET_ZIP_MAX_UNPACKED_BYTES,
+  )
+  .wrap_err_with(|| format!("When extracting zip archive of dataset '{}'", dataset.path))
 }
 
 pub fn dataset_dir_load(
