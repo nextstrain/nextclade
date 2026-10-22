@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Nextclade CLI: `nextclade sort --global` with sequences from standard input
+
+`nextclade sort --global` reads the input sequences twice: once to find the best datasets, and once to write the outputs. With sequences from standard input, the second read found no sequences, so the output files were empty. Nextclade now copies standard input into a temporary file and reads it from there both times.
+
 ### Nextclade CLI: summary of `nextclade sort --global --verbose`
 
 `nextclade sort --global --verbose` now prints the "Suggested datasets" summary after the per-sequence table, as `nextclade sort --verbose` without `--global` does.
