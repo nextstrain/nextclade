@@ -177,7 +177,7 @@ mod tests {
       .map(String::as_str)
       .chain(mode_args.iter().copied())
       .collect::<Vec<_>>();
-    let closed_stdout = StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe));
+    let closed_stdout = StdoutWriter::new(FailingWriter::new(ErrorKind::BrokenPipe, false));
 
     sort_sequences(
       &sort_args(&dir, &input, &args),
@@ -203,10 +203,9 @@ mod tests {
   }
 
   mod helpers {
-    pub use crate::cli::__tests__::common::helpers::SEQUENCE;
+    pub use crate::cli::__tests__::common::helpers::{FailingWriter, SEQUENCE};
     use crate::cli::nextclade_cli::{NextcladeCommands, NextcladeSortArgs, nextclade_parse_args};
     use nextclade::sort::minimizer_search::MinimizerSearchDatasetResult;
-    use std::io::{self, ErrorKind, Write};
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
 
@@ -278,27 +277,6 @@ mod tests {
       match nextclade_parse_args(args).unwrap().command {
         NextcladeCommands::Sort(sort_args) => *sort_args,
         _ => panic!("expected `sort` command"),
-      }
-    }
-
-    /// Writer that fails every write and flush with an error of the given kind
-    pub struct FailingWriter {
-      kind: ErrorKind,
-    }
-
-    impl FailingWriter {
-      pub fn new(kind: ErrorKind) -> Self {
-        Self { kind }
-      }
-    }
-
-    impl Write for FailingWriter {
-      fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
-        Err(io::Error::new(self.kind, "test write error"))
-      }
-
-      fn flush(&mut self) -> io::Result<()> {
-        Err(io::Error::new(self.kind, "test write error"))
       }
     }
   }
