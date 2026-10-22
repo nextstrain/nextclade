@@ -48,6 +48,7 @@ mod tests {
   #[rustfmt::skip]
   #[rstest]
   #[case::run_file(  &["run", "--input-ref=reference.fasta", "--output-tsv=results.tsv"],                             "The output to file results.tsv is incomplete")]
+  #[case::run_json(  &["run", "--input-ref=reference.fasta", "--output-json=-"],                                      "The output to standard output is missing")]
   #[case::sort_file( &["sort", "--input-minimizer-index-json=minimizer_index.json", "--output-results-tsv=results.tsv"], "The output to file results.tsv is incomplete")]
   #[trace]
   fn test_standard_streams_input_read_error_leaves_outputs_incomplete(#[case] args: &[&str], #[case] warning: &str) {

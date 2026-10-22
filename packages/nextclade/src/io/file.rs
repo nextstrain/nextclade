@@ -139,6 +139,14 @@ impl Drop for OutputWriter {
   }
 }
 
+/// Log a warning that the output to `filepath` is missing, because writing stopped before its end
+pub fn warn_missing_output(filepath: impl AsRef<Path>) {
+  warn!(
+    "The output to {} is missing, because writing stopped before its end",
+    OutputName::from_path(filepath)
+  );
+}
+
 /// Output of an `OutputWriter`, as error messages name it
 #[derive(Clone, Debug, derive_more::Display)]
 enum OutputName {
@@ -146,6 +154,17 @@ enum OutputName {
   Stdout,
   #[display("file {}", _0.display())]
   File(PathBuf),
+}
+
+impl OutputName {
+  fn from_path(filepath: impl AsRef<Path>) -> Self {
+    let filepath = filepath.as_ref();
+    if is_path_stdout(filepath) {
+      Self::Stdout
+    } else {
+      Self::File(filepath.to_owned())
+    }
+  }
 }
 
 enum OutputTarget {

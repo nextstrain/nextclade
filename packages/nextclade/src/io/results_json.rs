@@ -1,4 +1,5 @@
 use crate::analyze::virus_properties::PhenotypeAttrDesc;
+use crate::io::file::warn_missing_output;
 use crate::io::json::{JsonPretty, json_stringify, json_write};
 use crate::io::ndjson::NdjsonWriter;
 use crate::tree::tree::{AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
@@ -8,7 +9,6 @@ use crate::types::outputs::{
 use crate::utils::datetime::date_iso_now;
 use crate::utils::info::this_package_version_str;
 use eyre::Report;
-use log::warn;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -132,10 +132,7 @@ impl ResultsJsonWriter {
 impl Drop for ResultsJsonWriter {
   fn drop(&mut self) {
     if !self.is_finished {
-      warn!(
-        "The output to file {} is missing, because writing stopped before its end",
-        self.filepath.display()
-      );
+      warn_missing_output(&self.filepath);
     }
   }
 }
