@@ -4,11 +4,13 @@ mod tests {
   use helpers::{FailingWriter, SortDir, sort_args};
   use nextclade::io::file::StdoutWriter;
   use nextclade::sort::minimizer_index::MinimizerIndexJson;
+  #[cfg(unix)]
   use nextclade::utils::error::report_to_string;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use std::io::ErrorKind;
 
+  #[cfg(unix)]
   #[test]
   fn test_nextclade_seq_sort_missing_input_is_an_error() {
     let dir = SortDir::new();
@@ -25,6 +27,7 @@ mod tests {
     );
   }
 
+  #[cfg(unix)]
   #[test]
   fn test_nextclade_seq_sort_output_that_cannot_be_created_is_an_error() {
     let dir = SortDir::new();
