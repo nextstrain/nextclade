@@ -134,11 +134,9 @@ export PACKAGE_DIR="$(abspath "${PROJECT_ROOT_DIR}/${PACKAGE_DIR_REL}")"
 
 export DOCKER_REPO="nextstrain/nextclade_builder"
 export DOCKER_IMAGE_NAME_SAFE="${DOCKER_REPO//\//-}"
-export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-$(date -u "+%Y-%m-%d_%H-%M-%S_%3NZ")"
-
-if [ -n "${CROSS:-}" ]; then
-  export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-${CROSS}-$(date -u "+%Y-%m-%d_%H-%M-%S_%3NZ")"
-fi
+# Time, process ID and a random suffix: runs that start in the same millisecond, also from different checkouts, get different names
+DOCKER_CONTAINER_NAME_SUFFIX="$(date -u "+%Y-%m-%d_%H-%M-%S_%3NZ")-$$-$(printf '%04x%04x' "${RANDOM}" "${RANDOM}")"
+export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}${CROSS:+-$CROSS}-${DOCKER_CONTAINER_NAME_SUFFIX}"
 
 export USER=user
 export GROUP=user
