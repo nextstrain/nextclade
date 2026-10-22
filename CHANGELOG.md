@@ -1,5 +1,21 @@
 ## Unreleased
 
+### Nextclade CLI: write errors of output files
+
+`nextclade run`, `nextclade sort` and the other commands no longer crash when an output file cannot be written, for example when the disk is full. They now end with an error message that names the file, or standard output, and the cause reported by the operating system, and exit code 1. This includes write errors of CSV, TSV, TBL and GFF3 outputs, which lost their cause or, for GFF3, went unnoticed. When one output fails at the end of `nextclade run` or `nextclade sort`, Nextclade still completes the other outputs, including the tree outputs of `nextclade run`, and reports the errors of all outputs. When a command stops before the end of its outputs, for example after an error in another output or in an input file, it prints a warning that names each incomplete or missing output.
+
+### Nextclade CLI: errors of `nextclade sort`
+
+`nextclade sort` no longer crashes when it cannot read an input file or create an output file. It now ends with an error message and exit code 1.
+
+### Nextclade CLI: results JSON on standard output
+
+`nextclade run --output-json -` printed the results JSON twice. It now prints it once. An error while Nextclade writes the results JSON now ends the command with an error message instead of a crash.
+
+### Nextclade CLI: closed output pipe
+
+Commands that print data, such as `nextclade dataset list`, no longer crash when the program that reads their output stops early, for example `nextclade dataset list | head`. They now end quietly with exit code 0, as standard Unix tools do. The same applies to outputs written to standard output with `-`, for example `nextclade run --output-fasta - sequences.fasta | head`, which ended with an error before. Nextclade then stops writing to standard output and still writes all other outputs to their end, for example the file of `--output-tsv results.tsv` in `nextclade run --output-fasta - --output-tsv results.tsv sequences.fasta | head`. `nextclade sort` does the same for `--output-results-tsv -` and for the table of `--verbose`.
+
 ### Nextclade CLI: `--jobs 0` is an error
 
 `nextclade run --jobs 0` and `nextclade sort --jobs 0` started no processing threads. `nextclade run` then failed with the unclear error "When sending a FastaRecord" and left empty output files, and `nextclade sort` crashed. `--jobs` now requires a number of 1 or more.
