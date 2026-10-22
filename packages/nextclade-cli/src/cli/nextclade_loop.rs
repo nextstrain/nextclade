@@ -9,6 +9,7 @@ use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::gene::gene_map_display::gene_map_to_table_string;
 use nextclade::graph::graph::Graph;
 use nextclade::io::fasta::{FastaReader, FastaRecord};
+use nextclade::io::file::warn_missing_output;
 use nextclade::io::json::{JsonPretty, json_write};
 use nextclade::io::nextclade_csv_column_config::CsvColumnConfig;
 use nextclade::io::nwk_writer::nwk_write_to_file;
@@ -66,6 +67,8 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
 
   let thread_errors: Arc<Mutex<Vec<Report>>> = Arc::new(Mutex::new(Vec::new()));
   let upstream_failure = UpstreamFailure::default();
+  // Whether the writer received the results of all sequences, which the tree outputs need
+  let mut has_all_results = false;
 
   std::thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
@@ -76,6 +79,7 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
     let outputs = &mut outputs;
     let run_args = &run_args;
     let upstream_failure = &upstream_failure;
+    let has_all_results = &mut has_all_results;
 
     let thread_errors_cloned = Arc::clone(&thread_errors);
     s.spawn(move || {
@@ -184,6 +188,7 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
         if upstream_failure.has_failed() {
           return Ok(());
         }
+        *has_all_results = true;
 
         output_writer.finish().wrap_err("When finalizing output writer")?;
 
@@ -196,36 +201,43 @@ pub fn nextclade_run(mut run_args: NextcladeRunArgs) -> Result<(), Report> {
     });
   });
 
-  let errors = Arc::try_unwrap(thread_errors).unwrap_or_default().into_inner()?;
-  join_errors(errors)?;
+  let mut errors = Arc::try_unwrap(thread_errors).unwrap_or_default().into_inner()?;
 
-  if should_write_tree {
-    let Nextclade {
-      ref_seq, params, graph, ..
-    } = nextclade;
-    if let Some(mut graph) = graph {
-      graph_attach_new_nodes_in_place(&mut graph, outputs, ref_seq.len(), &params.tree_builder)?;
+  let Nextclade {
+    ref_seq, params, graph, ..
+  } = nextclade;
+  if should_write_tree && let Some(mut graph) = graph {
+    let NextcladeRunOutputArgs {
+      output_tree,
+      output_tree_nwk,
+      output_graph,
+      ..
+    } = &run_args.outputs;
 
-      let NextcladeRunOutputArgs {
-        output_tree,
-        output_tree_nwk,
-        output_graph,
-        ..
-      } = &run_args.outputs;
-
-      finish_outputs([
-        output_tree.as_ref().map_or(Ok(()), |output_tree| {
-          json_write(output_tree, &Graph::to_auspice_tree(&graph)?, JsonPretty(true))
-        }),
-        output_tree_nwk
-          .as_ref()
-          .map_or(Ok(()), |output_tree_nwk| nwk_write_to_file(output_tree_nwk, &graph)),
-        output_graph.as_ref().map_or(Ok(()), |output_graph| {
-          json_write(output_graph, &graph, JsonPretty(true))
-        }),
-      ])?;
+    // The tree outputs need the results of all sequences, also when another output failed at its end
+    if has_all_results {
+      let result =
+        graph_attach_new_nodes_in_place(&mut graph, outputs, ref_seq.len(), &params.tree_builder).and_then(|()| {
+          finish_outputs([
+            output_tree.as_ref().map_or(Ok(()), |output_tree| {
+              json_write(output_tree, &Graph::to_auspice_tree(&graph)?, JsonPretty(true))
+            }),
+            output_tree_nwk
+              .as_ref()
+              .map_or(Ok(()), |output_tree_nwk| nwk_write_to_file(output_tree_nwk, &graph)),
+            output_graph.as_ref().map_or(Ok(()), |output_graph| {
+              json_write(output_graph, &graph, JsonPretty(true))
+            }),
+          ])
+        });
+      errors.extend(result.err());
+    } else {
+      [output_tree, output_tree_nwk, output_graph]
+        .into_iter()
+        .flatten()
+        .for_each(warn_missing_output);
     }
   }
 
-  Ok(())
+  join_errors(errors)
 }

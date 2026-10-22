@@ -49,12 +49,14 @@ mod tests {
   #[rstest]
   #[case::run_file(  &["run", "--input-ref=reference.fasta", "--output-tsv=results.tsv"],                             "The output to file results.tsv is incomplete")]
   #[case::run_json(  &["run", "--input-ref=reference.fasta", "--output-json=-"],                                      "The output to standard output is missing")]
+  #[case::run_tree(  &["run", "--input-ref=reference.fasta", "--input-tree=tree.json", "--output-tree=output_tree.json"], "The output to file output_tree.json is missing")]
   #[case::sort_file( &["sort", "--input-minimizer-index-json=minimizer_index.json", "--output-results-tsv=results.tsv"], "The output to file results.tsv is incomplete")]
   #[trace]
   fn test_standard_streams_input_read_error_leaves_outputs_incomplete(#[case] args: &[&str], #[case] warning: &str) {
     let dir = TestDir::new();
     dir.write("reference.fasta", &fasta(&["ref"]));
     dir.write("minimizer_index.json", helpers::MINIMIZER_INDEX_JSON);
+    dir.write("tree.json", include_str!("../src/cli/__tests__/__fixtures__/tree.json"));
     dir.write_truncated_gzip("sequences.fasta.gz", &fasta(&["seq1", "seq2", "seq3"]));
 
     let output = nextclade()
