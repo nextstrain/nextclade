@@ -112,6 +112,12 @@ The Linux glibc executables (`nextclade-x86_64-unknown-linux-gnu` and `nextclade
 
 Auspice uses DOMPurify to remove unsafe HTML when it shows the Markdown descriptions of datasets. The DOMPurify version that Auspice includes is replaced from 2.5.8 to 3.4.16, which fixes known sanitizer bypasses ([GHSA-36jr-mh4h-2g58](https://github.com/advisories/GHSA-36jr-mh4h-2g58), [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq)).
 
+## 3.25.1
+
+### Nextclade CLI: distrust compromised eMudhra certificate authorities
+
+In October 2026 the private keys of several eMudhra intermediate certificate authorities became public, so anyone can issue TLS certificates under them. Nextclade CLI no longer trusts certificates from these intermediates, and no longer trusts the root certificate "emSign ECC Root CA - G3" that cross-signed them. Before this change, an attacker who intercepts the connection could use such a certificate to impersonate the dataset server and serve modified datasets. The incident is tracked as [CVE-2026-111943](https://www.cve.org/CVERecord?id=CVE-2026-111943). See [emudhra.we-have-a-problem.com](https://emudhra.we-have-a-problem.com/) for details.
+
 ## 3.25.0
 
 ### Alignment: optional penalty for deletions that enter a CDS
