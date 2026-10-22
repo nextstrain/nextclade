@@ -114,3 +114,64 @@ Invoke-WebRequest https://github.com/nextstrain/nextclade/releases/download/3.0.
 
 </details>
 </p>
+
+## Verify a download
+
+Releases published after version 3.25.1 include a `SHA256SUMS` file with the SHA-256 checksum of every executable, and a [GitHub build provenance attestation](https://docs.github.com/en/actions/concepts/security/artifact-attestations) for every executable. Use them to make sure that the file you downloaded is the file that the Nextclade release workflow built.
+
+### Check the checksum
+
+Download the executable under its original file name, together with `SHA256SUMS` from the same release:
+
+```bash
+curl -fsSLO "https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-gnu"
+curl -fsSLO "https://github.com/nextstrain/nextclade/releases/latest/download/SHA256SUMS"
+```
+
+For a specific version, replace `latest/download` with `download/<version>` in both URLs.
+
+Then check the files in this directory against the checksums. The command prints `OK` for each file that matches, and fails for each file that does not:
+
+- Linux:
+
+  ```bash
+  sha256sum --ignore-missing -c SHA256SUMS
+  ```
+
+- macOS:
+
+  ```bash
+  shasum -a 256 --ignore-missing -c SHA256SUMS
+  ```
+
+  If `shasum` reports an unknown option `--ignore-missing` (older macOS versions), check one file. Set `file` to the name of the executable you downloaded:
+
+  ```bash
+  file="nextclade-aarch64-apple-darwin" # Apple Silicon; use "nextclade-x86_64-apple-darwin" for Intel
+  grep " ${file}\$" SHA256SUMS | shasum -a 256 -c
+  ```
+
+- Windows PowerShell:
+
+  ```powershell
+  $file = 'nextclade-x86_64-pc-windows-gnu.exe'
+  $entry = Select-String -Path SHA256SUMS -Pattern (' ' + [regex]::Escape($file) + '$') -ErrorAction Stop | Select-Object -First 1
+  if (-not $entry) { throw "No checksum for $file in SHA256SUMS" }
+  $expected = $entry.Line.Split(' ')[0]
+  $actual = (Get-FileHash -Algorithm SHA256 -Path $file -ErrorAction Stop).Hash
+  if ($actual -ne $expected) { throw "Checksum mismatch for $file" } else { 'OK' }
+  ```
+
+  The comparison ignores case, because `Get-FileHash` prints the checksum in upper case. The script stops with an error when the checksum does not match.
+
+After the check, you can rename the executable, for example to `nextclade`.
+
+### Check the build attestation
+
+With the [GitHub CLI](https://cli.github.com/), check that GitHub Actions in the `nextstrain/nextclade` repository built the file:
+
+```bash
+gh attestation verify nextclade-x86_64-unknown-linux-gnu --repo nextstrain/nextclade
+```
+
+The attestation matches the content of the file, so this check also works after you rename the executable.
