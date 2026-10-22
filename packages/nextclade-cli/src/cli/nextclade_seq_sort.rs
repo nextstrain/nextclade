@@ -4,7 +4,7 @@ use crate::dataset::dataset_download::download_datasets_index_json;
 use crate::io::http_client::HttpClient;
 use console::style;
 use eyre::{Report, WrapErr};
-use itertools::Itertools;
+use itertools::{Itertools, chain};
 use log::{LevelFilter, trace};
 use maplit::btreemap;
 use nextclade::io::csv::CsvStructFileWriter;
@@ -106,57 +106,60 @@ pub fn run(
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<MinimizerSearchRecord>(CHANNEL_SIZE);
 
-    s.spawn(|| {
-      let mut reader = FastaReader::from_paths(input_fastas).unwrap();
+    let reader = s.spawn(move || -> Result<(), Report> {
+      let mut reader = FastaReader::from_paths(input_fastas)?;
       loop {
         let mut record = FastaRecord::default();
-        reader.read(&mut record).unwrap();
+        reader.read(&mut record)?;
         if record.is_empty() {
           break;
         }
-        fasta_sender
-          .send(record)
-          .wrap_err("When sending a FastaRecord")
-          .unwrap();
+        // A closed channel means that all search threads stopped, and the thread that failed reports its error
+        if fasta_sender.send(record).is_err() {
+          break;
+        }
       }
-      drop(fasta_sender);
+      Ok(())
     });
 
-    for _ in 0..*jobs {
+    let searchers = std::iter::repeat_with(|| {
       let fasta_receiver = fasta_receiver.clone();
       let result_sender = result_sender.clone();
-
-      s.spawn(move || {
-        let result_sender = result_sender.clone();
-
+      s.spawn(move || -> Result<(), Report> {
         for fasta_record in &fasta_receiver {
           trace!("Processing sequence '{}'", fasta_record.seq_name);
 
-          let result = run_minimizer_search(&fasta_record, minimizer_index, search_params)
-            .wrap_err_with(|| {
-              format!(
-                "When processing sequence #{} '{}'",
-                fasta_record.index, fasta_record.seq_name
-              )
-            })
-            .unwrap();
+          let result = run_minimizer_search(&fasta_record, minimizer_index, search_params).wrap_err_with(|| {
+            format!(
+              "When processing sequence #{} '{}'",
+              fasta_record.index, fasta_record.seq_name
+            )
+          })?;
 
-          result_sender
+          // A closed channel means that the writer stopped, and it reports its own error
+          if result_sender
             .send(MinimizerSearchRecord { fasta_record, result })
-            .wrap_err("When sending minimizer record into the channel")
-            .unwrap();
+            .is_err()
+          {
+            break;
+          }
         }
+        Ok(())
+      })
+    })
+    .take(*jobs)
+    .collect_vec();
 
-        drop(result_sender);
-      });
-    }
+    // Only the threads hold the channel ends, so that a channel closes when the threads on one side stop
+    drop(fasta_receiver);
+    drop(result_sender);
 
-    s.spawn(move || {
-      writer_thread(args, ref_names, result_receiver, verbose).unwrap();
-    });
-  });
+    let writer = s.spawn(move || writer_thread(args, ref_names, result_receiver, verbose));
 
-  Ok(())
+    chain!([reader], searchers, [writer])
+      .map(|thread| thread.join().unwrap_or_else(|panic| std::panic::resume_unwind(panic)))
+      .collect::<Result<(), Report>>()
+  })
 }
 
 #[derive(Clone, Default, Debug, Serialize, JsonSchema)]
