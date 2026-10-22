@@ -10,6 +10,10 @@ Nextclade CLI uses TLS to download datasets. The TLS library rustls is updated t
 
 The zip library is updated from 7.0.0 to 9.0.5, and the Excel export library `rust_xlsxwriter` from 0.92.2 to 0.101.0, which uses the same zip version. Older zip versions are affected by the advisories [RUSTSEC-2026-0367](https://rustsec.org/advisories/RUSTSEC-2026-0367.html), [RUSTSEC-2026-0368](https://rustsec.org/advisories/RUSTSEC-2026-0368.html) and [RUSTSEC-2026-0369](https://rustsec.org/advisories/RUSTSEC-2026-0369.html) in their extraction functions. The previous extraction method of `nextclade dataset get` used these functions, and the new one does not.
 
+### Nextclade CLI: verifiable release downloads
+
+Release pages now include a `SHA256SUMS` file with the SHA-256 checksum of every executable, and a GitHub build provenance attestation for every executable. With them you can check that a downloaded executable is complete and that the Nextclade release workflow on GitHub built it. See the [installation documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/standalone.html) for the commands.
+
 ### Alignment: `alignmentPreset` in `pathogen.json` takes effect
 
 Nextclade ignored `alignmentPreset` in `alignmentParams` of `pathogen.json` and used the `default` preset unless the `--alignment-preset` CLI argument was given, although the documentation describes the field and some datasets set it. Nextclade CLI and Nextclade Web now apply the preset of the dataset. The `--alignment-preset` CLI argument replaces the preset of the dataset, and alignment parameters set in `pathogen.json` or as CLI arguments still override the values of the preset. See the [sequence alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/01-sequence-alignment.html) for details.
