@@ -45,6 +45,35 @@ mod tests {
     );
   }
 
+  #[test]
+  fn test_standard_streams_results_json_on_stdout_is_written_once() {
+    let dir = TestDir::new();
+    dir.write("reference.fasta", &fasta(&["ref"]));
+    dir.write("sequences.fasta", &fasta(&["seq1", "seq2"]));
+
+    let output = nextclade()
+      .current_dir(dir.path())
+      .args([
+        "run",
+        "--input-ref=reference.fasta",
+        "--output-json=-",
+        "sequences.fasta",
+      ])
+      .output()
+      .unwrap();
+
+    let documents = serde_json::Deserializer::from_slice(&output.stdout)
+      .into_iter::<serde_json::Value>()
+      .collect::<Result<Vec<_>, _>>()
+      .unwrap();
+    assert_eq!(
+      (true, 1),
+      (output.status.success(), documents.len()),
+      "{}",
+      String::from_utf8_lossy(&output.stderr)
+    );
+  }
+
   #[cfg(target_os = "linux")]
   #[test]
   fn test_standard_streams_stdout_write_error_names_standard_output() {
