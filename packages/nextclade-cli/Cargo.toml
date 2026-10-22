@@ -44,6 +44,7 @@ pretty_assertions = { workspace = true }
 rayon = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true }
+rustls = { workspace = true }
 schemars = { workspace = true }
 secrecy = { workspace = true }
 semver = { workspace = true }
@@ -53,8 +54,11 @@ strum = { workspace = true }
 strum_macros = { workspace = true }
 tinytemplate = { workspace = true }
 url = { workspace = true }
-webpki-root-certs = { workspace = true }
 zip = { workspace = true }
+
+[target.'cfg(all(unix, not(target_vendor = "apple")))'.dependencies]
+rustls-native-certs = { workspace = true }
+webpki-root-certs = { workspace = true }
 
 [dev-dependencies]
 assert2 = { workspace = true }
@@ -62,6 +66,7 @@ criterion = { workspace = true }
 proptest = { workspace = true }
 rstest = { workspace = true }
 tempfile = { workspace = true }
+webpki-root-certs = { workspace = true }
 
 [build-dependencies]
 nextclade = { path = "../nextclade" }

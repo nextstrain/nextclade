@@ -1,6 +1,6 @@
 use crate::io::network_args::NetworkArgs;
 use crate::io::proxy::{ProxyEnv, configure_proxy};
-use crate::io::tls;
+use crate::io::tls::{self, TrustRoots};
 use eyre::Report;
 use log::info;
 use nextclade::utils::info::{this_package_name, this_package_version_str};
@@ -113,59 +113,27 @@ impl HttpClient {
   }
 }
 
-/// Configures TLS certificate verification for HTTPS connections.
+/// Configure the trust roots for HTTPS connections, as chosen by `tls::choose_trust_roots`.
 ///
-/// # Trust Store Composition
-///
-/// The final trust store combines three certificate sources:
-///
-/// 1. **Mozilla Root CAs** (always present)
-///    - Baked-in from `webpki-root-certs` crate
-///    - Ensures HTTPS works even in minimal containers without system certs
-///
-/// 2. **User Extra CAs** (optional)
-///    - From `--extra-ca-certs` argument or `NEXTCLADE_EXTRA_CA_CERTS` env var
-///    - Required for enterprise SSL-inspecting proxies (corporate firewalls)
-///
-/// 3. **System CAs** (when available)
-///    - Loaded by `rustls-platform-verifier` via `rustls-native-certs`
-///    - Respects `SSL_CERT_FILE` and `SSL_CERT_DIR` environment variables
-///
-/// # How It Works
-///
-/// ```text
-/// tls_certs_merge([mozilla_roots, user_extras])
-///        |
-///        v
-/// reqwest passes to rustls-platform-verifier as "extra_roots"
-///        |
-///        v
-/// Platform verifier adds extra_roots to RootCertStore
-///        |
-///        v
-/// Platform verifier loads system certs via rustls-native-certs
-///        |
-///        v
-/// Both are combined in the final trust store
-/// ```
-///
-/// This design ensures the trust store is never empty (Mozilla roots always present),
-/// while still loading and trusting system certificates when available.
+/// On macOS and Windows the operating system's verifier decides, with the user extras added (`tls_certs_merge`).
+/// On Linux and other non-Apple Unix the client trusts exactly the chosen roots (`tls_certs_only`): the system
+/// store, or the built-in Mozilla roots when the system store has no usable certificates, followed by the user
+/// extras.
 fn configure_tls(
   client_builder: reqwest::blocking::ClientBuilder,
   network: &NetworkArgs,
 ) -> Result<reqwest::blocking::ClientBuilder, Report> {
-  // Build combined trust anchors: Mozilla roots + user extras
-  // System certs are added later by rustls-platform-verifier
-  let trust_anchors = tls::build_trust_anchors(network.extra_ca_certs_path())?;
+  let extras = tls::extra_ca_certs(network.extra_ca_certs_path())?;
+  let roots = tls::choose_trust_roots(tls::TrustPlatform::current(), extras)?;
 
-  // tls_certs_merge() passes these to rustls-platform-verifier::Verifier::new_with_extra_roots()
-  // The verifier then:
-  // 1. Adds our trust_anchors to RootCertStore
-  // 2. Loads system certs via rustls_native_certs::load_native_certs()
-  // 3. Adds system certs to the same store
-  // Result: all three sources (mozilla, user, system) are trusted
-  Ok(client_builder.tls_certs_merge(trust_anchors))
+  match roots {
+    TrustRoots::Only { roots, origin } => {
+      origin.log();
+      Ok(client_builder.tls_certs_only(tls::to_reqwest_certs(&roots)?))
+    }
+    TrustRoots::OsVerifier { extras } if extras.is_empty() => Ok(client_builder),
+    TrustRoots::OsVerifier { extras } => Ok(client_builder.tls_certs_merge(tls::to_reqwest_certs(&extras)?)),
+  }
 }
 
 /// Configures automatic retry policy for transient failures.

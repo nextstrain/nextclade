@@ -65,9 +65,15 @@ pub struct NetworkArgs {
 
   /// Path to extra CA certificates as a PEM bundle.
   ///
-  /// You can also provide the path to CA certificates in the environment variable `NEXTCLADE_EXTRA_CA_CERTS`. The argument takes precedence over the environment variable if both are provided.
+  /// You can also provide the path to CA certificates in the environment variable `NEXTCLADE_EXTRA_CA_CERTS`. The argument takes precedence over the environment variable if both are provided. An empty value counts as not set.
   ///
-  /// Default CA certificates are those obtained from the platform/OS-level trust store plus those from a baked-in copy of Mozilla's common CA trust store. You can override the certs obtained from the platform trust store by setting `SSL_CERT_FILE` or `SSL_CERT_DIR`. Filenames in the latter must be hashed in the style of OpenSSL's `c_rehash` utility.
+  /// The certificates in this file are trusted in addition to the default CA certificates, on all platforms. Use this option behind a proxy or firewall that inspects HTTPS traffic: add the CA certificate of the proxy here.
+  ///
+  /// Default CA certificates:
+  ///
+  /// - macOS and Windows: the operating system decides which CA certificates to trust.
+  ///
+  /// - Linux and other Unix systems except macOS: the CA certificates of the system certificate store (for example from the `ca-certificates` package). The environment variables `SSL_CERT_FILE` (a PEM file) and `SSL_CERT_DIR` (a `:`-separated list of directories with certificate files named in the style of OpenSSL's `c_rehash` utility) replace the system locations; if they are set, they must contain CA certificates. An `SSL_CERT_DIR` without a directory, such as an empty value, counts as not set. Only when the system certificate store has no usable certificates, for example in minimal containers such as the official `scratch` Docker image, Nextclade uses its built-in copy of Mozilla's CA certificates.
   #[clap(long)]
   #[clap(env = "NEXTCLADE_EXTRA_CA_CERTS")]
   #[clap(value_hint = ValueHint::Other)]
