@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-  use helpers::{MINIMIZER_INDEX, SEQUENCE, TestDir, fasta, nextclade, run_with_closed_stdout};
+  use helpers::{MINIMIZER_INDEX_JSON, SEQUENCE, TestDir, fasta, nextclade, run_with_closed_stdout};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use std::io::Write;
@@ -57,7 +57,7 @@ mod tests {
   fn test_standard_streams_input_read_error_leaves_outputs_incomplete(#[case] args: &[&str], #[case] warning: &str) {
     let dir = TestDir::new();
     dir.write("reference.fasta", &fasta(&["ref"]));
-    dir.write("minimizer_index.json", helpers::MINIMIZER_INDEX_JSON);
+    dir.write("minimizer_index.json", MINIMIZER_INDEX_JSON);
     dir.write("tree.json", include_str!("../src/cli/__tests__/__fixtures__/tree.json"));
     dir.write_truncated_gzip("sequences.fasta.gz", &fasta(&["seq1", "seq2", "seq3"]));
 
@@ -108,7 +108,7 @@ mod tests {
   #[test]
   fn test_standard_streams_sort_closed_stdout_keeps_output_files_complete() {
     let dir = TestDir::new();
-    dir.write("minimizer_index.json", helpers::MINIMIZER_INDEX_JSON);
+    dir.write("minimizer_index.json", MINIMIZER_INDEX_JSON);
     // Enough sequences that the results table exceeds the output buffer, so that a write fails before the end
     let seq_names = (0..20_000).map(|index| format!("seq{index}")).collect::<Vec<_>>();
     dir.write("sequences.fasta", &fasta(&seq_names));
@@ -168,7 +168,7 @@ mod tests {
   #[test]
   fn test_standard_streams_sort_global_reads_stdin_in_both_passes() {
     let dir = TestDir::new();
-    dir.write("minimizer_index.json", MINIMIZER_INDEX);
+    dir.write("minimizer_index.json", MINIMIZER_INDEX_JSON);
     let mut child = nextclade()
       .current_dir(dir.path())
       .args([
@@ -191,7 +191,8 @@ mod tests {
     assert_eq!(
       (
         true,
-        "index\tseqName\tdataset\tscore\tnumHits\n0\tseq1\t\t\t\n1\tseq2\t\t\t\n".to_owned()
+        // Both sequences are the reference: all 19 minimizers of the reference hit, so the score is 19 / 19
+        "index\tseqName\tdataset\tscore\tnumHits\n0\tseq1\tref\t1.0\t19\n1\tseq2\tref\t1.0\t19\n".to_owned()
       ),
       (output.status.success(), dir.read("results.tsv")),
       "{}",
@@ -209,16 +210,6 @@ mod tests {
     use tempfile::TempDir;
 
     pub const SEQUENCE: &str = "ATGGCTAGCTTCGATCGGATCCTAGGCTTAACGGTACCTGAGCTCAAGCTTGCATGCCTGCAGGTCGACTCTAGAGGATCCCCGGGTACCGAGCTCGAATTCACTGGCCGTCGTTTTACAACGTCGTGACTGGGAAAACCCTGGCGTTACCCAACTTAATCGCCTTGCAGCACATCCCCCTTTCGCCAGCTGGCGTAATAGCGAAGAGGCCCGCACCGATCGCCCTTCCCAACAGTTGCGCAGCCTGAATGGCGAATGG";
-
-    /// Minimizer index without references: every sequence is undetected
-    pub const MINIMIZER_INDEX: &str = r#"{
-      "schemaVersion": "3.0.0",
-      "version": "1",
-      "params": { "k": 17, "cutoff": 28 },
-      "minimizers": {},
-      "references": [],
-      "normalization": []
-    }"#;
 
     /// The `nextclade` executable, without input and with captured output
     pub fn nextclade() -> Command {
