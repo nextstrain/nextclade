@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Nextclade CLI: read errors of `--input-pathogen-json`
+
+With `--input-ref`, `nextclade run` ignored a `--input-pathogen-json` file that it could not read, for example a missing file or a damaged compressed file, and used the default pathogen settings without a message, so the QC and analysis settings could differ from the file. Nextclade now ends with an error message that names the file.
+
 ### Nextclade CLI: read errors of input files
 
 When an input file cannot be read, for example a truncated or damaged compressed file such as `sequences.fasta.gz`, the error message now names the file once, along with the compression format and the cause. Before, the message said "Filename: None" and did not say which input file failed.
