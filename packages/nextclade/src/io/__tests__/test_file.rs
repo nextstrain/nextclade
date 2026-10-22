@@ -95,9 +95,15 @@ mod tests {
   #[test]
   fn test_file_output_dropped_after_write_error_does_not_panic() {
     let mut file = create_file_or_stdout("/dev/full").unwrap();
-    file.write_all(b">seq\nACGT\n").unwrap();
 
+    // More data than the buffers hold, so that the write reaches the file and fails before the drop
+    let result = file.write_all(&vec![b'A'; 2 * crate::io::file::DEFAULT_FILE_BUF_SIZE]);
     drop(file);
+
+    assert_eq!(
+      Some("When writing to file /dev/full".to_owned()),
+      result.err().map(|error| error.to_string())
+    );
   }
 
   mod helpers {
