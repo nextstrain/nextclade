@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-  use crate::cli::nextclade_seq_sort::{nextclade_seq_sort, sort_sequences};
-  use helpers::{FailingWriter, SortDir, sort_args};
+  use crate::cli::nextclade_seq_sort::{StatsPrinter, nextclade_seq_sort, sort_sequences};
+  use helpers::{FailingWriter, SortDir, dataset, sort_args, summary_rows};
   use nextclade::io::file::StdoutWriter;
   use nextclade::sort::minimizer_index::MinimizerIndexJson;
   #[cfg(unix)]
@@ -110,6 +110,51 @@ mod tests {
     );
   }
 
+  #[test]
+  fn test_nextclade_seq_sort_stats_count_sequences_per_dataset() {
+    let mut output = Vec::new();
+    {
+      let mut stats = StatsPrinter::new("Suggested datasets for each sequence", true, &mut output).unwrap();
+      stats.print_seq(&[dataset("a")], "seq1").unwrap();
+      stats.print_seq(&[dataset("a")], "seq2").unwrap();
+      stats.print_seq(&[dataset("b")], "seq3").unwrap();
+      stats.print_seq(&[], "seq4").unwrap();
+      stats.finish().unwrap();
+    }
+
+    assert_eq!(
+      vec![
+        vec!["a", "2", "50.000%"],
+        vec!["b", "1", "25.000%"],
+        vec!["undetected", "1", "25.000%"],
+        vec!["total", "4", "100.000%"],
+      ],
+      summary_rows(&output)
+    );
+  }
+
+  #[test]
+  fn test_nextclade_seq_sort_stats_count_each_sequence_once_in_total_with_all_matches() {
+    let mut output = Vec::new();
+    {
+      let mut stats = StatsPrinter::new("Suggested datasets for each sequence", true, &mut output).unwrap();
+      stats.print_seq(&[dataset("a"), dataset("b")], "seq1").unwrap();
+      stats.print_seq(&[dataset("a")], "seq2").unwrap();
+      stats.print_seq(&[], "seq3").unwrap();
+      stats.finish().unwrap();
+    }
+
+    assert_eq!(
+      vec![
+        vec!["a", "2", "66.667%"],
+        vec!["b", "1", "33.333%"],
+        vec!["undetected", "1", "33.333%"],
+        vec!["total", "3", "100.000%"],
+      ],
+      summary_rows(&output)
+    );
+  }
+
   #[rstest]
   #[case::local(&[])]
   #[case::global(&["--global"])]
@@ -160,6 +205,7 @@ mod tests {
   mod helpers {
     pub use crate::cli::__tests__::common::helpers::SEQUENCE;
     use crate::cli::nextclade_cli::{NextcladeCommands, NextcladeSortArgs, nextclade_parse_args};
+    use nextclade::sort::minimizer_search::MinimizerSearchDatasetResult;
     use std::io::{self, ErrorKind, Write};
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
@@ -191,6 +237,32 @@ mod tests {
         std::fs::write(&path, content).unwrap();
         path
       }
+    }
+
+    pub fn dataset(name: &str) -> MinimizerSearchDatasetResult {
+      MinimizerSearchDatasetResult {
+        name: name.to_owned(),
+        length: 100,
+        n_hits: 10,
+        score: 0.9,
+      }
+    }
+
+    /// Cells of the rows of the summary table that follows the per-sequence table, without colors and borders
+    pub fn summary_rows(output: &[u8]) -> Vec<Vec<String>> {
+      let output = console::strip_ansi_codes(std::str::from_utf8(output).unwrap()).into_owned();
+      let (_, summary) = output.split_once("\n\n\nSuggested datasets\n").unwrap();
+      summary
+        .lines()
+        .filter(|line| line.contains('│') && !line.contains("Num. seq"))
+        .map(|line| {
+          line
+            .split('│')
+            .map(|cell| cell.trim().to_owned())
+            .filter(|cell| !cell.is_empty())
+            .collect()
+        })
+        .collect()
     }
 
     pub fn sort_args(dir: &SortDir, input: &Path, args: &[&str]) -> NextcladeSortArgs {

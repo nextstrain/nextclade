@@ -425,6 +425,7 @@ pub(crate) struct StatsPrinter<W: io::Write> {
   enabled: bool,
   writer: W,
   stats: BTreeMap<String, usize>,
+  n_seq: usize,
   n_undetected: usize,
 }
 
@@ -435,6 +436,7 @@ impl<W: io::Write> StatsPrinter<W> {
       enabled,
       writer,
       stats: BTreeMap::new(),
+      n_seq: 0,
       n_undetected: 0,
     };
 
@@ -454,11 +456,12 @@ impl<W: io::Write> StatsPrinter<W> {
 
   /// Count and print the suggested datasets of one sequence
   pub(crate) fn print_seq(&mut self, datasets: &[MinimizerSearchDatasetResult], seq_name: &str) -> Result<(), Report> {
+    self.n_seq += 1;
     if datasets.is_empty() {
       self.n_undetected += 1;
     }
     for dataset in datasets {
-      *self.stats.entry(dataset.name.clone()).or_insert(1) += 1;
+      *self.stats.entry(dataset.name.clone()).or_insert(0) += 1;
     }
 
     if !self.enabled {
@@ -513,7 +516,8 @@ impl<W: io::Write> StatsPrinter<W> {
     writeln!(table, "{:^40} │ {:^10} │ {:^10} │", "Dataset", "Num. seq", "Percent")?;
     writeln!(table, "{}┤", "─".repeat(67))?;
 
-    let total_seq = self.stats.values().sum::<usize>() + self.n_undetected;
+    // With `--all-matches`, a sequence counts once for each of its datasets, and once in the total
+    let total_seq = self.n_seq;
     let stats = self
       .stats
       .iter()
