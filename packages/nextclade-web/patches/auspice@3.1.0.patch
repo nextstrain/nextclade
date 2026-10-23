@@ -570,6 +570,22 @@ index e280bcde1139a3fd29d860512f3b1485f84880f6..e4e8ec70ac84f1f1c7f5940dbeece879
    const visPos = this.scales.xNav.domain()[1] - this.scales.xNav.domain()[0];
    if (visPos > 1e6) {   /* axes number differently if large genome */
      this.axes.xNav.tickFormat(format(".1e"));
+diff --git a/src/components/entropy/index.js b/src/components/entropy/index.js
+index 4067926c1006ba9893202621939e96d4a70e6cfd..87192833a76d4db34b9459890f0f5bf6e78d9b99 100644
+--- a/src/components/entropy/index.js
++++ b/src/components/entropy/index.js
+@@ -335,9 +335,9 @@ class Entropy extends React.Component {
+   }
+ 
+   componentWillUnmount() {
+-    /* stop observing and tear the chart down, so neither outlives the component */
++    /* stop observing and remove the drawing, so neither outlives the component. Under React StrictMode the state does not hold the chart yet at the first unmount, so remove the drawing from the DOM */
+     if (this.observer) this.observer.disconnect();
+-    if (this.state.chart) this.state.chart.destroy();
++    select(this.d3entropy).selectAll("*").remove();
+   }
+ }
+ 
 diff --git a/src/components/info/filterBadge.js b/src/components/info/filterBadge.js
 index 5c1e69c62ab2328fd2c5ca71e17bc951bd724101..7a76b88e3a29fce33b8074dd27d358171daadb9d 100644
 --- a/src/components/info/filterBadge.js
