@@ -17,8 +17,6 @@ workspace = true
 
 [dependencies]
 assert2 = { workspace = true }
-cap-fs-ext = { workspace = true }
-cap-std = { workspace = true }
 clap = { workspace = true }
 clap-markdown = { workspace = true }
 clap_complete = { workspace = true }
@@ -31,7 +29,6 @@ crossbeam-channel = { workspace = true }
 ctor = { workspace = true }
 dotenvy_macro = { workspace = true }
 eyre = { workspace = true }
-icu_normalizer = { workspace = true }
 indexmap = { workspace = true }
 itertools = { workspace = true }
 log = { workspace = true }
