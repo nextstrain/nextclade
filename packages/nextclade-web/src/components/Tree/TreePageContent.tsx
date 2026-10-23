@@ -24,7 +24,7 @@ import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 import { LogoGisaid } from 'src/components/Common/LogoGisaid'
 import { Tree, TREE_OVERLAY_Z_INDEX } from 'src/components/Tree/Tree'
 import { Sidebar } from 'src/components/Tree/Sidebar'
-import { SidebarLayout } from 'src/components/Layout/SidebarLayout'
+import { SidebarLabels, SidebarLayout } from 'src/components/Layout/SidebarLayout'
 import { PAGE_GUTTER_PX, SIDEBAR_THEME } from 'src/components/Layout/sidebarTheme'
 import { LoadingSpinner } from 'src/components/Loading/Loading'
 import { attrStrMaybe, Dataset } from 'src/types'
@@ -392,14 +392,25 @@ interface TreePageFrameProps {
   children: ReactNode
 }
 
-/** Translations and theme of the Auspice sidebar, and the sidebar layout */
+/** Translations and theme of the Auspice sidebar, and the sidebar layout. The sidebar is named as in other Auspice viewers */
 function TreePageFrame({ sidebar, children }: TreePageFrameProps) {
+  const { t } = useTranslationSafe()
+  const labels = useMemo(
+    (): SidebarLabels => ({
+      sidebar: t('Auspice controls'),
+      hide: t('Hide Auspice controls'),
+      show: t('Show Auspice controls'),
+    }),
+    [t],
+  )
   return (
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     <I18nextProvider i18n={i18nAuspice}>
       <ThemeProvider theme={SIDEBAR_THEME as never}>
-        <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>
+        <SidebarLayout sidebar={sidebar} labels={labels}>
+          {children}
+        </SidebarLayout>
       </ThemeProvider>
     </I18nextProvider>
   )

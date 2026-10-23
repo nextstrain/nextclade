@@ -9,6 +9,10 @@ declare module 'auspice/src/util/globals' {
   export const NODE_VISIBLE: number
   /** Width of the controls of the sidebar, in pixels */
   export const controlsWidth: number
+  /** Horizontal padding of the sidebar around its controls, in pixels */
+  export const controlsPadding: number
+  /** Window width, in pixels, at or below which the sidebar covers the panels and starts closed */
+  export const controlsHiddenWidth: number
   /** Style and attribution (HTML) of the map tiles */
   export function getMapTilesSettings(): { style: unknown; attribution: string }
 }

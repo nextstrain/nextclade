@@ -1,3 +1,5 @@
+import { controlsPadding, controlsWidth } from 'auspice/src/util/globals'
+
 /** Sidebar colors and font, matching the Auspice sidebar theme used on nextstrain.org */
 export const SIDEBAR_THEME = {
   'background': '#F2F2F2',
@@ -9,8 +11,8 @@ export const SIDEBAR_THEME = {
   'unselectedBackground': '#888',
 }
 
-/** Width of the sidebar when open */
-export const SIDEBAR_WIDTH_PX = 260
+/** Width of the sidebar when open: Auspice's sidebar width, its controls and their padding */
+export const SIDEBAR_WIDTH_PX = controlsWidth + controlsPadding
 
 /**
  * Space on the left of page content next to a sidebar, where the closed sidebar's pull tab rests. Pages pad their

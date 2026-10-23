@@ -6,10 +6,17 @@ import { SIDEBAR_THEME, SIDEBAR_WIDTH_PX } from 'src/components/Layout/sidebarTh
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { isSidebarOpenAtom, isWideViewportAtom } from 'src/state/sidebar.state'
 
-const TRANSITION = '0.15s ease-out'
+/** Slide of the sidebar and fade of the backdrop, as in Auspice (`src/components/main/styles.js`) */
+const TRANSITION_DURATION = '0.3s'
+const TRANSITION = `${TRANSITION_DURATION} ease-out`
 
-/** Width of the pull tab beside the sidebar. Narrower than the page gutter, to keep a gap to the page content */
-const PULL_TAB_WIDTH_PX = 12
+/**
+ * Size and place of the pull tab beside the sidebar: Auspice's sidebar toggle (`src/components/framework/sidebar-toggle.js`).
+ * Narrower than the page gutter, to keep a gap to the page content
+ */
+const PULL_TAB_WIDTH_PX = 14
+const PULL_TAB_HEIGHT_PX = 44
+const PULL_TAB_TOP_PX = 4
 
 /** Width of the shadow on the sidebar's right edge. The pull tab overlaps it, so that both look like one piece */
 const SIDEBAR_EDGE_SHADOW_PX = 3
@@ -20,7 +27,15 @@ const MIN_UNCOVERED_CONTENT_PX = 40
 export interface SidebarLayoutProps {
   /** Sidebar content. The page content takes the full width when omitted */
   sidebar?: ReactNode
+  /** Names of the sidebar and of the actions of its pull tab, for assistive technology and the tooltip of the pull tab */
+  labels?: SidebarLabels
   children: ReactNode
+}
+
+export interface SidebarLabels {
+  sidebar: string
+  hide: string
+  show: string
 }
 
 /**
@@ -29,10 +44,10 @@ export interface SidebarLayoutProps {
  * The sidebar slides in and out within the page content area, so the app's navigation bar and footer stay visible.
  * A pull tab on the sidebar's right edge toggles it, and stays visible on the edge of the page content when closed.
  * On wide viewports the open sidebar takes space from the page content, and the user's open/closed choice is
- * remembered. On narrow viewports there is not enough room for both, so the open sidebar covers the page content
- * and closes on Escape or on a click on the uncovered content.
+ * remembered. On narrow viewports there is not enough room for both, so the open sidebar covers the page content,
+ * which a backdrop darkens as in Auspice, and closes on Escape or on a click on the uncovered content.
  */
-export function SidebarLayout({ sidebar, children }: SidebarLayoutProps) {
+export function SidebarLayout({ sidebar, labels, children }: SidebarLayoutProps) {
   if (sidebar === undefined) {
     return (
       <Container>
@@ -40,10 +55,14 @@ export function SidebarLayout({ sidebar, children }: SidebarLayoutProps) {
       </Container>
     )
   }
-  return <SidebarLayoutWithSidebar sidebar={sidebar}>{children}</SidebarLayoutWithSidebar>
+  return (
+    <SidebarLayoutWithSidebar sidebar={sidebar} labels={labels}>
+      {children}
+    </SidebarLayoutWithSidebar>
+  )
 }
 
-function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutProps>) {
+function SidebarLayoutWithSidebar({ sidebar, labels, children }: SidebarLayoutProps) {
   const { t } = useTranslationSafe()
   const sidebarId = useId()
   const isWide = useAtomValue(isWideViewportAtom)
@@ -101,12 +120,12 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
   )
 
   const indentPx = !isOverlay && isSpaceReserved ? SIDEBAR_WIDTH_PX : 0
-  const pullTabLabel = isOpen ? t('Hide sidebar') : t('Show sidebar')
+  const pullTabLabel = isOpen ? (labels?.hide ?? t('Hide sidebar')) : (labels?.show ?? t('Show sidebar'))
 
   return (
     <Container>
       <Rail ref={railRef} onKeyDown={handleKeyDown} $isOpen={isOpen}>
-        <Sidebar ref={sidebarRef} id={sidebarId} aria-label={t('Sidebar')} $isOverlay={isOverlay}>
+        <Sidebar ref={sidebarRef} id={sidebarId} aria-label={labels?.sidebar ?? t('Sidebar')} $isOverlay={isOverlay}>
           {sidebar}
         </Sidebar>
         <PullTab
@@ -123,7 +142,7 @@ function SidebarLayoutWithSidebar({ sidebar, children }: Required<SidebarLayoutP
         </PullTab>
       </Rail>
 
-      {isOverlay && isOpen && <DismissArea onClick={close} aria-hidden />}
+      {isOverlay && <Backdrop onClick={close} $isVisible={isOpen} aria-hidden />}
 
       <IndentedMain $indentPx={indentPx}>{children}</IndentedMain>
     </Container>
@@ -208,13 +227,13 @@ const Sidebar = styled.aside<{ $isOverlay: boolean }>`
  */
 const PullTab = styled.button<{ $isOverlay: boolean }>`
   position: absolute;
-  top: 0;
+  top: ${PULL_TAB_TOP_PX}px;
   left: calc(100% - ${SIDEBAR_EDGE_SHADOW_PX}px);
   display: flex;
   align-items: center;
   justify-content: center;
   width: ${PULL_TAB_WIDTH_PX + SIDEBAR_EDGE_SHADOW_PX}px;
-  height: 44px;
+  height: ${PULL_TAB_HEIGHT_PX}px;
   padding: 0 0 0 ${SIDEBAR_EDGE_SHADOW_PX}px;
   border: none;
   border-radius: 0 6px 6px 0;
@@ -236,9 +255,25 @@ const PullTab = styled.button<{ $isOverlay: boolean }>`
   }
 `
 
-/** Transparent layer over the page content under the overlaying sidebar. Catches the click that closes the sidebar */
-const DismissArea = styled.div`
+/**
+ * Layer over the page content under the overlaying sidebar, darkened as Auspice's backdrop (`calcStyles()` in
+ * `src/components/main/utils.js`). Fades in and out with the slide of the sidebar, and catches the click that closes
+ * the sidebar
+ */
+const Backdrop = styled.div<{ $isVisible: boolean }>`
   position: absolute;
   z-index: 2;
   inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
+  visibility: ${({ $isVisible }) => ($isVisible ? 'visible' : 'hidden')};
+  transition: ${({ $isVisible }) =>
+    $isVisible
+      ? `opacity ${TRANSITION}, visibility 0s`
+      : `opacity ${TRANSITION}, visibility 0s linear ${TRANSITION_DURATION}`};
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `

@@ -1,9 +1,12 @@
 import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
-import { theme } from 'src/theme'
+import { controlsHiddenWidth } from 'auspice/src/util/globals'
 
-/** Media query matching viewports wide enough to show the sidebar next to the page content */
-const WIDE_VIEWPORT_QUERY = `(min-width: ${theme.md})`
+/**
+ * Media query matching viewports wide enough to show the sidebar next to the page content: wider than Auspice's
+ * `controlsHiddenWidth`, at or below which Auspice's sidebar covers its panels and starts closed
+ */
+const WIDE_VIEWPORT_QUERY = `(min-width: ${controlsHiddenWidth + 1}px)`
 
 function matchWideViewport(): boolean {
   return typeof window === 'undefined' || window.matchMedia(WIDE_VIEWPORT_QUERY).matches
