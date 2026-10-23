@@ -18,11 +18,15 @@ Each sequence in the results table has a tree button at the end of its name, whi
 
 ### Nextclade Web: compare two trees of an analysis
 
-When an analysis of several datasets has more than one tree, the "Second tree" select in the sidebar draws another tree next to the viewed one, with lines between tips of the same name, to compare where samples are placed in both trees. Tips are linked only when their names are the same, for example when you name the segment sequences of a sample alike.
+When an analysis of several datasets has more than one tree, the "Second tree" select in the sidebar draws another tree next to the viewed one, with lines between tips of the same name, to compare where samples are placed in both trees. Tips are linked only when their names are the same, for example when you name the segment sequences of a sample alike. A coloring by genotype colors both trees when they have the same genome annotation.
 
 ### Nextclade Web: map of added coordinates
 
-When you add metadata with `latitude` and `longitude` columns to the tree, a Map section appears in the sidebar. The map stays off until you turn it on, because its map tiles load from OpenFreeMap, which then sees the map area of your samples. Samples at different coordinates stay apart, and rows with empty coordinates are skipped. SVG figures with the map include the attribution of the map tiles.
+When you add metadata with `latitude` and `longitude` columns to the tree, the tree page shows a map of these coordinates, and the Map section of the sidebar turns it off and on. The map draws the country outlines, borders and names of [Natural Earth](https://www.naturalearthdata.com/) from files that Nextclade Web serves itself, so the map sends no request to another server. Samples at different coordinates stay apart, and rows with empty coordinates are skipped. SVG figures with the map name Natural Earth as the source of the map. Browsers without WebGL cannot draw the map, and Nextclade Web tells you so when you add coordinates.
+
+### Nextclade Web: panel layout of the tree page
+
+The tree page lays out the tree, the map and the diversity chart as Auspice does on nextstrain.org, with Auspice's panel sizes, so the top of the next panel shows below the tree. When the map is shown, the "Display" control in the sidebar shows the tree and the map side by side ("grid") or one below the other ("full"). The sidebar has the width of Auspice's sidebar. On windows of 780 pixels or narrower, the sidebar opens over the panels and darkens them, and starts closed.
 
 ### Nextclade CLI: parse errors of `pathogen.json` and the minimizer index
 
