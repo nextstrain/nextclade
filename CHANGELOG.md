@@ -12,6 +12,10 @@ Some reference trees, such as the one of the West Nile virus dataset, have a dat
 
 The tree section of the sidebar has a "Show streamtrees" toggle, which draws each labeled clade as a stream: the density of its visible sequences along the divergence axis, divided by the current coloring. With the default filter, the streams show how your sequences spread over the clades.
 
+### Nextclade Web: from the results table to the tree
+
+Each sequence in the results table has a tree button at the end of its name, which opens the tree page filtered to that sequence and zoomed to a clade around it. A click on a nucleotide or amino acid mutation in the sequence view opens the tree colored by the genotype at that position.
+
 ### Nextclade CLI: parse errors of `pathogen.json` and the minimizer index
 
 When `pathogen.json` of a dataset or of `--input-pathogen-json`, or the minimizer index of `nextclade sort`, cannot be parsed, the error message now names the file, as the errors of the other dataset files do.
