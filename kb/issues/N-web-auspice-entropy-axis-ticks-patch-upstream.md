@@ -2,13 +2,13 @@
 
 ## Problem
 
-Auspice 3.0.0 asks d3 for 16 ticks on the main genome axis of the entropy chart and 20 on the navigation axis below it, whatever the chart width. On a phone, the labels (such as "28,000") run into each other and cannot be read.
+Auspice 3.1.0 asks d3 for 16 ticks on the main genome axis of the entropy chart and 20 on the navigation axis below it, whatever the chart width. On a phone, the labels (such as "28,000") run into each other and cannot be read.
 
-Nextclade fixes this in the Bun patch of Auspice, `packages/nextclade-web/patches/auspice@3.0.0.patch`: each axis asks for one tick per 60 px of its width, at most the numbers above.
+Nextclade fixes this in the Bun patch of Auspice, `packages/nextclade-web/patches/auspice@3.1.0.patch`: each axis asks for one tick per 60 px of its width, at most the numbers above.
 
 ## Code
 
-- Axis ticks: [entropy/entropyD3.js#L609-L612](https://github.com/nextstrain/auspice/blob/v3.0.0/src/components/entropy/entropyD3.js#L609-L612)
+- Axis ticks: [entropy/entropyD3.js#L627-L630](https://github.com/nextstrain/auspice/blob/v3.1.0/src/components/entropy/entropyD3.js#L627-L630)
 
 ## Fix
 
