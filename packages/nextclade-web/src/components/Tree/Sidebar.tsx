@@ -11,6 +11,7 @@ import ColorBy, { ColorByInfo } from 'auspice/src/components/controls/color-by'
 import ChooseBranchLabelling from 'auspice/src/components/controls/choose-branch-labelling'
 import ChooseLayout from 'auspice/src/components/controls/choose-layout'
 import { ToggleFocus } from 'auspice/src/components/controls/toggle-focus'
+import { ChooseStreamTrees } from 'auspice/src/components/controls/choose-stream-trees'
 import ChooseMetric from 'auspice/src/components/controls/choose-metric'
 import ChooseTipLabel from 'auspice/src/components/controls/choose-tip-label'
 import ChooseExplodeAttr from 'auspice/src/components/controls/choose-explode-attr'
@@ -179,6 +180,7 @@ function TreePanel() {
         <ChooseLayout />
         <ChooseMetric />
         <ToggleFocus />
+        <ChooseStreamTrees />
         <ChooseBranchLabelling />
         <ChooseTipLabel />
         <ChooseExplodeAttr tooltip={ExplodeTreeInfo} />
