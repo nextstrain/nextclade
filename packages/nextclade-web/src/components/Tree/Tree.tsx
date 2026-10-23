@@ -18,6 +18,12 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
  */
 const CARD_TITLE_HEIGHT_PX = 26
 
+/**
+ * Height of the title row of the tree card while two trees are shown: Auspice writes the names of the trees 25 px below
+ * the top of the card, in a 16 px font, so the row holds them above the trees
+ */
+const CARD_TITLE_HEIGHT_TWO_TREES_PX = 46
+
 /** Space between the tree header and the tree zoom buttons, which share the title row of the tree card. Matches the
  * space between the zoom buttons, so that buttons at the end of the header look like one group with them */
 const HEADER_GAP_PX = TREE_TAB_BUTTON_GAP_PX
@@ -104,15 +110,20 @@ export function Tree({ summary, actions }: TreeProps) {
   const { width: actionsWidth, ref: actionsRef } = useResizeDetector<HTMLDivElement>({
     observerOptions: { box: 'border-box' },
   })
-  const isHeaderStacked =
-    width !== undefined && width - headerRight < (actionsWidth ?? 0) + HEADER_ITEM_GAP_PX + HEADER_MIN_SUMMARY_WIDTH_PX
-
   // The sidebar toggles the entropy chart through Auspice's list of displayed panels
   const showEntropy = useSelector((state: AuspiceState) => state.controls?.panelsToDisplay?.includes('entropy'))
+  const hasTwoTrees = useSelector((state: AuspiceState) => !!state.controls?.showTreeToo)
+
+  // Two trees have a group of zoom buttons each, and the names of the trees in the title row, so the header takes its
+  // own row then
+  const isHeaderStacked =
+    hasTwoTrees ||
+    (width !== undefined && width - headerRight < (actionsWidth ?? 0) + HEADER_ITEM_GAP_PX + HEADER_MIN_SUMMARY_WIDTH_PX)
 
   const visibleHeight = size?.height ?? 0
   const headerRowHeight = isHeaderStacked ? CARD_TITLE_HEIGHT_PX : 0
-  const treeHeight = visibleHeight - headerRowHeight - CARD_TITLE_HEIGHT_PX - CHART_BOTTOM_GAP_PX
+  const treeTitleHeight = hasTwoTrees ? CARD_TITLE_HEIGHT_TWO_TREES_PX : CARD_TITLE_HEIGHT_PX
+  const treeHeight = visibleHeight - headerRowHeight - treeTitleHeight - CHART_BOTTOM_GAP_PX
   const hasSize = width !== undefined && width > 0 && treeHeight > 0
 
   const isHeaderCompact = width !== undefined && width <= HEADER_COMPACT_MAX_WIDTH_PX
@@ -128,7 +139,12 @@ export function Tree({ summary, actions }: TreeProps) {
     <ScrollArea ref={ref}>
       {hasSize && (
         <>
-          <AuspicePanel ref={treePanelRef} $hideTitle $isZoomButtonsRowOwn={isHeaderStacked}>
+          <AuspicePanel
+            ref={treePanelRef}
+            $hideTitle
+            $titleHeightPx={treeTitleHeight}
+            $isZoomButtonsRowOwn={isHeaderStacked}
+          >
             {header}
             <TreePanelErrorBoundary subject={t('the tree')}>
               <AuspiceTree width={width} height={treeHeight} />
@@ -177,7 +193,12 @@ const ScrollArea = styled.div`
  * Wrapper of an Auspice card, which is its last child, after the tree header if any. Replaces the card's margins and
  * padding, and fixes the height of its title row
  */
-const AuspicePanel = styled.div<{ $hideTitle?: boolean; $isZoomButtonsRowOwn?: boolean; $noSelect?: boolean }>`
+const AuspicePanel = styled.div<{
+  $hideTitle?: boolean
+  $titleHeightPx?: number
+  $isZoomButtonsRowOwn?: boolean
+  $noSelect?: boolean
+}>`
   position: relative;
 
   & > div:last-child {
@@ -197,7 +218,7 @@ const AuspicePanel = styled.div<{ $hideTitle?: boolean; $isZoomButtonsRowOwn?: b
 
   & > div:last-child > div:first-child {
     box-sizing: border-box;
-    height: ${CARD_TITLE_HEIGHT_PX}px;
+    height: ${({ $titleHeightPx = CARD_TITLE_HEIGHT_PX }) => $titleHeightPx}px;
     min-height: 0 !important;
     margin: 0 !important;
     line-height: ${CARD_TITLE_HEIGHT_PX - 1}px;

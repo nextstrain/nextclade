@@ -6,4 +6,7 @@ declare module 'auspice/src/components/controls/styles' {
   export const ControlsContainer: FC<PropsWithChildren>
 
   export const TitleAndIconContainer: FC<PropsWithChildren>
+
+  /** Title of a control in a sidebar section */
+  export const SidebarSubtitle: FC<PropsWithChildren>
 }

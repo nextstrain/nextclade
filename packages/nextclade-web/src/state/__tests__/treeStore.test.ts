@@ -1,7 +1,13 @@
 import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 import { applyFilter } from 'auspice/src/actions/tree'
 import { strainSymbol } from 'auspice/src/util/globals'
-import { colorTreeByPositions, findPlacedSequenceNode, showSequenceOnTree } from 'src/state/auspice/auspice.actions'
+import {
+  colorTreeByPositions,
+  findPlacedSequenceNode,
+  hideSecondTree,
+  showSecondTree,
+  showSequenceOnTree,
+} from 'src/state/auspice/auspice.actions'
 import { getTreeStore } from 'src/state/store'
 
 // Auspice sizes its panels from the browser window, also when its reducers load
@@ -103,6 +109,52 @@ describe('tree store', () => {
       store.dispatch(colorTreeByPositions('ORF9', [1]))
 
       expect(store.getState().controls?.colorBy).toBe('clade_membership')
+    })
+  })
+
+  describe('second tree', () => {
+    test('draws a second tree with links between tips of the same name, keeping the view of the first tree', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(colorTreeByPositions('nuc', [4]))
+      store.dispatch(applyFilter('add', 'clade_membership', ['X']))
+
+      store.dispatch(showSecondTree(makeTree({ extraNewTips: ['seqC'] }), 'first', 'second'))
+
+      const { controls, tree, treeToo } = store.getState()
+      const linkedNames = (treeToo?.tangleTipLookup ?? []).map(([left]) => tree?.nodes?.[left]?.name).sort()
+      expect({
+        showTreeToo: controls?.showTreeToo,
+        colorBy: controls?.colorBy,
+        cladeFilter: controls?.filters?.clade_membership,
+        linkedNames,
+      }).toStrictEqual({
+        showTreeToo: 'second',
+        colorBy: 'gt-nuc_5',
+        cladeFilter: [{ value: 'X', active: true }],
+        linkedNames: ['seqA'],
+      })
+    })
+
+    test('returns to one tree', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(showSecondTree(makeTree(), 'first', 'second'))
+
+      store.dispatch(hideSecondTree())
+
+      expect(store.getState().controls?.showTreeToo).toBe(false)
+    })
+
+    test('shows a sequence on the first tree while a second tree is shown', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(showSecondTree(makeTree(), 'first', 'second'))
+
+      store.dispatch(showSequenceOnTree('seqA'))
+
+      const { controls, tree } = store.getState()
+      expect([controls?.filters?.[strainSymbol], tree?.nodes?.[tree.idxOfInViewRootNode ?? 0]?.name]).toStrictEqual([
+        [{ value: 'seqA', active: true }],
+        'cladeX',
+      ])
     })
   })
 })

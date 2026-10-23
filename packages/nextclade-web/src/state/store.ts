@@ -12,7 +12,7 @@ import createRootReducer from './reducer'
 /**
  * Auspice store of each tree, kept while the tree exists. The tree page takes the store of its tree when it mounts
  * again (e.g. after a visit to the results page), so the user's view of the tree stays as they left it: coloring,
- * filters, zoom, selection, edited colors, added metadata
+ * filters, zoom, selection, edited colors, added metadata and a second tree
  */
 const treeStores = new WeakMap<AuspiceJsonV2, AuspiceStore>()
 

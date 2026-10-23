@@ -145,7 +145,7 @@ export default function TreePageContent() {
   return (
     <ReactReduxProvider store={store}>
       <TreePageFrame sidebar={<Sidebar controls="tree" />}>
-        <TreeView datasetPath={effectiveDatasetPath} datasetTag={dataset?.version?.tag} />
+        <TreeViewOfTrees datasetPath={effectiveDatasetPath} datasetTag={dataset?.version?.tag} />
       </TreePageFrame>
     </ReactReduxProvider>
   )
@@ -154,6 +154,15 @@ export default function TreePageContent() {
 interface TreeViewProps {
   datasetPath: string | undefined
   datasetTag: string | undefined
+}
+
+/**
+ * Tree view, drawn anew when a second tree is added, replaced or removed: Auspice draws the trees from the nodes of the
+ * store when it mounts, as Auspice's own app keys its panels by the shown trees
+ */
+function TreeViewOfTrees(props: TreeViewProps) {
+  const secondTreeName = useSelector((state: AuspiceState) => state.controls?.showTreeToo)
+  return <TreeView key={secondTreeName || ''} {...props} />
 }
 
 /**

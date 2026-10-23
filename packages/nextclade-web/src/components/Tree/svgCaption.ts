@@ -10,6 +10,8 @@ export interface SvgCaptionParams {
   dataProvenance: string[]
   datasetPath?: string
   datasetTag?: string
+  /** Dataset of the second tree, drawn next to the main tree */
+  secondDataset?: { path: string; tag?: string }
   nextcladeVersion: string
   /** Address of the app */
   origin: string
@@ -31,6 +33,7 @@ export function svgCaption({
   dataProvenance,
   datasetPath,
   datasetTag,
+  secondDataset,
   nextcladeVersion,
   origin,
   date,
@@ -44,9 +47,8 @@ export function svgCaption({
   ]
   return [
     ...(title ? [escape(title)] : []),
-    ...(datasetPath
-      ? [`Nextclade dataset ${escape(datasetPath)}${datasetTag ? ` (version ${escape(datasetTag)})` : ''}`]
-      : []),
+    ...(datasetPath ? [`Nextclade dataset ${datasetName(datasetPath, datasetTag)}`] : []),
+    ...(secondDataset ? [`Second tree: Nextclade dataset ${datasetName(secondDataset.path, secondDataset.tag)}`] : []),
     ...(treeFacts.length > 0 ? [`Reference tree ${treeFacts.join(', ')}`] : []),
     `Made with Nextclade Web ${escape(nextcladeVersion)}, <a href="${link}">${link}</a>, on ${escape(date)}`,
     escape(summary),
@@ -57,4 +59,8 @@ export function svgCaption({
         `<a href="${escape(pub.href)}">${escape(`${pub.author}, ${pub.title}, ${pub.journal} (${pub.year})`)}</a>`,
     ),
   ]
+}
+
+function datasetName(path: string, tag: string | undefined): string {
+  return `${escape(path)}${tag ? ` (version ${escape(tag)})` : ''}`
 }

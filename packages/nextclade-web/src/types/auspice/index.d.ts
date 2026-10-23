@@ -23,6 +23,8 @@ declare module 'auspice' {
     selectedClade?: any
     debug?: any
     stateCountAttrs?: any
+    /** Pairs of indices of tips with the same name in the main tree and the second tree, which the tanglegram links */
+    tangleTipLookup?: [number, number][]
   }
 
   /** Tree node in the Auspice store: the node of the tree JSON with the links and counts that Auspice adds */
@@ -113,9 +115,11 @@ declare module 'auspice' {
     panelsAvailable?: string[]
     panelsToDisplay?: string[]
     panelLayout?: string
-    showTreeToo?: boolean
+    /** Name of the second tree, while one is shown */
+    showTreeToo?: string | false
     showTangle?: boolean
     showStreamTrees?: boolean
+    explodeAttr?: string
     zoomMin?: any
     zoomMax?: any
     branchLengthsToDisplay?: string

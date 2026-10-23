@@ -16,8 +16,3 @@ declare module 'auspice/src/actions/notifications' {
   export function successNotification(params?: NotificationParams): NotificationThunk
   export function warningNotification(params?: NotificationParams): NotificationThunk
 }
-
-declare module 'auspice/src/actions/types' {
-  export const REMOVE_NOTIFICATION: string
-  export const BROWSER_DIMENSIONS: string
-}

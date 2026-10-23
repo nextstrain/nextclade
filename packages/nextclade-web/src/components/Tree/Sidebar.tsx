@@ -26,6 +26,7 @@ import { LogoPoweredByAuspice } from 'src/components/Tree/LogoPoweredByAuspice'
 import { SIDEBAR_THEME } from 'src/components/Layout/sidebarTheme'
 import { auspiceFilterBadgeIconsCentered } from 'src/components/Tree/auspiceFilterBadgeStyle'
 import { AddMetadataButton } from 'src/components/Tree/AddMetadataButton'
+import { ChooseSecondTree } from 'src/components/Tree/ChooseSecondTree'
 
 export const StyledAuspiceControlsContainer = styled(ControlsContainer)`
   font-family: ${SIDEBAR_THEME['font-family']};
@@ -183,6 +184,7 @@ function TreePanel() {
         <ChooseStreamTrees />
         <ChooseBranchLabelling />
         <ChooseTipLabel />
+        <ChooseSecondTree />
         <ChooseExplodeAttr tooltip={ExplodeTreeInfo} />
       </div>
     </div>

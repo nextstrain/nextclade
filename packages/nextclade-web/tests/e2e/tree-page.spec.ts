@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises'
-import { test, expect, Download, Page } from '@playwright/test'
+import { test, expect, APIRequestContext, Download, Page } from '@playwright/test'
 import { URLParameterTester } from './helpers/url-parameters'
 
 const NO_TREE_HEADING = 'This dataset has no reference tree'
@@ -189,7 +189,7 @@ test.describe('Tree page view of the tree', () => {
   })
 })
 
-test.describe('Tree page links', () => {
+test.describe('Tree page links and second tree', () => {
   test.describe.configure({ timeout: 300_000 })
 
   test('shows a sequence on the tree from the results table', async ({ page }) => {
@@ -203,6 +203,29 @@ test.describe('Tree page links', () => {
 
     await page.waitForURL('**/tree')
     await expect(page.getByRole('button', { name: `Remove filter ${seqName}` })).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('draws a second tree of the analysis with lines between tips of the same name', async ({ page, request }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    const fasta = await segmentSequencesWithSharedNames(request)
+
+    await page.goto('/?multi-dataset=true')
+    await page.getByText('Text', { exact: true }).click()
+    await page.getByRole('textbox').fill(fasta)
+    await page.getByRole('button', { name: 'OK', exact: true }).click()
+    const runButton = page.getByRole('button', { name: 'Run', exact: true })
+    await expect(runButton).toBeEnabled({ timeout: 120_000 })
+    await runButton.click()
+    await expect(page.getByText(/Done\. Total sequences/)).toBeVisible({ timeout: 180_000 })
+    await openTreePage(page)
+    await page.getByRole('combobox', { name: 'Second tree' }).focus()
+    await page.keyboard.press('ArrowDown')
+    await page.getByRole('option').filter({ hasNotText: 'None' }).first().click()
+
+    await expect(page.locator('#SecondTree')).toBeAttached()
+    await expect(page.getByText('2 visible tips are linked by name')).toBeVisible()
     expect(errors).toEqual([])
   })
 })
@@ -274,6 +297,31 @@ async function readDownload(download: Download): Promise<string> {
 /** Text of an SVG file, one space between its text elements. A line of text that wraps is split into several elements */
 function svgText(svg: string): string {
   return Array.from(svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g), ([, text]) => text).join(' ')
+}
+
+/**
+ * FASTA text with two influenza H3N2 HA and two NA sequences of the latest dataset examples, renamed so that each
+ * segment pair has the same name, as the segments of one sample
+ */
+async function segmentSequencesWithSharedNames(request: APIRequestContext): Promise<string> {
+  const server = 'https://data.clades.nextstrain.org/v3'
+  const index = (await (await request.get(`${server}/index.json`)).json()) as DatasetIndex
+  const datasets = index.collections.flatMap((collection) => collection.datasets)
+  const segments = await Promise.all(
+    ['nextstrain/flu/h3n2/ha/EPI1857216', 'nextstrain/flu/h3n2/na/EPI1857215'].map(async (path) => {
+      const dataset = datasets.find((dataset) => dataset.path === path)
+      const tag = dataset?.versions.map((version) => version.tag).sort().at(-1)
+      const fasta = await (await request.get(`${server}/${path}/${tag}/${dataset?.files.examples}`)).text()
+      return fasta.split('>').slice(1, 3).map((record) => record.slice(record.indexOf('\n') + 1))
+    }),
+  )
+  return segments
+    .flatMap((sequences) => sequences.map((sequence, i) => `>sample${i + 1}\n${sequence.trim()}\n`))
+    .join('')
+}
+
+interface DatasetIndex {
+  collections: { datasets: { path: string; files: { examples?: string }; versions: { tag: string }[] }[] }[]
 }
 
 /** Names of two analyzed sequences, from the tree of the analysis */

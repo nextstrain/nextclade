@@ -7,4 +7,6 @@ declare module 'auspice/src/util/globals' {
   export const nucleotide_gene: string
   /** Visibility of a node that both the tree and the map show */
   export const NODE_VISIBLE: number
+  /** Width of the controls of the sidebar, in pixels */
+  export const controlsWidth: number
 }

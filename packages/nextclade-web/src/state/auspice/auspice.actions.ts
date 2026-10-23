@@ -1,9 +1,12 @@
+import copy from 'fast-copy'
 import type { AnyAction } from 'redux'
 import type { ThunkAction } from 'redux-thunk'
-import type { AuspiceReduxNode, AuspiceState } from 'auspice'
-import { applyFilter, updateVisibleTipsAndBranchThicknesses } from 'auspice/src/actions/tree'
+import type { AuspiceJsonV2, AuspiceReduxNode, AuspiceState } from 'auspice'
+import { applyFilter, explodeTree, updateVisibleTipsAndBranchThicknesses } from 'auspice/src/actions/tree'
 import { changeColorBy } from 'auspice/src/actions/colors'
 import { toggleStreamTree } from 'auspice/src/actions/treeStreams'
+import { createTreeTooState } from 'auspice/src/actions/recomputeReduxState'
+import { REMOVE_TREE_TOO, TREE_TOO_DATA } from 'auspice/src/actions/types'
 import { getCdsByName } from 'auspice/src/util/entropy'
 import { encodeColorByGenotype } from 'auspice/src/util/getGenotype'
 import { genotypeSymbol, NODE_VISIBLE, nucleotide_gene, strainSymbol } from 'auspice/src/util/globals'
@@ -82,6 +85,40 @@ export function colorTreeByPositions(cds: string, positions: number[]): AuspiceT
     const colorBy = encodeColorByGenotype({ gene: cds, positions: positions.map((pos) => pos + 1) })
     if (colorBy) {
       dispatch(changeColorBy(colorBy))
+    }
+  }
+}
+
+/**
+ * Draw a second tree next to the tree of this store, with lines between tips of the same name, as Auspice does when a
+ * second dataset is chosen. The coloring, filters and added metadata of the main tree stay. The trees are named after
+ * their datasets
+ */
+export function showSecondTree(secondTree: AuspiceJsonV2, mainTreeName: string, secondTreeName: string): AuspiceThunk {
+  return (dispatch, getState) => {
+    const { controls } = getState()
+    if (controls?.explodeAttr) {
+      dispatch(explodeTree(undefined))
+    }
+    if (getState().controls?.showStreamTrees) {
+      dispatch(toggleStreamTree())
+    }
+    const newState = createTreeTooState({
+      json: copy(secondTree),
+      oldState: getState(),
+      originalTreeUrl: mainTreeName,
+      secondTreeUrl: secondTreeName,
+      dispatch,
+    })
+    dispatch({ type: TREE_TOO_DATA, ...newState })
+  }
+}
+
+/** Remove the second tree, if any */
+export function hideSecondTree(): AuspiceThunk {
+  return (dispatch, getState) => {
+    if (getState().controls?.showTreeToo) {
+      dispatch({ type: REMOVE_TREE_TOO })
     }
   }
 }

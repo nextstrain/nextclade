@@ -2,10 +2,12 @@ import type { AuspiceState } from 'auspice'
 import { DateTime } from 'luxon'
 import { useCallback, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useRecoilValue } from 'recoil'
 import { errorNotification } from 'auspice/src/actions/notifications'
 import { publications } from 'auspice/src/components/download/downloadModal'
 import { SVG } from 'auspice/src/components/download/helperFunctions'
 import { datasetSummary } from 'auspice/src/components/info/datasetSummary'
+import { datasetsForAnalysisAtom } from 'src/state/dataset.state'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { svgCaption } from 'src/components/Tree/svgCaption'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -100,6 +102,17 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
   const panelsToDisplay = useSelector((state: AuspiceState) => state.controls?.panelsToDisplay)
   const panelLayout = useSelector((state: AuspiceState) => state.controls?.panelLayout)
   const branchLengthsToDisplay = useSelector((state: AuspiceState) => state.controls?.branchLengthsToDisplay)
+  const secondTreeName = useSelector((state: AuspiceState) => state.controls?.showTreeToo)
+  const datasets = useRecoilValue(datasetsForAnalysisAtom)
+
+  // The second tree is named after its dataset
+  const secondDataset = useMemo(() => {
+    if (!secondTreeName) {
+      return undefined
+    }
+    const dataset = datasets?.find(({ path }) => path === secondTreeName)
+    return { path: secondTreeName, tag: dataset?.version?.tag }
+  }, [datasets, secondTreeName])
 
   const relevantPublications = useMemo(() => {
     const isColoredByTiters = ['cTiter', 'rb', 'ep', 'ne'].some((x) => !!colorBy?.includes(x))
@@ -118,6 +131,7 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
       dataProvenance: (metadata?.dataProvenance ?? []).flatMap(({ name }) => (name ? [name] : [])),
       datasetPath,
       datasetTag,
+      secondDataset,
       nextcladeVersion: PACKAGE_VERSION,
       origin: window.location.origin,
       date: DateTime.now().toISODate() ?? '',
@@ -155,6 +169,7 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
     panelLayout,
     panelsToDisplay,
     relevantPublications,
+    secondDataset,
     t,
     visibility,
   ])
