@@ -65,7 +65,7 @@ index d11def6d1ac56959b562bd02356321eb2c55f27c..c382465d9ace0605b9fe9c488532d178
    /* invert map to link each strain to a dummy value with lat/longs */
    // TODO XXX what about the shape here?
 diff --git a/src/actions/recomputeReduxState.js b/src/actions/recomputeReduxState.js
-index 0c972ff1423bc036d1cb95e61a5c8f0919b74d51..d77d275d55ed0dd0ffb91f9b4aa09b3bc4108914 100644
+index 0c972ff1423bc036d1cb95e61a5c8f0919b74d51..ebe39c06fd72b4481e6b4fa94055f0ef40396afb 100644
 --- a/src/actions/recomputeReduxState.js
 +++ b/src/actions/recomputeReduxState.js
 @@ -440,6 +440,7 @@ const modifyControlsStateViaTree = (state, tree, treeToo, metadata) => {
@@ -104,6 +104,26 @@ index 0c972ff1423bc036d1cb95e61a5c8f0919b74d51..d77d275d55ed0dd0ffb91f9b4aa09b3b
        "divOnly";
  
    /* if branchLengthsToDisplay is "divOnly", force to display by divergence
+@@ -1151,7 +1157,9 @@ function instantiateSecondTree(secondTreeDataset, metadata, genomeMap, secondTre
+   castIncorrectTypes(metadata, treeToo);
+   treeToo.debug = "RIGHT";
+   treeToo.name = secondTreeName;
+-  updateMetadataStateViaSecondTree({...metadata}, secondTreeDataset, genomeMap)
++  /* the comparison of the genome maps marks the metadata that it gets, so keep the marked copy */
++  const metadataWithSecondTree = {...metadata};
++  updateMetadataStateViaSecondTree(metadataWithSecondTree, secondTreeDataset, genomeMap);
+ 
+   const secondTreeColorings = convertColoringsListToDict(secondTreeDataset.meta?.colorings || []);
+   const stateCountAttrs = gatherTraitNames(treeToo.nodes, secondTreeColorings);
+@@ -1160,7 +1168,7 @@ function instantiateSecondTree(secondTreeDataset, metadata, genomeMap, secondTre
+   /* TODO: calc & display num tips in 2nd tree */
+   // metadata.secondTreeNumTips = calcTotalTipsInTree(treeToo.nodes);
+ 
+-  return {treeToo, metadata}
++  return {treeToo, metadata: metadataWithSecondTree}
+ }
+ 
+ /**
 diff --git a/src/actions/updateMetadata/updateMetadata.ts b/src/actions/updateMetadata/updateMetadata.ts
 index 2a7b13070bf910d100ba3195972736ee3d2a4310..700119b50c9f9e0696250c49b0bdb7d0c5139b80 100644
 --- a/src/actions/updateMetadata/updateMetadata.ts

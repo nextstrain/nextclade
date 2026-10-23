@@ -141,6 +141,18 @@ describe('tree store', () => {
       })
     })
 
+    test('colors the second tree by genotype when both trees have the same genome annotation', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(showSecondTree(makeTree(), 'first', 'second'))
+
+      store.dispatch(colorTreeByPositions('nuc', [4]))
+
+      const { treeToo } = store.getState()
+      const seqA = treeToo?.nodes?.findIndex((node) => node.name === 'seqA') ?? -1
+      // Color of missing values: `unknownColor` in Auspice's `src/util/colorScale.ts`
+      expect(treeToo?.nodeColors?.[seqA]).not.toBe('#ADB1B3')
+    })
+
     test('returns to one tree', () => {
       const store = getTreeStore(makeTree())
       store.dispatch(showSecondTree(makeTree(), 'first', 'second'))

@@ -80,7 +80,7 @@ export function ChooseSecondTree() {
       </SelectContainer>
       <Explanation>
         {t(
-          'Draws another tree of this analysis next to this one, with lines between tips of the same name, to compare where samples are placed. A coloring by genotype colors the first tree only.',
+          'Draws another tree of this analysis next to this one, with lines between tips of the same name, to compare where samples are placed.',
         )}
       </Explanation>
       {secondTreeName && (
