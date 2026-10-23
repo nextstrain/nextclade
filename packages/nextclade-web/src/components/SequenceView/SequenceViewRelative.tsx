@@ -8,6 +8,7 @@ import { AnalysisResult } from 'src/types'
 import React from 'react'
 import { useRecoilValue } from 'recoil'
 import { genomeSizeAtom } from 'src/state/results.state'
+import { useColorTreeBy } from 'src/components/Tree/useTreeLinks'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerAmbiguous } from './SequenceMarkerAmbiguous'
@@ -38,6 +39,7 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
   const genomeSize = useRecoilValue(genomeSizeAtom({ datasetName })) ?? 0
   const pixelsPerBase = safeDiv(width, genomeSize)
+  const colorTreeByNuc = useColorTreeBy('nuc')
 
   // Mutation patterns are found among mutations relative to the nearest node, so they are shown only relative to it
   const patterns = refNodeName === REF_NODE_PARENT ? mutationPatterns : undefined
@@ -61,6 +63,7 @@ export function SequenceViewRelative({ sequence, width, refNodeName }: SequenceV
       nucToAaMuts={nucToAaMuts}
       pixelsPerBase={pixelsPerBase}
       opacity={focusedPositions && !focusedPositions.has(substitution.pos) ? UNFOCUSED_MARKER_OPACITY : undefined}
+      onColorTree={colorTreeByNuc}
     />
   ))
 

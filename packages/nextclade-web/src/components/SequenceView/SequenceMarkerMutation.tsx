@@ -22,6 +22,8 @@ export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   substitution: NucSub
   nucToAaMuts: Record<string, AaSub[]>
   pixelsPerBase: number
+  /** Open the tree colored by the genotype at the given 0-based positions, if the tree is available */
+  onColorTree?: (positions: number[]) => void
 }
 
 function SequenceMarkerMutationUnmemoed({
@@ -30,12 +32,14 @@ function SequenceMarkerMutationUnmemoed({
   substitution,
   nucToAaMuts,
   pixelsPerBase,
+  onColorTree,
   ...rest
 }: SequenceMarkerMutationProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
+  const onClick = useCallback(() => onColorTree?.([substitution.pos]), [onColorTree, substitution.pos])
 
   const seqMarkerMutationHeightState = useRecoilValue(seqMarkerMutationHeightStateAtom)
   const { y, height } = useMemo(() => getSeqMarkerDims(seqMarkerMutationHeightState), [seqMarkerMutationHeightState])
@@ -63,8 +67,10 @@ function SequenceMarkerMutationUnmemoed({
       width={width}
       height={height}
       {...rest}
+      cursor={onColorTree ? 'pointer' : undefined}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onClick={onColorTree ? onClick : undefined}
     >
       <Tooltip target={id} isOpen={showTooltip} fullWidth>
         <TableSlim borderless className="mb-1">
@@ -83,6 +89,14 @@ function SequenceMarkerMutationUnmemoed({
             </tr>
 
             <ListOfAaChangesFlatTruncated aaChanges={aaChanges} maxRows={6} />
+
+            {onColorTree && (
+              <tr>
+                <td colSpan={2} className="small">
+                  {t('Click to color the tree by this position')}
+                </td>
+              </tr>
+            )}
           </tbody>
         </TableSlim>
       </Tooltip>

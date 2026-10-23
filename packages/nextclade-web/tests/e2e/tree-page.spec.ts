@@ -189,6 +189,24 @@ test.describe('Tree page view of the tree', () => {
   })
 })
 
+test.describe('Tree page links', () => {
+  test.describe.configure({ timeout: 300_000 })
+
+  test('shows a sequence on the tree from the results table', async ({ page }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+    await page.getByRole('navigation').getByRole('link', { name: 'Results', exact: true }).click()
+    await page.waitForURL('**/results')
+    const showButton = page.getByRole('button', { name: /^Show .+ on the tree$/ }).first()
+    const seqName = (await showButton.getAttribute('aria-label'))?.replace(/^Show (.+) on the tree$/, '$1')
+
+    await showButton.click()
+
+    await page.waitForURL('**/tree')
+    await expect(page.getByRole('button', { name: `Remove filter ${seqName}` })).toBeVisible()
+    expect(errors).toEqual([])
+  })
+})
+
 /** Open the tree page with in-app navigation, which keeps the analysis state (a page load would clear it) */
 async function openTreePage(page: Page) {
   await page.getByRole('navigation').getByRole('link', { name: 'Tree', exact: true }).click()

@@ -1,4 +1,7 @@
 import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
+import { applyFilter } from 'auspice/src/actions/tree'
+import { strainSymbol } from 'auspice/src/util/globals'
+import { colorTreeByPositions, findPlacedSequenceNode, showSequenceOnTree } from 'src/state/auspice/auspice.actions'
 import { getTreeStore } from 'src/state/store'
 
 // Auspice sizes its panels from the browser window, also when its reducers load
@@ -28,6 +31,78 @@ describe('tree store', () => {
       const { controls } = getTreeStore(makeTree({ refDates: true, newDates: true })).getState()
 
       expect(controls?.branchLengthsToDisplay).toBe('divAndDate')
+    })
+  })
+
+  describe('show sequence on tree', () => {
+    test('filters the tree to the sequence and zooms to its smallest clade of at least 20 tips', () => {
+      const store = getTreeStore(makeTree())
+
+      store.dispatch(showSequenceOnTree('seqA'))
+
+      const { controls, tree } = store.getState()
+      expect(controls?.filters?.[strainSymbol]).toStrictEqual([{ value: 'seqA', active: true }])
+      expect(tree?.nodes?.[tree.idxOfInViewRootNode ?? 0]?.name).toBe('cladeX')
+    })
+
+    test('zooms to the root when no clade of the sequence has 20 tips', () => {
+      const store = getTreeStore(makeTree())
+
+      store.dispatch(showSequenceOnTree('seqB'))
+
+      const { tree } = store.getState()
+      expect(tree?.nodes?.[tree.idxOfInViewRootNode ?? 0]?.name).toBe('root')
+    })
+
+    test('turns off a filter that would hide the sequence, so that the user can turn it on again', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(applyFilter('add', 'clade_membership', ['Y']))
+
+      store.dispatch(showSequenceOnTree('seqA'))
+
+      const { controls } = store.getState()
+      expect(controls?.filters?.clade_membership).toStrictEqual([{ value: 'Y', active: false }])
+    })
+
+    test('keeps a filter that the sequence passes', () => {
+      const store = getTreeStore(makeTree())
+
+      store.dispatch(showSequenceOnTree('seqA'))
+
+      const { controls } = store.getState()
+      expect(controls?.filters?.['Node type']).toStrictEqual([{ value: 'New', active: true }])
+    })
+
+    test('finds no tip of its own for a sequence named like a reference tip', () => {
+      const store = getTreeStore(makeTree({ extraNewTips: ['refX1'] }))
+
+      expect(findPlacedSequenceNode(store.getState(), 'refX1')).toBeUndefined()
+    })
+  })
+
+  describe('color tree by positions', () => {
+    test('colors the tree by a nucleotide position, counted from 1', () => {
+      const store = getTreeStore(makeTree())
+
+      store.dispatch(colorTreeByPositions('nuc', [4]))
+
+      expect(store.getState().controls?.colorBy).toBe('gt-nuc_5')
+    })
+
+    test('colors the tree by amino acid positions of a CDS, counted from 1', () => {
+      const store = getTreeStore(makeTree())
+
+      store.dispatch(colorTreeByPositions('S', [1, 2]))
+
+      expect(store.getState().controls?.colorBy).toBe('gt-S_2,3')
+    })
+
+    test('keeps the coloring for a CDS that the tree does not have', () => {
+      const store = getTreeStore(makeTree())
+
+      store.dispatch(colorTreeByPositions('ORF9', [1]))
+
+      expect(store.getState().controls?.colorBy).toBe('clade_membership')
     })
   })
 })

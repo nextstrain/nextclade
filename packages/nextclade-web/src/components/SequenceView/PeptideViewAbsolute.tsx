@@ -4,6 +4,7 @@ import { cdsCodonLength } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { formatRange } from 'src/helpers/formatRange'
 import { SequenceMarkerUnsequenced } from 'src/components/SequenceView/SequenceMarkerUnsequenced'
+import { useColorTreeBy } from 'src/components/Tree/useTreeLinks'
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
 import { PeptideMarkerFrameShift } from './PeptideMarkerFrameShift'
@@ -20,6 +21,7 @@ export function PeptideViewAbsoluteUnmemoed({ width, cds, sequence }: PeptideVie
   const { index, seqName, unknownAaRanges, frameShifts, aaChangesGroups, aaInsertions, aaUnsequencedRanges } = sequence
   const cdsLength = cdsCodonLength(cds)
   const pixelsPerAa = width / Math.round(cdsLength)
+  const colorTreeByCds = useColorTreeBy(cds.name)
   const groups = aaChangesGroups.filter((group) => group.name === cds.name)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.cdsName === cds.name)
@@ -87,6 +89,7 @@ export function PeptideViewAbsoluteUnmemoed({ width, cds, sequence }: PeptideVie
             seqName={seqName}
             group={group}
             pixelsPerAa={pixelsPerAa}
+            onColorTree={colorTreeByCds}
           />
         )
       })}

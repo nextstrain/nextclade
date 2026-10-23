@@ -9,10 +9,23 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ColumnNameErrorTooltip, ColumnNameTooltip, DuplicateIcon } from 'src/components/Results/ColumnNameTooltip'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getStatusIconAndText } from 'src/components/Results/getStatusIconAndText'
+import { Button as ButtonShowOnTreeStyle, ButtonShowOnTree } from 'src/components/Results/ButtonShowOnTree'
 
 export const SequenceName = styled.div`
+  display: flex;
+  align-items: center;
   white-space: nowrap;
   overflow: hidden;
+
+  &:hover ${ButtonShowOnTreeStyle} {
+    opacity: 1;
+  }
+`
+
+const SequenceNameText = styled.span`
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `
 
 export interface ColumnNameProps {
@@ -58,7 +71,8 @@ export function ColumnName({ index, seqName }: ColumnNameProps) {
     <SequenceName id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <StatusIcon />
       {duplicateIcon}
-      {seqName}
+      <SequenceNameText>{seqName}</SequenceNameText>
+      {result && !error && <ButtonShowOnTree seqName={seqName} />}
       <Tooltip wide fullWidth target={id} isOpen={showTooltip} placement="right-start">
         {tooltip}
       </Tooltip>

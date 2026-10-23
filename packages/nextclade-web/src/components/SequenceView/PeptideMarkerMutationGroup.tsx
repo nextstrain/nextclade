@@ -31,6 +31,8 @@ export interface PeptideMarkerMutationGroupProps extends SVGProps<SVGSVGElement>
   seqName: string
   group: AaChangesGroup
   pixelsPerAa: number
+  /** Open the tree colored by the genotype at the given 0-based positions of the CDS, if the tree is available */
+  onColorTree?: (positions: number[]) => void
 }
 
 function PeptideMarkerMutationGroupUnmemoed({
@@ -38,6 +40,7 @@ function PeptideMarkerMutationGroupUnmemoed({
   seqName,
   group,
   pixelsPerAa,
+  onColorTree,
   ...restProps
 }: PeptideMarkerMutationGroupProps) {
   const { t } = useTranslationSafe()
@@ -47,6 +50,10 @@ function PeptideMarkerMutationGroupUnmemoed({
 
   const { name, range, changes: changesWithContext, nucSubs, nucDels, nucDelRanges } = group
   const mutationsOnly = changesWithContext.filter((change) => change.qryAa !== change.refAa)
+  const onClick = useCallback(
+    () => onColorTree?.(mutationsOnly.map((change) => change.pos)),
+    [mutationsOnly, onColorTree],
+  )
 
   const contextTitle = useMemo(() => t('Context'), [t])
 
@@ -88,7 +95,12 @@ function PeptideMarkerMutationGroupUnmemoed({
   return (
     <g id={id}>
       <svg x={x} y={-9.5} height={29} {...restProps}>
-        <g onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+        <g
+          cursor={onColorTree ? 'pointer' : undefined}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          onClick={onColorTree ? onClick : undefined}
+        >
           {mutationsOnly.map((mut) => (
             <PeptideMarkerMutation key={mut.pos} change={mut} parentGroup={group} pixelsPerAa={pixelsPerAaAdjusted} />
           ))}
@@ -181,6 +193,7 @@ function PeptideMarkerMutationGroupUnmemoed({
             </TableSlim>
 
             {footerNote}
+            {onColorTree && <p className="small mb-0">{t('Click to color the tree by these positions')}</p>}
           </Tooltip>
         </g>
       </svg>

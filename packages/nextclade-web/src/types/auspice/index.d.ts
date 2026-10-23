@@ -4,7 +4,7 @@ declare module 'auspice' {
   export interface AuspiceTreeState {
     name?: string | boolean
     loaded?: boolean
-    nodes?: AuspiceTreeNode[]
+    nodes?: AuspiceReduxNode[]
     visibility?: number[]
     visibilityVersion?: number
     nodeColors?: string[]
@@ -23,6 +23,24 @@ declare module 'auspice' {
     selectedClade?: any
     debug?: any
     stateCountAttrs?: any
+  }
+
+  /** Tree node in the Auspice store: the node of the tree JSON with the links and counts that Auspice adds */
+  export declare interface AuspiceReduxNode extends Omit<AuspiceTreeNode, 'children'> {
+    arrayIdx: number
+    hasChildren: boolean
+    children?: AuspiceReduxNode[]
+    /** Parent node; the root is its own parent */
+    parent: AuspiceReduxNode
+    /** Number of tips below the node, including tips that are not visible */
+    fullTipCount: number
+    tipCount: number
+  }
+
+  /** Value of a filter of the sidebar, which the user can turn off and on again in the header */
+  export interface AuspiceFilterValue {
+    value: string
+    active: boolean
   }
 
   export interface AuspiceFrequenciesState {
@@ -84,7 +102,7 @@ declare module 'auspice' {
     selectedBranchLabel?: string
     analysisSlider?: boolean
     geoResolution?: string
-    filters?: Record<string, string[]>
+    filters?: Record<string | symbol, AuspiceFilterValue[]>
     showDownload?: boolean
     quickdraw?: boolean
     mapAnimationDurationInMilliseconds?: number
@@ -97,6 +115,7 @@ declare module 'auspice' {
     panelLayout?: string
     showTreeToo?: boolean
     showTangle?: boolean
+    showStreamTrees?: boolean
     zoomMin?: any
     zoomMax?: any
     branchLengthsToDisplay?: string
@@ -123,6 +142,7 @@ declare module 'auspice' {
     zoomMax?: any
     zoomMin?: any
     zoomCoordinates?: [any, any]
+    genomeMap?: unknown
   }
 
   export declare type AuspiceState = {

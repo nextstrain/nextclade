@@ -9,6 +9,7 @@ import { maxNucMarkersAtom } from 'src/state/seqViewSettings.state'
 import { genomeSizeAtom } from 'src/state/results.state'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
+import { useColorTreeBy } from 'src/components/Tree/useTreeLinks'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
@@ -40,6 +41,7 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
   const datasetName = useRecoilValue(viewedDatasetNameAtom)
   const genomeSize = useRecoilValue(genomeSizeAtom({ datasetName })) ?? 0
   const pixelsPerBase = safeDiv(width, genomeSize)
+  const colorTreeByNuc = useColorTreeBy('nuc')
 
   const mutationViews = substitutions.map((substitution) => {
     return (
@@ -50,6 +52,7 @@ export function SequenceViewAbsolute({ sequence, width }: SequenceViewAbsolutePr
         substitution={substitution}
         nucToAaMuts={nucToAaMuts}
         pixelsPerBase={pixelsPerBase}
+        onColorTree={colorTreeByNuc}
       />
     )
   })
