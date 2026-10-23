@@ -20,6 +20,10 @@ Each sequence in the results table has a tree button at the end of its name, whi
 
 When an analysis of several datasets has more than one tree, the "Second tree" select in the sidebar draws another tree next to the viewed one, with lines between tips of the same name, to compare where samples are placed in both trees. Tips are linked only when their names are the same, for example when you name the segment sequences of a sample alike.
 
+### Nextclade Web: map of added coordinates
+
+When you add metadata with `latitude` and `longitude` columns to the tree, a Map section appears in the sidebar. The map stays off until you turn it on, because its map tiles load from OpenFreeMap, which then sees the map area of your samples. Samples at different coordinates stay apart, and rows with empty coordinates are skipped. SVG figures with the map include the attribution of the map tiles.
+
 ### Nextclade CLI: parse errors of `pathogen.json` and the minimizer index
 
 When `pathogen.json` of a dataset or of `--input-pathogen-json`, or the minimizer index of `nextclade sort`, cannot be parsed, the error message now names the file, as the errors of the other dataset files do.
