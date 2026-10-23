@@ -15,10 +15,11 @@ import { ChooseStreamTrees } from 'auspice/src/components/controls/choose-stream
 import ChooseMetric from 'auspice/src/components/controls/choose-metric'
 import ChooseTipLabel from 'auspice/src/components/controls/choose-tip-label'
 import ChooseExplodeAttr from 'auspice/src/components/controls/choose-explode-attr'
+import PanelLayout from 'auspice/src/components/controls/panel-layout'
 import { PanelSection } from 'auspice/src/components/controls/panelSection'
 import { ControlsContainer, HeaderContainer, TitleAndIconContainer } from 'auspice/src/components/controls/styles'
 import FilterData, { FilterInfo } from 'auspice/src/components/controls/filter'
-import { EntropyInfo, ExplodeTreeInfo, TreeInfo } from 'auspice/src/components/controls/miscInfoText'
+import { EntropyInfo, ExplodeTreeInfo, PanelLayoutInfo, TreeInfo } from 'auspice/src/components/controls/miscInfoText'
 import { ControlHeader } from 'auspice/src/components/controls/controlHeader'
 import { AnnotatedTitle } from 'auspice/src/components/controls/annotatedTitle'
 import { ViewedDatasetSelector } from 'src/components/Main/ViewedDatasetSelector'
@@ -115,6 +116,8 @@ function TreeControls() {
 
       <EntropyPanel />
 
+      <PanelLayoutSection />
+
       <Bottom>
         <LogoPoweredByAuspice />
       </Bottom>
@@ -205,6 +208,31 @@ function EntropyPanel() {
 
   return <PanelSection panel="entropy" title={t('sidebar:Entropy')} tooltip={EntropyInfo} />
 }
+
+/**
+ * Switches the tree and the map between the full layout and the grid, in which they are side by side, as Auspice's
+ * "Display" control does while more than one panel can take part in the grid
+ */
+function PanelLayoutSection() {
+  const { t } = useTranslation()
+  const canTogglePanelLayout = useSelector((state: AuspiceState) => state.controls?.canTogglePanelLayout)
+
+  if (!canTogglePanelLayout) {
+    return null
+  }
+
+  return (
+    <PanelLayoutContainer>
+      <ControlHeader title={t('sidebar:Display')} tooltip={PanelLayoutInfo} />
+      <PanelLayout />
+    </PanelLayoutContainer>
+  )
+}
+
+/** Space above the control, as in Auspice's sidebar */
+const PanelLayoutContainer = styled.div`
+  padding-top: 10px;
+`
 
 const AnnotatedTitleWrapper = styled.div`
   margin-top: 0.5rem;

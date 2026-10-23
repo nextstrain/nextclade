@@ -1,5 +1,7 @@
 import type { AuspiceJsonV2, AuspiceState, AuspiceTreeNode } from 'auspice'
 import { applyFilter } from 'auspice/src/actions/tree'
+import { togglePanelDisplay } from 'auspice/src/actions/panelDisplay'
+import { CHANGE_PANEL_LAYOUT } from 'auspice/src/actions/types'
 import { strainSymbol } from 'auspice/src/util/globals'
 import handleFilesDropped from 'auspice/src/actions/filesDropped/filesDropped'
 import {
@@ -9,6 +11,7 @@ import {
   showSecondTree,
   showSequenceOnTree,
 } from 'src/state/auspice/auspice.actions'
+import { hidePanels } from 'src/state/reducer'
 import { getTreeStore } from 'src/state/store'
 
 // Auspice sizes its panels from the browser window, also when its reducers load
@@ -177,18 +180,21 @@ describe('tree store', () => {
   })
 
   describe('panels', () => {
-    test('makes the map available, but not shown, when added metadata has coordinates', async () => {
+    test('shows the map when added metadata has coordinates', async () => {
       const store = getTreeStore(makeTree())
 
-      await store.dispatch(handleFilesDropped([csvFile('strain,latitude,longitude\nseqA,47.5,7.6\n')]))
+      await store.dispatch(handleFilesDropped([csvFile(COORDINATES_CSV)]))
 
-      expect(panels(store.getState())).toStrictEqual({ available: ['tree', 'entropy', 'map'], shown: ['tree', 'entropy'] })
+      expect(panels(store.getState())).toStrictEqual({
+        available: ['tree', 'entropy', 'map'],
+        shown: ['tree', 'entropy', 'map'],
+      })
     })
 
     test('places the legend of a map that added metadata makes available', async () => {
       const store = getTreeStore(makeTree())
 
-      await store.dispatch(handleFilesDropped([csvFile('strain,latitude,longitude\nseqA,47.5,7.6\n')]))
+      await store.dispatch(handleFilesDropped([csvFile(COORDINATES_CSV)]))
 
       // Auspice's placement of the map legend: `computeLegendPlacements()` in `src/util/metadataJsonParsing.ts`
       const expected = { vertical: 'top', horizontal: 'right' }
@@ -197,24 +203,75 @@ describe('tree store', () => {
 
     test('keeps a hidden entropy chart hidden when metadata is added', async () => {
       const store = getTreeStore(makeTree())
-      store.dispatch({ type: 'TOGGLE_PANEL_DISPLAY', panelsToDisplay: ['tree'], panelLayout: 'full' })
+      store.dispatch(togglePanelDisplay('entropy'))
 
-      await store.dispatch(handleFilesDropped([csvFile('strain,site\nseqA,Basel\n')]))
+      await store.dispatch(handleFilesDropped([csvFile(COORDINATES_CSV)]))
 
-      expect(panels(store.getState()).shown).toStrictEqual(['tree'])
+      expect(panels(store.getState()).shown).toStrictEqual(['tree', 'map'])
     })
 
-    test('does not show the map when the second tree is removed', async () => {
+    test('shows the panels chosen before the second tree when it is removed', async () => {
       const store = getTreeStore(makeTree())
-      await store.dispatch(handleFilesDropped([csvFile('strain,latitude,longitude\nseqA,47.5,7.6\n')]))
+      await store.dispatch(handleFilesDropped([csvFile(COORDINATES_CSV)]))
+      store.dispatch(togglePanelDisplay('entropy'))
       store.dispatch(showSecondTree(makeTree(), 'first', 'second'))
 
       store.dispatch(hideSecondTree())
 
-      expect(panels(store.getState()).shown).not.toContain('map')
+      expect(panels(store.getState()).shown).toStrictEqual(['tree', 'map'])
+    })
+
+    test('shows the map of coordinates added next to a second tree once the second tree is removed', async () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(showSecondTree(makeTree(), 'first', 'second'))
+      await store.dispatch(handleFilesDropped([csvFile(COORDINATES_CSV)]))
+      const shownNextToSecondTree = panels(store.getState()).shown
+
+      store.dispatch(hideSecondTree())
+
+      expect([shownNextToSecondTree, panels(store.getState()).shown]).toStrictEqual([
+        ['tree'],
+        ['tree', 'entropy', 'map'],
+      ])
+    })
+
+    test('keeps a hidden map hidden after the second tree is removed', async () => {
+      const store = getTreeStore(makeTree())
+      await store.dispatch(handleFilesDropped([csvFile(COORDINATES_CSV)]))
+      store.dispatch(hidePanels(['map']))
+      store.dispatch(showSecondTree(makeTree(), 'first', 'second'))
+
+      store.dispatch(hideSecondTree())
+
+      expect(panels(store.getState()).shown).toStrictEqual(['tree', 'entropy'])
+    })
+
+    test('offers the grid layout for the tree and the map', async () => {
+      const store = getTreeStore(makeTree())
+      await store.dispatch(handleFilesDropped([csvFile(COORDINATES_CSV)]))
+
+      // Action of Auspice's "Display" control (`src/components/controls/panel-layout.js`)
+      store.dispatch({ type: CHANGE_PANEL_LAYOUT, data: 'grid' })
+
+      const { controls } = store.getState()
+      expect([controls?.canTogglePanelLayout, controls?.panelLayout]).toStrictEqual([true, 'grid'])
+    })
+
+    test('offers no grid layout next to a second tree', async () => {
+      const store = getTreeStore(makeTree())
+      await store.dispatch(handleFilesDropped([csvFile(COORDINATES_CSV)]))
+      store.dispatch({ type: CHANGE_PANEL_LAYOUT, data: 'grid' })
+
+      store.dispatch(showSecondTree(makeTree(), 'first', 'second'))
+
+      const { controls } = store.getState()
+      expect([controls?.canTogglePanelLayout, controls?.panelLayout]).toStrictEqual([false, 'full'])
     })
   })
 })
+
+/** Metadata that places the sequence `seqA` at coordinates */
+const COORDINATES_CSV = 'strain,latitude,longitude\nseqA,47.5,7.6\n'
 
 interface MakeTreeParams {
   /** Whether the reference nodes have dates */

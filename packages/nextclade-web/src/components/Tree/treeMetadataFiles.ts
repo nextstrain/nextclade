@@ -4,6 +4,7 @@ import type { AuspiceState } from 'auspice'
 import handleFilesDropped from 'auspice/src/actions/filesDropped/filesDropped'
 import { errorNotification, infoNotification } from 'auspice/src/actions/notifications'
 import { canDrawMaps } from 'src/helpers/canDrawMaps'
+import { hidePanels } from 'src/state/reducer'
 
 /** File types that the file picker of metadata files offers */
 export const METADATA_FILE_ACCEPT = '.csv,.tsv,.json,text/csv,text/tab-separated-values,application/json'
@@ -36,24 +37,18 @@ export function addMetadataFiles(files: File[]): ThunkAction<Promise<void>, Ausp
     if (otherFiles.length > 0) {
       const wasMapAvailable = isMapAvailable(getState())
       await dispatch(handleFilesDropped(otherFiles))
-      // Coordinates in the files make the map available. It stays off until the user turns it on (see `rootReducer()`)
-      if (!wasMapAvailable && isMapAvailable(getState())) {
-        dispatch(infoNotification(mapAvailableNotification(canDrawMaps())))
+      // Coordinates in the files make the map available, and the map turns on (see `rootReducer()`), unless the browser
+      // cannot draw it
+      if (!wasMapAvailable && isMapAvailable(getState()) && !canDrawMaps()) {
+        dispatch(hidePanels(['map']))
+        dispatch(
+          infoNotification({
+            message: 'The added coordinates cannot be shown on a map',
+            details: 'This browser cannot draw maps, because WebGL is turned off or not supported.',
+          }),
+        )
       }
     }
-  }
-}
-
-function mapAvailableNotification(canDraw: boolean) {
-  if (!canDraw) {
-    return {
-      message: 'The added coordinates cannot be shown on a map',
-      details: 'This browser cannot draw maps, because WebGL is turned off or not supported.',
-    }
-  }
-  return {
-    message: 'The map of the added coordinates is available',
-    details: 'Turn it on in the sidebar.',
   }
 }
 

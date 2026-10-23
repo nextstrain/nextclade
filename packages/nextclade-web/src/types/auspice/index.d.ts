@@ -169,6 +169,8 @@ declare module 'auspice' {
     general?: { language?: string }
     query?: any
     measurements?: AuspiceMeasurementsState
+    /** Panels that the user turned off. Kept by Nextclade's root reducer, not by Auspice */
+    panelsHiddenByUser?: string[]
   }
 
   export declare interface AuspiceTreeNodeAttrs {

@@ -1,4 +1,4 @@
-import React, { ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import React, { ReactNode, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { useSelector } from 'react-redux'
@@ -6,6 +6,8 @@ import type { AuspiceState } from 'auspice'
 import { useResizeDetector } from 'react-resize-detector'
 import AuspiceEntropy from 'auspice/src/components/entropy'
 import AuspiceTree from 'auspice/src/components/tree'
+import { calcPanelDims } from 'auspice/src/components/main/utils'
+import { numberOfGridPanels } from 'auspice/src/actions/panelDisplay'
 import { PAGE_GUTTER_PX } from 'src/components/Layout/sidebarTheme'
 import { useSizeBeforePaint } from 'src/hooks/useSizeBeforePaint'
 import { TREE_TAB_BUTTON_GAP_PX } from 'src/components/Tree/TreeTabButton'
@@ -25,15 +27,9 @@ const CARD_TITLE_HEIGHT_PX = 26
  */
 const CARD_TITLE_HEIGHT_TWO_TREES_PX = 46
 
-/** Smallest height of the map, so that its legend and zoom buttons fit on short screens */
-const MAP_MIN_HEIGHT_PX = 300
-
-/** Legend of the map: the colors of the coloring and the sizes of the circles, as in Auspice's full panel layout */
-const MAP_LEGEND = { swatches: true, demes: true }
-
 /**
  * Auspice map, loaded when shown: Leaflet needs a browser window when it loads, and the map code is large and needed
- * only for users who add metadata with coordinates and turn the map on
+ * only for users who add metadata with coordinates
  */
 const AuspiceMap = dynamic(() => import('auspice/src/components/map/map'), { ssr: false })
 
@@ -62,16 +58,13 @@ const HEADER_COMPACT_MAX_WIDTH_PX = 600
  */
 export const TREE_OVERLAY_Z_INDEX = 1001
 
-/** Space below each chart, so that its axis labels and controls stay clear of the next chart and of the page footer */
-const CHART_BOTTOM_GAP_PX = 16
-
 /**
- * Entropy chart height, as in Auspice's panel layout (`calcPanelDims()` and `computeResponsive()`): a fraction of the
- * available height minus padding, with a minimum height. Here the available height is the visible tree area.
+ * Space between panels, and below the last one, so that their axis labels and controls stay clear of the next panel and
+ * of the page footer
  */
-const ENTROPY_HEIGHT_FRACTION = 0.36
-const ENTROPY_VERTICAL_PADDING_PX = 52
-const ENTROPY_MIN_HEIGHT_PX = 300
+const PANEL_GAP_PX = 16
+
+const NO_PANELS: string[] = []
 
 export interface TreeProps {
   /** Start of the row above the tree, e.g. the active filters. Shrinks to fit the row */
@@ -84,7 +77,10 @@ export interface TreeProps {
 }
 
 /**
- * Auspice tree, sized to fill the visible area, and the entropy chart below it, reachable by scrolling, if shown.
+ * Auspice tree, and the map and the entropy chart if shown, laid out and sized as in Auspice's panel layout
+ * (`calcPanelDims()` in `src/components/main/utils.js`), with the visible area of the page as the available area.
+ * In the full layout the panels are stacked. In the grid layout the tree and the map are side by side, above the entropy
+ * chart. Panels below the visible area are reached by scrolling.
  */
 export function Tree({ summary, actions }: TreeProps) {
   const { t } = useTranslationSafe()
@@ -94,6 +90,27 @@ export function Tree({ summary, actions }: TreeProps) {
   // resized container (e.g. when the sidebar opens or closes)
   const { size, ref } = useSizeBeforePaint<HTMLDivElement>()
   const width = size?.width
+  const visibleHeight = size?.height ?? 0
+
+  // The sidebar toggles the entropy chart and the map through Auspice's list of displayed panels, and switches the
+  // layout. Auspice shows no map next to a second tree
+  const panelsToDisplay = useSelector((state: AuspiceState) => state.controls?.panelsToDisplay) ?? NO_PANELS
+  const panelLayout = useSelector((state: AuspiceState) => state.controls?.panelLayout)
+  const hasTwoTrees = useSelector((state: AuspiceState) => !!state.controls?.showTreeToo)
+  const showEntropy = panelsToDisplay.includes('entropy')
+  const showMap = panelsToDisplay.includes('map') && !hasTwoTrees
+
+  // The map takes part in the grid only for an even number of grid panels, as in Auspice's `shouldMapBeInGrid()`, and
+  // shows the colors of the coloring in its legend only outside of the grid, where the tree legend is not next to it
+  const { full, grid, chartEntropy } = useMemo(
+    () => calcPanelDims(panelsToDisplay, false, width ?? 0, visibleHeight),
+    [panelsToDisplay, visibleHeight, width],
+  )
+  const isTreeInGrid = panelLayout === 'grid'
+  const isMapInGrid = isTreeInGrid && numberOfGridPanels(panelsToDisplay) % 2 === 0
+  const treeDims = isTreeInGrid ? grid : full
+  const mapDims = isMapInGrid ? grid : full
+  const mapLegend = useMemo(() => ({ swatches: !isMapInGrid, demes: true }), [isMapInGrid])
 
   // The tree zoom buttons have translated labels, so their position is measured to know the space left for the header
   const treePanelRef = useRef<HTMLDivElement>(null)
@@ -116,36 +133,37 @@ export function Tree({ summary, actions }: TreeProps) {
     if (panel && zoomButtons) {
       setHeaderRight(panel.getBoundingClientRect().right - zoomButtons.getBoundingClientRect().left + HEADER_GAP_PX)
     }
-  }, [width, zoomButtonsWidth, zoomButtonsRef])
+  }, [treeDims.width, zoomButtonsWidth, zoomButtonsRef])
 
   // The header shares the title row of the tree card with the zoom buttons where there is room for the actions and a
   // useful part of the summary next to them, and takes its own row above the tree card otherwise (e.g. on phones)
   const { width: actionsWidth, ref: actionsRef } = useResizeDetector<HTMLDivElement>({
     observerOptions: { box: 'border-box' },
   })
-  // The sidebar toggles the entropy chart and the map through Auspice's list of displayed panels
-  const showEntropy = useSelector((state: AuspiceState) => state.controls?.panelsToDisplay?.includes('entropy'))
-  const showMap = useSelector((state: AuspiceState) => state.controls?.panelsToDisplay?.includes('map'))
-  const hasTwoTrees = useSelector((state: AuspiceState) => !!state.controls?.showTreeToo)
 
   // Two trees have a group of zoom buttons each, and the names of the trees in the title row, so the header takes its
   // own row then
   const isHeaderStacked =
-    hasTwoTrees ||
-    (width !== undefined && width - headerRight < (actionsWidth ?? 0) + HEADER_ITEM_GAP_PX + HEADER_MIN_SUMMARY_WIDTH_PX)
+    hasTwoTrees || treeDims.width - headerRight < (actionsWidth ?? 0) + HEADER_ITEM_GAP_PX + HEADER_MIN_SUMMARY_WIDTH_PX
+  const isHeaderCompact = treeDims.width <= HEADER_COMPACT_MAX_WIDTH_PX
 
-  const visibleHeight = size?.height ?? 0
+  // The title rows of the cards are inside the panel sizes, and so is the header row above the tree where it stacks
   const headerRowHeight = isHeaderStacked ? CARD_TITLE_HEIGHT_PX : 0
   const treeTitleHeight = hasTwoTrees ? CARD_TITLE_HEIGHT_TWO_TREES_PX : CARD_TITLE_HEIGHT_PX
-  const treeHeight = visibleHeight - headerRowHeight - treeTitleHeight - CHART_BOTTOM_GAP_PX
-  // The map is a chart below the tree, of the height of the visible area, as the tree with one row of its own
-  const mapHeight = visibleHeight - CARD_TITLE_HEIGHT_PX - CHART_BOTTOM_GAP_PX
+  const treeHeight = treeDims.height - headerRowHeight - treeTitleHeight
+  const mapHeight = mapDims.height - CARD_TITLE_HEIGHT_PX
   const hasSize = width !== undefined && width > 0 && treeHeight > 0
 
-  const isHeaderCompact = width !== undefined && width <= HEADER_COMPACT_MAX_WIDTH_PX
+  const treePanelStyle = useMemo(() => ({ width: treeDims.width }), [treeDims.width])
+  const mapPanelStyle = useMemo(() => ({ width: mapDims.width }), [mapDims.width])
+  const entropyPanelStyle = useMemo(() => ({ width: chartEntropy.width }), [chartEntropy.width])
+  const headerStyle = useMemo(
+    () => (isHeaderStacked ? undefined : { right: headerRight }),
+    [headerRight, isHeaderStacked],
+  )
 
   const header = (
-    <TreeHeader $isStacked={isHeaderStacked} style={isHeaderStacked ? undefined : { right: headerRight }}>
+    <TreeHeader $isStacked={isHeaderStacked} style={headerStyle}>
       <TreeHeaderSummary>{summary}</TreeHeaderSummary>
       <TreeHeaderActions ref={actionsRef}>{actions(isHeaderCompact)}</TreeHeaderActions>
     </TreeHeader>
@@ -154,57 +172,53 @@ export function Tree({ summary, actions }: TreeProps) {
   return (
     <ScrollArea ref={ref}>
       {hasSize && (
-        <>
-          <AuspicePanel
-            ref={treePanelRef}
-            $hideTitle
-            $titleHeightPx={treeTitleHeight}
-            $isZoomButtonsRowOwn={isHeaderStacked}
-          >
-            {header}
-            <TreePanelErrorBoundary subject={t('the tree')}>
-              <AuspiceTree width={width} height={treeHeight} />
-            </TreePanelErrorBoundary>
-          </AuspicePanel>
-          {showMap && !hasTwoTrees && (
-            <AuspicePanel>
-              <TreePanelErrorBoundary subject={t('the map')}>
-                <AuspiceMap
-                  width={width}
-                  height={Math.max(MAP_MIN_HEIGHT_PX, mapHeight)}
-                  justGotNewDatasetRenderNewMap={false}
-                  legend={MAP_LEGEND}
-                />
+        <Panels>
+          <GridPanels $isRow={showMap && isMapInGrid}>
+            <AuspicePanel
+              ref={treePanelRef}
+              style={treePanelStyle}
+              $hideTitle
+              $titleHeightPx={treeTitleHeight}
+              $isZoomButtonsRowOwn={isHeaderStacked}
+            >
+              {header}
+              <TreePanelErrorBoundary subject={t('the tree')}>
+                <AuspiceTree width={treeDims.width} height={treeHeight} />
               </TreePanelErrorBoundary>
             </AuspicePanel>
-          )}
+            {showMap && (
+              <AuspicePanel style={mapPanelStyle}>
+                <TreePanelErrorBoundary subject={t('the map')}>
+                  <AuspiceMap
+                    width={mapDims.width}
+                    height={mapHeight}
+                    justGotNewDatasetRenderNewMap={false}
+                    legend={mapLegend}
+                  />
+                </TreePanelErrorBoundary>
+              </AuspicePanel>
+            )}
+          </GridPanels>
           {showEntropy && (
-            <AuspicePanel $noSelect>
+            <AuspicePanel style={entropyPanelStyle} $noSelect>
               <TreePanelErrorBoundary subject={t('the entropy chart')}>
-                <AuspiceEntropy
-                  width={width}
-                  height={Math.max(
-                    ENTROPY_MIN_HEIGHT_PX,
-                    ENTROPY_HEIGHT_FRACTION * visibleHeight - ENTROPY_VERTICAL_PADDING_PX,
-                  )}
-                />
+                <AuspiceEntropy width={chartEntropy.width} height={chartEntropy.height} />
               </TreePanelErrorBoundary>
             </AuspicePanel>
           )}
-        </>
+        </Panels>
       )}
     </ScrollArea>
   )
 }
 
 /**
- * Scrolls the tree and the entropy chart. Fills the page content area, so the scrollbar is on the page edge. Takes its
- * size from the page layout only: without size containment, the drawings, which are sized from this element, would
- * also widen it and its ancestors through their content size.
+ * Scrolls the panels. Fills the page content area, so the scrollbar is on the page edge. Takes its size from the page
+ * layout only: without size containment, the drawings, which are sized from this element, would also widen it and its
+ * ancestors through their content size.
  *
- * The space of the scrollbar is kept while there is nothing to scroll: otherwise showing the entropy chart, which adds
- * the scrollbar, would narrow the tree, and Auspice would draw the whole tree again. The scrollbar is thin, so the kept
- * space is small.
+ * The space of the scrollbar is kept while there is nothing to scroll: otherwise a panel that adds the scrollbar would
+ * narrow the tree, and Auspice would draw the whole tree again. The scrollbar is thin, so the kept space is small.
  */
 const ScrollArea = styled.div`
   contain: size;
@@ -218,8 +232,28 @@ const ScrollArea = styled.div`
 `
 
 /**
- * Wrapper of an Auspice card, which is its last child, after the tree header if any. Replaces the card's margins and
- * padding, and fixes the height of its title row
+ * Panels in a column, with space below the last one, so that its controls stay clear of the page footer when scrolled
+ * to the end
+ */
+const Panels = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${PANEL_GAP_PX}px;
+  padding-bottom: ${PANEL_GAP_PX}px;
+`
+
+/** Tree and map: side by side in the grid layout, stacked otherwise */
+const GridPanels = styled.div<{ $isRow: boolean }>`
+  display: flex;
+  flex-direction: ${({ $isRow }) => ($isRow ? 'row' : 'column')};
+  align-items: flex-start;
+  gap: ${PANEL_GAP_PX}px;
+`
+
+/**
+ * Wrapper of an Auspice card, which is its last child, after the tree header if any. Takes the width of the panel,
+ * replaces the card's margins and padding, and fixes the height of its title row
  */
 const AuspicePanel = styled.div<{
   $hideTitle?: boolean
@@ -233,15 +267,6 @@ const AuspicePanel = styled.div<{
     display: block !important;
     margin: 0 !important;
     padding: 0 !important;
-  }
-
-  & + & {
-    margin-top: ${CHART_BOTTOM_GAP_PX}px;
-  }
-
-  /* Space below the last chart, so that its controls stay clear of the page footer when scrolled to the end */
-  &:last-child {
-    padding-bottom: ${CHART_BOTTOM_GAP_PX}px;
   }
 
   & > div:last-child > div:first-child {
