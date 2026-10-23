@@ -670,7 +670,7 @@ index 5ce39213472cdb6ad959c587d0d3cd607df0db10..8a3d3e06f074ad16224854ddc35ea011
          </clipPath>
          <g id="Items">
 diff --git a/src/components/map/map.js b/src/components/map/map.js
-index 0e85d44ae0212e6c531501d74031f48e219e0f8e..172f13f161f3bab59a843d5a812155232ac1a6b4 100644
+index 0e85d44ae0212e6c531501d74031f48e219e0f8e..f3e3f958039f59dc8c38260c35e723fd8363f31d 100644
 --- a/src/components/map/map.js
 +++ b/src/components/map/map.js
 @@ -107,39 +107,46 @@ class Map extends React.Component {
@@ -750,7 +750,19 @@ index 0e85d44ae0212e6c531501d74031f48e219e0f8e..172f13f161f3bab59a843d5a81215523
      this.maybeChangeSize(this.props);
      const removed = this.maybeRemoveAllDemesAndTransmissions(this.props); /* geographic resolution just changed (ie., country to division), remove everything. this change is upstream of maybeDraw */
      // TODO: if demes are color blended circles, updating rather than redrawing demes would do
-@@ -735,8 +742,23 @@ class Map extends React.Component {
+@@ -551,7 +558,10 @@ class Map extends React.Component {
+       // see scripts/transform-mapbox-style-json.js for an example.
+       transformRequest: (url) => {
+         // Upgrade insecure URLs (e.g. Mapbox's TileJSON references tile URLs over http://).
+-        let next = url.startsWith('http://') ? `https://${url.slice('http://'.length)}` : url;
++        // URLs of the page's own origin load as the page does: a page served over http://, such
++        // as a local server, has no https:// counterpart for its own files (e.g. a basemap).
++        const isOwnOrigin = url.startsWith(`${window.location.origin}/`);
++        let next = url.startsWith('http://') && !isOwnOrigin ? `https://${url.slice('http://'.length)}` : url;
+         // Substitute the access token into URLs that template it. The placeholder is the token
+         // value only — the surrounding query param (?access_token=, ?key=, …) comes from the
+         // provider's own URL structure — so this works regardless of tile provider.
+@@ -735,8 +745,23 @@ class Map extends React.Component {
      );
    }
    componentWillUnmount() {
