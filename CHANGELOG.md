@@ -1,5 +1,13 @@
 ## Unreleased
 
+### Nextclade Web: Auspice 3.1.0 on the tree page
+
+Nextclade Web now embeds Auspice 3.1.0. SVG figures of the tree write the legend and the caption as SVG text, which vector editors such as Inkscape and Illustrator can edit, and embed the Lato font, so that the figure looks the same on every computer. Long legends use one column where it fits and scroll when they overflow.
+
+### Nextclade Web: no time view for trees with dated reference nodes
+
+Some reference trees, such as the one of the West Nile virus dataset, have a date on every node. For these trees the tree page offered a time view, but the analyzed sequences have no dates, so the time view placed none of them on the axis and they were missing from the drawing. The tree page now shows these trees by divergence only, without the time view, the clock layout and the date controls.
+
 ### Nextclade CLI: parse errors of `pathogen.json` and the minimizer index
 
 When `pathogen.json` of a dataset or of `--input-pathogen-json`, or the minimizer index of `nextclade sort`, cannot be parsed, the error message now names the file, as the errors of the other dataset files do.
