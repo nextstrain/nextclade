@@ -16,6 +16,10 @@ The tree section of the sidebar has a "Show streamtrees" toggle, which draws eac
 
 Each sequence in the results table has a tree button at the end of its name, which opens the tree page filtered to that sequence and zoomed to a clade around it. A click on a nucleotide or amino acid mutation in the sequence view opens the tree colored by the genotype at that position.
 
+### Nextclade Web: compare two trees of an analysis
+
+When an analysis of several datasets has more than one tree, the "Second tree" select in the sidebar draws another tree next to the viewed one, with lines between tips of the same name, to compare where samples are placed in both trees. Tips are linked only when their names are the same, for example when you name the segment sequences of a sample alike.
+
 ### Nextclade CLI: parse errors of `pathogen.json` and the minimizer index
 
 When `pathogen.json` of a dataset or of `--input-pathogen-json`, or the minimizer index of `nextclade sort`, cannot be parsed, the error message now names the file, as the errors of the other dataset files do.
