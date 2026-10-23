@@ -167,7 +167,8 @@ declare module 'auspice' {
     subclade_membership?: { value?: string }
     submitting_lab?: { value?: string }
     url?: string
-    [key: string]: { value?: string | number; entropy?: number; confidence?: number }
+    'Node type'?: { value?: string }
+    [key: string]: { value?: string | number; entropy?: number; confidence?: number } | number | string | undefined
   }
 
   export declare interface AuspiceTreeBranchAttrs {
@@ -216,7 +217,13 @@ declare module 'auspice' {
     dataProvenance?: DataProvenance[]
     updated?: string
     colorings: { key?: string; title?: string; type?: string; scale?: string[][] }[]
-    displayDefaults: {
+    /** Display defaults of the tree JSON */
+    display_defaults?: {
+      branch_label?: string
+      color_by?: string
+      distance_measure?: string
+    }
+    displayDefaults?: {
       branch_label?: string
       color_by?: string
       distance_measure?: string
@@ -228,6 +235,8 @@ declare module 'auspice' {
     /** Number of tips in the tree (state only) */
     mainTreeNumTips?: number
     genomeAnnotations?: GeneMapJson
+    /** Genome annotation of the tree JSON: the nucleotide sequence (`nuc`) and the CDSs, by name */
+    genome_annotations?: Record<string, unknown>
     geoResolutions?: { demes?: Record<string, { latitude?: number; longitude?: number }>; key?: string }[]
     panels?: string[]
     extensions?: {

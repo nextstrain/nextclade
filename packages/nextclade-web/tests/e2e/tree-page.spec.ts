@@ -149,11 +149,11 @@ test.describe('Tree page view of the tree', () => {
     const download = await downloadFromButton(page, 'SVG')
 
     expect(download.suggestedFilename()).toBe('nextclade.svg')
-    const svg = await readDownload(download)
-    expect(svg).toContain('Nextclade dataset nextstrain/sars-cov-2/wuhan-hu-1/orfs')
-    expect(svg).toContain('Made with Nextclade Web')
-    expect(svg).toContain('Nextclade: clade assignment, mutation calling and quality control for viral genomes')
-    expect(svg).not.toContain('Visualizations are licensed under CC-BY')
+    const caption = svgText(await readDownload(download))
+    expect(caption).toContain('Nextclade dataset nextstrain/sars-cov-2/wuhan-hu-1/orfs')
+    expect(caption).toContain('Made with Nextclade Web')
+    expect(caption).toContain('Nextclade: clade assignment, mutation calling and quality control for viral genomes')
+    expect(caption).not.toContain('Visualizations are licensed under CC-BY')
     expect(errors).toEqual([])
   })
 
@@ -251,6 +251,11 @@ async function downloadFromButton(page: Page, name: string): Promise<Download> {
 
 async function readDownload(download: Download): Promise<string> {
   return readFile(await download.path(), 'utf8')
+}
+
+/** Text of an SVG file, one space between its text elements. A line of text that wraps is split into several elements */
+function svgText(svg: string): string {
+  return Array.from(svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g), ([, text]) => text).join(' ')
 }
 
 /** Names of two analyzed sequences, from the tree of the analysis */

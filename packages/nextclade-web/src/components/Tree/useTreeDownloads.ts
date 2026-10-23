@@ -2,9 +2,11 @@ import type { AuspiceState } from 'auspice'
 import { DateTime } from 'luxon'
 import { useCallback, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { errorNotification } from 'auspice/src/actions/notifications'
 import { publications } from 'auspice/src/components/download/downloadModal'
 import { SVG } from 'auspice/src/components/download/helperFunctions'
 import { datasetSummary } from 'auspice/src/components/info/datasetSummary'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 import { svgCaption } from 'src/components/Tree/svgCaption'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { DEFAULT_EXPORT_PARAMS, useExportTree, useExportTreeNwk } from 'src/hooks/useExportResults'
@@ -139,7 +141,10 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
       panelLayout,
       relevantPublications,
       caption,
-    )
+    ).catch((error: unknown) => {
+      const { message } = sanitizeError(error)
+      dispatch(errorNotification({ message: t('The figure could not be saved'), details: message }))
+    })
   }, [
     branchLengthsToDisplay,
     datasetPath,

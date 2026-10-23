@@ -9,6 +9,7 @@ import remarkToc from 'remark-toc'
 import getWithEslint from './withEslint'
 import getWithExternals from './withExternals'
 import getWithExtraWatch from './withExtraWatch'
+import withFontAsset from './withFontAsset'
 import withFriendlyChunkNames from './withFriendlyChunkNames'
 import getWithFriendlyConsole from './withFriendlyConsole'
 import withIgnore from './withIgnore'
@@ -216,6 +217,7 @@ const plugins = [
   withEslint,
   withFriendlyChunkNames,
   withRaw,
+  withFontAsset,
   withResolve,
   withWasm,
   withAppJson,
