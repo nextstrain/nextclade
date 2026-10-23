@@ -16,6 +16,7 @@ mod tests {
   use helpers::{Format, Output};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
+  use std::fs;
   use std::io::{ErrorKind, Read, Write};
   use std::path::Path;
 
@@ -161,6 +162,32 @@ mod tests {
         filepath.display()
       )),
       result.err().map(|report| report_to_string(&report))
+    );
+  }
+
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::auspice_tree(    |path: &Path| AuspiceTree::from_path(path).map(drop),        "Auspice Tree JSON")]
+  #[case::pathogen_json(   |path: &Path| VirusProperties::from_path(path).map(drop),    "pathogen.json"    )]
+  #[case::qc_config(       |path: &Path| QcConfig::from_path(path).map(drop),           "QC config"        )]
+  #[case::minimizer_index( |path: &Path| MinimizerIndexJson::from_path(path).map(drop), "minimizer index"  )]
+  #[trace]
+  fn test_file_input_parse_error_names_the_file(
+    #[case]
+    #[notrace]
+    read: fn(&Path) -> Result<(), Report>,
+    #[case] role: &str,
+  ) {
+    let dir = tempfile::tempdir().unwrap();
+    let filepath = dir.path().join("input.json");
+    fs::write(&filepath, "not JSON").unwrap();
+
+    let result = read(&filepath);
+
+    // The outermost context of a parse error names the role and the file
+    assert_eq!(
+      Some(format!("When parsing {role} file {}", filepath.display())),
+      result.err().and_then(|report| report.chain().next().map(ToString::to_string))
     );
   }
 

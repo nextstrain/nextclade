@@ -123,7 +123,7 @@ impl MinimizerIndexJson {
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     let data = read_file_to_string(filepath).wrap_err("When reading minimizer index")?;
-    Self::from_str(data)
+    Self::from_str(data).wrap_err_with(|| format!("When parsing minimizer index file {}", filepath.display()))
   }
 
   pub fn from_str(s: impl AsRef<str>) -> Result<Self, Report> {
