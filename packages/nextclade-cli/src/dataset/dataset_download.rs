@@ -1,6 +1,8 @@
 use crate::cli::nextclade_cli::{NextcladeRunArgs, NextcladeRunInputArgs};
 use crate::cli::nextclade_dataset_get::{dataset_file_http_get, dataset_http_get};
-use crate::dataset::dataset_zip_extract::{DATASET_ZIP_MAX_ENTRIES, DATASET_ZIP_MAX_UNPACKED_BYTES, zip_extract_safe};
+use crate::dataset::dataset_zip_extract::{
+  DATASET_ZIP_MAX_ENTRIES, DATASET_ZIP_MAX_UNPACKED_BYTES, zip_extract_root_files,
+};
 use crate::io::http_client::HttpClient;
 use crate::io::proxy::ProxyEnv;
 use color_eyre::{Section, SectionExt};
@@ -241,7 +243,7 @@ pub fn dataset_dir_download(
   let mut reader = Cursor::new(content.as_mut_slice());
   let mut zip = ZipArchive::new(&mut reader)?;
 
-  zip_extract_safe(
+  zip_extract_root_files(
     &mut zip,
     output_dir,
     DATASET_ZIP_MAX_ENTRIES,
