@@ -263,6 +263,8 @@ declare module 'auspice' {
     genome_annotations?: Record<string, unknown>
     geoResolutions?: { demes?: Record<string, { latitude?: number; longitude?: number }>; key?: string }[]
     panels?: string[]
+    /** Corner of each panel that its legend is drawn in (state only) */
+    legendPlacements?: Record<string, { vertical: 'top' | 'bottom'; horizontal: 'left' | 'right' }>
     extensions?: {
       nextclade?: {
         clade_node_attrs_keys?: CladeNodeAttrDesc[]

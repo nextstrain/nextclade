@@ -7,6 +7,7 @@ import { errorNotification } from 'auspice/src/actions/notifications'
 import { publications } from 'auspice/src/components/download/downloadModal'
 import { SVG } from 'auspice/src/components/download/helperFunctions'
 import { datasetSummary } from 'auspice/src/components/info/datasetSummary'
+import { getMapTilesSettings } from 'auspice/src/util/globals'
 import { datasetsForAnalysisAtom } from 'src/state/dataset.state'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { svgCaption } from 'src/components/Tree/svgCaption'
@@ -132,6 +133,7 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
       datasetPath,
       datasetTag,
       secondDataset,
+      mapAttribution: panelsToDisplay?.includes('map') ? getMapTilesSettings().attribution : undefined,
       nextcladeVersion: PACKAGE_VERSION,
       origin: window.location.origin,
       date: DateTime.now().toISODate() ?? '',

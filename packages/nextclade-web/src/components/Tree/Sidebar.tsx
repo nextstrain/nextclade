@@ -27,6 +27,7 @@ import { SIDEBAR_THEME } from 'src/components/Layout/sidebarTheme'
 import { auspiceFilterBadgeIconsCentered } from 'src/components/Tree/auspiceFilterBadgeStyle'
 import { AddMetadataButton } from 'src/components/Tree/AddMetadataButton'
 import { ChooseSecondTree } from 'src/components/Tree/ChooseSecondTree'
+import { MapPanelSection } from 'src/components/Tree/MapPanelSection'
 
 export const StyledAuspiceControlsContainer = styled(ControlsContainer)`
   font-family: ${SIDEBAR_THEME['font-family']};
@@ -109,6 +110,8 @@ function TreeControls() {
       <AddMetadataButton />
 
       <TreePanel />
+
+      <MapPanelSection />
 
       <EntropyPanel />
 

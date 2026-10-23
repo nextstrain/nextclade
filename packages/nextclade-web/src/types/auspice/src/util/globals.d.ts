@@ -9,4 +9,6 @@ declare module 'auspice/src/util/globals' {
   export const NODE_VISIBLE: number
   /** Width of the controls of the sidebar, in pixels */
   export const controlsWidth: number
+  /** Style and attribution (HTML) of the map tiles */
+  export function getMapTilesSettings(): { style: unknown; attribution: string }
 }

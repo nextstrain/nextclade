@@ -2,7 +2,8 @@ import type { AnyAction } from 'redux'
 import type { ThunkAction } from 'redux-thunk'
 import type { AuspiceState } from 'auspice'
 import handleFilesDropped from 'auspice/src/actions/filesDropped/filesDropped'
-import { errorNotification } from 'auspice/src/actions/notifications'
+import { errorNotification, infoNotification } from 'auspice/src/actions/notifications'
+import { canDrawMaps } from 'src/helpers/canDrawMaps'
 
 /** File types that the file picker of metadata files offers */
 export const METADATA_FILE_ACCEPT = '.csv,.tsv,.json,text/csv,text/tab-separated-values,application/json'
@@ -21,7 +22,7 @@ const EXCEL_FILE_TYPES = new Set([
  * files, and is not updated on the npm registry.
  */
 export function addMetadataFiles(files: File[]): ThunkAction<Promise<void>, AuspiceState, unknown, AnyAction> {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
     const excelFiles = files.filter(isExcelFile)
     excelFiles.forEach((file) => {
       dispatch(
@@ -33,9 +34,31 @@ export function addMetadataFiles(files: File[]): ThunkAction<Promise<void>, Ausp
     })
     const otherFiles = files.filter((file) => !isExcelFile(file))
     if (otherFiles.length > 0) {
+      const wasMapAvailable = isMapAvailable(getState())
       await dispatch(handleFilesDropped(otherFiles))
+      // Coordinates in the files make the map available. It stays off until the user turns it on (see `rootReducer()`)
+      if (!wasMapAvailable && isMapAvailable(getState())) {
+        dispatch(infoNotification(mapAvailableNotification(canDrawMaps())))
+      }
     }
   }
+}
+
+function mapAvailableNotification(canDraw: boolean) {
+  if (!canDraw) {
+    return {
+      message: 'The added coordinates cannot be shown on a map',
+      details: 'This browser cannot draw maps, because WebGL is turned off or not supported.',
+    }
+  }
+  return {
+    message: 'The map of the added coordinates is available',
+    details: 'Turn it on in the sidebar. Map tiles load from OpenFreeMap, which then sees the map area of your samples.',
+  }
+}
+
+function isMapAvailable(state: AuspiceState): boolean {
+  return state.controls?.panelsAvailable?.includes('map') ?? false
 }
 
 function isExcelFile(file: File): boolean {

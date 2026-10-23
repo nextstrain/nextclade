@@ -5,4 +5,5 @@ declare module 'auspice/src/components/controls/miscInfoText' {
   export const ToggleFocusInfo: ReactElement
   export const EntropyInfo: ReactElement
   export const ExplodeTreeInfo: ReactElement
+  export const MapInfo: ReactElement
 }

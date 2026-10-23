@@ -1,8 +1,9 @@
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isEqual } from 'lodash'
 import { useCallback } from 'react'
 import { combineReducers } from 'redux'
 import { useDispatch, useStore } from 'react-redux'
 import type { AuspiceState } from 'auspice'
+import { TOGGLE_PANEL_DISPLAY, UPDATE_METADATA } from 'auspice/src/actions/types'
 
 // BEGIN reducers from auspice
 import browserDimensions from 'auspice/src/reducers/browserDimensions'
@@ -67,7 +68,36 @@ function rootReducer(state: AuspiceState | undefined, action?: any): AuspiceStat
     return cloneDeep(action.payload)
   }
 
-  return reducers(state, action)
+  return keepPanelsChosenByUser(state, reducers(state, action), action?.type)
+}
+
+/**
+ * Show only the panels that the user turned on. Auspice turns panels on by itself: added metadata with coordinates
+ * shows the map and every other available panel, and removing the second tree shows all available panels again. The
+ * map loads its tiles from a third-party server, which then sees the map area of the user's samples, so only the user
+ * turns it on, through the panel toggle of the sidebar. Added metadata turns on no panel. The tree page stacks its
+ * panels, so the layout is always the full one
+ */
+function keepPanelsChosenByUser(previous: AuspiceState, next: AuspiceState, actionType: unknown): AuspiceState {
+  const { controls } = next
+  if (!controls?.panelsToDisplay) {
+    return next
+  }
+  const previousPanels = previous.controls?.panelsToDisplay ?? []
+  let panelsToDisplay = controls.panelsToDisplay
+  if (actionType === UPDATE_METADATA) {
+    panelsToDisplay = previousPanels
+  } else if (actionType !== TOGGLE_PANEL_DISPLAY && !previousPanels.includes('map')) {
+    panelsToDisplay = panelsToDisplay.filter((panel) => panel !== 'map')
+  }
+  if (
+    isEqual(panelsToDisplay, controls.panelsToDisplay) &&
+    controls.panelLayout === 'full' &&
+    controls.canTogglePanelLayout === false
+  ) {
+    return next
+  }
+  return { ...next, controls: { ...controls, panelsToDisplay, panelLayout: 'full', canTogglePanelLayout: false } }
 }
 
 export default function createRootReducer() {

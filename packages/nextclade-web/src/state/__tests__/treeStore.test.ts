@@ -1,6 +1,7 @@
-import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
+import type { AuspiceJsonV2, AuspiceState, AuspiceTreeNode } from 'auspice'
 import { applyFilter } from 'auspice/src/actions/tree'
 import { strainSymbol } from 'auspice/src/util/globals'
+import handleFilesDropped from 'auspice/src/actions/filesDropped/filesDropped'
 import {
   colorTreeByPositions,
   findPlacedSequenceNode,
@@ -22,6 +23,11 @@ vi.hoisted(() => {
 })
 
 describe('tree store', () => {
+  beforeEach(() => {
+    // Auspice reads dropped files with a `FileReader`, which Node does not have
+    vi.stubGlobal('FileReader', BinaryStringFileReader)
+  })
+
   afterAll(() => {
     vi.unstubAllGlobals()
   })
@@ -157,6 +163,45 @@ describe('tree store', () => {
       ])
     })
   })
+
+  describe('panels', () => {
+    test('makes the map available, but not shown, when added metadata has coordinates', async () => {
+      const store = getTreeStore(makeTree())
+
+      await store.dispatch(handleFilesDropped([csvFile('strain,latitude,longitude\nseqA,47.5,7.6\n')]))
+
+      expect(panels(store.getState())).toStrictEqual({ available: ['tree', 'entropy', 'map'], shown: ['tree', 'entropy'] })
+    })
+
+    test('places the legend of a map that added metadata makes available', async () => {
+      const store = getTreeStore(makeTree())
+
+      await store.dispatch(handleFilesDropped([csvFile('strain,latitude,longitude\nseqA,47.5,7.6\n')]))
+
+      // Auspice's placement of the map legend: `computeLegendPlacements()` in `src/util/metadataJsonParsing.ts`
+      const expected = { vertical: 'top', horizontal: 'right' }
+      expect(store.getState().metadata?.legendPlacements?.map).toStrictEqual(expected)
+    })
+
+    test('keeps a hidden entropy chart hidden when metadata is added', async () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch({ type: 'TOGGLE_PANEL_DISPLAY', panelsToDisplay: ['tree'], panelLayout: 'full' })
+
+      await store.dispatch(handleFilesDropped([csvFile('strain,site\nseqA,Basel\n')]))
+
+      expect(panels(store.getState()).shown).toStrictEqual(['tree'])
+    })
+
+    test('does not show the map when the second tree is removed', async () => {
+      const store = getTreeStore(makeTree())
+      await store.dispatch(handleFilesDropped([csvFile('strain,latitude,longitude\nseqA,47.5,7.6\n')]))
+      store.dispatch(showSecondTree(makeTree(), 'first', 'second'))
+
+      store.dispatch(hideSecondTree())
+
+      expect(panels(store.getState()).shown).not.toContain('map')
+    })
+  })
 })
 
 interface MakeTreeParams {
@@ -238,5 +283,30 @@ function makeTree({ refDates = false, newDates = false, extraNewTips = [] }: Mak
         ]),
       ],
     },
+  }
+}
+
+function panels(state: AuspiceState) {
+  return { available: state.controls?.panelsAvailable, shown: state.controls?.panelsToDisplay }
+}
+
+function csvFile(content: string): File {
+  return new File([content], 'metadata.csv', { type: 'text/csv' })
+}
+
+/** `FileReader` that reads a file as a binary string, which is the only way Auspice reads dropped files */
+class BinaryStringFileReader {
+  result: string | undefined = undefined
+  onload: (() => void) | undefined = undefined
+  onerror: ((error: unknown) => void) | undefined = undefined
+
+  readAsBinaryString(file: File) {
+    file
+      .arrayBuffer()
+      .then((buffer) => {
+        this.result = Array.from(new Uint8Array(buffer), (byte) => String.fromCharCode(byte)).join('')
+        this.onload?.()
+      })
+      .catch((error: unknown) => this.onerror?.(error))
   }
 }

@@ -12,6 +12,11 @@ export interface SvgCaptionParams {
   datasetTag?: string
   /** Dataset of the second tree, drawn next to the main tree */
   secondDataset?: { path: string; tag?: string }
+  /**
+   * Attribution of the map tiles (HTML), when the figure holds the map. The figure has no attribution of its own, as
+   * the screen has, and the license of the map data requires one
+   */
+  mapAttribution?: string
   nextcladeVersion: string
   /** Address of the app */
   origin: string
@@ -34,6 +39,7 @@ export function svgCaption({
   datasetPath,
   datasetTag,
   secondDataset,
+  mapAttribution,
   nextcladeVersion,
   origin,
   date,
@@ -52,6 +58,8 @@ export function svgCaption({
     ...(treeFacts.length > 0 ? [`Reference tree ${treeFacts.join(', ')}`] : []),
     `Made with Nextclade Web ${escape(nextcladeVersion)}, <a href="${link}">${link}</a>, on ${escape(date)}`,
     escape(summary),
+    // The attribution is the fixed text of Auspice's map settings, with its links
+    ...(mapAttribution ? [`Map: ${mapAttribution}`] : []),
     '',
     'Relevant publications:',
     ...publications.map(

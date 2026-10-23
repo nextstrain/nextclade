@@ -1,4 +1,5 @@
 import React, { ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { useSelector } from 'react-redux'
 import type { AuspiceState } from 'auspice'
@@ -23,6 +24,18 @@ const CARD_TITLE_HEIGHT_PX = 26
  * the top of the card, in a 16 px font, so the row holds them above the trees
  */
 const CARD_TITLE_HEIGHT_TWO_TREES_PX = 46
+
+/** Smallest height of the map, so that its legend and zoom buttons fit on short screens */
+const MAP_MIN_HEIGHT_PX = 300
+
+/** Legend of the map: the colors of the coloring and the sizes of the circles, as in Auspice's full panel layout */
+const MAP_LEGEND = { swatches: true, demes: true }
+
+/**
+ * Auspice map, loaded when shown: Leaflet needs a browser window when it loads, and the map code is large and needed
+ * only for users who add metadata with coordinates and turn the map on
+ */
+const AuspiceMap = dynamic(() => import('auspice/src/components/map/map'), { ssr: false })
 
 /** Space between the tree header and the tree zoom buttons, which share the title row of the tree card. Matches the
  * space between the zoom buttons, so that buttons at the end of the header look like one group with them */
@@ -110,8 +123,9 @@ export function Tree({ summary, actions }: TreeProps) {
   const { width: actionsWidth, ref: actionsRef } = useResizeDetector<HTMLDivElement>({
     observerOptions: { box: 'border-box' },
   })
-  // The sidebar toggles the entropy chart through Auspice's list of displayed panels
+  // The sidebar toggles the entropy chart and the map through Auspice's list of displayed panels
   const showEntropy = useSelector((state: AuspiceState) => state.controls?.panelsToDisplay?.includes('entropy'))
+  const showMap = useSelector((state: AuspiceState) => state.controls?.panelsToDisplay?.includes('map'))
   const hasTwoTrees = useSelector((state: AuspiceState) => !!state.controls?.showTreeToo)
 
   // Two trees have a group of zoom buttons each, and the names of the trees in the title row, so the header takes its
@@ -124,6 +138,8 @@ export function Tree({ summary, actions }: TreeProps) {
   const headerRowHeight = isHeaderStacked ? CARD_TITLE_HEIGHT_PX : 0
   const treeTitleHeight = hasTwoTrees ? CARD_TITLE_HEIGHT_TWO_TREES_PX : CARD_TITLE_HEIGHT_PX
   const treeHeight = visibleHeight - headerRowHeight - treeTitleHeight - CHART_BOTTOM_GAP_PX
+  // The map is a chart below the tree, of the height of the visible area, as the tree with one row of its own
+  const mapHeight = visibleHeight - CARD_TITLE_HEIGHT_PX - CHART_BOTTOM_GAP_PX
   const hasSize = width !== undefined && width > 0 && treeHeight > 0
 
   const isHeaderCompact = width !== undefined && width <= HEADER_COMPACT_MAX_WIDTH_PX
@@ -150,6 +166,18 @@ export function Tree({ summary, actions }: TreeProps) {
               <AuspiceTree width={width} height={treeHeight} />
             </TreePanelErrorBoundary>
           </AuspicePanel>
+          {showMap && !hasTwoTrees && (
+            <AuspicePanel>
+              <TreePanelErrorBoundary subject={t('the map')}>
+                <AuspiceMap
+                  width={width}
+                  height={Math.max(MAP_MIN_HEIGHT_PX, mapHeight)}
+                  justGotNewDatasetRenderNewMap={false}
+                  legend={MAP_LEGEND}
+                />
+              </TreePanelErrorBoundary>
+            </AuspicePanel>
+          )}
           {showEntropy && (
             <AuspicePanel $noSelect>
               <TreePanelErrorBoundary subject={t('the entropy chart')}>
