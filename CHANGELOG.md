@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Nextclade CLI: parse errors of `pathogen.json` and the minimizer index
+
+When `pathogen.json` of a dataset or of `--input-pathogen-json`, or the minimizer index of `nextclade sort`, cannot be parsed, the error message now names the file, as the errors of the other dataset files do.
+
 ### Nextclade CLI: read errors of `--input-pathogen-json`
 
 With `--input-ref`, `nextclade run` ignored a `--input-pathogen-json` file that it could not read, for example a missing file or a damaged compressed file, and used the default pathogen settings without a message, so the QC and analysis settings could differ from the file. Nextclade now ends with an error message that names the file.
