@@ -8,6 +8,10 @@ Nextclade Web now embeds Auspice 3.1.0. SVG figures of the tree write the legend
 
 Some reference trees, such as the one of the West Nile virus dataset, have a date on every node. For these trees the tree page offered a time view, but the analyzed sequences have no dates, so the time view placed none of them on the axis and they were missing from the drawing. The tree page now shows these trees by divergence only, without the time view, the clock layout and the date controls.
 
+### Nextclade Web: stream trees
+
+The tree section of the sidebar has a "Show streamtrees" toggle, which draws each labeled clade as a stream: the density of its visible sequences along the divergence axis, divided by the current coloring. With the default filter, the streams show how your sequences spread over the clades.
+
 ### Nextclade CLI: parse errors of `pathogen.json` and the minimizer index
 
 When `pathogen.json` of a dataset or of `--input-pathogen-json`, or the minimizer index of `nextclade sort`, cannot be parsed, the error message now names the file, as the errors of the other dataset files do.
