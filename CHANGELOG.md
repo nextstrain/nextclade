@@ -1,241 +1,86 @@
 ## Unreleased
 
-### Nextclade Web: Auspice 3.1.0 on the tree page
-
-Nextclade Web now embeds Auspice 3.1.0. SVG figures of the tree write the legend and the caption as SVG text, which vector editors such as Inkscape and Illustrator can edit, and embed the Lato font, so that the figure looks the same on every computer. Long legends use one column where it fits and scroll when they overflow.
-
-### Nextclade Web: no time view for trees with dated reference nodes
-
-Some reference trees, such as the one of the West Nile virus dataset, have a date on every node. For these trees the tree page offered a time view, but the analyzed sequences have no dates, so the time view placed none of them on the axis and they were missing from the drawing. The tree page now shows these trees by divergence only, without the time view, the clock layout and the date controls.
-
-### Nextclade Web: stream trees
-
-The tree section of the sidebar has a "Show streamtrees" toggle, which draws each labeled clade as a stream: the density of its visible sequences along the divergence axis, divided by the current coloring. With the default filter, the streams show how your sequences spread over the clades.
-
-### Nextclade Web: from the results table to the tree
-
-Each sequence in the results table has a tree button at the end of its name, which opens the tree page filtered to that sequence and zoomed to a clade around it. A click on a nucleotide or amino acid mutation in the sequence view opens the tree colored by the genotype at that position.
-
-### Nextclade Web: compare two trees of an analysis
-
-When an analysis of several datasets has more than one tree, the "Second tree" select in the sidebar draws another tree next to the viewed one, with lines between tips of the same name, to compare where samples are placed in both trees. Tips are linked only when their names are the same, for example when you name the segment sequences of a sample alike. A coloring by genotype colors both trees when they have the same genome annotation.
-
-### Nextclade Web: map of added coordinates
-
-When you add metadata with `latitude` and `longitude` columns to the tree, the tree page shows a map of these coordinates, and the Map section of the sidebar turns it off and on. The map draws the country outlines, borders and names of [Natural Earth](https://www.naturalearthdata.com/) from files that Nextclade Web serves itself, so the map sends no request to another server. Samples at different coordinates stay apart, and rows with empty coordinates are skipped. SVG figures with the map name Natural Earth as the source of the map. Browsers without WebGL cannot draw the map, and Nextclade Web tells you so when you add coordinates.
-
-### Nextclade Web: panel layout of the tree page
-
-The tree page lays out the tree, the map and the diversity chart as Auspice does on nextstrain.org, with Auspice's panel sizes, so the top of the next panel shows below the tree. When the map is shown, the "Display" control in the sidebar shows the tree and the map side by side ("grid") or one below the other ("full"). The sidebar has the width of Auspice's sidebar. On windows of 780 pixels or narrower, the sidebar opens over the panels and darkens them, and starts closed.
-
-### Nextclade CLI: parse errors of `pathogen.json` and the minimizer index
-
-When `pathogen.json` of a dataset or of `--input-pathogen-json`, or the minimizer index of `nextclade sort`, cannot be parsed, the error message now names the file, as the errors of the other dataset files do.
-
-### Nextclade CLI: read errors of `--input-pathogen-json`
-
-With `--input-ref`, `nextclade run` ignored a `--input-pathogen-json` file that it could not read, for example a missing file or a damaged compressed file, and used the default pathogen settings without a message, so the QC and analysis settings could differ from the file. Nextclade now ends with an error message that names the file.
-
-### Nextclade CLI: read errors of input files
-
-When an input file cannot be read, for example a truncated or damaged compressed file such as `sequences.fasta.gz`, the error message now names the file once, along with the compression format and the cause. Before, the message said "Filename: None" and did not say which input file failed.
-
-### Nextclade CLI: `nextclade sort --global` with sequences from standard input
-
-`nextclade sort --global` reads the input sequences twice: once to find the best datasets, and once to write the outputs. With sequences from standard input, the second read found no sequences, so the output files were empty. Nextclade now copies standard input into a temporary file and reads it from there both times.
-
-### Nextclade CLI: summary of `nextclade sort --global --verbose`
-
-`nextclade sort --global --verbose` now prints the "Suggested datasets" summary after the per-sequence table, as `nextclade sort --verbose` without `--global` does.
-
-### Nextclade CLI: dataset counts of `nextclade sort --verbose`
-
-The "Suggested datasets" summary of `nextclade sort --verbose` counted the first sequence of each dataset twice, so the "Num. seq" column, the total and the "Percent" column were wrong: the percentages were too low for datasets with many sequences. With `--all-matches`, the total counted each pair of a sequence and a matching dataset, so a sequence that matches several datasets counted several times. The summary now counts each sequence once for each of its datasets, and once in the total. With `--all-matches`, the percentages of the datasets can add up to more than 100%.
-
-### Nextclade CLI: write errors of output files
-
-`nextclade run`, `nextclade sort` and the other commands no longer crash when an output file cannot be written, for example when the disk is full. They now end with an error message that names the file, or standard output, and the cause reported by the operating system, and exit code 1. This includes write errors of CSV, TSV, TBL and GFF3 outputs, which lost their cause or, for GFF3, went unnoticed. When one output fails at the end of `nextclade run` or `nextclade sort`, Nextclade still completes the other outputs, including the tree outputs of `nextclade run`, and reports the errors of all outputs. When a command stops before the end of its outputs, for example after an error in another output or in an input file, it prints a warning that names each incomplete or missing output.
-
-### Nextclade CLI: errors of `nextclade sort`
-
-`nextclade sort` no longer crashes when it cannot read an input file or create an output file. It now ends with an error message and exit code 1.
-
-### Nextclade CLI: results JSON on standard output
-
-`nextclade run --output-json -` printed the results JSON twice. It now prints it once. An error while Nextclade writes the results JSON now ends the command with an error message instead of a crash.
-
-### Nextclade CLI: closed output pipe
-
-Commands that print data, such as `nextclade dataset list`, no longer crash when the program that reads their output stops early, for example `nextclade dataset list | head`. They now end quietly with exit code 0, as standard Unix tools do. The same applies to outputs written to standard output with `-`, for example `nextclade run --output-fasta - sequences.fasta | head`, which ended with an error before. Nextclade then stops writing to standard output and still writes all other outputs to their end, for example the file of `--output-tsv results.tsv` in `nextclade run --output-fasta - --output-tsv results.tsv sequences.fasta | head`. `nextclade sort` does the same for `--output-results-tsv -` and for the table of `--verbose`.
-
-### Nextclade CLI: `--jobs 0` is an error
-
-`nextclade run --jobs 0` and `nextclade sort --jobs 0` started no processing threads. `nextclade run` then failed with the unclear error "When sending a FastaRecord" and left empty output files, and `nextclade sort` crashed. `--jobs` now requires a number of 1 or more.
-
-### Nextclade CLI: server URL with a trailing slash
-
-`--server` now also accepts a URL that ends with `/`, for example `--server https://data.clades.nextstrain.org/v3/`. Before, Nextclade requested such URLs as `https://data.clades.nextstrain.org/v3//index.json`, which some servers do not serve.
-
-### Nextclade CLI: network options for `nextclade run` and environment variables
-
-`nextclade run` now accepts the same network options as `nextclade dataset get` and uses them when it downloads a dataset with `--dataset-name`: `--proxy`, `--proxy-user`, `--proxy-pass`, `--extra-ca-certs`, and the new options `--proxy-pass-file` and `--http-timeout`.
-
-Each network option can also be set with an environment variable. A command-line argument takes precedence over its variable:
-
-- `--proxy`: `NEXTCLADE_PROXY`
-- `--proxy-user`: `NEXTCLADE_PROXY_USER`
-- `--proxy-pass`: `NEXTCLADE_PROXY_PASS`
-- `--proxy-pass-file`: `NEXTCLADE_PROXY_PASS_FILE`
-- `--extra-ca-certs`: `NEXTCLADE_EXTRA_CA_CERTS`
-- `--http-timeout`: `NEXTCLADE_HTTP_TIMEOUT`
-
-A variable set to an empty value, for example `NEXTCLADE_PROXY=` from `${VAR:-}` in a container configuration, counts as not set. Nextclade checks the network values only when it downloads data, so an invalid value does not stop a command that does not download. When Nextclade downloads, an invalid value, including a value that is not valid UTF-8 text, gives an error that names both the option and the variable.
-
-Other users of the machine can see command-line arguments, so a password given with `--proxy-pass` is visible to them. Nextclade now prints a warning in this case. Give the password in the `NEXTCLADE_PROXY_PASS` variable instead, or in a file with `--proxy-pass-file <PATH>` (one trailing newline is removed). If one password option is a command-line argument and the other an environment variable, the command-line argument is used. Two command-line arguments, or two variables, are an error when Nextclade downloads data. `--help` does not print the values of the proxy variables.
-
-### Nextclade CLI: proxy settings and download timeout
-
-- With `--proxy`, hosts listed in the `NO_PROXY` (or `no_proxy`) environment variable are now reached directly, without the proxy
-- `--proxy` and `NEXTCLADE_PROXY` now also accept a proxy without a scheme, for example `10.0.0.1:3128`, as the standard proxy variables do. Such a value is an HTTP proxy
-- `--proxy-user`, `--proxy-pass`, and `--proxy-pass-file` apply only to a proxy given with `--proxy` or `NEXTCLADE_PROXY`. When they are given for a proxy from `HTTPS_PROXY`, `HTTP_PROXY`, or `ALL_PROXY`, Nextclade now prints a warning; put the credentials into the URL of that variable instead, for example `http://user:password@proxy.example.com:3128`. Nextclade checks these options for every download, also when it does not use them, so for example a user without a password is always an error
-- Without `--proxy`, Nextclade uses the standard variables `HTTPS_PROXY`, `HTTP_PROXY`, and `ALL_PROXY` (upper or lower case) together with `NO_PROXY`. When none of these variables is set, Nextclade now uses the system proxy settings on macOS and Windows. A variable set to an empty value also counts as set, so for example `HTTPS_PROXY=` alone makes Nextclade connect directly. A value that is not valid UTF-8 text is an error when Nextclade uses the variable
-- Downloads are no longer cut off after 30 seconds. Each HTTP request may now take up to 600 seconds, from connecting until the last byte. Change the limit with `--http-timeout <SECONDS>` or `NEXTCLADE_HTTP_TIMEOUT`; `0` disables it. When a request exceeds the limit, the error message names the option
-
-### Nextclade CLI: update TLS and network libraries
-
-Nextclade CLI uses TLS to download datasets. The TLS library rustls is updated to version 0.23.46, which fixes the security advisories [RUSTSEC-2026-0285](https://rustsec.org/advisories/RUSTSEC-2026-0285.html) and [RUSTSEC-2026-0349](https://rustsec.org/advisories/RUSTSEC-2026-0349.html). The libraries bytes, crossbeam-epoch, and time are updated to versions that fix published security advisories. The HTTP library reqwest is also updated to a newer version.
-
-### Nextclade CLI: safer extraction of dataset archives
-
-`nextclade dataset get --output-dir` now extracts only the regular files at the root of the dataset archive, and ignores all other entries, such as directories and paths that point outside of the output directory. It refuses archives with symbolic links, with file names that Windows does not allow (such as `aux.txt` or names with `:`), or with more than 10 000 entries, and it stops when the archive is larger than 1 GiB when unpacked. It replaces existing files instead of writing into them, so symbolic links in the output directory no longer redirect the extracted files. This protects against crafted archives from a compromised or impersonated dataset server.
-
-The zip library is updated from 7.0.0 to 9.0.5, and the Excel export library `rust_xlsxwriter` from 0.92.2 to 0.101.0, which uses the same zip version. Older zip versions are affected by the advisories [RUSTSEC-2026-0367](https://rustsec.org/advisories/RUSTSEC-2026-0367.html), [RUSTSEC-2026-0368](https://rustsec.org/advisories/RUSTSEC-2026-0368.html) and [RUSTSEC-2026-0369](https://rustsec.org/advisories/RUSTSEC-2026-0369.html) in their extraction functions. The previous extraction method of `nextclade dataset get` used these functions, and the new one does not.
-
-### Nextclade CLI: verifiable release downloads
-
-Release pages now include a `SHA256SUMS` file with the SHA-256 checksum of every executable, and a GitHub build provenance attestation for every executable. With them you can check that a downloaded executable is complete and that the Nextclade release workflow on GitHub built it. See the [installation documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/standalone.html) for the commands.
-
-### Nextclade CLI: trust the certificate decisions of the operating system
-
-Nextclade CLI checks the TLS certificate of the dataset server against a list of trusted certificate authorities (CAs). Before, Nextclade added its built-in copy of Mozilla's CA list to the CAs of the operating system on every platform. A CA that Apple or Microsoft no longer trusts was then still trusted by Nextclade through the built-in list.
-
-- macOS and Windows: the operating system now decides alone which CAs to trust
-- Linux and other Unix systems except macOS: Nextclade trusts the CAs of the system certificate store, so keep the system certificates up to date. It uses the built-in Mozilla list only when the system has no usable CA certificates, for example in minimal containers such as the official `scratch` Docker image. When the environment variable `SSL_CERT_FILE` is set, or `SSL_CERT_DIR` names a directory, but they provide no usable CA certificates, Nextclade now stops with an error instead of using the built-in list. An `SSL_CERT_DIR` without a directory, such as an empty value, counts as not set
-- A file given with `--extra-ca-certs` that contains no certificates or an invalid certificate is now an error that names the file
-
-If downloads now fail with a certificate error on an outdated system, update the CA certificates of the operating system (for example the `ca-certificates` package on Linux), or add the missing CA certificate with `--extra-ca-certs`.
-
-### Alignment: `alignmentPreset` in `pathogen.json` takes effect
-
-Nextclade ignored `alignmentPreset` in `alignmentParams` of `pathogen.json` and used the `default` preset unless the `--alignment-preset` CLI argument was given, although the documentation describes the field and some datasets set it. Nextclade CLI and Nextclade Web now apply the preset of the dataset. The `--alignment-preset` CLI argument replaces the preset of the dataset, and alignment parameters set in `pathogen.json` or as CLI arguments still override the values of the preset. See the [sequence alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/01-sequence-alignment.html) for details.
-
-Results change for these datasets, which set `alignmentPreset`:
-
-- `community/itps/orov/L/refseq`
-- `community/itps/zikav`
-- `community/masphl-bioinformatics/hav/vp1-2b-junction`
-- `community/masphl-bioinformatics/hav/whole-genome`
-
-### Nextclade Web: update Auspice tree visualization to 3.0.0
-
-The Auspice tree visualization package is updated from 2.67.0 to 3.0.0. Tip labels stay inside the tree, also when you zoom into a clade, the SVG download contains the labels and the diversity chart, and the tree controls work with the keyboard. See the [Auspice changelog](https://github.com/nextstrain/auspice/blob/v3.0.0/CHANGELOG.md) for details.
-
-### Nextclade Web: more controls on the tree page
-
-The sidebar of the tree page has new controls:
-
-- **Explode Tree By** splits the tree into subtrees where an attribute changes along a branch, for example one subtree per clade
-- **Entropy** shows or hides the diversity chart of the genome below the tree
-- **Add metadata** adds the columns of your own CSV or TSV files to the tree as colorings and filters. You can also drop the files on the tree. The first column holds the sequence names, as in the input FASTA file. Node-data JSON files of Augur also work. The data stays in your browser. Excel files are not read: save the sheet as a CSV or TSV file and add that file
-- Shift-click a value in the legend of the tree to change the colors of the current coloring
-
-The tree keeps its coloring, filters, zoom, and added metadata while you visit other pages, until the next analysis. The sidebar is now also available in Chinese.
-
-See the [tree page documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-web/phylogenetic-tree-view.html) for details.
-
-### Nextclade Web: Newick download on the tree page
-
-A new "NWK" button on the tree page downloads the tree with the analyzed sequences placed onto it, in Newick format. The "JSON" and "NWK" buttons download the same files as the export page. The text below the SVG figure now names the Nextclade dataset, the Nextclade version, and the publications to cite. On narrow screens, the download buttons are in one "Download" menu.
-
-### Nextclade Web: tree page during the analysis
-
-During every analysis, the tree page showed the message that the dataset has no reference tree, until the tree was built at the end of the run. Now the tree page shows the stage of the analysis while the tree is expected. For a dataset without a reference tree, the page names the dataset, lists the results that are available, and explains how to use a custom reference tree.
-
-The navigation bar now shows "Building tree" after all sequences are analyzed. Before, it showed "Analyzed N/N" while the tree was built, and large runs looked stalled.
-
-### Nextclade Web: fix crash on sequences that need a large alignment band
-
-Nextclade Web stopped the whole analysis with the error `RuntimeError: unreachable` when one sequence needed a large nucleotide alignment band, for example some mpox sequences. The alignment matrix was copied once while it was created, so the alignment needed almost twice the memory of the matrix. The copy is removed, which lowers the peak memory of an alignment in Nextclade Web from 9 to 5 bytes per band cell. When the memory for an alignment matrix still cannot be allocated, the sequence gets an error, and the analysis of the other sequences continues. Results of Nextclade CLI do not change.
-
-### Alignment: corrected message when the alignment band exceeds the limit
-
-When the alignment band exceeds the band area limit, the error message described a query much shorter than the reference as similar in length. The message now has a separate description for short queries, with possible causes such as seed matches in distant repeated regions of the reference. The message now names both ways to raise the limit: the Nextclade CLI argument `--max-band-area` and `alignmentParams.maxBandArea` in `pathogen.json`.
-
-### Warning when the alignment band may limit the alignment
-
-Nextclade now warns when the nucleotide alignment touches the boundary of the alignment band and Nextclade cannot retry with a wider band: the wider band exceeds the band area limit, does not fit into memory, or all retries are used while the alignment score still rises. A wider band can give a better alignment in these cases. Before, Nextclade kept the alignment silently.
-
-The warning is in the `warnings` column of TSV and CSV outputs, in the `warnings` array of JSON and NDJSON outputs, in the tooltip of the sequence name in Nextclade Web, and in the console output of Nextclade CLI. See the [errors and warnings documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/errors-and-warnings.html) for details.
-
-### Reverse-complement warning for datasets without a genome annotation
-
-The warning for a reverse-complemented sequence was missing for datasets without a genome annotation. Nextclade now reports it for all datasets.
-
-### Alignment: reject seed chains that link distant parts of the reference
-
-Some sequences match two distant parts of the reference, for example an mpox sequence from the inverted terminal repeats, which matches both ends of the genome. Nextclade aligned such a sequence with one deletion of almost the whole genome and reported good quality, and the alignment needed several GB of memory, which crashed Nextclade Web. Nextclade now reports an error for such a sequence before the alignment, and names both parts of the reference and the implied deletion.
-
-Two new alignment parameters control the check: `--max-seed-chain-deletion-ratio` (`maxSeedChainDeletionRatio` in `alignmentParams` of `pathogen.json`, default 10) is the largest allowed deletion between two successive seeds as a multiple of the query length, and `--min-seed-chain-part-cover` (`minSeedChainPartCover`, default 0.2) is the smallest fraction of the seed length that each part of the chain around such a deletion must hold for the sequence to be rejected. The `short-sequences` alignment preset turns the check off. Results of other sequences do not change.
-
-### Error message for an invalid regular expression in `aaMotifs`
-
-Nextclade now compiles the regular expressions of `aaMotifs` in `pathogen.json` once, when the dataset loads. An invalid regular expression, for example `N[^P` with an unclosed character class, now gives an error that names the `aaMotifs` entry and the regular expression. Before, Nextclade CLI crashed with a backtrace and Nextclade Web aborted while it loaded the dataset. Results for valid datasets do not change.
-
-### Nextclade Web: failed sequences in the exported results
-
-The CSV, TSV, JSON and NDJSON results that Nextclade Web exports for a dataset, and the same files in the archive, now contain the sequences for which the analysis failed, with their error message. Before, Nextclade Web left these sequences out of the export files, and they were visible only in the results table. The Nextclade CLI output files already contained them.
-
-In a run with several datasets, a failed sequence is in the files of the dataset that Nextclade selected for this sequence. Sequences for which Nextclade did not find a dataset stay in the separate export of unclassified sequences.
-
-### Nextclade Web: internal errors fail one sequence instead of the whole analysis
-
-When the analysis engine of Nextclade Web ran out of browser memory or stopped on an internal error, Nextclade Web stopped the whole analysis with an unclear message such as `RuntimeError: unreachable`, and later calls could run on the broken engine. Now:
-
-- the error names its cause, for example "Nextclade Web ran out of browser memory while allocating 2.4 GiB" with the size of the failed allocation, or the internal error message of the analysis engine
-- only the sequence that was analyzed when the error happened fails, with this error. Nextclade Web replaces the broken analysis worker and continues with the other sequences
-- after the fourth internal error of a run, Nextclade Web stops the analysis and shows the error, because an error that repeats most likely affects every sequence
-- an internal error during an export fails only this export, and the next export runs on a new worker instead of the broken engine
-
-See the [errors and warnings documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/errors-and-warnings.html) for details.
-
-### Nextclade Web: free memory after sequences with very large alignments
-
-The memory of the analysis engine in Nextclade Web grows to fit the largest alignment it computed, and the browser cannot take it back while the engine runs. After a sequence with a very large alignment band, for example some mpox sequences, an analysis worker kept several GB of memory until the end of the run, and the browser tab could crash. Nextclade Web now replaces an analysis worker whose memory grew above 1 GiB with a new worker after it finishes the current sequence, which returns the memory to the browser. The results do not change.
-
-### Newick tree: quote sequence names with special characters
-
-Nextclade wrote sequence names into the Newick tree without change. Tree tools read a name with whitespace, brackets, quotes, colons, semicolons or commas as Newick syntax, for example as a subtree, or rejected the file. An example is `OV950637 (XL)` in the SARS-CoV-2 reference tree. Nextclade CLI and Nextclade Web now write such names in single quotes, as the Newick format requires, and double each single quote in the name, for example `'OV950637 (XL)'`. Other names do not change. See the [tree output documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/06-tree.html) for details.
-
-### Nextclade Web: layout on phones, tablets and laptops
-
-Nextclade Web is now usable on small screens:
-
-- the navigation bar stays in one row and does not cover the top of the page. The breadcrumbs scroll sideways when they do not fit, and the analysis status keeps its room on laptop screens
-- the navigation menu now contains the forum, Docker and GitHub links on screens narrower than 1200px. Before, these links were not available on such screens
-- the start page scrolls when its content does not fit the screen, so the Run button and the dataset card are always available
-- the dataset page shows the selected dataset and the Run button below the dataset list on screens narrower than 992px. Before, they were outside of the screen
-- tabs, dataset search, dataset dates and version badges, wide tables in dataset descriptions, the export page, the about page, and the footer fit phone screens
-- on narrow screens, the row with the tree filters and the download buttons moves above the tree
-
-Screen readers no longer announce the citation button in the navigation bar as disabled.
-
-### Nextclade CLI: Linux glibc binaries run in minimal container images
-
-The Linux glibc executables (`nextclade-x86_64-unknown-linux-gnu` and `nextclade-aarch64-unknown-linux-gnu`) needed the system library `libgcc_s.so.1`, which minimal glibc container images such as `gcr.io/distroless/base` do not have. The executables now contain the necessary code from this library, and run in these images.
-
-### Nextclade Web: security update of DOMPurify
-
-Auspice uses DOMPurify to remove unsafe HTML when it shows the Markdown descriptions of datasets. The DOMPurify version that Auspice includes is replaced from 2.5.8 to 3.4.16, which fixes known sanitizer bypasses ([GHSA-36jr-mh4h-2g58](https://github.com/advisories/GHSA-36jr-mh4h-2g58), [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq)).
+### Nextclade Web: tree page
+
+The tree page embeds Auspice 3.1.0 (2026-10-15), up from 2.67.0 (2025-11-03), and gains many of Auspice's controls. See the [tree page documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-web/phylogenetic-tree-view.html) for details.
+
+- **Auspice 3.1.0**: tip labels stay inside the tree, also when you zoom into a clade, and the tree controls work with the keyboard. SVG figures contain the tip labels and the diversity chart, write the legend and the caption as text that vector editors such as Inkscape and Illustrator can edit, and embed the Lato font, so that they look the same on every computer. Long legends use one column where it fits and scroll when they overflow. See the [Auspice changelog](https://github.com/nextstrain/auspice/blob/c3122c404328a89888a332d12f638a6ac28e2364/CHANGELOG.md#version-310---20261015) for the versions from 2.68.0 to 3.1.0, and [#1795](https://github.com/nextstrain/nextclade/pull/1795), [#1830](https://github.com/nextstrain/nextclade/pull/1830)
+- **Panel layout as in Auspice**: the tree, the map and the diversity chart have Auspice's sizes, so the top of the next panel shows below the tree. While the map is shown, the "Display" control in the sidebar places the tree and the map side by side ("grid") or one below the other ("full"). The sidebar has Auspice's width. On windows of 780 pixels or narrower it starts closed, and opens over the panels and darkens them
+- **Map of added coordinates**: metadata with `latitude` and `longitude` columns shows a map of the sequences, which the Map section of the sidebar turns off and on. The map draws the country outlines, borders and names of [Natural Earth](https://www.naturalearthdata.com/) from files that Nextclade Web serves itself, so it sends no request to another server. Samples at different coordinates stay apart, rows with empty coordinates are skipped, and SVG figures with the map name Natural Earth as its source. Browsers without WebGL cannot draw the map, and Nextclade Web says so when you add coordinates. See [#1830](https://github.com/nextstrain/nextclade/pull/1830)
+- **Second tree**: in an analysis of several datasets with more than one tree, the "Second tree" select draws another tree next to the viewed one, with lines between tips of the same name, to compare where samples are placed. Tips link only when their names are the same, for example when you name the segment sequences of a sample alike. A coloring by genotype colors both trees when they have the same genome annotation. See [#1830](https://github.com/nextstrain/nextclade/pull/1830)
+- **Stream trees**: the "Show streamtrees" toggle draws each labeled clade as a stream: the density of its visible sequences along the divergence axis, divided by the current coloring. With the default filter, the streams show how your sequences spread over the clades. See [#1830](https://github.com/nextstrain/nextclade/pull/1830)
+- **From the results to the tree**: a tree button at the end of each sequence name in the results table opens the tree filtered to that sequence and zoomed to a clade around it. A click on a nucleotide or amino acid mutation in the sequence view opens the tree colored by the genotype at that position. See [#1830](https://github.com/nextstrain/nextclade/pull/1830)
+- **More sidebar controls**: "Explode Tree By" splits the tree into subtrees where an attribute changes along a branch, for example one subtree per clade, and "Entropy" shows or hides the diversity chart. Shift-click a value in the legend to change the colors of the current coloring. The sidebar is also available in Chinese. See [#1795](https://github.com/nextstrain/nextclade/pull/1795), [#1797](https://github.com/nextstrain/nextclade/pull/1797)
+- **Your metadata on the tree**: "Add metadata" in the sidebar, or a drop of files on the tree, adds the columns of CSV or TSV files as colorings and filters. The first column holds the sequence names, as in the input FASTA file. Node-data JSON files of Augur also work. The data stays in your browser. Excel files are not read: save the sheet as a CSV or TSV file. See [#1797](https://github.com/nextstrain/nextclade/pull/1797)
+- **Kept view**: the tree keeps its coloring, filters, zoom and added metadata while you visit other pages, until the next analysis. See [#1797](https://github.com/nextstrain/nextclade/pull/1797)
+- **Downloads**: a new "NWK" button downloads the tree with the analyzed sequences placed onto it, in Newick format. The "JSON" and "NWK" buttons download the same files as the export page. The text below SVG figures names the Nextclade dataset, the Nextclade version and the publications to cite. On narrow screens, the downloads are in one "Download" menu. See [#1797](https://github.com/nextstrain/nextclade/pull/1797)
+- **During the analysis**: the tree page shows the stage of the analysis while the tree is expected, instead of the message that the dataset has no reference tree. For a dataset without a reference tree, it names the dataset, lists the available results and explains how to use a custom reference tree. The navigation bar shows "Building tree" after all sequences are analyzed, instead of "Analyzed N/N", so that large runs no longer look stalled. See [#1794](https://github.com/nextstrain/nextclade/pull/1794)
+- **No time view for trees with dated reference nodes**: some reference trees, such as the one of the West Nile virus dataset, have a date on every node. The time view of these trees left out the analyzed sequences, which have no dates. The tree page now shows them by divergence only, without the time view, the clock layout and the date controls. See [#1830](https://github.com/nextstrain/nextclade/pull/1830)
+
+### Nextclade Web: analysis and exports
+
+- **Internal errors fail one sequence**: when the analysis engine runs out of browser memory or stops on an internal error, only the sequence that was analyzed at that time fails, with an error that names the cause, for example "Nextclade Web ran out of browser memory while allocating 2.4 GiB". Nextclade Web replaces the broken worker and continues with the other sequences, and stops the analysis after the fourth internal error of a run, because an error that repeats most likely affects every sequence. An internal error during an export fails only that export. Before, Nextclade Web stopped the whole analysis with an unclear message such as `RuntimeError: unreachable`, and later calls could run on the broken engine. See the [errors and warnings documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/errors-and-warnings.html), [#1805](https://github.com/nextstrain/nextclade/pull/1805), [#1806](https://github.com/nextstrain/nextclade/pull/1806)
+- **Large alignment bands**: sequences that need a large nucleotide alignment band, for example some mpox sequences, stopped the analysis with `RuntimeError: unreachable`, because the alignment matrix was copied once while it was created. Without the copy, the peak memory of an alignment drops from 9 to 5 bytes per band cell. When the memory for an alignment matrix still cannot be allocated, the sequence gets an error and the analysis continues. Results of Nextclade CLI do not change. See [#1800](https://github.com/nextstrain/nextclade/pull/1800)
+- **Free memory after very large alignments**: the memory of an analysis worker grows to fit its largest alignment, and the browser cannot take it back while the worker runs. After some mpox sequences, a worker kept several GB until the end of the run, and the browser tab could crash. Nextclade Web now replaces a worker whose memory grew above 1 GiB after its current sequence. Results do not change. See [#1808](https://github.com/nextstrain/nextclade/pull/1808)
+- **Failed sequences in exports**: the CSV, TSV, JSON and NDJSON results of a dataset, also in the archive, now contain the sequences whose analysis failed, with their error message, as the Nextclade CLI outputs do. In a run with several datasets, a failed sequence is in the files of the dataset that Nextclade selected for it. Sequences without a dataset stay in the export of unclassified sequences. See [#1803](https://github.com/nextstrain/nextclade/pull/1803)
+
+### Nextclade Web: layout and security
+
+- **Phones, tablets and laptops**: the navigation bar stays in one row and does not cover the page, its breadcrumbs scroll sideways when they do not fit, and the analysis status keeps its room on laptop screens. Below 1200 pixels, the navigation menu contains the forum, Docker and GitHub links, which were not reachable before. The start page scrolls, so that the Run button and the dataset card stay reachable. Below 992 pixels, the dataset page shows the selected dataset and the Run button below the dataset list. Tabs, dataset search, dates and version badges, wide tables in dataset descriptions, the export page, the about page and the footer fit phone screens. On narrow screens, the row with the tree filters and the download buttons moves above the tree. Screen readers no longer announce the citation button as disabled. See [#1796](https://github.com/nextstrain/nextclade/pull/1796)
+- **DOMPurify**: the copy of DOMPurify that Auspice includes to remove unsafe HTML from dataset descriptions is replaced from version 2.5.8 to 3.4.16, which fixes known sanitizer bypasses ([GHSA-36jr-mh4h-2g58](https://github.com/advisories/GHSA-36jr-mh4h-2g58), [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq)). See [#1795](https://github.com/nextstrain/nextclade/pull/1795)
+
+### Analysis: Nextclade CLI and Nextclade Web
+
+- **`alignmentPreset` in `pathogen.json` takes effect**: Nextclade used the `default` preset unless the `--alignment-preset` CLI argument was given, although the documentation describes the field and some datasets set it. Both Nextclade CLI and Nextclade Web now apply the preset of the dataset. `--alignment-preset` replaces it, and alignment parameters set in `pathogen.json` or as CLI arguments still override the values of the preset. Results change for `community/itps/orov/L/refseq`, `community/itps/zikav`, `community/masphl-bioinformatics/hav/vp1-2b-junction` and `community/masphl-bioinformatics/hav/whole-genome`. See the [sequence alignment documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/01-sequence-alignment.html), [#1810](https://github.com/nextstrain/nextclade/pull/1810)
+- **Seed chains that link distant parts of the reference**: some sequences match two distant parts of the reference, for example an mpox sequence from the inverted terminal repeats, which matches both ends of the genome. Nextclade aligned such a sequence with one deletion of almost the whole genome and good quality, and needed several GB of memory, which crashed Nextclade Web. Such a sequence now gets an error before the alignment, which names both parts of the reference and the implied deletion. Two parameters control the check: `--max-seed-chain-deletion-ratio` (`maxSeedChainDeletionRatio` in `alignmentParams`, default 10), the largest deletion between two successive seeds as a multiple of the query length, and `--min-seed-chain-part-cover` (`minSeedChainPartCover`, default 0.2), the smallest fraction of the seed length that each part of the chain must hold for the sequence to be rejected. The `short-sequences` preset turns the check off. Results of other sequences do not change. See [#1801](https://github.com/nextstrain/nextclade/pull/1801)
+- **Warning when the alignment band may limit the alignment**: Nextclade warns when the nucleotide alignment touches the boundary of the band and no wider band can be tried: the wider band exceeds the band area limit, does not fit into memory, or all retries are used while the score still rises. Before, Nextclade kept such an alignment without a message. The warning is in the `warnings` column of TSV and CSV outputs, the `warnings` array of JSON and NDJSON outputs, the tooltip of the sequence name in Nextclade Web, and the console output of Nextclade CLI. See the [errors and warnings documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/errors-and-warnings.html), [#1800](https://github.com/nextstrain/nextclade/pull/1800)
+- **Message when the alignment band exceeds the limit**: the message described a query much shorter than the reference as similar in length. It now describes short queries separately, with causes such as seed matches in distant repeated regions of the reference, and names both ways to raise the limit: `--max-band-area` and `alignmentParams.maxBandArea` in `pathogen.json`. See [#1800](https://github.com/nextstrain/nextclade/pull/1800)
+- **Reverse-complement warning**: the warning for a reverse-complemented sequence was missing for datasets without a genome annotation. Nextclade now reports it for all datasets. See [#1800](https://github.com/nextstrain/nextclade/pull/1800)
+- **Invalid regular expressions in `aaMotifs`**: Nextclade compiles the regular expressions of `aaMotifs` in `pathogen.json` once, when the dataset loads. An invalid one, for example `N[^P` with an unclosed character class, gives an error that names the `aaMotifs` entry and the expression. Before, Nextclade CLI crashed with a backtrace and Nextclade Web aborted while it loaded the dataset. Results for valid datasets do not change. See [#1802](https://github.com/nextstrain/nextclade/pull/1802)
+- **Sequence names in the Newick tree**: names with whitespace, brackets, quotes, colons, semicolons or commas, such as `OV950637 (XL)` in the SARS-CoV-2 reference tree, are now written in single quotes, for example `'OV950637 (XL)'`, with each single quote in the name doubled, as the Newick format requires. Tree tools read such unquoted names as Newick syntax or rejected the file. Other names do not change. See the [tree output documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files/06-tree.html), [#1798](https://github.com/nextstrain/nextclade/pull/1798)
+
+### Nextclade CLI: errors and outputs
+
+- **Write errors of output files**: `nextclade run`, `nextclade sort` and the other commands no longer crash when an output file cannot be written, for example on a full disk. They end with exit code 1 and an error message that names the file, or standard output, and the cause reported by the operating system. This includes CSV, TSV, TBL and GFF3 outputs, whose errors lost their cause or, for GFF3, went unnoticed. When one output fails at the end of `nextclade run` or `nextclade sort`, the other outputs, including the tree outputs, are still completed, and the errors of all outputs are reported. A command that stops early, for example after an error in an input file, warns about each incomplete or missing output. See [#1821](https://github.com/nextstrain/nextclade/pull/1821)
+- **Closed output pipe**: commands that print data, such as `nextclade dataset list | head`, now end quietly with exit code 0 when the reader stops early, as standard Unix tools do, instead of crashing. Outputs written to standard output with `-`, for example `nextclade run --output-fasta - sequences.fasta | head`, no longer end with an error. Nextclade then stops writing to standard output and still writes all other outputs, for example `--output-tsv results.tsv`. `nextclade sort` does the same for `--output-results-tsv -` and the table of `--verbose`. See [#1821](https://github.com/nextstrain/nextclade/pull/1821)
+- **Results JSON on standard output**: `nextclade run --output-json -` printed the results JSON twice, and now prints it once. An error while writing the results JSON ends the command with an error message instead of a crash. See [#1821](https://github.com/nextstrain/nextclade/pull/1821)
+- **Read errors of input files**: when an input file cannot be read, for example a truncated or damaged `sequences.fasta.gz`, the error message names the file once, with the compression format and the cause. Before, it said "Filename: None". See [#1825](https://github.com/nextstrain/nextclade/pull/1825)
+- **Read errors of `--input-pathogen-json`**: with `--input-ref`, `nextclade run` ignored a `--input-pathogen-json` file that it could not read, for example a missing or damaged file, and used the default pathogen settings without a message, so the QC and analysis settings could differ from the file. Nextclade now ends with an error that names the file. See [#1826](https://github.com/nextstrain/nextclade/pull/1826)
+- **Parse errors of `pathogen.json` and the minimizer index**: when `pathogen.json` of a dataset or of `--input-pathogen-json`, or the minimizer index of `nextclade sort`, cannot be parsed, the error message names the file, as the errors of the other dataset files do. See [#1828](https://github.com/nextstrain/nextclade/pull/1828)
+- **`--jobs 0` is an error**: `--jobs` now requires 1 or more. With 0, `nextclade run` failed with the unclear error "When sending a FastaRecord" and left empty output files, and `nextclade sort` crashed. See [#1820](https://github.com/nextstrain/nextclade/pull/1820)
+
+### Nextclade CLI: `nextclade sort`
+
+- **Errors**: `nextclade sort` no longer crashes when it cannot read an input file or create an output file, and ends with an error message and exit code 1. See [#1821](https://github.com/nextstrain/nextclade/pull/1821)
+- **`--global` with sequences from standard input**: `--global` reads the sequences twice, once to find the best datasets and once to write the outputs. With sequences from standard input, the second read found nothing and the outputs were empty. Nextclade now copies standard input into a temporary file and reads that file both times. See [#1824](https://github.com/nextstrain/nextclade/pull/1824)
+- **Summary of `--global --verbose`**: the "Suggested datasets" summary now follows the per-sequence table, as without `--global`. See [#1823](https://github.com/nextstrain/nextclade/pull/1823)
+- **Dataset counts of `--verbose`**: the "Suggested datasets" summary counted the first sequence of each dataset twice, so "Num. seq", the total and "Percent" were wrong, and the percentages were too low for datasets with many sequences. With `--all-matches`, the total counted each pair of a sequence and a matching dataset. The summary now counts each sequence once for each of its datasets and once in the total. With `--all-matches`, the percentages can add up to more than 100%. See [#1822](https://github.com/nextstrain/nextclade/pull/1822)
+
+### Nextclade CLI: network and security
+
+- **Network options for `nextclade run`**: `nextclade run` now takes the network options of `nextclade dataset get` and uses them when it downloads a dataset with `--dataset-name`: `--proxy`, `--proxy-user`, `--proxy-pass`, `--extra-ca-certs`, and the new `--proxy-pass-file` and `--http-timeout`. Each option can also be set with an environment variable, and a command-line argument takes precedence over its variable. See [#1815](https://github.com/nextstrain/nextclade/pull/1815)
+  - Variables: `NEXTCLADE_PROXY`, `NEXTCLADE_PROXY_USER`, `NEXTCLADE_PROXY_PASS`, `NEXTCLADE_PROXY_PASS_FILE`, `NEXTCLADE_EXTRA_CA_CERTS`, `NEXTCLADE_HTTP_TIMEOUT`
+  - A variable set to an empty value, for example `NEXTCLADE_PROXY=` from `${VAR:-}` in a container configuration, counts as not set
+  - Nextclade checks the values only when it downloads, so an invalid value does not stop a command that downloads nothing. An invalid value, including one that is not valid UTF-8 text, gives an error that names both the option and the variable
+  - Other users of the machine can see command-line arguments, so Nextclade warns when `--proxy-pass` gives a password. Use `NEXTCLADE_PROXY_PASS` or `--proxy-pass-file <PATH>` (one trailing newline is removed) instead. When one password option is an argument and the other a variable, the argument wins. Two arguments, or two variables, are an error when Nextclade downloads. `--help` does not print the values of the proxy variables
+- **Proxy settings and download timeout**: see [#1815](https://github.com/nextstrain/nextclade/pull/1815)
+  - With `--proxy`, hosts in `NO_PROXY` (or `no_proxy`) are reached directly
+  - `--proxy` and `NEXTCLADE_PROXY` accept a proxy without a scheme, for example `10.0.0.1:3128`, as an HTTP proxy
+  - `--proxy-user`, `--proxy-pass` and `--proxy-pass-file` apply only to a proxy given with `--proxy` or `NEXTCLADE_PROXY`. For a proxy from `HTTPS_PROXY`, `HTTP_PROXY` or `ALL_PROXY`, Nextclade warns, and the credentials belong into the URL of that variable, for example `http://user:password@proxy.example.com:3128`. Nextclade checks these options for every download, so for example a user without a password is always an error
+  - Without `--proxy`, Nextclade uses `HTTPS_PROXY`, `HTTP_PROXY` and `ALL_PROXY` (upper or lower case) with `NO_PROXY`, and the system proxy settings on macOS and Windows when none of these is set. A variable set to an empty value counts as set, so `HTTPS_PROXY=` alone makes Nextclade connect directly. A value that is not valid UTF-8 text is an error when Nextclade uses the variable
+  - Downloads are no longer cut off after 30 seconds. Each HTTP request may take up to 600 seconds, from connecting to the last byte. `--http-timeout <SECONDS>` or `NEXTCLADE_HTTP_TIMEOUT` changes the limit, and `0` disables it. An error for a request over the limit names the option
+- **Server URL with a trailing slash**: `--server` accepts a URL that ends with `/`, for example `--server https://data.clades.nextstrain.org/v3/`. Before, Nextclade requested `https://data.clades.nextstrain.org/v3//index.json`, which some servers do not serve. See [#1819](https://github.com/nextstrain/nextclade/pull/1819)
+- **Certificate decisions of the operating system**: Nextclade added its built-in copy of Mozilla's list of certificate authorities (CAs) to the CAs of the operating system, so it kept trusting CAs that Apple or Microsoft no longer trust. If downloads now fail with a certificate error on an outdated system, update its CA certificates (for example the `ca-certificates` package on Linux), or add the missing CA with `--extra-ca-certs`. See [#1816](https://github.com/nextstrain/nextclade/pull/1816)
+  - macOS and Windows: the operating system alone decides which CAs to trust
+  - Linux and other Unix systems except macOS: Nextclade trusts the system certificate store, and uses the built-in Mozilla list only when the system has no usable CA certificates, for example in the `scratch` Docker image. When `SSL_CERT_FILE` is set, or `SSL_CERT_DIR` names a directory, but they provide no usable CA certificates, Nextclade stops with an error. An `SSL_CERT_DIR` that is not a directory, such as an empty value, counts as not set
+  - A file given with `--extra-ca-certs` that contains no certificates or an invalid one is an error that names the file
+- **TLS and network libraries**: rustls is updated to 0.23.46, which fixes [RUSTSEC-2026-0285](https://rustsec.org/advisories/RUSTSEC-2026-0285.html) and [RUSTSEC-2026-0349](https://rustsec.org/advisories/RUSTSEC-2026-0349.html). bytes, crossbeam-epoch and time are updated to versions that fix published advisories, and reqwest to a newer version. See [#1812](https://github.com/nextstrain/nextclade/pull/1812)
+- **Extraction of dataset archives**: `nextclade dataset get --output-dir` extracts only the regular files at the root of the archive and ignores all other entries, such as directories and paths that point outside of the output directory. It refuses archives with symbolic links, with file names that Windows does not allow (such as `aux.txt` or names with `:`), or with more than 10 000 entries, and stops when the unpacked archive exceeds 1 GiB. It replaces existing files instead of writing into them, so symbolic links in the output directory no longer redirect the extracted files. This protects against crafted archives from a compromised or impersonated dataset server. The zip library is updated from 7.0.0 to 9.0.5, and `rust_xlsxwriter` from 0.92.2 to 0.101.0, which uses the same zip version. Older zip versions are affected by [RUSTSEC-2026-0367](https://rustsec.org/advisories/RUSTSEC-2026-0367.html), [RUSTSEC-2026-0368](https://rustsec.org/advisories/RUSTSEC-2026-0368.html) and [RUSTSEC-2026-0369](https://rustsec.org/advisories/RUSTSEC-2026-0369.html) in their extraction functions, which the old extraction used and the new one does not. See [#1813](https://github.com/nextstrain/nextclade/pull/1813), [#1829](https://github.com/nextstrain/nextclade/pull/1829)
+
+### Nextclade CLI: release files
+
+- **Verifiable release downloads**: release pages include a `SHA256SUMS` file with the SHA-256 checksum of every executable, and a GitHub build provenance attestation for every executable, to check that a download is complete and that the Nextclade release workflow on GitHub built it. See the [installation documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/standalone.html), [#1814](https://github.com/nextstrain/nextclade/pull/1814)
+- **Linux glibc executables in minimal container images**: `nextclade-x86_64-unknown-linux-gnu` and `nextclade-aarch64-unknown-linux-gnu` needed `libgcc_s.so.1`, which minimal glibc images such as `gcr.io/distroless/base` do not have. The executables now contain the necessary code of this library. See [#1799](https://github.com/nextstrain/nextclade/pull/1799)
 
 ## 3.25.1
 
