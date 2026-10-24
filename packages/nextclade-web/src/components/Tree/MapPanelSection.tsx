@@ -10,9 +10,8 @@ import { canDrawMaps } from 'src/helpers/canDrawMaps'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 /**
- * Toggle of the map of the locations in added metadata. Auspice makes the map available when added metadata has
- * coordinates; the map stays off until the user turns it on here (see `rootReducer()`), because its tiles load from a
- * third-party server, which then sees the map area of the samples. Auspice shows no map next to a second tree
+ * Toggle of the map of the locations in added metadata, which Auspice makes available when added metadata has
+ * coordinates. Auspice shows no map next to a second tree
  */
 export function MapPanelSection() {
   const { t } = useTranslationSafe()
@@ -36,7 +35,6 @@ export function MapPanelSection() {
   return (
     <Container>
       <PanelSection panel="map" title={t('sidebar:Map')} tooltip={MapInfo} options={<GeoResolution />} />
-      <Note>{t('Map tiles load from OpenFreeMap, which then sees the map area of your samples.')}</Note>
     </Container>
   )
 }

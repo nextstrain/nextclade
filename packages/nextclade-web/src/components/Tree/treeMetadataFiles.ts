@@ -53,7 +53,7 @@ function mapAvailableNotification(canDraw: boolean) {
   }
   return {
     message: 'The map of the added coordinates is available',
-    details: 'Turn it on in the sidebar. Map tiles load from OpenFreeMap, which then sees the map area of your samples.',
+    details: 'Turn it on in the sidebar.',
   }
 }
 
