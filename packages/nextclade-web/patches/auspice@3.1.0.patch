@@ -1325,6 +1325,28 @@ index 242c7d9625cd04f78781fa4f320ef3a65c3fb18e..386283c0c174dd56af08db16bc0ddad6
    }
    measurementsColorGrouping: string | undefined
    modifySVG: typeof modifySVG
+diff --git a/src/components/tree/tangle/index.js b/src/components/tree/tangle/index.js
+index 633c0d018c5947ddec85ca057a7e2df53d85cd1d..6b4c6cbdf71b396948dea2035dbbd2e0368e6049 100644
+--- a/src/components/tree/tangle/index.js
++++ b/src/components/tree/tangle/index.js
+@@ -76,9 +76,16 @@ class Tangle extends React.Component {
+       } else {
+         select(this.d3ref).selectAll(".tangleLine").remove();
+       }
+-      this.timeout = window.setTimeout(this.drawLines.bind(this), 1000);
++      this.timeout = window.setTimeout(() => {
++        this.timeout = false;
++        this.drawLines();
++      }, 1000);
+     }
+   }
++  componentWillUnmount() {
++    /* a pending redraw would draw into an SVG that is gone */
++    if (this.timeout) window.clearTimeout(this.timeout);
++  }
+   render() {
+     const textStyles = {position: "absolute", top: 25, zIndex: 100, fontSize: 16, color: "#000", fontWeight: 500};
+     const lefts = [this.props.width/2 - this.props.spaceBetweenTrees/2, this.props.width/2 + this.props.spaceBetweenTrees/2];
 diff --git a/src/components/tree/tree.tsx b/src/components/tree/tree.tsx
 index 3e20d6df522fa2af4358659723d26bca2e674949..280bfb50539b509ed2507a937dc40abd2193d719 100644
 --- a/src/components/tree/tree.tsx
