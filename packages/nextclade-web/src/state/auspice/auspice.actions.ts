@@ -12,7 +12,7 @@ import { encodeColorByGenotype } from 'auspice/src/util/getGenotype'
 import { genotypeSymbol, NODE_VISIBLE, nucleotide_gene, strainSymbol } from 'auspice/src/util/globals'
 import { getTraitFromNode } from 'auspice/src/util/treeMiscHelpers'
 
-/** Smallest number of tips in the clade that "show on tree" zooms to, so that the sequence is seen with its relatives */
+/** Smallest number of tips in the clade that "show on tree" zooms to, so that the sequences are seen with their relatives */
 const SHOW_SEQUENCE_MIN_CLADE_TIPS = 20
 
 // NOTE: These actions are not FSA-compliant. This is the format Auspice expects.
@@ -33,10 +33,10 @@ export function findPlacedSequenceNode(state: AuspiceState, seqName: string): Au
 
 /**
  * Show an analyzed sequence on the tree: filter the tree to it, which dims the other tips, and zoom to a clade around
- * it. Filters that would hide the sequence are inactivated, so that the user can turn them on again in the header.
- * Stream trees are turned off, because a stream draws its tips as a density and not as single tips
+ * it or keep the zoom. Filters that would hide the sequence are inactivated, so that the user can turn them on again in
+ * the header. Stream trees are turned off, because a stream draws its tips as a density and not as single tips
  */
-export function showSequenceOnTree(seqName: string): AuspiceThunk {
+export function showSequenceOnTree(seqName: string, { addToSelection, zoom }: ShowSequenceOnTreeParams): AuspiceThunk {
   return (dispatch, getState) => {
     const node = findPlacedSequenceNode(getState(), seqName)
     if (!node) {
@@ -57,8 +57,12 @@ export function showSequenceOnTree(seqName: string): AuspiceThunk {
         }
       })
 
-    dispatch(applyFilter('set', strainSymbol, [seqName]))
-    dispatch(updateVisibleTipsAndBranchThicknesses({ root: [findCladeToShow(node).arrayIdx, undefined] }))
+    dispatch(applyFilter(addToSelection ? 'add' : 'set', strainSymbol, [seqName]))
+
+    const viewRootIdx = findViewRootToShow(getState(), zoom)
+    if (viewRootIdx !== undefined) {
+      dispatch(updateVisibleTipsAndBranchThicknesses({ root: [viewRootIdx, undefined] }))
+    }
 
     // Genotype filters match mutations along the path from the root, so whether they hide the sequence is read from
     // the resulting visibility
@@ -70,6 +74,17 @@ export function showSequenceOnTree(seqName: string): AuspiceThunk {
       }
     }
   }
+}
+
+/** How "show on tree" changes the selection and the zoom of the tree */
+export interface ShowSequenceOnTreeParams {
+  /** Add the sequence to the selected sequences, instead of selecting it alone */
+  addToSelection: boolean
+  /**
+   * Zoom to the smallest clade that contains the selected sequences and has enough tips to show them among their
+   * relatives. Otherwise the zoom stays, unless it hides a selected sequence, in which case the whole tree is shown
+   */
+  zoom: boolean
 }
 
 /**
@@ -139,11 +154,73 @@ function activeFilterValues(filters: AuspiceFilters, trait: string | symbol): st
 
 type AuspiceFilters = NonNullable<NonNullable<AuspiceState['controls']>['filters']>
 
-/** Return the smallest ancestor clade of a tip with enough tips to show the tip among its relatives, or the root */
-function findCladeToShow(node: AuspiceReduxNode): AuspiceReduxNode {
-  let clade = node.parent ?? node
-  while (clade.fullTipCount < SHOW_SEQUENCE_MIN_CLADE_TIPS && clade.parent && clade.parent !== clade) {
+/**
+ * Return the index of the node to zoom the main tree to, so that the tips selected by the strain filter are in view, or
+ * `undefined` to keep the zoom
+ */
+function findViewRootToShow(state: AuspiceState, zoom: boolean): number | undefined {
+  const nodes = state.tree?.nodes ?? []
+  const selectedNames = new Set(activeFilterValues(state.controls?.filters ?? {}, strainSymbol))
+  const selectedTips = nodes.filter((node) => !node.hasChildren && selectedNames.has(node.name))
+  if (zoom) {
+    return findCladeToShow(selectedTips)?.arrayIdx
+  }
+  const viewRoot = nodes[state.tree?.idxOfInViewRootNode ?? 0]
+  if (!viewRoot || selectedTips.every((tip) => isInView(tip, viewRoot))) {
+    return undefined
+  }
+  return 0
+}
+
+/**
+ * Return the smallest clade that contains the given tips and has enough tips to show them among their relatives, or
+ * the root
+ */
+function findCladeToShow(tips: AuspiceReduxNode[]): AuspiceReduxNode | undefined {
+  const ancestor = findCommonAncestor(tips)
+  if (!ancestor) {
+    return undefined
+  }
+  let clade = ancestor.hasChildren ? ancestor : ancestor.parent
+  while (clade.fullTipCount < SHOW_SEQUENCE_MIN_CLADE_TIPS && clade.parent !== clade) {
     clade = clade.parent
   }
   return clade
+}
+
+/** Return the deepest common ancestor of the given nodes, which is the node itself for a single node */
+function findCommonAncestor(nodes: AuspiceReduxNode[]): AuspiceReduxNode | undefined {
+  const [first, ...rest] = nodes
+  if (!first) {
+    return undefined
+  }
+  return rest.reduce((ancestor, node) => {
+    const ancestorPath = new Set(pathToRoot(ancestor))
+    return pathToRoot(node).find((pathNode) => ancestorPath.has(pathNode)) ?? ancestor
+  }, first)
+}
+
+/**
+ * Whether a tip is drawn when the tree is zoomed to the given node. A tip as the zoom target draws the clade of its
+ * parent, or only itself when its parent is the root, as in Auspice's `applyInViewNodesToTree()`
+ */
+function isInView(tip: AuspiceReduxNode, viewRoot: AuspiceReduxNode): boolean {
+  if (viewRoot.hasChildren) {
+    return pathToRoot(tip).includes(viewRoot)
+  }
+  if (viewRoot.parent.arrayIdx === 0) {
+    return tip === viewRoot
+  }
+  return pathToRoot(tip).includes(viewRoot.parent)
+}
+
+/** Return the node and its ancestors, from the node to the root */
+function pathToRoot(node: AuspiceReduxNode): AuspiceReduxNode[] {
+  const path = [node]
+  let current = node
+  while (current.parent !== current) {
+    current = current.parent
+    path.push(current)
+  }
+  return path
 }

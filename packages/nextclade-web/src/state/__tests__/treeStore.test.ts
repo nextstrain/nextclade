@@ -1,5 +1,5 @@
 import type { AuspiceJsonV2, AuspiceState, AuspiceTreeNode } from 'auspice'
-import { applyFilter } from 'auspice/src/actions/tree'
+import { applyFilter, updateVisibleTipsAndBranchThicknesses } from 'auspice/src/actions/tree'
 import { togglePanelDisplay } from 'auspice/src/actions/panelDisplay'
 import { CHANGE_PANEL_LAYOUT } from 'auspice/src/actions/types'
 import { strainSymbol } from 'auspice/src/util/globals'
@@ -10,6 +10,7 @@ import {
   hideSecondTree,
   showSecondTree,
   showSequenceOnTree,
+  type ShowSequenceOnTreeParams,
 } from 'src/state/auspice/auspice.actions'
 import { hidePanels } from 'src/state/reducer'
 import { getTreeStore } from 'src/state/store'
@@ -53,7 +54,7 @@ describe('tree store', () => {
     test('filters the tree to the sequence and zooms to its smallest clade of at least 20 tips', () => {
       const store = getTreeStore(makeTree())
 
-      store.dispatch(showSequenceOnTree('seqA'))
+      store.dispatch(showSequenceOnTree('seqA', ZOOM))
 
       const { controls, tree } = store.getState()
       expect(controls?.filters?.[strainSymbol]).toStrictEqual([{ value: 'seqA', active: true }])
@@ -63,7 +64,7 @@ describe('tree store', () => {
     test('zooms to the root when no clade of the sequence has 20 tips', () => {
       const store = getTreeStore(makeTree())
 
-      store.dispatch(showSequenceOnTree('seqB'))
+      store.dispatch(showSequenceOnTree('seqB', ZOOM))
 
       const { tree } = store.getState()
       expect(tree?.nodes?.[tree.idxOfInViewRootNode ?? 0]?.name).toBe('root')
@@ -73,7 +74,7 @@ describe('tree store', () => {
       const store = getTreeStore(makeTree())
       store.dispatch(applyFilter('add', 'clade_membership', ['Y']))
 
-      store.dispatch(showSequenceOnTree('seqA'))
+      store.dispatch(showSequenceOnTree('seqA', ZOOM))
 
       const { controls } = store.getState()
       expect(controls?.filters?.clade_membership).toStrictEqual([{ value: 'Y', active: false }])
@@ -82,10 +83,81 @@ describe('tree store', () => {
     test('keeps a filter that the sequence passes', () => {
       const store = getTreeStore(makeTree())
 
-      store.dispatch(showSequenceOnTree('seqA'))
+      store.dispatch(showSequenceOnTree('seqA', ZOOM))
 
       const { controls } = store.getState()
       expect(controls?.filters?.['Node type']).toStrictEqual([{ value: 'New', active: true }])
+    })
+
+    test('selects the sequence alone, replacing the selected sequences', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(showSequenceOnTree('seqA', NO_ZOOM))
+
+      store.dispatch(showSequenceOnTree('seqB', NO_ZOOM))
+
+      expect(store.getState().controls?.filters?.[strainSymbol]).toStrictEqual([{ value: 'seqB', active: true }])
+    })
+
+    test('adds the sequence to the selected sequences', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(showSequenceOnTree('seqA', NO_ZOOM))
+
+      store.dispatch(showSequenceOnTree('seqB', { ...NO_ZOOM, addToSelection: true }))
+
+      expect(store.getState().controls?.filters?.[strainSymbol]).toStrictEqual([
+        { value: 'seqA', active: true },
+        { value: 'seqB', active: true },
+      ])
+    })
+
+    test('zooms to the smallest clade of at least 20 tips that contains every selected sequence', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(showSequenceOnTree('seqB', NO_ZOOM))
+
+      store.dispatch(showSequenceOnTree('seqA', { addToSelection: true, zoom: true }))
+
+      // `seqA` alone is shown in `cladeX`; with `seqB` of `cladeY`, their smallest common clade is the root
+      expect(inViewRootName(store.getState())).toBe('root')
+    })
+
+    test('keeps the zoom when the sequence is in view', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(
+        updateVisibleTipsAndBranchThicknesses({ root: [nodeIndex(store.getState(), 'cladeX'), undefined] }),
+      )
+
+      store.dispatch(showSequenceOnTree('seqA', NO_ZOOM))
+
+      expect(inViewRootName(store.getState())).toBe('cladeX')
+    })
+
+    test('shows the whole tree when the zoom hides the sequence', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(
+        updateVisibleTipsAndBranchThicknesses({ root: [nodeIndex(store.getState(), 'cladeX'), undefined] }),
+      )
+
+      store.dispatch(showSequenceOnTree('seqB', NO_ZOOM))
+
+      // The zoom of a new store shows the whole tree
+      expect(store.getState().tree?.idxOfInViewRootNode).toBe(
+        getTreeStore(makeTree()).getState().tree?.idxOfInViewRootNode,
+      )
+    })
+
+    test('shows the whole tree when the zoom hides a sequence selected before', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(showSequenceOnTree('seqB', NO_ZOOM))
+      store.dispatch(
+        updateVisibleTipsAndBranchThicknesses({ root: [nodeIndex(store.getState(), 'cladeX'), undefined] }),
+      )
+
+      store.dispatch(showSequenceOnTree('seqA', { addToSelection: true, zoom: false }))
+
+      // The zoom of a new store shows the whole tree
+      expect(store.getState().tree?.idxOfInViewRootNode).toBe(
+        getTreeStore(makeTree()).getState().tree?.idxOfInViewRootNode,
+      )
     })
 
     test('finds no tip of its own for a sequence named like a reference tip', () => {
@@ -169,7 +241,7 @@ describe('tree store', () => {
       const store = getTreeStore(makeTree())
       store.dispatch(showSecondTree(makeTree(), 'first', 'second'))
 
-      store.dispatch(showSequenceOnTree('seqA'))
+      store.dispatch(showSequenceOnTree('seqA', ZOOM))
 
       const { controls, tree } = store.getState()
       expect([controls?.filters?.[strainSymbol], tree?.nodes?.[tree.idxOfInViewRootNode ?? 0]?.name]).toStrictEqual([
@@ -270,6 +342,12 @@ describe('tree store', () => {
   })
 })
 
+/** "Show on tree" that selects the sequence alone and zooms to it */
+const ZOOM: ShowSequenceOnTreeParams = { addToSelection: false, zoom: true }
+
+/** "Show on tree" that selects the sequence alone and keeps the zoom */
+const NO_ZOOM: ShowSequenceOnTreeParams = { addToSelection: false, zoom: false }
+
 /** Metadata that places the sequence `seqA` at coordinates */
 const COORDINATES_CSV = 'strain,latitude,longitude\nseqA,47.5,7.6\n'
 
@@ -294,10 +372,10 @@ function makeTree({ refDates = false, newDates = false, extraNewTips = [] }: Mak
     return {
       name,
       node_attrs: {
-        div: isNew ? 2 : 1,
-        clade_membership: { value: clade },
+        'div': isNew ? 2 : 1,
+        'clade_membership': { value: clade },
         'Node type': { value: nodeType },
-        num_date: hasDate ? { value: 2020 } : undefined,
+        'num_date': hasDate ? { value: 2020 } : undefined,
       },
       branch_attrs: isNew ? { mutations: { nuc: ['A5T'], S: ['K2N'] } } : {},
     }
@@ -306,10 +384,10 @@ function makeTree({ refDates = false, newDates = false, extraNewTips = [] }: Mak
     return {
       name,
       node_attrs: {
-        div: 0.5,
-        clade_membership: { value: label },
+        'div': 0.5,
+        'clade_membership': { value: label },
         'Node type': { value: 'Reference' },
-        num_date: refDates ? { value: 2019 } : undefined,
+        'num_date': refDates ? { value: 2019 } : undefined,
       },
       branch_attrs: { labels: { clade: label } },
       children: tips,
@@ -338,10 +416,10 @@ function makeTree({ refDates = false, newDates = false, extraNewTips = [] }: Mak
     tree: {
       name: 'root',
       node_attrs: {
-        div: 0,
-        clade_membership: { value: 'X' },
+        'div': 0,
+        'clade_membership': { value: 'X' },
         'Node type': { value: 'Reference' },
-        num_date: refDates ? { value: 2018 } : undefined,
+        'num_date': refDates ? { value: 2018 } : undefined,
       },
       children: [
         clade('cladeX', 'X', [...refTips('refX', 'X', 22), tip('seqA', 'X', 'New')]),
@@ -353,6 +431,14 @@ function makeTree({ refDates = false, newDates = false, extraNewTips = [] }: Mak
       ],
     },
   }
+}
+
+function nodeIndex(state: AuspiceState, name: string): number {
+  return state.tree?.nodes?.findIndex((node) => node.name === name) ?? -1
+}
+
+function inViewRootName(state: AuspiceState): string | undefined {
+  return state.tree?.nodes?.[state.tree.idxOfInViewRootNode ?? 0]?.name
 }
 
 function panels(state: AuspiceState) {

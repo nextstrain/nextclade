@@ -5,6 +5,7 @@ import styled from 'styled-components'
 import { Layout } from 'src/components/Layout/Layout'
 import { SeqViewSettings } from 'src/components/Settings/SeqViewSettings'
 import { SystemSettings } from 'src/components/Settings/SystemSettings'
+import { TreeSettings } from 'src/components/Settings/TreeSettings'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { TabContent, TabLabel, TabNav, TabPane } from 'src/components/Common/TabsFull'
 
@@ -33,6 +34,9 @@ export function SettingsPage() {
             >
               {t('Sequence view')}
             </TabLabel>
+            <TabLabel href="#tree" tabId="tree" activeTabId={activeTabId} setActiveTabId={setActiveTabId}>
+              {t('Tree')}
+            </TabLabel>
           </TabNav>
 
           <TabContent activeTab={activeTabId}>
@@ -41,6 +45,9 @@ export function SettingsPage() {
             </TabPane>
             <TabPane tabId="sequence-view">
               <SeqViewSettings />
+            </TabPane>
+            <TabPane tabId="tree">
+              <TreeSettings />
             </TabPane>
           </TabContent>
         </Main>

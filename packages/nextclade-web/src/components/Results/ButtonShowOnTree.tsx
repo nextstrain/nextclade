@@ -1,10 +1,13 @@
 import React, { useCallback } from 'react'
+import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import { TreeIcon } from 'src/components/Tree/TreeIcon'
 import { useTreeLinks } from 'src/components/Tree/useTreeLinks'
+import { showOnTreeParamsFromClick } from 'src/components/Results/showOnTreeClick'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useEffectiveDataset } from 'src/hooks/useEffectiveDataset'
 import { TreeStatus, useTreeStatus } from 'src/hooks/useTreeStatus'
+import { shouldZoomTreeToSequenceAtom } from 'src/state/settings.state'
 
 /** Tree statuses in which the tree will not be available, so that the button is not shown */
 const TREE_STATUSES_WITHOUT_TREE = new Set<TreeStatus>(['notRun', 'absent', 'failed'])
@@ -13,14 +16,23 @@ export interface ButtonShowOnTreeProps {
   seqName: string
 }
 
-/** Button that opens the tree page, filtered to the sequence and zoomed to a clade around it */
+/**
+ * Button that opens the tree page, filtered to the sequence. A click selects the sequence alone, Shift+click adds it to
+ * the selected sequences. A click zooms to the selected sequences or keeps the zoom, as the setting says, and Alt+click
+ * does the opposite
+ */
 export function ButtonShowOnTree({ seqName }: ButtonShowOnTreeProps) {
   const { t } = useTranslationSafe()
   const { effectiveDatasetPath } = useEffectiveDataset()
   const treeStatus = useTreeStatus(effectiveDatasetPath)
   const treeLinks = useTreeLinks()
+  const shouldZoom = useRecoilValue(shouldZoomTreeToSequenceAtom)
 
-  const onClick = useCallback(() => treeLinks?.showSequence(seqName), [seqName, treeLinks])
+  const onClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) =>
+      treeLinks?.showSequence(seqName, showOnTreeParamsFromClick(event, shouldZoom)),
+    [seqName, shouldZoom, treeLinks],
+  )
 
   if (TREE_STATUSES_WITHOUT_TREE.has(treeStatus)) {
     return null

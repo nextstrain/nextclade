@@ -33,6 +33,13 @@ export const shouldSuggestDatasetsOnDatasetPageAtom = atom<boolean>({
   effects: [persistAtom],
 })
 
+/** Whether "show on tree" in the results table zooms the tree to the sequence. Alt+click does the opposite */
+export const shouldZoomTreeToSequenceAtom = atom<boolean>({
+  key: 'shouldZoomTreeToSequence',
+  default: false,
+  effects: [persistAtom],
+})
+
 export const lastNotifiedAppVersionAtom = atom<string | undefined>({
   key: 'lastNotifiedAppVersion',
   default: undefined,
