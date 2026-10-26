@@ -1,4 +1,4 @@
-## Unreleased
+## 3.26.0
 
 ### Nextclade Web: tree page
 
