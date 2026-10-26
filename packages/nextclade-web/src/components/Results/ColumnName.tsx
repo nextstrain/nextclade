@@ -37,6 +37,8 @@ export function ColumnName({ index, seqName }: ColumnNameProps) {
   const { t } = useTranslationSafe()
   const { result, error } = useAtomValue(analysisResultAtom(index))
   const [showTooltip, setShowTooltip] = useState(false)
+  // The button has a tooltip of its own, which replaces the tooltip of the name while the button is hovered
+  const [isButtonHovered, setIsButtonHovered] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
   const id = useMemo(() => getSafeId('sequence-label', { index }), [index])
@@ -72,8 +74,8 @@ export function ColumnName({ index, seqName }: ColumnNameProps) {
       <StatusIcon />
       {duplicateIcon}
       <SequenceNameText>{seqName}</SequenceNameText>
-      {result && !error && <ButtonShowOnTree seqName={seqName} />}
-      <Tooltip wide fullWidth target={id} isOpen={showTooltip} placement="right-start">
+      {result && !error && <ButtonShowOnTree index={index} seqName={seqName} onHoverChange={setIsButtonHovered} />}
+      <Tooltip wide fullWidth target={id} isOpen={showTooltip && !isButtonHovered} placement="right-start">
         {tooltip}
       </Tooltip>
     </SequenceName>
