@@ -29,6 +29,18 @@ The panels have the sizes that Auspice gives them on nextstrain.org, so the top 
 
 The tree keeps its coloring, filters, zoom, and the other settings of the view while you visit other pages, until the next analysis.
 
+### Show sequences from the results table
+
+The tree button at the end of each sequence name in the results table opens the tree filtered to that sequence:
+
+- **Click**: select only this sequence
+- **Shift+click**: add this sequence to the selected sequences, for example to compare several sequences on the tree
+- **Alt+click**: zoom or keep the zoom, the opposite of the setting below
+
+By default, the tree keeps its zoom, and shows the whole tree when the zoom hides a selected sequence. Turn on **Settings** > **Tree** > **Zoom the tree to the sequences shown from the results table** to zoom to the smallest clade that contains the selected sequences and at least 20 tips, so that the sequences are seen with their relatives. The tooltip of the button shows what each click does with the current setting.
+
+A click on a nucleotide or amino acid mutation in the sequence view opens the tree colored by the genotype at that position.
+
 ### Your metadata on the tree
 
 Click **Add metadata** in the sidebar, or drop files on the tree, to add the columns of CSV or TSV files to the tree as colorings and filters. The first column of a file holds the sequence names, as in the input FASTA file, and each other column becomes a coloring by its values, for example the sampling site of each sequence. Columns named `date`, `num_date`, `year` or `month` are skipped, because the tree page has no time axis. Columns named `latitude` and `longitude` place the sequences on a map, see [Map](#map). Node-data JSON files of Augur also work. The data stays in your browser.
