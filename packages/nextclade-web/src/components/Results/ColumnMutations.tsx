@@ -5,7 +5,6 @@ import { REF_NODE_CLADE_FOUNDER, REF_NODE_PARENT, REF_NODE_ROOT } from 'src/cons
 import { findCladeNodeAttrFounderInfo, getAaMutations, getNucMutations } from 'src/helpers/relativeMuts'
 import { viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { currentRefNodeNameAtom, refNodesAtom } from 'src/state/results.state'
-import type { ColumnCladeProps } from 'src/components/Results/ColumnClade'
 import type { AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
@@ -98,7 +97,11 @@ function MutationPatternsSection({ analysisResult }: { analysisResult: AnalysisR
   )
 }
 
-export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
+export interface ColumnMutationsProps {
+  analysisResult: AnalysisResult
+}
+
+export function ColumnMutations({ analysisResult }: ColumnMutationsProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])

@@ -1,11 +1,15 @@
 import React, { useCallback, useState } from 'react'
 
 import { getSafeId } from 'src/helpers/getSafeId'
-import { ColumnCladeProps } from 'src/components/Results/ColumnClade'
+import type { AnalysisResult } from 'src/types'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfStopCodons } from 'src/components/Results/ListOfStopCodons'
 
-export function ColumnStopCodons({ analysisResult }: ColumnCladeProps) {
+export interface ColumnStopCodonsProps {
+  analysisResult: AnalysisResult
+}
+
+export function ColumnStopCodons({ analysisResult }: ColumnStopCodonsProps) {
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])

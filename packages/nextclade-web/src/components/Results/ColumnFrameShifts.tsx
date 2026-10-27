@@ -1,11 +1,15 @@
 import React, { useCallback, useState } from 'react'
 
 import { getSafeId } from 'src/helpers/getSafeId'
-import { ColumnCladeProps } from 'src/components/Results/ColumnClade'
+import type { AnalysisResult } from 'src/types'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfFrameShifts } from 'src/components/Results/ListOfFrameShifts'
 
-export function ColumnFrameShifts({ analysisResult }: ColumnCladeProps) {
+export interface ColumnFrameShiftsProps {
+  analysisResult: AnalysisResult
+}
+
+export function ColumnFrameShifts({ analysisResult }: ColumnFrameShiftsProps) {
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
