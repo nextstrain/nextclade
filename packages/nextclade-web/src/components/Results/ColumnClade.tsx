@@ -6,6 +6,7 @@ import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslation
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { CladeColorValue } from 'src/components/Results/CladeColorSwatch'
 import type { CladeColor } from 'src/components/Results/cladeColor'
+import { CLADE_NODE_ATTR } from 'src/constants'
 
 export interface ColumnCladeProps {
   analysisResult: AnalysisResult
@@ -16,6 +17,8 @@ export interface ColumnCladeProps {
 export function ColumnClade({ analysisResult, color }: ColumnCladeProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
+  // The circle button has a tooltip of its own, which replaces the tooltip of the cell while the button is hovered
+  const [isButtonHovered, setIsButtonHovered] = useState(false)
 
   const { clade, seqName, index } = analysisResult
   const id = getSafeId('col-clade', { index, seqName })
@@ -26,8 +29,14 @@ export function ColumnClade({ analysisResult, color }: ColumnCladeProps) {
 
   return (
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      <CladeColorValue value={cladeText} color={color} />
-      <Tooltip id={id} isOpen={showTooltip} target={id}>
+      <CladeColorValue
+        id={`${id}-show-on-tree`}
+        attrKey={CLADE_NODE_ATTR}
+        value={cladeText}
+        color={color}
+        onButtonHoverChange={setIsButtonHovered}
+      />
+      <Tooltip id={id} isOpen={showTooltip && !isButtonHovered} target={id}>
         <div>{t('Clade: {{cladeText}}', { cladeText })}</div>
       </Tooltip>
     </div>

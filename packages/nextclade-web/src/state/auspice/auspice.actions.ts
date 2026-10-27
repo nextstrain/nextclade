@@ -59,20 +59,59 @@ export function showSequenceOnTree(seqName: string, { addToSelection, zoom }: Sh
 
     dispatch(applyFilter(addToSelection ? 'add' : 'set', strainSymbol, [seqName]))
 
-    const viewRootIdx = findViewRootToShow(getState(), zoom)
+    const viewRootIdx = findViewRootToShow(getState(), findSelectedTips(getState()), zoom)
     if (viewRootIdx !== undefined) {
       dispatch(updateVisibleTipsAndBranchThicknesses({ root: [viewRootIdx, undefined] }))
     }
 
-    // Genotype filters match mutations along the path from the root, so whether they hide the sequence is read from
-    // the resulting visibility
-    const { tree, controls } = getState()
-    if (tree?.visibility?.[node.arrayIdx] !== NODE_VISIBLE) {
-      const genotypeValues = activeFilterValues(controls?.filters ?? {}, genotypeSymbol)
-      if (genotypeValues.length > 0) {
-        dispatch(applyFilter('inactivate', genotypeSymbol, genotypeValues))
-      }
+    dispatch(inactivateGenotypeFilterHiding([node]))
+  }
+}
+
+/**
+ * Show the tips of a value of a clade-like attribute on the tree: filter the tree to the value, alone or added to the
+ * filtered values of the attribute, and zoom to the tips that pass the filters or keep the zoom. Filters of other
+ * attributes that would hide a placed sequence of the value, such as a selection of sequences, are inactivated, so that
+ * the user can turn them on again in the header. A value that no placed sequence has changes nothing. Stream trees are
+ * turned off, as for a sequence
+ */
+export function showCladeOnTree(
+  attrKey: string,
+  value: string,
+  { addToSelection, zoom }: ShowOnTreeParams,
+): AuspiceThunk {
+  return (dispatch, getState) => {
+    const placedTips = (getState().tree?.nodes ?? []).filter(
+      (node) =>
+        !node.hasChildren && getTraitFromNode(node, 'Node type') === 'New' && getTraitFromNode(node, attrKey) === value,
+    )
+    if (placedTips.length === 0) {
+      return
     }
+
+    if (getState().controls?.showStreamTrees) {
+      dispatch(toggleStreamTree())
+    }
+
+    const filters = getState().controls?.filters ?? {}
+    Reflect.ownKeys(filters)
+      .filter((trait) => trait !== attrKey && trait !== genotypeSymbol)
+      .forEach((trait) => {
+        const activeValues = activeFilterValues(filters, trait)
+        const hidesPlacedTip = placedTips.some((tip) => !activeValues.includes(String(getTraitFromNode(tip, trait))))
+        if (activeValues.length > 0 && hidesPlacedTip) {
+          dispatch(applyFilter('inactivate', trait, activeValues))
+        }
+      })
+
+    dispatch(applyFilter(addToSelection ? 'add' : 'set', attrKey, [value]))
+
+    const viewRootIdx = findViewRootToShow(getState(), findFilteredTips(getState()), zoom)
+    if (viewRootIdx !== undefined) {
+      dispatch(updateVisibleTipsAndBranchThicknesses({ root: [viewRootIdx, undefined] }))
+    }
+
+    dispatch(inactivateGenotypeFilterHiding(placedTips))
   }
 }
 
@@ -155,18 +194,54 @@ function activeFilterValues(filters: AuspiceFilters, trait: string | symbol): st
 type AuspiceFilters = NonNullable<NonNullable<AuspiceState['controls']>['filters']>
 
 /**
- * Return the index of the node to zoom the main tree to, so that the tips selected by the strain filter are in view, or
- * `undefined` to keep the zoom
+ * Return a thunk that inactivates the genotype filter when it hides one of the given tips. Genotype filters match
+ * mutations along the path from the root, so whether they hide a tip is read from the visibility of the tree
  */
-function findViewRootToShow(state: AuspiceState, zoom: boolean): number | undefined {
-  const nodes = state.tree?.nodes ?? []
-  const selectedNames = new Set(activeFilterValues(state.controls?.filters ?? {}, strainSymbol))
-  const selectedTips = nodes.filter((node) => !node.hasChildren && selectedNames.has(node.name))
-  if (zoom) {
-    return findCladeToShow(selectedTips)?.arrayIdx
+function inactivateGenotypeFilterHiding(tips: AuspiceReduxNode[]): AuspiceThunk {
+  return (dispatch, getState) => {
+    const { tree, controls } = getState()
+    if (tips.some((tip) => tree?.visibility?.[tip.arrayIdx] !== NODE_VISIBLE)) {
+      const genotypeValues = activeFilterValues(controls?.filters ?? {}, genotypeSymbol)
+      if (genotypeValues.length > 0) {
+        dispatch(applyFilter('inactivate', genotypeSymbol, genotypeValues))
+      }
+    }
   }
-  const viewRoot = nodes[state.tree?.idxOfInViewRootNode ?? 0]
-  if (!viewRoot || selectedTips.every((tip) => isInView(tip, viewRoot))) {
+}
+
+/** Return the tips that the strain filter selects */
+function findSelectedTips(state: AuspiceState): AuspiceReduxNode[] {
+  const selectedNames = new Set(activeFilterValues(state.controls?.filters ?? {}, strainSymbol))
+  return (state.tree?.nodes ?? []).filter((node) => !node.hasChildren && selectedNames.has(node.name))
+}
+
+/**
+ * Return the tips that pass the active filters, at any zoom. Genotype filters are left out, because they match
+ * mutations along the path from the root rather than an attribute of the tip
+ */
+function findFilteredTips(state: AuspiceState): AuspiceReduxNode[] {
+  const filters = state.controls?.filters ?? {}
+  const activeFilters = Reflect.ownKeys(filters)
+    .filter((trait) => trait !== genotypeSymbol)
+    .map((trait) => ({ trait, values: activeFilterValues(filters, trait) }))
+    .filter(({ values }) => values.length > 0)
+  return (state.tree?.nodes ?? []).filter(
+    (node) =>
+      !node.hasChildren &&
+      activeFilters.every(({ trait, values }) => values.includes(String(getTraitFromNode(node, trait)))),
+  )
+}
+
+/**
+ * Return the index of the node to zoom the main tree to, so that the given tips are in view, or `undefined` to keep the
+ * zoom
+ */
+function findViewRootToShow(state: AuspiceState, tipsToShow: AuspiceReduxNode[], zoom: boolean): number | undefined {
+  if (zoom) {
+    return findCladeToShow(tipsToShow)?.arrayIdx
+  }
+  const viewRoot = state.tree?.nodes?.[state.tree.idxOfInViewRootNode ?? 0]
+  if (!viewRoot || tipsToShow.every((tip) => isInView(tip, viewRoot))) {
     return undefined
   }
   return 0

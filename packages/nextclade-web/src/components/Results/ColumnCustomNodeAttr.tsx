@@ -27,7 +27,13 @@ export function ColumnCustomNodeAttr({ sequence, attrKey, color }: ColumnCustomN
 
   return (
     <div id={id} className="w-100 d-flex">
-      <span className={className}>{color ? <CladeColorValue value={attrValue} color={color} /> : attrValue}</span>
+      <span className={className}>
+        {color ? (
+          <CladeColorValue id={`${id}-show-on-tree`} attrKey={attrKey} value={attrValue} color={color} />
+        ) : (
+          attrValue
+        )}
+      </span>
     </div>
   )
 }

@@ -8,6 +8,7 @@ import {
   colorTreeByPositions,
   findPlacedSequenceNode,
   hideSecondTree,
+  showCladeOnTree,
   showSecondTree,
   showSequenceOnTree,
   type ShowOnTreeParams,
@@ -164,6 +165,94 @@ describe('tree store', () => {
       const store = getTreeStore(makeTree({ extraNewTips: ['refX1'] }))
 
       expect(findPlacedSequenceNode(store.getState(), 'refX1')).toBeUndefined()
+    })
+  })
+
+  describe('show clade on tree', () => {
+    test('filters the tree to the value alone, replacing the filtered values of the attribute', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(showCladeOnTree('clade_membership', 'X', NO_ZOOM))
+
+      store.dispatch(showCladeOnTree('clade_membership', 'Y', NO_ZOOM))
+
+      expect(store.getState().controls?.filters?.clade_membership).toStrictEqual([{ value: 'Y', active: true }])
+    })
+
+    test('adds the value to the filtered values of the attribute', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(showCladeOnTree('clade_membership', 'X', NO_ZOOM))
+
+      store.dispatch(showCladeOnTree('clade_membership', 'Y', { ...NO_ZOOM, addToSelection: true }))
+
+      expect(store.getState().controls?.filters?.clade_membership).toStrictEqual([
+        { value: 'X', active: true },
+        { value: 'Y', active: true },
+      ])
+    })
+
+    test('turns off a selection of sequences that would hide placed sequences of the value', () => {
+      const store = getTreeStore(makeTree({ extraNewTips: ['seqC'] }))
+      store.dispatch(showSequenceOnTree('seqB', NO_ZOOM))
+
+      store.dispatch(showCladeOnTree('clade_membership', 'Y', NO_ZOOM))
+
+      // `seqC` of clade Y is not selected, so the selection would hide it
+      expect(store.getState().controls?.filters?.[strainSymbol]).toStrictEqual([{ value: 'seqB', active: false }])
+    })
+
+    test('keeps a filter that every placed sequence of the value passes', () => {
+      const store = getTreeStore(makeTree())
+
+      store.dispatch(showCladeOnTree('clade_membership', 'X', NO_ZOOM))
+
+      expect(store.getState().controls?.filters?.['Node type']).toStrictEqual([{ value: 'New', active: true }])
+    })
+
+    test('zooms to the smallest clade of at least 20 tips that contains the filtered tips', () => {
+      const store = getTreeStore(makeTree())
+
+      store.dispatch(showCladeOnTree('clade_membership', 'X', ZOOM))
+
+      // The filters leave the placed sequence `seqA`, whose clade X has 23 tips
+      expect(inViewRootName(store.getState())).toBe('cladeX')
+    })
+
+    test('keeps the zoom when the filtered tips are in view', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(
+        updateVisibleTipsAndBranchThicknesses({ root: [nodeIndex(store.getState(), 'cladeX'), undefined] }),
+      )
+
+      store.dispatch(showCladeOnTree('clade_membership', 'X', NO_ZOOM))
+
+      expect(inViewRootName(store.getState())).toBe('cladeX')
+    })
+
+    test('shows the whole tree when the zoom hides a filtered tip', () => {
+      const store = getTreeStore(makeTree())
+      store.dispatch(
+        updateVisibleTipsAndBranchThicknesses({ root: [nodeIndex(store.getState(), 'cladeX'), undefined] }),
+      )
+
+      store.dispatch(showCladeOnTree('clade_membership', 'Y', NO_ZOOM))
+
+      // The zoom of a new store shows the whole tree
+      expect(store.getState().tree?.idxOfInViewRootNode).toBe(
+        getTreeStore(makeTree()).getState().tree?.idxOfInViewRootNode,
+      )
+    })
+
+    test.each(['Z', 'unknown'])('changes nothing for the value %s, which no placed sequence has', (value) => {
+      const store = getTreeStore(makeTree())
+
+      store.dispatch(showCladeOnTree('clade_membership', value, ZOOM))
+
+      // A new store has no clade filter and shows the whole tree
+      const { controls, tree } = store.getState()
+      expect([controls?.filters?.clade_membership, tree?.idxOfInViewRootNode]).toStrictEqual([
+        undefined,
+        getTreeStore(makeTree()).getState().tree?.idxOfInViewRootNode,
+      ])
     })
   })
 

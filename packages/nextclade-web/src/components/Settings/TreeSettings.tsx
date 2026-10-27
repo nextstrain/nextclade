@@ -19,7 +19,7 @@ export function TreeSettings() {
         >
           <span
             title={t(
-              'When on, the tree button next to a sequence name in the results table zooms the tree to the selected sequences. When off, the tree keeps its zoom. Alt+click on the button does the opposite.',
+              'When on, the tree button next to a sequence name and the circle before a clade in the results table zoom the tree to the shown sequences. When off, the tree keeps its zoom. Alt+click on them does the opposite.',
             )}
           >
             {t('Zoom the tree to the sequences shown from the results table')}

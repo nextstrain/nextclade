@@ -17,6 +17,11 @@ export interface TreeLinks {
   canShowSequence(seqName: string): boolean
   /** Open the tree page, filtered to the sequence alone or added to the selected sequences, and zoomed or not */
   showSequence(seqName: string, params: ShowOnTreeParams): void
+  /**
+   * Open the tree page, filtered to a value of a clade-like attribute alone or added to the filtered values of the
+   * attribute, and zoomed or not
+   */
+  showClade(attrKey: string, value: string, params: ShowOnTreeParams): void
   /** Whether the tree can be colored by positions of this CDS, or of the nucleotide sequence (`nuc`) */
   canColorBy(cds: string): boolean
   /** Open the tree page, colored by the genotype at the given 0-based positions of a CDS, or of `nuc` */
@@ -53,6 +58,9 @@ export function useTreeLinks(): TreeLinks | undefined {
       },
       showSequence(seqName: string, params: ShowOnTreeParams) {
         openTreePage(({ showSequenceInTree }) => showSequenceInTree(tree, seqName, params))
+      },
+      showClade(attrKey: string, value: string, params: ShowOnTreeParams) {
+        openTreePage(({ showCladeInTree }) => showCladeInTree(tree, attrKey, value, params))
       },
       canColorBy(cds: string) {
         return cdsNames.has(cds)
