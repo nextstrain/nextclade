@@ -1,5 +1,6 @@
 import React, { ReactNode, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
+import { rgba } from 'polished'
 import styled from 'styled-components'
 import { TreeIcon } from 'src/components/Tree/TreeIcon'
 import { useTreeLinks } from 'src/components/Tree/useTreeLinks'
@@ -18,6 +19,8 @@ const TREE_STATUSES_WITHOUT_TREE = new Set<TreeStatus>(['notRun', 'absent', 'fai
 export interface ButtonShowOnTreeProps {
   index: number
   seqName: string
+  /** Whether the filters of the tree page select the sequence, which highlights the button */
+  isSelected: boolean
   /** Called when the pointer enters or leaves the button, so that the name cell can hide its own tooltip */
   onHoverChange: (isHovered: boolean) => void
 }
@@ -25,9 +28,9 @@ export interface ButtonShowOnTreeProps {
 /**
  * Button that opens the tree page, filtered to the sequence. A click selects the sequence alone, Shift+click adds it to
  * the selected sequences. A click zooms to the selected sequences or keeps the zoom, as the setting says, and Alt+click
- * does the opposite
+ * does the opposite. The button is highlighted while the sequence is selected, also by the filters of the tree page
  */
-export function ButtonShowOnTree({ index, seqName, onHoverChange }: ButtonShowOnTreeProps) {
+export function ButtonShowOnTree({ index, seqName, isSelected, onHoverChange }: ButtonShowOnTreeProps) {
   const { t } = useTranslationSafe()
   const { effectiveDatasetPath } = useEffectiveDataset()
   const treeStatus = useTreeStatus(effectiveDatasetPath)
@@ -80,7 +83,9 @@ export function ButtonShowOnTree({ index, seqName, onHoverChange }: ButtonShowOn
         id={id}
         type="button"
         aria-label={label}
+        aria-description={isEnabled && isSelected ? t('Selected on the tree') : undefined}
         aria-disabled={!isEnabled}
+        data-selected={isEnabled && isSelected}
         onClick={isEnabled ? onClick : undefined}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
@@ -96,7 +101,7 @@ export function ButtonShowOnTree({ index, seqName, onHoverChange }: ButtonShowOn
 
 /**
  * Small icon button at the right end of the name cell, so that the buttons of all rows are in one column. It is faint
- * until the name cell is hovered or the button has focus
+ * until the name cell is hovered or the button has focus, and highlighted while the sequence is selected
  */
 export const Button = styled.button`
   flex: 0 0 auto;
@@ -118,6 +123,12 @@ export const Button = styled.button`
 
   &:focus-visible {
     outline: 2px solid ${(props) => props.theme.primary};
+  }
+
+  &[data-selected='true'] {
+    opacity: 1;
+    background-color: ${(props) => rgba(props.theme.primary, 0.25)};
+    box-shadow: inset 0 0 0 1px ${(props) => props.theme.primary};
   }
 
   &[aria-disabled='true'] {

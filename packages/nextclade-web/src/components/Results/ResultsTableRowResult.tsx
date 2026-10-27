@@ -42,6 +42,7 @@ export interface ResultsTableRowResultProps {
   viewedGene: string
   cladeNodeAttrDescs: CladeNodeAttrDesc[]
   cladeColorScales: ReadonlyMap<string, CladeColorScale>
+  seqNamesSelectedOnTree: ReadonlySet<string>
   phenotypeAttrDescs: PhenotypeAttrDesc[]
   aaMotifsDescs: AaMotifsDesc[]
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
@@ -93,6 +94,7 @@ export function ResultsTableRowResult({
   viewedGene,
   cladeNodeAttrDescs,
   cladeColorScales,
+  seqNamesSelectedOnTree,
   phenotypeAttrDescs,
   aaMotifsDescs,
   columnWidthsPx,
@@ -137,7 +139,7 @@ export function ResultsTableRowResult({
       </TableCell>
 
       <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
-        <ColumnName index={seqIndex} seqName={seqName} />
+        <ColumnName index={seqIndex} seqName={seqName} isSelectedOnTree={seqNamesSelectedOnTree.has(seqName)} />
       </TableCellName>
 
       <TableCell basis={columnWidthsPx.qc} grow={0} shrink={0}>

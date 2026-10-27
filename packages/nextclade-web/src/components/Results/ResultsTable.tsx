@@ -13,6 +13,7 @@ import { datasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/datase
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
 import { CLADE_NODE_ATTR } from 'src/constants'
 import { useCladeColorScales } from 'src/hooks/useCladeColorScales'
+import { useSequencesSelectedOnTree } from 'src/hooks/useSequencesSelectedOnTree'
 import styled from 'styled-components'
 
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
@@ -191,6 +192,7 @@ export function ResultsTable() {
     [cladeNodeAttrDescs],
   )
   const cladeColorScales = useCladeColorScales(datasetName, cladeColorAttrKeys)
+  const seqNamesSelectedOnTree = useSequencesSelectedOnTree(datasetName)
 
   const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
   const viewedGene = useRecoilValue(viewedCdsAtom({ datasetName })) ?? CDS_OPTION_NUC_SEQUENCE
@@ -216,6 +218,7 @@ export function ResultsTable() {
       dynamicAaMotifsColumnWidthPx,
       cladeNodeAttrDescs: cladeNodeAttrDescs ?? [],
       cladeColorScales,
+      seqNamesSelectedOnTree,
       phenotypeAttrDescs: phenotypeAttrDescs ?? [],
       aaMotifsDescs: aaMotifsDescs ?? [],
     }))
@@ -232,6 +235,7 @@ export function ResultsTable() {
     dynamicPhenotypeColumnWidthPx,
     phenotypeAttrDescs,
     seqIndices,
+    seqNamesSelectedOnTree,
     viewedGene,
   ])
 

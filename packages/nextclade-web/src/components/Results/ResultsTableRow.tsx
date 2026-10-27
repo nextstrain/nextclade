@@ -21,6 +21,8 @@ export interface TableRowDatum {
   cladeNodeAttrDescs: CladeNodeAttrDesc[]
   /** Tree colors of the clade and of the clade-like attributes, by attribute */
   cladeColorScales: ReadonlyMap<string, CladeColorScale>
+  /** Names of the sequences that the filters of the tree page select */
+  seqNamesSelectedOnTree: ReadonlySet<string>
   phenotypeAttrDescs: PhenotypeAttrDesc[]
   aaMotifsDescs: AaMotifsDesc[]
 }
@@ -41,6 +43,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
     dynamicAaMotifsColumnWidthPx,
     cladeNodeAttrDescs,
     cladeColorScales,
+    seqNamesSelectedOnTree,
     phenotypeAttrDescs,
     aaMotifsDescs,
   } = useMemo(() => data[index], [data, index])
@@ -63,6 +66,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
         dynamicAaMotifsColumnWidthPx={dynamicAaMotifsColumnWidthPx}
         cladeNodeAttrDescs={cladeNodeAttrDescs}
         cladeColorScales={cladeColorScales}
+        seqNamesSelectedOnTree={seqNamesSelectedOnTree}
         phenotypeAttrDescs={phenotypeAttrDescs}
         aaMotifsDescs={aaMotifsDescs}
         viewedGene={viewedGene}

@@ -32,9 +32,11 @@ const SequenceNameText = styled.span`
 export interface ColumnNameProps {
   index: number
   seqName: string
+  /** Whether the filters of the tree page select the sequence */
+  isSelectedOnTree?: boolean
 }
 
-export function ColumnName({ index, seqName }: ColumnNameProps) {
+export function ColumnName({ index, seqName, isSelectedOnTree = false }: ColumnNameProps) {
   const { t } = useTranslationSafe()
   const { result, error } = useAtomValue(analysisResultAtom(index))
   const [showTooltip, setShowTooltip] = useState(false)
@@ -75,7 +77,14 @@ export function ColumnName({ index, seqName }: ColumnNameProps) {
       <StatusIcon />
       {duplicateIcon}
       <SequenceNameText>{seqName}</SequenceNameText>
-      {result && !error && <ButtonShowOnTree index={index} seqName={seqName} onHoverChange={setIsButtonHovered} />}
+      {result && !error && (
+        <ButtonShowOnTree
+          index={index}
+          seqName={seqName}
+          isSelected={isSelectedOnTree}
+          onHoverChange={setIsButtonHovered}
+        />
+      )}
       <Tooltip wide fullWidth target={id} isOpen={showTooltip && !isButtonHovered} placement="right-start">
         {tooltip}
       </Tooltip>
