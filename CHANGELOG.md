@@ -1,3 +1,10 @@
+## Unreleased
+
+### Nextclade Web: results table
+
+- **Tree colors of clades**: the results table draws a small circle before each clade and each clade-like value, such as the Pango lineage, in the color that the tree page gives to that value. A click on the circle opens the tree filtered to the value. Shift+click adds the value to the filter, and Alt+click inverts the zoom setting for one click. See [#1834](https://github.com/nextstrain/nextclade/pull/1834)
+- **Aligned and highlighted tree buttons**: the tree button of each sequence sits at the right end of the name cell, so the buttons of all rows form one column. A button is highlighted while the tree page selects its sequence, after a click or a Shift+click on the button, and while the sequence matches the filters that you set on the tree page, such as a filter by clade, by name or by mutation. See [#1835](https://github.com/nextstrain/nextclade/pull/1835)
+
 ## 3.26.0
 
 ### Nextclade Web: tree page
