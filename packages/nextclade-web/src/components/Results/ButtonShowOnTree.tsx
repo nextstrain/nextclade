@@ -5,6 +5,7 @@ import { TreeIcon } from 'src/components/Tree/TreeIcon'
 import { useTreeLinks } from 'src/components/Tree/useTreeLinks'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { showOnTreeParamsFromClick } from 'src/components/Results/showOnTreeClick'
+import { type ShowOnTreeActions, ShowOnTreeTooltip } from 'src/components/Results/ShowOnTreeTooltip'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { useEffectiveDataset } from 'src/hooks/useEffectiveDataset'
@@ -56,6 +57,12 @@ export function ButtonShowOnTree({ index, seqName, onHoverChange }: ButtonShowOn
   }
 
   const label = t('Show {{name}} on the tree', { name: seqName })
+  const actions: ShowOnTreeActions = {
+    click: t('Select only this sequence'),
+    shiftClick: t('Add this sequence to the selected sequences'),
+    zoom: t('Zoom to the selected sequences'),
+    zoomNote: t('A click zooms to the selected sequences. You can change this in Settings > Tree.'),
+  }
   const isEnabled = treeLinks?.canShowSequence(seqName) ?? false
 
   let tooltip: ReactNode
@@ -64,7 +71,7 @@ export function ButtonShowOnTree({ index, seqName, onHoverChange }: ButtonShowOn
   } else if (!isEnabled) {
     tooltip = t('This name occurs more than once in the tree, so the tree cannot show this sequence alone')
   } else {
-    tooltip = <ButtonShowOnTreeTooltip label={label} shouldZoom={shouldZoom} />
+    tooltip = <ShowOnTreeTooltip label={label} actions={actions} shouldZoom={shouldZoom} />
   }
 
   return (
@@ -83,42 +90,6 @@ export function ButtonShowOnTree({ index, seqName, onHoverChange }: ButtonShowOn
       <Tooltip wide target={id} isOpen={isHovered} placement="right">
         {tooltip}
       </Tooltip>
-    </>
-  )
-}
-
-interface ButtonShowOnTreeTooltipProps {
-  label: string
-  shouldZoom: boolean
-}
-
-/** Tooltip that lists what a click with each modifier key does */
-function ButtonShowOnTreeTooltip({ label, shouldZoom }: ButtonShowOnTreeTooltipProps) {
-  const { t } = useTranslationSafe()
-  return (
-    <>
-      <TooltipTitle>{label}</TooltipTitle>
-      <ClickTable>
-        <tbody>
-          <tr>
-            <th>{t('Click')}</th>
-            <td>{t('Select only this sequence')}</td>
-          </tr>
-          <tr>
-            <th>{t('Shift+click')}</th>
-            <td>{t('Add this sequence to the selected sequences')}</td>
-          </tr>
-          <tr>
-            <th>{t('Alt+click')}</th>
-            <td>{shouldZoom ? t('Keep the zoom of the tree') : t('Zoom to the selected sequences')}</td>
-          </tr>
-        </tbody>
-      </ClickTable>
-      <TooltipNote>
-        {shouldZoom
-          ? t('A click zooms to the selected sequences. You can change this in Settings > Tree.')
-          : t('A click keeps the zoom of the tree. You can change this in Settings > Tree.')}
-      </TooltipNote>
     </>
   )
 }
@@ -152,25 +123,4 @@ export const Button = styled.button`
   &[aria-disabled='true']:hover {
     opacity: 0.35;
   }
-`
-
-const TooltipTitle = styled.p`
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-  overflow-wrap: anywhere;
-`
-
-const ClickTable = styled.table`
-  margin-bottom: 0.5rem;
-
-  & th {
-    padding-right: 1rem;
-    white-space: nowrap;
-  }
-`
-
-const TooltipNote = styled.p`
-  margin: 0;
-  font-size: 0.85rem;
-  color: ${(props) => props.theme.gray600};
 `
