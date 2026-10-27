@@ -13,6 +13,8 @@ declare module 'auspice/src/util/globals' {
   export const controlsPadding: number
   /** Window width, in pixels, at or below which the sidebar covers the panels and starts closed */
   export const controlsHiddenWidth: number
+  /** Return whether a value of a node attribute is known: missing values and strings such as "unknown" or "?" are not */
+  export function isValueValid(value: unknown): boolean
   /** Style and attribution (HTML) of the map tiles */
   export function getMapTilesSettings(): { style: unknown; attribution: string }
 }
