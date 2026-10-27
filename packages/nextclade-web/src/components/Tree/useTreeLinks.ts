@@ -6,7 +6,7 @@ import { useEffectiveDataset } from 'src/hooks/useEffectiveDataset'
 import { globalErrorAtom } from 'src/state/error.state'
 import { treeAtom } from 'src/state/results.state'
 import { isPlacedSequenceAlone } from 'src/components/Tree/treeNodeNames'
-import type { ShowSequenceOnTreeParams } from 'src/state/auspice/auspice.actions'
+import type { ShowOnTreeParams } from 'src/state/auspice/auspice.actions'
 
 /** Name of the nucleotide sequence in genotype colorings, as opposed to CDS names */
 const NUCLEOTIDES = 'nuc'
@@ -16,7 +16,7 @@ export interface TreeLinks {
   /** Whether the tree has a tip of its own for the analyzed sequence of this name */
   canShowSequence(seqName: string): boolean
   /** Open the tree page, filtered to the sequence alone or added to the selected sequences, and zoomed or not */
-  showSequence(seqName: string, params: ShowSequenceOnTreeParams): void
+  showSequence(seqName: string, params: ShowOnTreeParams): void
   /** Whether the tree can be colored by positions of this CDS, or of the nucleotide sequence (`nuc`) */
   canColorBy(cds: string): boolean
   /** Open the tree page, colored by the genotype at the given 0-based positions of a CDS, or of `nuc` */
@@ -51,7 +51,7 @@ export function useTreeLinks(): TreeLinks | undefined {
       canShowSequence(seqName: string) {
         return isPlacedSequenceAlone(tree, seqName)
       },
-      showSequence(seqName: string, params: ShowSequenceOnTreeParams) {
+      showSequence(seqName: string, params: ShowOnTreeParams) {
         openTreePage(({ showSequenceInTree }) => showSequenceInTree(tree, seqName, params))
       },
       canColorBy(cds: string) {

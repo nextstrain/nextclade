@@ -36,7 +36,7 @@ export function findPlacedSequenceNode(state: AuspiceState, seqName: string): Au
  * it or keep the zoom. Filters that would hide the sequence are inactivated, so that the user can turn them on again in
  * the header. Stream trees are turned off, because a stream draws its tips as a density and not as single tips
  */
-export function showSequenceOnTree(seqName: string, { addToSelection, zoom }: ShowSequenceOnTreeParams): AuspiceThunk {
+export function showSequenceOnTree(seqName: string, { addToSelection, zoom }: ShowOnTreeParams): AuspiceThunk {
   return (dispatch, getState) => {
     const node = findPlacedSequenceNode(getState(), seqName)
     if (!node) {
@@ -77,12 +77,12 @@ export function showSequenceOnTree(seqName: string, { addToSelection, zoom }: Sh
 }
 
 /** How "show on tree" changes the selection and the zoom of the tree */
-export interface ShowSequenceOnTreeParams {
-  /** Add the sequence to the selected sequences, instead of selecting it alone */
+export interface ShowOnTreeParams {
+  /** Add the sequence or the value to the selection of the tree, instead of selecting it alone */
   addToSelection: boolean
   /**
-   * Zoom to the smallest clade that contains the selected sequences and has enough tips to show them among their
-   * relatives. Otherwise the zoom stays, unless it hides a selected sequence, in which case the whole tree is shown
+   * Zoom to the smallest clade that contains the selected tips and has enough tips to show them among their relatives.
+   * Otherwise the zoom stays, unless it hides a selected tip, in which case the whole tree is shown
    */
   zoom: boolean
 }

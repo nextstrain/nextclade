@@ -1,13 +1,9 @@
 import type { AuspiceJsonV2 } from 'auspice'
-import {
-  colorTreeByPositions,
-  showSequenceOnTree,
-  type ShowSequenceOnTreeParams,
-} from 'src/state/auspice/auspice.actions'
+import { colorTreeByPositions, showSequenceOnTree, type ShowOnTreeParams } from 'src/state/auspice/auspice.actions'
 import { getTreeStore } from 'src/state/store'
 
 /** Filter the tree to an analyzed sequence and zoom to a clade around it or not, for the next visit of the tree page */
-export function showSequenceInTree(tree: AuspiceJsonV2, seqName: string, params: ShowSequenceOnTreeParams) {
+export function showSequenceInTree(tree: AuspiceJsonV2, seqName: string, params: ShowOnTreeParams) {
   getTreeStore(tree).dispatch(showSequenceOnTree(seqName, params))
 }
 

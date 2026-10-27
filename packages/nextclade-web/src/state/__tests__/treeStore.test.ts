@@ -10,7 +10,7 @@ import {
   hideSecondTree,
   showSecondTree,
   showSequenceOnTree,
-  type ShowSequenceOnTreeParams,
+  type ShowOnTreeParams,
 } from 'src/state/auspice/auspice.actions'
 import { hidePanels } from 'src/state/reducer'
 import { getTreeStore } from 'src/state/store'
@@ -343,10 +343,10 @@ describe('tree store', () => {
 })
 
 /** "Show on tree" that selects the sequence alone and zooms to it */
-const ZOOM: ShowSequenceOnTreeParams = { addToSelection: false, zoom: true }
+const ZOOM: ShowOnTreeParams = { addToSelection: false, zoom: true }
 
 /** "Show on tree" that selects the sequence alone and keeps the zoom */
-const NO_ZOOM: ShowSequenceOnTreeParams = { addToSelection: false, zoom: false }
+const NO_ZOOM: ShowOnTreeParams = { addToSelection: false, zoom: false }
 
 /** Metadata that places the sequence `seqA` at coordinates */
 const COORDINATES_CSV = 'strain,latitude,longitude\nseqA,47.5,7.6\n'
