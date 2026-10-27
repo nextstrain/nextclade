@@ -31,6 +31,8 @@ import { PeptideView } from 'src/components/SequenceView/PeptideView'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { CDS_OPTION_NUC_SEQUENCE, REF_NODE_ROOT } from 'src/constants'
 import { analysisResultAtom, currentRefNodeNameAtom } from 'src/state/results.state'
+import { type CladeColorScale, getCladeColor } from 'src/components/Results/cladeColor'
+import { CLADE_NODE_ATTR } from 'src/constants'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
 
@@ -39,6 +41,7 @@ export interface ResultsTableRowResultProps {
   seqIndex: number
   viewedGene: string
   cladeNodeAttrDescs: CladeNodeAttrDesc[]
+  cladeColorScales: ReadonlyMap<string, CladeColorScale>
   phenotypeAttrDescs: PhenotypeAttrDesc[]
   aaMotifsDescs: AaMotifsDesc[]
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
@@ -89,6 +92,7 @@ export function ResultsTableRowResult({
   seqIndex,
   viewedGene,
   cladeNodeAttrDescs,
+  cladeColorScales,
   phenotypeAttrDescs,
   aaMotifsDescs,
   columnWidthsPx,
@@ -141,14 +145,21 @@ export function ResultsTableRowResult({
       </TableCell>
 
       <TableCellAlignedLeft basis={columnWidthsPx.clade} grow={0} shrink={0}>
-        <ColumnClade analysisResult={analysisResult} />
+        <ColumnClade
+          analysisResult={analysisResult}
+          color={getCladeColor(cladeColorScales, CLADE_NODE_ATTR, analysisResult.clade)}
+        />
       </TableCellAlignedLeft>
 
       {cladeNodeAttrDescs
         .filter((attr) => !attr.hideInWeb)
         .map(({ name }) => (
           <TableCellAlignedLeft key={name} basis={dynamicCladeColumnWidthPx} grow={0} shrink={0}>
-            <ColumnCustomNodeAttr sequence={analysisResult} attrKey={name} />
+            <ColumnCustomNodeAttr
+              sequence={analysisResult}
+              attrKey={name}
+              color={getCladeColor(cladeColorScales, name, analysisResult.customNodeAttributes[name])}
+            />
           </TableCellAlignedLeft>
         ))}
 

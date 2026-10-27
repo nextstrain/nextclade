@@ -11,6 +11,8 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import { datasetNameToSeqIndicesAtom } from 'src/state/autodetect.state'
 import { datasetsForAnalysisAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { viewedCdsAtom } from 'src/state/seqViewSettings.state'
+import { CLADE_NODE_ATTR } from 'src/constants'
+import { useCladeColorScales } from 'src/hooks/useCladeColorScales'
 import styled from 'styled-components'
 
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
@@ -184,6 +186,12 @@ export function ResultsTable() {
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
   const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
 
+  const cladeColorAttrKeys = useMemo(
+    () => [CLADE_NODE_ATTR, ...(cladeNodeAttrDescs ?? []).map(({ name }) => name)],
+    [cladeNodeAttrDescs],
+  )
+  const cladeColorScales = useCladeColorScales(datasetName, cladeColorAttrKeys)
+
   const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
   const viewedGene = useRecoilValue(viewedCdsAtom({ datasetName })) ?? CDS_OPTION_NUC_SEQUENCE
 
@@ -207,11 +215,13 @@ export function ResultsTable() {
       dynamicPhenotypeColumnWidthPx,
       dynamicAaMotifsColumnWidthPx,
       cladeNodeAttrDescs: cladeNodeAttrDescs ?? [],
+      cladeColorScales,
       phenotypeAttrDescs: phenotypeAttrDescs ?? [],
       aaMotifsDescs: aaMotifsDescs ?? [],
     }))
   }, [
     aaMotifsDescs,
+    cladeColorScales,
     cladeNodeAttrDescs,
     columnWidthsPx,
     datasetName,

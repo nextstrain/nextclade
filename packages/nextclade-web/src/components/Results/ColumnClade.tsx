@@ -4,12 +4,16 @@ import type { AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 import { Tooltip } from 'src/components/Results/Tooltip'
+import { CladeColorValue } from 'src/components/Results/CladeColorSwatch'
+import type { CladeColor } from 'src/components/Results/cladeColor'
 
 export interface ColumnCladeProps {
   analysisResult: AnalysisResult
+  /** How the tree draws the tips of the clade, if the tree is ready */
+  color: CladeColor | undefined
 }
 
-export function ColumnClade({ analysisResult }: ColumnCladeProps) {
+export function ColumnClade({ analysisResult, color }: ColumnCladeProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
@@ -22,7 +26,7 @@ export function ColumnClade({ analysisResult }: ColumnCladeProps) {
 
   return (
     <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      {cladeText}
+      <CladeColorValue value={cladeText} color={color} />
       <Tooltip id={id} isOpen={showTooltip} target={id}>
         <div>{t('Clade: {{cladeText}}', { cladeText })}</div>
       </Tooltip>

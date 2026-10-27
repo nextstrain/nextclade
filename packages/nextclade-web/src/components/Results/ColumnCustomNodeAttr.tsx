@@ -4,13 +4,17 @@ import { get } from 'lodash'
 
 import type { AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
+import { CladeColorValue } from 'src/components/Results/CladeColorSwatch'
+import type { CladeColor } from 'src/components/Results/cladeColor'
 
 export interface ColumnCustomNodeAttrProps {
   sequence: AnalysisResult
   attrKey: string
+  /** How the tree draws the tips of the value, for a clade-like attribute that the tree offers as a coloring */
+  color?: CladeColor
 }
 
-export function ColumnCustomNodeAttr({ sequence, attrKey }: ColumnCustomNodeAttrProps) {
+export function ColumnCustomNodeAttr({ sequence, attrKey, color }: ColumnCustomNodeAttrProps) {
   const { index, seqName, customNodeAttributes, phenotypeValues } = sequence
   const { id, attrValue, className } = useMemo(() => {
     const customCladeValue = get(customNodeAttributes, attrKey)
@@ -23,7 +27,7 @@ export function ColumnCustomNodeAttr({ sequence, attrKey }: ColumnCustomNodeAttr
 
   return (
     <div id={id} className="w-100 d-flex">
-      <span className={className}>{attrValue}</span>
+      <span className={className}>{color ? <CladeColorValue value={attrValue} color={color} /> : attrValue}</span>
     </div>
   )
 }

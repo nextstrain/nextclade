@@ -6,6 +6,7 @@ import type { CladeNodeAttrDesc } from 'auspice'
 import type { AaMotifsDesc, PhenotypeAttrDesc } from 'src/types'
 import { COLUMN_WIDTHS } from 'src/components/Results/ResultsTableStyle'
 import { analysisResultAtom } from 'src/state/results.state'
+import type { CladeColorScale } from 'src/components/Results/cladeColor'
 import { ResultsTableRowError } from './ResultsTableRowError'
 import { ResultsTableRowPending } from './ResultsTableRowPending'
 import { ResultsTableRowResult } from './ResultsTableRowResult'
@@ -18,6 +19,8 @@ export interface TableRowDatum {
   dynamicPhenotypeColumnWidthPx: string
   dynamicAaMotifsColumnWidthPx: string
   cladeNodeAttrDescs: CladeNodeAttrDesc[]
+  /** Tree colors of the clade and of the clade-like attributes, by attribute */
+  cladeColorScales: ReadonlyMap<string, CladeColorScale>
   phenotypeAttrDescs: PhenotypeAttrDesc[]
   aaMotifsDescs: AaMotifsDesc[]
 }
@@ -37,6 +40,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
     dynamicPhenotypeColumnWidthPx,
     dynamicAaMotifsColumnWidthPx,
     cladeNodeAttrDescs,
+    cladeColorScales,
     phenotypeAttrDescs,
     aaMotifsDescs,
   } = useMemo(() => data[index], [data, index])
@@ -58,6 +62,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
         dynamicPhenotypeColumnWidthPx={dynamicPhenotypeColumnWidthPx}
         dynamicAaMotifsColumnWidthPx={dynamicAaMotifsColumnWidthPx}
         cladeNodeAttrDescs={cladeNodeAttrDescs}
+        cladeColorScales={cladeColorScales}
         phenotypeAttrDescs={phenotypeAttrDescs}
         aaMotifsDescs={aaMotifsDescs}
         viewedGene={viewedGene}
