@@ -68,11 +68,7 @@ prerelease_flag=${release_type:+--prerelease}
 # We send release notes to stdin here.
 (
   if [ -z "$release_type" ]; then
-    ./scripts/extract-release-notes.py CHANGELOG.md
     cat <<EOF
-
----
-
 ### Installation and usage
 
 <table>
@@ -89,6 +85,14 @@ prerelease_flag=${release_type:+--prerelease}
 <sub>* glibc builds are faster and recommended, but require glibc >= 2.14. musl builds are static, run on older Linux distributions, and are slightly slower</sub>
 <sub>** Bioconda releases need manual approval and can be delayed</sub>
 <sub>*** macOS executables are not signed. See the <a href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli/installation/standalone.html">install guide</a> if macOS refuses to run them</sub>
+
+---
+
+EOF
+    ./scripts/extract-release-notes.py CHANGELOG.md
+    cat <<EOF
+
+---
 
 ### Citation
 
