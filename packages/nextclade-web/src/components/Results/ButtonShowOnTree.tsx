@@ -94,12 +94,16 @@ export function ButtonShowOnTree({ index, seqName, onHoverChange }: ButtonShowOn
   )
 }
 
-/** Small icon button, faint until the name cell is hovered or the button has focus */
+/**
+ * Small icon button at the right end of the name cell, so that the buttons of all rows are in one column. It is faint
+ * until the name cell is hovered or the button has focus
+ */
 export const Button = styled.button`
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  margin-left: 4px;
+  margin-left: auto;
+  margin-right: 2px;
   padding: 0 2px;
   border: none;
   border-radius: 3px;

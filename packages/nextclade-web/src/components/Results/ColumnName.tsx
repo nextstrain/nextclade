@@ -24,6 +24,7 @@ export const SequenceName = styled.div`
 
 const SequenceNameText = styled.span`
   min-width: 0;
+  margin-right: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
 `

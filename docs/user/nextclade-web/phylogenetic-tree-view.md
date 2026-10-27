@@ -31,7 +31,7 @@ The tree keeps its coloring, filters, zoom, and the other settings of the view w
 
 ### Show sequences from the results table
 
-The tree button at the end of each sequence name in the results table opens the tree filtered to that sequence:
+The tree button at the right end of each sequence name cell in the results table opens the tree filtered to that sequence:
 
 - **Click**: select only this sequence
 - **Shift+click**: add this sequence to the selected sequences, for example to compare several sequences on the tree
