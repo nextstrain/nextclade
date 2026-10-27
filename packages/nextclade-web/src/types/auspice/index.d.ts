@@ -174,25 +174,25 @@ declare module 'auspice' {
   }
 
   export declare interface AuspiceTreeNodeAttrs {
-    div?: number
-    GISAID_clade?: { value?: string }
-    author?: { author?: string; paper_url?: string; title?: string; value?: string }
-    clade_membership?: { value?: string }
-    country?: { value?: string }
-    country_exposure?: { value?: string }
-    division?: { value?: string }
-    division_exposure?: { value?: string }
-    gisaid_epi_isl?: { value?: string }
-    host?: { value?: string }
-    legacy_clade_membership?: { value?: string }
-    location?: { value?: string }
-    num_date?: { confidence?: [number, number]; value?: number }
-    pangolin_lineage?: { value?: number }
-    recency?: { value?: number }
-    region?: { confidence?: { Asia?: number }; entropy?: number; value?: string }
-    subclade_membership?: { value?: string }
-    submitting_lab?: { value?: string }
-    url?: string
+    'div'?: number
+    'GISAID_clade'?: { value?: string }
+    'author'?: { author?: string; paper_url?: string; title?: string; value?: string }
+    'clade_membership'?: { value?: string }
+    'country'?: { value?: string }
+    'country_exposure'?: { value?: string }
+    'division'?: { value?: string }
+    'division_exposure'?: { value?: string }
+    'gisaid_epi_isl'?: { value?: string }
+    'host'?: { value?: string }
+    'legacy_clade_membership'?: { value?: string }
+    'location'?: { value?: string }
+    'num_date'?: { confidence?: [number, number]; value?: number }
+    'pangolin_lineage'?: { value?: number }
+    'recency'?: { value?: number }
+    'region'?: { confidence?: { Asia?: number }; entropy?: number; value?: string }
+    'subclade_membership'?: { value?: string }
+    'submitting_lab'?: { value?: string }
+    'url'?: string
     'Node type'?: { value?: string }
     [key: string]: { value?: string | number; entropy?: number; confidence?: number } | number | string | undefined
   }
