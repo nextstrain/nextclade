@@ -23,7 +23,7 @@ import { auspiceGeneralReducer, auspiceQueryReducer } from './auspice/auspice.re
 
 export type State = AuspiceState
 
-export const AUSPICE_EMPTY_STATE: AuspiceState = { metadata: { colorings: [], displayDefaults: {} } }
+export const AUSPICE_EMPTY_STATE: AuspiceState = { metadata: { colorings: {}, displayDefaults: {} } }
 
 export const AUSPICE_RESET_STATE = 'AUSPICE_RESET_STATE' as const
 

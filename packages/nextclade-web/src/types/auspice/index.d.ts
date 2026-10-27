@@ -150,7 +150,7 @@ declare module 'auspice' {
   }
 
   export declare type AuspiceState = {
-    metadata?: AuspiceMetadata
+    metadata?: AuspiceMetadataState
     tree?: AuspiceTreeState
     frequencies?: AuspiceFrequenciesState
     controls?: AuspiceControlsState
@@ -272,6 +272,21 @@ declare module 'auspice' {
         clade_node_attrs_keys?: CladeNodeAttrDesc[]
       }
     }
+  }
+
+  /** Metadata in the Auspice store: the `meta` block of the tree JSON, with the colorings keyed by attribute */
+  export declare interface AuspiceMetadataState extends Omit<AuspiceMetadata, 'colorings'> {
+    colorings: Record<string, AuspiceColoringState>
+    loaded?: boolean
+  }
+
+  /** Coloring of the tree by an attribute of its nodes, as kept in the Auspice store */
+  export declare interface AuspiceColoringState {
+    title: string
+    type: string
+    /** Color of each value, set by the dataset or edited by the user. Values without a color here get shades of grey */
+    scale?: [string | number, string][]
+    legend?: unknown[]
   }
 
   export declare interface AuspiceJsonV2 {
