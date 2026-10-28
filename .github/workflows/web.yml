@@ -143,8 +143,8 @@ jobs:
             cache-v1-cargo-${{ runner.os }}-wasm32-unknown-unknown-
             cache-v1-cargo-${{ runner.os }}-
 
-      # `bun install` does not apply a changed patch to a package that is already installed, so the cache of
-      # `node_modules` must match both the lockfile and the patches, without a fallback to an older cache
+      # Key the cache on the patches too, without a fallback to an older cache, so that CI never restores packages that an
+      # older patch produced
       - name: "Setup cache for Node.js packages"
         uses: actions/cache@v6
         with:
@@ -154,14 +154,15 @@ jobs:
       - name: "Setup cache for web app"
         uses: actions/cache@v6
         with:
+          # `next build` of a static export builds in `.next` and writes only the export to `distDir`
           path: |
-            packages/nextclade-web/.build/production/tmp/cache
+            packages/nextclade-web/.next/cache
             packages/nextclade-web/.cache
-          key: cache-v2-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/bun.lock') }}
+          key: cache-v3-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/bun.lock') }}
           restore-keys: |
-            cache-v2-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/bun.lock') }}
-            cache-v2-web-${{ runner.os }}-wasm32-unknown-unknown-
-            cache-v2-web-${{ runner.os }}-
+            cache-v3-web-${{ runner.os }}-wasm32-unknown-unknown-${{ hashFiles('**/bun.lock') }}
+            cache-v3-web-${{ runner.os }}-wasm32-unknown-unknown-
+            cache-v3-web-${{ runner.os }}-
 
       - name: "Prepare .env file"
         run: |
