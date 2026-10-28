@@ -1,5 +1,6 @@
 import { sum } from 'lodash'
 import { atom, atomFamily, selectorFamily } from 'recoil'
+import type { CladeColorStyle } from 'src/components/Results/cladeColor'
 import {
   COLUMN_WIDTHS,
   DYNAMIC_AA_MOTIFS_COLUMN_WIDTH,
@@ -50,6 +51,13 @@ export const shouldZoomTreeToSequenceAtom = atom<boolean>({
 export const shouldZoomTreeToCladeAtom = atom<boolean>({
   key: 'shouldZoomTreeToClade',
   default: false,
+  effects: [persistAtom],
+})
+
+/** How the results table shows the tree colors of clades and clade-like values */
+export const cladeColorStyleAtom = atom<CladeColorStyle>({
+  key: 'cladeColorStyle',
+  default: 'circle',
   effects: [persistAtom],
 })
 

@@ -45,13 +45,19 @@ A click on a nucleotide or amino acid mutation in the sequence view opens the tr
 
 ### Show clades from the results table
 
-When the tree is ready, a circle before each clade and each clade-like value in the results table, such as a Pango lineage, has the color of the value on the tree. A click on the circle opens the tree filtered to the value:
+When the tree is ready, the results table shows each clade and each clade-like value, such as a Pango lineage, in the color of the value on the tree. By default, a circle before the value has this color. A click on the circle opens the tree filtered to the value:
 
 - **Click**: filter the tree to this value only
 - **Shift+click**: add this value to the filter of the tree
 - **Alt+click**: zoom or keep the zoom, the opposite of the setting below
 
-By default, the tree keeps its zoom. Turn on **Settings** > **Tree** > **Zoom the tree to the clades shown with the circles of the results table** to zoom to the filtered sequences. This setting is separate from the zoom setting of the tree buttons.
+By default, the tree keeps its zoom. Turn on **Settings** > **Tree** > **Zoom the tree to the clades shown from the results table** to zoom to the filtered sequences. This setting is separate from the zoom setting of the tree buttons.
+
+**Settings** > **Tree** > **Tree colors of clades in the results table** sets how the table shows the colors:
+
+- **circle**: a circle before the value. A click on the circle shows the value on the tree, and the text stays selectable
+- **badge**: the value in a pale badge with a border in the color. A click on the badge shows the value on the tree. The text stays dark on every color
+- **none**: the value as plain text
 
 ### Your metadata on the tree
 

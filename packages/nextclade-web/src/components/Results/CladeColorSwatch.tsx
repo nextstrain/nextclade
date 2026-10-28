@@ -1,14 +1,19 @@
 import { isNil } from 'lodash'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { CSSProperties, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
-import type { CladeColor } from 'src/components/Results/cladeColor'
+import {
+  CLADE_BADGE_TEXT_COLOR,
+  type CladeColor,
+  type CladeColorStyle,
+  getCladeBadgeBackground,
+} from 'src/components/Results/cladeColor'
 import { showOnTreeParamsFromClick } from 'src/components/Results/showOnTreeClick'
 import { type ShowOnTreeActions, ShowOnTreeTooltip } from 'src/components/Results/ShowOnTreeTooltip'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { type TreeLinks, useTreeLinks } from 'src/components/Tree/useTreeLinks'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { shouldZoomTreeToCladeAtom } from 'src/state/settings.state'
+import { cladeColorStyleAtom, shouldZoomTreeToCladeAtom } from 'src/state/settings.state'
 
 export interface CladeColorValueProps {
   /** Id of the DOM element of the button, unique on the page */
@@ -24,45 +29,63 @@ export interface CladeColorValueProps {
 }
 
 /**
- * Value of a clade-like attribute, after a circle that looks like the tips of this value on the tree. A click on the
- * circle opens the tree filtered to the value. The text stays plain, so that the user can select it
+ * Value of a clade-like attribute in the tree color of the value, in the style that Settings > Tree sets: after a circle
+ * that looks like the tips of this value on the tree, or in a pale badge with a border in the tree color. A click on the
+ * circle or on the badge opens the tree filtered to the value. In the circle style the text stays plain, so that the
+ * user can select it
  */
 export function CladeColorValue({ id, attrKey, value, color, onButtonHoverChange }: CladeColorValueProps) {
+  const style = useRecoilValue(cladeColorStyleAtom)
   const treeLinks = useTreeLinks()
 
-  let swatch: React.ReactNode = null
-  if (!isNil(color)) {
-    // The tree cannot filter by a value that it treats as missing, such as "unknown"
-    swatch =
-      color.isKnown && !isNil(treeLinks) ? (
-        <CladeColorButton
-          id={id}
-          attrKey={attrKey}
-          value={value}
-          color={color}
-          treeLinks={treeLinks}
-          onHoverChange={onButtonHoverChange}
-        />
-      ) : (
-        <CladeColorSwatch color={color} />
-      )
+  if (isNil(color) || style === 'none') {
+    return (
+      <ValueWrapper>
+        <span>{value}</span>
+      </ValueWrapper>
+    )
+  }
+
+  // The tree cannot filter by a value that it treats as missing, such as "unknown"
+  const buttonProps = color.isKnown && !isNil(treeLinks) ? { id, attrKey, value, treeLinks, onButtonHoverChange } : undefined
+
+  if (style === 'badge') {
+    return (
+      <ValueWrapper>
+        {buttonProps ? (
+          <ShowCladeOnTreeButton {...buttonProps} kind="badge">
+            <CladeBadge value={value} color={color} />
+          </ShowCladeOnTreeButton>
+        ) : (
+          <CladeBadge value={value} color={color} />
+        )}
+      </ValueWrapper>
+    )
   }
 
   return (
     <ValueWrapper>
-      {swatch}
+      {buttonProps ? (
+        <ShowCladeOnTreeButton {...buttonProps} kind="circle">
+          <CladeColorSwatch color={color} />
+        </ShowCladeOnTreeButton>
+      ) : (
+        <CladeColorSwatch color={color} />
+      )}
       <span>{value}</span>
     </ValueWrapper>
   )
 }
 
-interface CladeColorButtonProps {
+interface ShowCladeOnTreeButtonProps {
   id: string
   attrKey: string
   value: string
-  color: CladeColor
   treeLinks: TreeLinks
-  onHoverChange?: (isHovered: boolean) => void
+  onButtonHoverChange?: (isHovered: boolean) => void
+  /** What the button shows: the circle or the badge */
+  kind: Exclude<CladeColorStyle, 'none'>
+  children: React.ReactNode
 }
 
 /**
@@ -70,20 +93,29 @@ interface CladeColorButtonProps {
  * value to the filter. A click zooms to the filtered sequences or keeps the zoom, as the setting says, and Alt+click
  * does the opposite
  */
-function CladeColorButton({ id, attrKey, value, color, treeLinks, onHoverChange }: CladeColorButtonProps) {
+function ShowCladeOnTreeButton({
+  id,
+  attrKey,
+  value,
+  treeLinks,
+  onButtonHoverChange,
+  kind,
+  children,
+}: ShowCladeOnTreeButtonProps) {
+  const Button = BUTTONS[kind]
   const { t } = useTranslationSafe()
   const shouldZoom = useRecoilValue(shouldZoomTreeToCladeAtom)
   const [isHovered, setIsHovered] = useState(false)
 
   const onMouseEnter = useCallback(() => {
     setIsHovered(true)
-    onHoverChange?.(true)
-  }, [onHoverChange])
+    onButtonHoverChange?.(true)
+  }, [onButtonHoverChange])
 
   const onMouseLeave = useCallback(() => {
     setIsHovered(false)
-    onHoverChange?.(false)
-  }, [onHoverChange])
+    onButtonHoverChange?.(false)
+  }, [onButtonHoverChange])
 
   const onClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) =>
@@ -112,10 +144,15 @@ function CladeColorButton({ id, attrKey, value, color, treeLinks, onHoverChange 
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
-        <CladeColorSwatch color={color} />
+        {children}
       </Button>
       <Tooltip wide target={id} isOpen={isHovered} placement="right">
-        <ShowOnTreeTooltip label={label} actions={actions} shouldZoom={shouldZoom} />
+        <ShowOnTreeTooltip
+          label={label}
+          actions={actions}
+          shouldZoom={shouldZoom}
+          note={t('You can show the tree colors as circles, as badges or not at all in Settings > Tree.')}
+        />
       </Tooltip>
     </>
   )
@@ -134,6 +171,24 @@ function CladeColorSwatch({ color }: CladeColorSwatchProps) {
   )
 }
 
+interface CladeBadgeProps {
+  value: string
+  color: CladeColor
+}
+
+/** Text of a value on a pale background, with a border in the tree color of the value */
+function CladeBadge({ value, color }: CladeBadgeProps) {
+  // The stylesheet reads the colors of the value, so that the many colors of a column share one CSS class
+  const colors = useMemo(
+    (): CSSProperties & Record<'--clade-badge-border' | '--clade-badge-background', string> => ({
+      '--clade-badge-border': color.stroke,
+      '--clade-badge-background': getCladeBadgeBackground(color),
+    }),
+    [color],
+  )
+  return <Badge style={colors}>{value}</Badge>
+}
+
 const ValueWrapper = styled.span`
   display: flex;
   align-items: center;
@@ -149,7 +204,7 @@ const Swatch = styled.svg`
 `
 
 /** Button around the circle, the size of the circle, with an outline when it has keyboard focus */
-const Button = styled.button`
+const CircleButton = styled.button`
   flex: 0 0 auto;
   display: inline-flex;
   padding: 0;
@@ -167,3 +222,48 @@ const Button = styled.button`
     outline-offset: 1px;
   }
 `
+
+/**
+ * Badge of a value. The text is dark on any tree color, because the background is the tree color mixed with mostly
+ * white
+ */
+const Badge = styled.span`
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 4px;
+  border: 1px solid var(--clade-badge-border);
+  border-radius: 3px;
+  background-color: var(--clade-badge-background);
+  color: ${CLADE_BADGE_TEXT_COLOR};
+  line-height: 1.4;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`
+
+/** Button around the badge, with a thicker border when hovered and an outline when it has keyboard focus */
+const BadgeButton = styled.button`
+  display: flex;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover ${Badge} {
+    box-shadow: inset 0 0 0 1px var(--clade-badge-border);
+  }
+
+  &:focus-visible {
+    border-radius: 3px;
+    outline: 2px solid ${(props) => props.theme.primary};
+    outline-offset: 1px;
+  }
+`
+
+/** Button element of each style that shows a tree color */
+const BUTTONS: Record<Exclude<CladeColorStyle, 'none'>, typeof CircleButton> = {
+  circle: CircleButton,
+  badge: BadgeButton,
+}

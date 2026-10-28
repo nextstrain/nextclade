@@ -9,6 +9,8 @@ export interface ShowOnTreeTooltipProps {
   actions: ShowOnTreeActions
   /** Whether a click zooms the tree, as Settings > Tree says */
   shouldZoom: boolean
+  /** Note after the note about the zoom, e.g. how to hide the button */
+  note?: string
 }
 
 /** What the clicks of a "show on tree" button do, in the words of its target */
@@ -24,7 +26,7 @@ export interface ShowOnTreeActions {
 }
 
 /** Tooltip of a "show on tree" button, which lists what a click with each modifier key does */
-export function ShowOnTreeTooltip({ label, actions, shouldZoom }: ShowOnTreeTooltipProps) {
+export function ShowOnTreeTooltip({ label, actions, shouldZoom, note }: ShowOnTreeTooltipProps) {
   const { t } = useTranslationSafe()
   return (
     <>
@@ -50,6 +52,7 @@ export function ShowOnTreeTooltip({ label, actions, shouldZoom }: ShowOnTreeTool
           ? actions.zoomNote
           : t('A click keeps the zoom of the tree. You can change this in Settings > Tree.')}
       </TooltipNote>
+      {note ? <TooltipNote>{note}</TooltipNote> : null}
     </>
   )
 }
@@ -73,4 +76,8 @@ const TooltipNote = styled.p`
   margin: 0;
   font-size: 0.85rem;
   color: ${(props) => props.theme.gray600};
+
+  & + & {
+    margin-top: 0.25rem;
+  }
 `

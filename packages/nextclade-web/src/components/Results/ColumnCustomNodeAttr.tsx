@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 
 import { get } from 'lodash'
+import styled from 'styled-components'
 
 import type { AnalysisResult } from 'src/types'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -27,13 +28,18 @@ export function ColumnCustomNodeAttr({ sequence, attrKey, color }: ColumnCustomN
 
   return (
     <div id={id} className="w-100 d-flex">
-      <span className={className}>
+      <CellContent className={className}>
         {color ? (
           <CladeColorValue id={`${id}-show-on-tree`} attrKey={attrKey} value={attrValue} color={color} />
         ) : (
           attrValue
         )}
-      </span>
+      </CellContent>
     </div>
   )
 }
+
+/** Content of the cell, which can shrink below the width of the value, so that a long badge ends in an ellipsis */
+const CellContent = styled.span`
+  min-width: 0;
+`

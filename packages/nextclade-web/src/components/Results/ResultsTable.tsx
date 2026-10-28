@@ -23,6 +23,7 @@ import {
   isResultsFilterPanelCollapsedAtom,
   resultsTableDynamicPhenotypeColumnWidthPxAtom,
   resultsTableDynamicAaMotifsColumnWidthAtomPxAtom,
+  cladeColorStyleAtom,
 } from 'src/state/settings.state'
 import {
   aaMotifsDescsAtom,
@@ -187,9 +188,13 @@ export function ResultsTable() {
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
   const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
 
+  const cladeColorStyle = useRecoilValue(cladeColorStyleAtom)
+
+  // The table computes no colors when it does not show them
   const cladeColorAttrKeys = useMemo(
-    () => [CLADE_NODE_ATTR, ...(cladeNodeAttrDescs ?? []).map(({ name }) => name)],
-    [cladeNodeAttrDescs],
+    () =>
+      cladeColorStyle === 'none' ? [] : [CLADE_NODE_ATTR, ...(cladeNodeAttrDescs ?? []).map(({ name }) => name)],
+    [cladeColorStyle, cladeNodeAttrDescs],
   )
   const cladeColorScales = useCladeColorScales(datasetName, cladeColorAttrKeys)
   const seqNamesSelectedOnTree = useSequencesSelectedOnTree(datasetName)
