@@ -37,11 +37,21 @@ The tree button at the right end of each sequence name cell in the results table
 - **Shift+click**: add this sequence to the selected sequences, for example to compare several sequences on the tree
 - **Alt+click**: zoom or keep the zoom, the opposite of the setting below
 
-By default, the tree keeps its zoom, and shows the whole tree when the zoom hides a selected sequence. Turn on **Settings** > **Tree** > **Zoom the tree to the sequences shown from the results table** to zoom to the smallest clade that contains the selected sequences and at least 20 tips, so that the sequences are seen with their relatives. The tooltip of the button shows what each click does with the current setting.
+By default, the tree keeps its zoom, and shows the whole tree when the zoom hides a selected sequence. Turn on **Settings** > **Tree** > **Zoom the tree to the sequences shown with the tree buttons of the results table** to zoom to the smallest clade that contains the selected sequences and at least 20 tips, so that the sequences are seen with their relatives. The tooltip of the button shows what each click does with the current setting.
 
 The buttons of the selected sequences are highlighted. These are the sequences that you select with the button, and the sequences that match the filters that you set on the tree page, for example a filter by clade, by name, or by mutation. The filter by node type, which the tree has from the start, selects no sequences on its own.
 
 A click on a nucleotide or amino acid mutation in the sequence view opens the tree colored by the genotype at that position.
+
+### Show clades from the results table
+
+When the tree is ready, a circle before each clade and each clade-like value in the results table, such as a Pango lineage, has the color of the value on the tree. A click on the circle opens the tree filtered to the value:
+
+- **Click**: filter the tree to this value only
+- **Shift+click**: add this value to the filter of the tree
+- **Alt+click**: zoom or keep the zoom, the opposite of the setting below
+
+By default, the tree keeps its zoom. Turn on **Settings** > **Tree** > **Zoom the tree to the clades shown with the circles of the results table** to zoom to the filtered sequences. This setting is separate from the zoom setting of the tree buttons.
 
 ### Your metadata on the tree
 

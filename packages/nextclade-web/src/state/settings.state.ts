@@ -33,9 +33,22 @@ export const shouldSuggestDatasetsOnDatasetPageAtom = atom<boolean>({
   effects: [persistAtom],
 })
 
-/** Whether "show on tree" in the results table zooms the tree to the sequence. Alt+click does the opposite */
+/**
+ * Whether the tree button of a sequence in the results table zooms the tree to the selected sequences. Alt+click does
+ * the opposite
+ */
 export const shouldZoomTreeToSequenceAtom = atom<boolean>({
   key: 'shouldZoomTreeToSequence',
+  default: false,
+  effects: [persistAtom],
+})
+
+/**
+ * Whether the circle before a clade-like value in the results table zooms the tree to the filtered sequences. Alt+click
+ * does the opposite
+ */
+export const shouldZoomTreeToCladeAtom = atom<boolean>({
+  key: 'shouldZoomTreeToClade',
   default: false,
   effects: [persistAtom],
 })

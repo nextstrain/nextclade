@@ -8,7 +8,7 @@ import { type ShowOnTreeActions, ShowOnTreeTooltip } from 'src/components/Result
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { type TreeLinks, useTreeLinks } from 'src/components/Tree/useTreeLinks'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { shouldZoomTreeToSequenceAtom } from 'src/state/settings.state'
+import { shouldZoomTreeToCladeAtom } from 'src/state/settings.state'
 
 export interface CladeColorValueProps {
   /** Id of the DOM element of the button, unique on the page */
@@ -72,7 +72,7 @@ interface CladeColorButtonProps {
  */
 function CladeColorButton({ id, attrKey, value, color, treeLinks, onHoverChange }: CladeColorButtonProps) {
   const { t } = useTranslationSafe()
-  const shouldZoom = useRecoilValue(shouldZoomTreeToSequenceAtom)
+  const shouldZoom = useRecoilValue(shouldZoomTreeToCladeAtom)
   const [isHovered, setIsHovered] = useState(false)
 
   const onMouseEnter = useCallback(() => {
