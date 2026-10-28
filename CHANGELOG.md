@@ -1,3 +1,10 @@
+## 3.28.0
+
+### Nextclade Web: results table
+
+- **Style of the tree colors of clades**: Settings > Tree sets how the results table shows the tree colors of clades and clade-like values, such as the Pango lineage: as a circle before the value, as before, as a pale badge with a border in the tree color, or not at all. The text of a badge stays dark on every tree color, so that it stays legible. A click on a circle or on a badge shows the value on the tree. The tooltips of the circles and badges say where to change the style. See [#1843](https://github.com/nextstrain/nextclade/pull/1843)
+- **Separate zoom settings**: the tree button of a sequence name and the circle or badge of a clade have separate settings for whether a click zooms the tree, because one selects a sequence and the other filters the tree to many sequences. The tree buttons keep your current setting, and the clade buttons start with the tree keeping its zoom. See [#1843](https://github.com/nextstrain/nextclade/pull/1843)
+
 ## 3.27.0
 
 ### Nextclade Web: results table
