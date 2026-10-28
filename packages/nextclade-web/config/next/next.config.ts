@@ -6,6 +6,7 @@ import remarkBreaks from 'remark-breaks'
 import remarkImages from 'remark-images'
 import remarkMath from 'remark-math'
 import remarkToc from 'remark-toc'
+import getWithEditedPackages, { getPatchedPackageNames } from './withEditedPackages'
 import getWithEslint from './withEslint'
 import getWithExternals from './withExternals'
 import getWithExtraWatch from './withExtraWatch'
@@ -163,6 +164,11 @@ const withExtraWatch = getWithExtraWatch({
   dirs: [],
 })
 
+const withEditedPackages = getWithEditedPackages({
+  packages: getPatchedPackageNames(pkg.patchedDependencies),
+  editors: ['tools/monkeyPatch.ts'],
+})
+
 const withTypeChecking = getWithTypeChecking({
   typeChecking: true,
   memoryLimit: 2048,
@@ -219,6 +225,7 @@ const plugins = [
   withRaw,
   withFontAsset,
   withResolve,
+  withEditedPackages,
   withWasm,
   withAppJson,
   withRobotsTxt,
