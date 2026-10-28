@@ -1215,7 +1215,7 @@ index d4f928d487df9ad1b681caf4bedbd1c57e980c21..458ee23c9024a12b6f1b62c05a517049
  /* D R A W I N G    F U N C T I O N S */
  PhyloTree.prototype.setClipMask = renderers.setClipMask;
 diff --git a/src/components/tree/phyloTree/renderers.ts b/src/components/tree/phyloTree/renderers.ts
-index 367f3ec3a5b42c2f9db045300e6e74432247e54d..266c9bd6a28e85d791adcdc317911f5cfb0061e0 100644
+index 367f3ec3a5b42c2f9db045300e6e74432247e54d..f1886ee0179e5282d200e1c5e6e0fe3689c60736 100644
 --- a/src/components/tree/phyloTree/renderers.ts
 +++ b/src/components/tree/phyloTree/renderers.ts
 @@ -221,7 +221,7 @@ export const drawTips = function drawTips(this: PhyloTreeType): void {
@@ -1308,7 +1308,7 @@ index 367f3ec3a5b42c2f9db045300e6e74432247e54d..266c9bd6a28e85d791adcdc317911f5c
 +  const branchLabels = this.margins.branchLabels ?? 0;
 +  const isMirrored = this.params.orientation[0] < 0;
 +  const x0 = xMin - 5 - (isMirrored ? 0 : branchLabels);
-+  const width = xMax - xMin + 20 + (isMirrored ? branchLabels : 0);  // RHS overflow is not problematic
++  const width = xMax - xMin + 20 + branchLabels;  // RHS overflow is not problematic
    const y0 = yMin - 15;            // some overflow at top is ok
    const height = yMax - yMin + 20; // extra padding to allow tips & lowest major axis line to render
  
