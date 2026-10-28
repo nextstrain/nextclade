@@ -1,9 +1,13 @@
-## Unreleased
+## 3.27.0
 
 ### Nextclade Web: results table
 
 - **Tree colors of clades**: the results table draws a small circle before each clade and each clade-like value, such as the Pango lineage, in the color that the tree page gives to that value. A click on the circle opens the tree filtered to the value. Shift+click adds the value to the filter, and Alt+click inverts the zoom setting for one click. See [#1834](https://github.com/nextstrain/nextclade/pull/1834)
 - **Aligned and highlighted tree buttons**: the tree button of each sequence sits at the right end of the name cell, so the buttons of all rows form one column. A button is highlighted while the tree page selects its sequence, after a click or a Shift+click on the button, and while the sequence matches the filters that you set on the tree page, such as a filter by clade, by name or by mutation. See [#1835](https://github.com/nextstrain/nextclade/pull/1835)
+
+### Nextclade Web: tree page
+
+- **Tips at the far end of the tree**: since 3.26.0, the rectangular and scatter layouts cut off the sequences with the largest divergence, such as recombinants on a long branch, while a branch label such as a clade label was near the root. These sequences had no tip circles, and the ends of their branches were missing. The Auspice 3.0.0 upgrade ([#1795](https://github.com/nextstrain/nextclade/pull/1795)) moved the clip area of the tree left to make room for these labels, but did not make it wider, so its right edge moved left by the width of the labels. The clip area now keeps its right edge 15 pixels past the tips, as in Auspice. See [#1839](https://github.com/nextstrain/nextclade/pull/1839)
 
 ## 3.26.0
 
