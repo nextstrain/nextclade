@@ -7,12 +7,14 @@ Handles both simple string values and complex file references.
 
 Usage:
   get-version [options] <tool-name>
+  get-version [options] --all
 
 Arguments:
   tool-name   Name of the tool to look up (e.g., bun, rust, node)
 
 Options:
   -h, --help                  Show this help
+  --all                       Print "<tool-name> <version>" for every tool
   -f, --versions-file <path>  Path to versions JSON file
                               (default: tool-versions.json in project root)
 
@@ -22,13 +24,14 @@ Examples:
   get-version node                             # outputs: 24.22.1 (from .nvmrc)
   get-version wasm-bindgen-cli                 # outputs: 0.2.106 (from Cargo.toml)
   get-version --versions-file ./versions.json bun
+  get-version --all                            # outputs: one "<tool-name> <version>" line per tool
 """
 
 import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 CATEGORIES = ("dependencies", "devDependencies", "optionalDependencies")
 
@@ -41,6 +44,7 @@ def main():
     args = sys.argv[1:]
     versions_file = None  # type: Optional[Path]
     tool = None  # type: Optional[str]
+    print_all = False
 
     i = 0
     while i < len(args):
@@ -54,6 +58,9 @@ def main():
                 sys.exit(1)
             versions_file = Path(args[i + 1])
             i += 2
+        elif arg == "--all":
+            print_all = True
+            i += 1
         elif arg == "--":
             i += 1
             break
@@ -66,12 +73,10 @@ def main():
         continue
 
     positional = args[i:]
-    if len(positional) != 1:
-        print("Error: Expected exactly one tool name\n", file=sys.stderr)
+    if len(positional) != (0 if print_all else 1):
+        print("Error: Expected exactly one tool name, or --all\n", file=sys.stderr)
         print(HELP.strip(), file=sys.stderr)
         sys.exit(1)
-
-    tool = positional[0]
 
     if versions_file is None:
         project_root = Path(__file__).resolve().parent.parent
@@ -83,6 +88,12 @@ def main():
         print("Error: Versions file not found: %s" % versions_file, file=sys.stderr)
         sys.exit(1)
 
+    if print_all:
+        for name, version in all_tool_versions(versions_file, project_root):
+            print("%s %s" % (name, version))
+        return
+
+    tool = positional[0]
     version = find_tool_version(tool, versions_file, project_root)
     if version is None:
         print("Error: Tool '%s' not found in %s" % (tool, versions_file.name), file=sys.stderr)
@@ -105,6 +116,18 @@ def find_tool_version(tool, versions_file, project_root):
         return resolve_entry(entry, project_root)
 
     return None
+
+
+def all_tool_versions(versions_file, project_root):
+    # type: (Path, Path) -> List[Tuple[str, str]]
+    with versions_file.open() as f:
+        data = json.load(f)
+
+    return [
+        (tool, resolve_entry(entry, project_root))
+        for category in CATEGORIES
+        for tool, entry in data.get(category, {}).items()
+    ]
 
 
 def resolve_entry(entry, project_root):
