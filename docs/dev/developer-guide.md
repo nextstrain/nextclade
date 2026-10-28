@@ -27,14 +27,14 @@ The file contains three categories:
 
 Versions can be either:
 
-- Simple strings (e.g., `"bun": "1.3.5"`)
+- Simple strings (e.g., `"bun": "1.4.4"`)
 - References to other files (e.g., Rust version from `rust-toolchain.toml`, Node.js from `.nvmrc`)
 
 To look up a tool version, use the `scripts/get-version` script:
 
 ```bash
 # Get version of a tool
-./scripts/get-version bun        # outputs: 1.3.5
+./scripts/get-version bun        # outputs: 1.4.4
 ./scripts/get-version rust       # outputs: 1.95.0 (from rust-toolchain.toml)
 ./scripts/get-version node       # outputs: 22.16.0 (from .nvmrc)
 ```
