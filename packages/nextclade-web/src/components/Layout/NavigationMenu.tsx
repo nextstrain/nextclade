@@ -7,6 +7,7 @@ import {
 import styled from 'styled-components'
 import { DropdownMenuInViewport } from 'src/components/Common/DropdownMenuInViewport'
 import { MdOutlineMenu } from 'react-icons/md'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export interface NavigationMenuProps extends DropdownProps {
   links: ReactNode[]
@@ -15,12 +16,13 @@ export interface NavigationMenuProps extends DropdownProps {
 }
 
 export function NavigationMenu({ links, iconLinks, ...restProps }: NavigationMenuProps) {
+  const { t } = useTranslationSafe()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const toggle = useCallback(() => setDropdownOpen((prevState) => !prevState), [])
 
   return (
     <Dropdown nav isOpen={dropdownOpen} toggle={toggle} {...restProps}>
-      <DropdownToggle nav>
+      <DropdownToggle nav aria-label={t('Menu')}>
         <MdOutlineMenu size={30} />
       </DropdownToggle>
       <DropdownMenu right>
