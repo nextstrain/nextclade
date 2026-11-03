@@ -3,7 +3,7 @@ import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil
 import { invertMap } from 'src/helpers/map'
 import { notUndefinedOrNull, pairValueNotUndefinedOrNull } from 'src/helpers/notUndefined'
 import { findDatasetByPath } from 'src/helpers/sortDatasetVersions'
-import { datasetsAtom } from 'src/state/dataset.state'
+import { datasetsAtom, hasSingleCurrentDatasetAtom } from 'src/state/dataset.state'
 import { isDefaultValue } from 'src/state/utils/isDefaultValue'
 import type { Dataset, FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 
@@ -190,6 +190,27 @@ export const hasTopSuggestedDatasetsAtom = selector<boolean>({
   key: 'hasTopSuggestedDatasetsAtom',
   get: ({ get }) => {
     return get(numberTopSuggestedDatasetsAtom) > 0
+  },
+})
+
+/**
+ * Whether resetting suggestions and the current dataset would clear anything the user sees: a selected dataset,
+ * suggestion results, or the outcome of a finished or failed suggestion run. False while suggestion runs, because the
+ * running job writes its results after the reset.
+ */
+export const canResetSuggestionsAndCurrentDatasetAtom = selector<boolean>({
+  key: 'canResetSuggestionsAndCurrentDatasetAtom',
+  get: ({ get }) => {
+    if (get(isAutodetectRunningAtom)) {
+      return false
+    }
+    return (
+      get(hasSingleCurrentDatasetAtom) ||
+      get(autodetectRunStateAtom) !== AutodetectRunState.Idle ||
+      !isNil(get(autodetectErrorAtom)) ||
+      get(hasAutodetectResultsAtom) ||
+      !isEmpty(get(allDatasetSuggestionResultsAtom).suggestions)
+    )
   },
 })
 

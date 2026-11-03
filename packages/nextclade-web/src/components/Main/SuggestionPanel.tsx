@@ -11,9 +11,8 @@ import { useRecoilToggle } from 'src/hooks/useToggle'
 import {
   AutodetectRunState,
   autodetectRunStateAtom,
+  canResetSuggestionsAndCurrentDatasetAtom,
   hasAutodetectResultsAtom,
-  hasTopSuggestedDatasetsAtom,
-  isAutodetectRunningAtom,
 } from 'src/state/autodetect.state'
 import { minimizerIndexVersionAtom } from 'src/state/dataset.state'
 import { hasRequiredInputsAtom } from 'src/state/inputs.state'
@@ -83,15 +82,11 @@ export function ButtonSuggest() {
 
 export function ButtonSuggestionsReset() {
   const { t } = useTranslationSafe()
-  const resetAutodetectResults = useResetSuggestionsAndCurrentDataset()
-  const hasAutodetectResults = useRecoilValue(hasAutodetectResultsAtom)
-  const hasTopSuggestedDatasets = useRecoilValue(hasTopSuggestedDatasetsAtom)
-  const isAutodetectRunning = useRecoilValue(isAutodetectRunningAtom)
-
-  const disabled = isAutodetectRunning || !(hasAutodetectResults && hasTopSuggestedDatasets)
+  const resetSuggestionsAndCurrentDataset = useResetSuggestionsAndCurrentDataset()
+  const canReset = useRecoilValue(canResetSuggestionsAndCurrentDatasetAtom)
 
   return (
-    <ButtonResetStyled color="link" onClick={resetAutodetectResults} disabled={disabled}>
+    <ButtonResetStyled color="link" onClick={resetSuggestionsAndCurrentDataset} disabled={!canReset}>
       {t('Reset')}
     </ButtonResetStyled>
   )
