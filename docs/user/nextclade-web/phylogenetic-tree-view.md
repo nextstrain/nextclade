@@ -18,6 +18,7 @@ The sidebar on the left of the tree holds the Auspice controls that apply to the
 - **Color By** and **Filter Data**: color the tree and filter its tips by clade, QC status, node type, and the other attributes of the dataset
 - **Add metadata**: color and filter the tree by your own data, see [Your metadata on the tree](#your-metadata-on-the-tree)
 - **Layout**, **Focus on selected**, **Branch Labels**, and **Tip Labels**: arrange and label the tree
+- **Branch Length**: draw the tree by divergence, or by the number of mutations between the root and each node: nucleotide mutations of the genome, or amino acid mutations of one CDS. The select lists the CDSs that have at least one mutation on the tree. The private mutations of the analyzed sequences count too. Deletions and missing bases (`N`) do not count, and a reversion counts as one more mutation. The scatter layout offers the same mutation counts as axes
 - **Explode Tree By**: split the tree into subtrees where an attribute changes along a branch, for example one subtree per clade
 - **Map**: show or hide the map of the coordinates that you add to the tree, see [Map](#map)
 - **Entropy**: show or hide the diversity chart of the genome below the tree
