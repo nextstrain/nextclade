@@ -2,8 +2,8 @@
 
 ### Nextclade Web: tree page
 
-- **Branch length by mutation count**: the tree page embeds Auspice 3.2.0 (2026-10-29), up from 3.1.0. The new "Branch Length" select in the sidebar draws the tree by divergence or by the number of mutations between the root and each node: nucleotide mutations of the genome, or amino acid mutations of one CDS. It lists the CDSs that have at least one mutation on the tree. The private mutations of your sequences count too. Deletions and missing bases (`N`) do not count, and a reversion counts as one more mutation. The scatter layout also offers the mutation counts as axes. See the [Auspice changelog](https://github.com/nextstrain/auspice/blob/db211cc6b44296d92529844502a95a3e68710449/CHANGELOG.md#version-320---20261029)
-- **Space after links in SVG figures**: in the text below an SVG figure, the text after a link lost the space before it, so a figure with the map named its source as "Natural Earth5.1.2". Each text line in the figure now starts at its first visible character
+- **Branch length by mutation count**: the tree page embeds Auspice 3.2.0 (2026-10-29), up from 3.1.0. The new "Branch Length" select in the sidebar draws the tree by divergence or by the number of mutations between the root and each node: nucleotide mutations of the genome, or amino acid mutations of one CDS. It lists the CDSs that have at least one mutation on the tree. The private mutations of your sequences count too. Deletions and missing bases (`N`) do not count, and a reversion counts as one more mutation. The scatter layout also offers the mutation counts as axes. See the [Auspice changelog](https://github.com/nextstrain/auspice/blob/db211cc6b44296d92529844502a95a3e68710449/CHANGELOG.md#version-320---20261029) and [#1847](https://github.com/nextstrain/nextclade/pull/1847)
+- **Space after links in SVG figures**: in the text below an SVG figure, the text after a link lost the space before it, so a figure with the map named its source as "Natural Earth5.1.2". Each text line in the figure now starts at its first visible character. See [#1847](https://github.com/nextstrain/nextclade/pull/1847)
 
 ## 3.28.0
 
