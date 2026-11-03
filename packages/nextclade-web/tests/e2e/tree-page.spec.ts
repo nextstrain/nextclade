@@ -149,11 +149,28 @@ test.describe('Tree page view of the tree', () => {
     const download = await downloadFromButton(page, 'SVG')
 
     expect(download.suggestedFilename()).toBe('nextclade.svg')
-    const caption = svgText(await readDownload(download))
+    const caption = await svgText(page, await readDownload(download))
     expect(caption).toContain('Nextclade dataset nextstrain/sars-cov-2/wuhan-hu-1/orfs')
     expect(caption).toContain('Made with Nextclade Web')
     expect(caption).toContain('Nextclade: clade assignment, mutation calling and quality control for viral genomes')
     expect(caption).not.toContain('Visualizations are licensed under CC-BY')
+    expect(errors).toEqual([])
+  })
+
+  test('keeps the space between a link and the text after it below the figure', async ({ page }) => {
+    const errors = await runExampleAndOpenTreePage(page)
+    const [firstName, secondName] = await tipNames(page)
+    await addMetadataFile(page, {
+      name: 'places.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(`strain,latitude,longitude\n${firstName},47.56,7.59\n${secondName},47.37,8.54\n`),
+    })
+    await expect(page.locator('#map')).toBeVisible()
+
+    const download = await downloadFromButton(page, 'SVG')
+
+    // The map attribution is a link followed by text: `ATTRIBUTION` in `src/components/Tree/naturalEarthMapTiles.ts`
+    expect(await svgText(page, await readDownload(download))).toContain('Map: Natural Earth 5.1.2')
     expect(errors).toEqual([])
   })
 
@@ -294,9 +311,77 @@ async function readDownload(download: Download): Promise<string> {
   return readFile(await download.path(), 'utf8')
 }
 
-/** Text of an SVG file, one space between its text elements. A line of text that wraps is split into several elements */
-function svgText(svg: string): string {
-  return Array.from(svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g), ([, text]) => text).join(' ')
+/**
+ * Text of an SVG file as a reader sees it, read from the drawn glyphs: the text elements line by line from left to
+ * right, with a space between two elements only where the drawing shows a gap of at least nine tenths of a space. The
+ * file holds one element per line of a wrapped text and per link, so a space that the file loses between a link and the
+ * text after it is missing here too. The export draws text up to 0.1 px per character narrower than the page, whose
+ * letter spacing the SVG text does not take, so a gap is never narrower in the drawing than on the page
+ */
+async function svgText(page: Page, svg: string): Promise<string> {
+  const svgPage = await page.context().newPage()
+  try {
+    await svgPage.setContent(svg)
+    return await svgPage.evaluate(async () => {
+      /** Width of a space in the font of a text element */
+      function spaceWidthOf(element: SVGTextElement): number {
+        const probe = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+        Array.from(element.attributes).forEach(({ name, value }) => probe.setAttribute(name, value))
+        element.after(probe)
+        probe.textContent = 'x x'
+        const withSpace = probe.getComputedTextLength()
+        probe.textContent = 'xx'
+        const withoutSpace = probe.getComputedTextLength()
+        probe.remove()
+        return withSpace - withoutSpace
+      }
+
+      await document.fonts.ready
+      const range = document.createRange()
+      const words = Array.from(document.querySelectorAll('text')).flatMap((element) => {
+        const node = element.firstChild
+        if (!(node instanceof Text)) {
+          return []
+        }
+        const text = node.data
+        const glyphs = Array.from(text, (char, i) => {
+          range.setStart(node, i)
+          range.setEnd(node, i + 1)
+          return { char, rect: range.getBoundingClientRect() }
+        }).filter(({ char, rect }) => char.trim() !== '' && rect.width > 0)
+        const first = glyphs.at(0)
+        const last = glyphs.at(-1)
+        if (!first || !last) {
+          return []
+        }
+        return [
+          {
+            text: text.trim(),
+            top: Math.round(first.rect.top),
+            left: first.rect.left,
+            right: last.rect.right,
+            spaceWidth: spaceWidthOf(element),
+          },
+        ]
+      })
+      const lines = Map.groupBy(words, ({ top }) => top)
+      return Array.from(lines.keys())
+        .toSorted((a, b) => a - b)
+        .map((top) =>
+          (lines.get(top) ?? [])
+            .toSorted((a, b) => a.left - b.left)
+            .map((word, i, line) => {
+              const previous = line[i - 1]
+              const isGap = previous !== undefined && word.left - previous.right >= 0.9 * word.spaceWidth
+              return `${isGap ? ' ' : ''}${word.text}`
+            })
+            .join(''),
+        )
+        .join(' ')
+    })
+  } finally {
+    await svgPage.close()
+  }
 }
 
 /**
