@@ -419,6 +419,59 @@ index a73fe7bf478e18e97a194de0243718e9d2cb53bf..a969f919f0f2ecbfa74727f33351733d
          <Slider disabled={disabled}/>
          {label === "" ? null : (
            <ToggleSubtitle>
+diff --git a/src/components/download/domToSvg.js b/src/components/download/domToSvg.js
+index 3db6be39c810a0a9366b1fe6e4a1445da36391e0..3bbb43c0fdaccde134bab670c94fab4de0fbe568 100644
+--- a/src/components/download/domToSvg.js
++++ b/src/components/download/domToSvg.js
+@@ -113,7 +113,7 @@ function measureTextLines(textNode) {
+     return [];
+   }
+   if (allRects.length === 1) {
+-    return [{text: str, rect: allRects[0]}];
++    return [lineAt(textNode, 0, str.length)];
+   }
+ 
+   /* multi-line: find the character offsets where the line breaks */
+@@ -129,21 +129,31 @@ function measureTextLines(textNode) {
+     if (prevTop === null) prevTop = last.top;
+     if (last.top > prevTop + 0.5) {
+       /* char (i-1) started a new line; close off the previous one */
+-      range.setStart(textNode, lineStart);
+-      range.setEnd(textNode, i - 1);
+-      const lineRects = range.getClientRects();
+-      lines.push({text: str.slice(lineStart, i - 1), rect: lineRects[lineRects.length - 1]});
++      lines.push(lineAt(textNode, lineStart, i - 1));
+       lineStart = i - 1;
+       prevTop = last.top;
+     }
+   }
+-  range.setStart(textNode, lineStart);
+-  range.setEnd(textNode, str.length);
+-  const lineRects = range.getClientRects();
+-  lines.push({text: str.slice(lineStart), rect: lineRects[lineRects.length - 1]});
++  lines.push(lineAt(textNode, lineStart, str.length));
+   return lines;
+ }
+ 
++/**
++ * Return the line `[start, end)` of a text node from its first visible character, with the client rect of that part.
++ * HTML draws a space at the start of a text node that follows an inline element (e.g. the text after a link), but an
++ * SVG `<text>` drops its leading spaces, so a line that kept its space would start one space too far left.
++ */
++function lineAt(textNode, start, end) {
++  const str = textNode.nodeValue;
++  let first = start;
++  while (first < end && /\s/.test(str[first])) first++;
++  const range = document.createRange();
++  range.setStart(textNode, first);
++  range.setEnd(textNode, end);
++  const rects = range.getClientRects();
++  return {text: str.slice(first, end), rect: rects[rects.length - 1]};
++}
++
+ /** Emit `<text>` for a text node, one per visual line, using the parent element's font. */
+ function emitText(textNode, parentCs, rootRect, out) {
+   if (!textNode.nodeValue || !textNode.nodeValue.trim()) return;
 diff --git a/src/components/download/helperFunctions.js b/src/components/download/helperFunctions.js
 index 1a30a620745d527c5dee9d01e3d698bbc297dbbd..fad5bebe4b3378c5d4f4519e7bfce524063fbaa1 100644
 --- a/src/components/download/helperFunctions.js
