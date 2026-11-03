@@ -11,9 +11,14 @@ import {
   useDismiss,
   useRole,
   FloatingPortal,
-  autoPlacement,
+  autoUpdate,
+  flip,
+  offset,
   shift,
+  size as fitToAvailableSize,
 } from '@floating-ui/react'
+import type { MiddlewareState } from '@floating-ui/react'
+import { VIEWPORT_PADDING } from 'src/helpers/viewport'
 
 export interface InfoButtonProps extends Omit<ButtonProps, 'size'> {
   size?: number
@@ -27,7 +32,14 @@ export function InfoButton({ size = 20, children, ...restProps }: PropsWithChild
   const { refs, context, floatingStyles } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
-    middleware: [shift({ padding: 5 }), autoPlacement()],
+    placement: 'bottom',
+    whileElementsMounted: autoUpdate,
+    middleware: [
+      offset(4),
+      flip({ padding: VIEWPORT_PADDING }),
+      shift({ padding: VIEWPORT_PADDING }),
+      fitToAvailableSize({ padding: VIEWPORT_PADDING, apply: applyAvailableSize }),
+    ],
   })
   const dismiss = useDismiss(context)
   const focus = useFocus(context)
@@ -67,6 +79,17 @@ export function InfoButton({ size = 20, children, ...restProps }: PropsWithChild
   )
 }
 
+/** Expose the space left between the popup and the viewport edges, so that the card shrinks to fit into it */
+function applyAvailableSize({ availableWidth, availableHeight, elements }: MiddlewareState & AvailableSize) {
+  elements.floating.style.setProperty('--available-width', `${availableWidth}px`)
+  elements.floating.style.setProperty('--available-height', `${availableHeight}px`)
+}
+
+interface AvailableSize {
+  availableWidth: number
+  availableHeight: number
+}
+
 const Floating = styled.div`
   z-index: 1005;
 `
@@ -77,8 +100,8 @@ const Card = styled.div`
   border-radius: 5px;
   height: 100%;
   background-color: ${(props) => props.theme.bodyBg};
-  max-height: 80vh;
-  max-width: 80vw;
+  max-height: min(80vh, var(--available-height, 80vh));
+  max-width: var(--available-width, 80vw);
   width: 500px;
 `
 
