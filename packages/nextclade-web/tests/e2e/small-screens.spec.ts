@@ -4,11 +4,15 @@ const LAPTOP_SHORT = { width: 1280, height: 560 }
 const TABLET_PORTRAIT = { width: 820, height: 1180 }
 const PHONE = { width: 390, height: 844 }
 const PHONE_NARROW = { width: 360, height: 740 }
+const PHONE_SMALL = { width: 320, height: 568 }
 
 /** Height of the navigation bar, which has room for one row of items */
 const NAVBAR_HEIGHT_PX = 45
 
 const BREADCRUMBS = ['Start', 'Dataset', 'Results', 'Tree', 'Export']
+
+/** Release date of a dataset version, as shown in the dataset version selector */
+const RELEASE_DATE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \(UTC\)$/
 
 test.describe('Start page on small screens', () => {
   for (const { name, viewport, isMobile } of [
@@ -76,6 +80,45 @@ test.describe('Navigation bar on a narrow phone', () => {
     expect(placements).toEqual(expected)
     await expect(navigation.getByRole('link', { name: 'EN' })).toBeInViewport({ ratio: 1 })
   })
+})
+
+test.describe('Popovers and menus of the start page on phones', () => {
+  for (const { name, viewport } of [
+    { name: 'phone', viewport: PHONE },
+    { name: 'small phone', viewport: PHONE_SMALL },
+  ]) {
+    test.describe(name, () => {
+      test.use({ viewport, isMobile: true, hasTouch: true })
+
+      for (const toggle of ['Example', 'EN', 'Menu']) {
+        test(`shows the whole "${toggle}" menu on the screen`, async ({ page }) => {
+          await page.goto('/')
+          await page.getByRole('link', { name: toggle, exact: true }).click()
+          await expect(page.getByRole('menu')).toBeInViewport({ ratio: 1 })
+        })
+      }
+
+      for (const [index, section] of ['Select reference dataset', 'Single dataset', 'Multiple datasets'].entries()) {
+        test(`shows the whole help popup of "${section}" on the screen`, async ({ page }) => {
+          await page.goto('/')
+          await page.getByRole('button', { name: 'Click to get help information' }).nth(index).click()
+          await expect(page.getByRole('dialog')).toBeInViewport({ ratio: 1 })
+        })
+      }
+
+      test('shows the whole dataset version menu with full release dates on the screen', async ({ page }) => {
+        await page.goto('/?dataset-name=rsv_a')
+        await page.getByText(RELEASE_DATE).first().click()
+
+        const menu = page.getByRole('listbox')
+        await expect(menu).toBeInViewport({ ratio: 1 })
+        const truncatedDates = await menu
+          .getByText(RELEASE_DATE)
+          .evaluateAll((dates) => dates.filter((date) => date.scrollWidth > date.clientWidth).map((date) => date.textContent))
+        expect(truncatedDates).toEqual([])
+      })
+    })
+  }
 })
 
 /** Scroll with the mouse wheel over the given element, as a user would to see more of the page */
