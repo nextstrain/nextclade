@@ -2,7 +2,9 @@ import React, { useCallback, useMemo } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import styled from 'styled-components'
 import Select from 'react-select'
-import type { ActionMeta, OnChangeValue } from 'react-select'
+import type { ActionMeta, CSSObjectWithLabel, OnChangeValue } from 'react-select'
+import { selectMenuInViewport, selectMenuPortalInViewport } from 'src/components/Common/selectMenuInViewport'
+import type { PortalStyleArgs } from 'src/components/Common/selectMenuInViewport'
 import { allDatasetsAtom, datasetSingleCurrentAtom } from 'src/state/dataset.state'
 import { formatUpdatedAt } from 'src/components/Main/datasetInfoHelpers'
 import { DatasetTagBadge } from 'src/components/Main/DatasetTagBadge'
@@ -151,8 +153,8 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
         padding: '0 2px',
         cursor: 'pointer',
       }),
-      menu: (base: Record<string, unknown>) => ({
-        ...base,
+      menu: (base: CSSObjectWithLabel) => ({
+        ...selectMenuInViewport(base),
         fontSize: '0.9rem',
         maxHeight: '300px',
       }),
@@ -173,8 +175,8 @@ export function DatasetTagSelector({ dataset, children }: DatasetTagSelectorProp
           backgroundColor: state.isSelected ? '#007bff' : '#dee2e6',
         },
       }),
-      menuPortal: (base: Record<string, unknown>) => ({
-        ...base,
+      menuPortal: (base: CSSObjectWithLabel, props: PortalStyleArgs) => ({
+        ...selectMenuPortalInViewport(base, props),
         zIndex: 9999,
       }),
     }),
