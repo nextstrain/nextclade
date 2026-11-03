@@ -10,7 +10,7 @@ Colorings with a dataset scale and `clade_membership` keep their colors across r
 
 ## Code
 
-- Auspice sorts the values of a coloring without a scale in `sortedDomain` (`src/util/sortedDomain.js` of Auspice 3.1.0), with the counts of `getDiscreteValuesFromTree` over all nodes (`src/util/colorScale.ts`)
+- Auspice sorts the values of a coloring without a scale in `sortedDomain` (`src/util/sortedDomain.js` of Auspice 3.2.0), with the counts of `getDiscreteValuesFromTree` over all nodes (`src/util/colorScale.ts`)
 - Nextclade adds the placed sequences to the tree before Auspice computes the colors (`packages/nextclade/src/tree/tree_attach_new_nodes.rs`)
 
 ## Fix options

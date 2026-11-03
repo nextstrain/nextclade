@@ -12,7 +12,7 @@ The tree page and the circles before clade-like values in the results table show
 
 ## Code
 
-- Auspice picks the palette in `createDiscreteScale` and uses its largest palette for more values (`src/util/colorScale.ts` of Auspice 3.1.0)
+- Auspice picks the palette in `createDiscreteScale` and uses its largest palette for more values (`src/util/colorScale.ts` of Auspice 3.2.0)
 
 ## Fix options
 
