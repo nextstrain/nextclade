@@ -310,9 +310,15 @@ async function segmentSequencesWithSharedNames(request: APIRequestContext): Prom
   const segments = await Promise.all(
     ['nextstrain/flu/h3n2/ha/EPI1857216', 'nextstrain/flu/h3n2/na/EPI1857215'].map(async (path) => {
       const dataset = datasets.find((dataset) => dataset.path === path)
-      const tag = dataset?.versions.map((version) => version.tag).sort().at(-1)
+      const tag = dataset?.versions
+        .map((version) => version.tag)
+        .sort()
+        .at(-1)
       const fasta = await (await request.get(`${server}/${path}/${tag}/${dataset?.files.examples}`)).text()
-      return fasta.split('>').slice(1, 3).map((record) => record.slice(record.indexOf('\n') + 1))
+      return fasta
+        .split('>')
+        .slice(1, 3)
+        .map((record) => record.slice(record.indexOf('\n') + 1))
     }),
   )
   return segments
