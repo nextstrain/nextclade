@@ -1,5 +1,4 @@
 import { isNil } from 'lodash'
-import type { Subscription } from 'observable-fns'
 import { useCallback } from 'react'
 import { useRecoilCallback } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
@@ -18,10 +17,9 @@ import {
 } from 'src/state/autodetect.state'
 import { datasetServerUrlAtom, minimizerIndexVersionAtom, viewedDatasetNameAtom } from 'src/state/dataset.state'
 import { qrySeqInputsStorageAtom } from 'src/state/inputs.state'
-import { DatasetsIndexJson, FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
+import type { FindBestDatasetsResult, MinimizerIndexJson, MinimizerSearchRecord } from 'src/types'
 import { getQueryFasta } from 'src/workers/launchAnalysis'
-import { NextcladeSeqAutodetectWasmWorker } from 'src/workers/nextcladeAutodetect.worker'
-import { spawn } from 'src/workers/spawn'
+import { runSeqAutodetect } from 'src/workers/runSeqAutodetect'
 
 export interface AutosuggestionParams {
   shouldSetCurrentDataset?: boolean
@@ -66,15 +64,13 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
           set(autodetectErrorAtom, error)
         }
 
-        function onComplete() {
-          set(autodetectRunStateAtom, AutodetectRunState.Done)
-          reset(autodetectErrorAtom)
-          set(autodetectShouldSetCurrentDatasetAtom, params?.shouldSetCurrentDataset ?? false)
-        }
-
-        function onBestResults(results: FindBestDatasetsResult) {
+        // Commit the outcome of the run as one state change, because components read a finished run with no
+        // suggestions as "no matching datasets"
+        function onSuccess(results: FindBestDatasetsResult) {
           set(allDatasetSuggestionResultsAtom, results)
           set(viewedDatasetNameAtom, results.suggestions[0]?.name)
+          set(autodetectShouldSetCurrentDatasetAtom, params?.shouldSetCurrentDataset ?? false)
+          set(autodetectRunStateAtom, AutodetectRunState.Done)
         }
 
         set(autodetectRunStateAtom, AutodetectRunState.Started)
@@ -90,12 +86,9 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
 
             const index = await fetchDatasetsIndex(datasetServerUrl)
 
-            return runAutodetect(fasta, index, minimizerIndex, {
-              onResult,
-              onError,
-              onComplete,
-              onBestResults,
-            })
+            const results = await runSeqAutodetect(fasta, index, minimizerIndex, onResult)
+            onSuccess(results)
+            return results
           })
           .catch((error: unknown) => {
             onError(sanitizeError(error))
@@ -107,62 +100,4 @@ export function useRunSeqAutodetectAsync(params?: AutosuggestionParams) {
       },
     [params?.shouldSetCurrentDataset],
   )
-}
-
-interface Callbacks {
-  onResult: (r: MinimizerSearchRecord[]) => void
-  onError?: (error: Error) => void
-  onComplete?: () => void
-  onBestResults?: (result: FindBestDatasetsResult) => void
-}
-
-async function runAutodetect(
-  fasta: string,
-  index: DatasetsIndexJson,
-  minimizerIndex: MinimizerIndexJson,
-  callbacks: Callbacks,
-): Promise<FindBestDatasetsResult> {
-  const worker = await SeqAutodetectWasmWorker.create(index, minimizerIndex)
-  const bestResults = await worker.autodetect(fasta, callbacks)
-  await worker.destroy()
-  return bestResults
-}
-
-export class SeqAutodetectWasmWorker {
-  private thread!: NextcladeSeqAutodetectWasmWorker
-  private subscription?: Subscription<MinimizerSearchRecord[]>
-
-  private constructor() {}
-
-  static async create(index: DatasetsIndexJson, minimizerIndex: MinimizerIndexJson) {
-    const self = new SeqAutodetectWasmWorker()
-    await self.init(index, minimizerIndex)
-    return self
-  }
-
-  async init(index: DatasetsIndexJson, minimizerIndex: MinimizerIndexJson) {
-    this.thread = await spawn<NextcladeSeqAutodetectWasmWorker>(
-      new Worker(new URL('src/workers/nextcladeAutodetect.worker.ts', import.meta.url), {
-        name: 'src/workers/nextcladeAutodetect.worker.ts',
-      }),
-    )
-
-    await this.thread.create(index, minimizerIndex)
-  }
-
-  async autodetect(
-    fastaStr: string,
-    { onResult, onError, onComplete, onBestResults }: Callbacks,
-  ): Promise<FindBestDatasetsResult> {
-    this.subscription = this.thread.values().subscribe(onResult, onError, onComplete)
-    await this.thread.autodetect(fastaStr)
-    const result = await this.thread.findBestDatasets()
-    onBestResults?.(result)
-    return result
-  }
-
-  async destroy() {
-    this.subscription?.unsubscribe()
-    await this.thread.destroy()
-  }
 }

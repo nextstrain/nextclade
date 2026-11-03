@@ -3,7 +3,8 @@
  *
  * A fake thread is a plain object with the methods of the worker module. Like a real thread it answers
  * `Thread.terminate()` (a call of the method under the symbol `thread.terminate`), and calls sent after termination
- * never settle, as calls to a terminated thread of `threads` do.
+ * never settle, as calls to a terminated thread of `threads` do. A method that returns an observable stands for a
+ * method of the worker module that returns an observable, which a real thread lets the caller subscribe to.
  */
 
 /** Stand-in for the browser `Worker` constructor */
@@ -31,7 +32,7 @@ export interface FakeThreadState {
  *
  * The returned thread terminates like a real one, and calls after termination never settle.
  */
-export function createFakeThread<Methods extends Record<string, (...args: never[]) => Promise<unknown>>>(
+export function createFakeThread<Methods extends Record<string, (...args: never[]) => unknown>>(
   methods: Methods,
 ): { thread: Methods; state: FakeThreadState } {
   const state: FakeThreadState = { isTerminated: false, numCallsAfterTermination: 0, calls: [] }
@@ -50,7 +51,7 @@ export function createFakeThread<Methods extends Record<string, (...args: never[
       if (typeof key !== 'string' || typeof method !== 'function') {
         return method
       }
-      return async (...args: unknown[]) => {
+      return (...args: unknown[]) => {
         state.calls.push(key)
         if (state.isTerminated) {
           state.numCallsAfterTermination += 1
