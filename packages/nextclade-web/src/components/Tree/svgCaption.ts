@@ -1,5 +1,7 @@
 import { escape } from 'lodash'
+import type { AuspiceDistanceMeasure } from 'auspice'
 import type { Publication } from 'auspice/src/components/download/downloadModal'
+import { datasetSummary, type DatasetSummaryParams } from 'auspice/src/components/info/datasetSummary'
 
 export interface SvgCaptionParams {
   /** Title of the reference tree */
@@ -67,6 +69,19 @@ export function svgCaption({
         `<a href="${escape(pub.href)}">${escape(`${pub.author}, ${pub.title}, ${pub.journal} (${pub.year})`)}</a>`,
     ),
   ]
+}
+
+/**
+ * Return the sentence that tells how many of the tree's tips are shown, with the dates between which the shown tips were
+ * sampled when the tree offers a time axis
+ */
+export function treeSummary({ availableDistanceMeasures, ...params }: TreeSummaryParams): string {
+  return datasetSummary({ ...params, temporalTree: availableDistanceMeasures.includes('num_date') })
+}
+
+export interface TreeSummaryParams extends Omit<DatasetSummaryParams, 'temporalTree'> {
+  /** Branch length measures that the tree offers; `num_date` when every node has a date */
+  availableDistanceMeasures: AuspiceDistanceMeasure[]
 }
 
 function datasetName(path: string, tag: string | undefined): string {

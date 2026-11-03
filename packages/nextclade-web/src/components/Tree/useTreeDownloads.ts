@@ -6,11 +6,10 @@ import { useRecoilValue } from 'recoil'
 import { errorNotification } from 'auspice/src/actions/notifications'
 import { publications } from 'auspice/src/components/download/downloadModal'
 import { SVG } from 'auspice/src/components/download/helperFunctions'
-import { datasetSummary } from 'auspice/src/components/info/datasetSummary'
 import { getMapTilesSettings } from 'auspice/src/util/globals'
 import { datasetsForAnalysisAtom } from 'src/state/dataset.state'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import { svgCaption } from 'src/components/Tree/svgCaption'
+import { svgCaption, treeSummary } from 'src/components/Tree/svgCaption'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { DEFAULT_EXPORT_PARAMS, useExportTree, useExportTreeNwk } from 'src/hooks/useExportResults'
 
@@ -102,9 +101,7 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
   const visibility = useSelector((state: AuspiceState) => state.tree?.visibility)
   const panelsToDisplay = useSelector((state: AuspiceState) => state.controls?.panelsToDisplay)
   const panelLayout = useSelector((state: AuspiceState) => state.controls?.panelLayout)
-  const temporalTree = useSelector(
-    (state: AuspiceState) => state.controls?.availableDistanceMeasures?.includes('num_date') ?? false,
-  )
+  const availableDistanceMeasures = useSelector((state: AuspiceState) => state.controls?.availableDistanceMeasures)
   const secondTreeName = useSelector((state: AuspiceState) => state.controls?.showTreeToo)
   const datasets = useRecoilValue(datasetsForAnalysisAtom)
 
@@ -128,6 +125,7 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
   }, [colorBy])
 
   return useCallback(() => {
+    const temporalTree = availableDistanceMeasures?.includes('num_date') ?? false
     const caption = svgCaption({
       title: metadata?.title,
       updated: metadata?.updated,
@@ -139,11 +137,11 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
       nextcladeVersion: PACKAGE_VERSION,
       origin: window.location.origin,
       date: DateTime.now().toISODate() ?? '',
-      summary: datasetSummary({
+      summary: treeSummary({
         nodes: nodes ?? [],
         visibility: visibility ?? [],
         mainTreeNumTips: metadata?.mainTreeNumTips ?? 0,
-        temporalTree,
+        availableDistanceMeasures: availableDistanceMeasures ?? [],
         t,
       }),
       publications: relevantPublications,
@@ -165,6 +163,7 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
       dispatch(errorNotification({ message: t('The figure could not be saved'), details: message }))
     })
   }, [
+    availableDistanceMeasures,
     datasetPath,
     datasetTag,
     dispatch,
@@ -175,7 +174,6 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
     relevantPublications,
     secondDataset,
     t,
-    temporalTree,
     visibility,
   ])
 }
