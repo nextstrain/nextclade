@@ -1,5 +1,6 @@
-import type { AuspiceJsonV2, AuspiceState, AuspiceTreeNode } from 'auspice'
-import { applyFilter, updateVisibleTipsAndBranchThicknesses } from 'auspice/src/actions/tree'
+import i18next from 'i18next'
+import type { AuspiceDistanceMeasure, AuspiceJsonV2, AuspiceState, AuspiceTreeNode } from 'auspice'
+import { applyFilter, changeDistanceMeasure, updateVisibleTipsAndBranchThicknesses } from 'auspice/src/actions/tree'
 import { togglePanelDisplay } from 'auspice/src/actions/panelDisplay'
 import { CHANGE_PANEL_LAYOUT } from 'auspice/src/actions/types'
 import { strainSymbol } from 'auspice/src/util/globals'
@@ -13,6 +14,7 @@ import {
   showSequenceOnTree,
   type ShowOnTreeParams,
 } from 'src/state/auspice/auspice.actions'
+import { treeSummary } from 'src/components/Tree/svgCaption'
 import { hidePanels } from 'src/state/reducer'
 import { getTreeStore } from 'src/state/store'
 
@@ -37,20 +39,78 @@ describe('tree store', () => {
     vi.unstubAllGlobals()
   })
 
-  describe('time axis', () => {
-    test('shows a tree by divergence only when a placed sequence has no date', () => {
-      const { controls } = getTreeStore(makeTree({ refDates: true, newDates: false })).getState()
+  describe('branch length', () => {
+    // Expected measures: time only when every node has a date (`findAvailableDistanceMeasures()` of the patched
+    // Auspice), then divergence, then a mutation count for the genome and each CDS with a mutation on the tree, in
+    // the order of the genome map
+    // prettier-ignore
+    test.each<[string, MakeTreeParams, AuspiceDistanceMeasure[]]>([
+      ['every node dated',          { refDates: true, newDates: true },  ['num_date', 'div', 'mutationCount:nuc', 'mutationCount:S']],
+      ['placed sequences undated',  { refDates: true, newDates: false }, ['div', 'mutationCount:nuc', 'mutationCount:S']],
+      ['no node dated',             {},                                  ['div', 'mutationCount:nuc', 'mutationCount:S']],
+      ['a CDS without mutations',   { cds: ['S', 'E'] },                 ['div', 'mutationCount:nuc', 'mutationCount:S']],
+      ['no mutations at all',       { mutations: {} },                   ['div']],
+      ['only invalid mutations',    { mutations: { nuc: ['N5T', 'A6-'], S: ['X2N'] } }, ['div']],
+    ])('offers the branch lengths of a tree with %s', (_name, params, expected) => {
+      const { controls } = getTreeStore(makeTree(params)).getState()
 
-      expect([controls?.availableDistanceMeasures, controls?.distanceMeasure]).toStrictEqual([
-        ['div', 'mutationCount:nuc', 'mutationCount:S'],
-        'div',
-      ])
+      expect(controls?.availableDistanceMeasures).toStrictEqual(expected)
     })
 
-    test('offers the time axis when every node has a date', () => {
-      const { controls } = getTreeStore(makeTree({ refDates: true, newDates: true })).getState()
+    test('shows a tree without dates by divergence, without an error, when the dataset names no branch length', () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
-      expect(controls?.availableDistanceMeasures).toStrictEqual(['num_date', 'div', 'mutationCount:nuc', 'mutationCount:S'])
+      const { controls } = getTreeStore(makeTree()).getState()
+
+      const errors = consoleError.mock.calls
+      consoleError.mockRestore()
+      expect([controls?.distanceMeasure, errors]).toStrictEqual(['div', []])
+    })
+
+    test.each(SECOND_TREE_CASES)(
+      'shows both trees with an available branch length when the second tree has %s',
+      (_name, { main, measure, second, measuresOfBoth }) => {
+        const store = getTreeStore(makeTree(main))
+        store.dispatch(changeDistanceMeasure(measure))
+
+        store.dispatch(showSecondTree(makeTree(second), 'first', 'second'))
+
+        const { controls } = store.getState()
+        expect([controls?.distanceMeasure, controls?.availableDistanceMeasures]).toStrictEqual(['div', measuresOfBoth])
+      },
+    )
+
+    test.each(SECOND_TREE_CASES)(
+      'offers the branch lengths of the main tree again when the second tree with %s is removed',
+      (_name, { main, measure, second, measuresOfMain }) => {
+        const store = getTreeStore(makeTree(main))
+        store.dispatch(changeDistanceMeasure(measure))
+        store.dispatch(showSecondTree(makeTree(second), 'first', 'second'))
+
+        store.dispatch(hideSecondTree())
+
+        const { controls } = store.getState()
+        expect(controls?.availableDistanceMeasures).toStrictEqual(measuresOfMain)
+      },
+    )
+  })
+
+  describe('figure summary', () => {
+    test('tells the sampling dates of the shown tips of a dated tree', async () => {
+      const state = getTreeStore(makeTree({ refDates: true, newDates: true })).getState()
+
+      const summary = treeSummary(await summaryParams(state))
+
+      // The tree is filtered to its 2 placed sequences of 27 tips, both dated 2020.0, which Auspice writes as "Jan 2020"
+      expect(summary).toBe('Showing 2 of 27 genomes sampled between Jan 2020 and Jan 2020.')
+    })
+
+    test('tells only the number of shown tips of a tree whose placed sequences have no date', async () => {
+      const state = getTreeStore(makeTree({ refDates: true, newDates: false })).getState()
+
+      const summary = treeSummary(await summaryParams(state))
+
+      expect(summary).toBe('Showing 2 of 27 genomes.')
     })
   })
 
@@ -440,6 +500,30 @@ const ZOOM: ShowOnTreeParams = { addToSelection: false, zoom: true }
 /** "Show on tree" that selects the sequence alone and keeps the zoom */
 const NO_ZOOM: ShowOnTreeParams = { addToSelection: false, zoom: false }
 
+/** A tree shown by a branch length, then a second tree that lacks it */
+// prettier-ignore
+const SECOND_TREE_CASES: [string, SecondTreeCase][] = [
+  ['undated placed sequences', {
+    main: { refDates: true, newDates: true }, measure: 'num_date', second: { refDates: true, newDates: false },
+    measuresOfBoth: ['div', 'mutationCount:nuc', 'mutationCount:S'],
+    measuresOfMain: ['num_date', 'div', 'mutationCount:nuc', 'mutationCount:S'],
+  }],
+  ['another genome map', {
+    main: {}, measure: 'mutationCount:S', second: { cds: ['HA1'], mutations: { nuc: ['C7G'], HA1: ['D4E'] } },
+    measuresOfBoth: ['div', 'mutationCount:nuc'],
+    measuresOfMain: ['div', 'mutationCount:nuc', 'mutationCount:S'],
+  }],
+]
+
+interface SecondTreeCase {
+  main: MakeTreeParams
+  /** Branch length chosen on the main tree before the second tree is shown */
+  measure: AuspiceDistanceMeasure
+  second: MakeTreeParams
+  measuresOfBoth: AuspiceDistanceMeasure[]
+  measuresOfMain: AuspiceDistanceMeasure[]
+}
+
 /** Metadata that places the sequence `seqA` at coordinates */
 const COORDINATES_CSV = 'strain,latitude,longitude\nseqA,47.5,7.6\n'
 
@@ -450,6 +534,12 @@ interface MakeTreeParams {
   newDates?: boolean
   /** Names of further placed sequences, in clade Y */
   extraNewTips?: string[]
+  /** CDSs of the genome map */
+  cds?: string[]
+  /** Mutations on the branch of each placed sequence */
+  mutations?: Record<string, string[]>
+  /** Branch length that the dataset shows first; Auspice's default is the time axis */
+  distanceMeasure?: AuspiceDistanceMeasure
 }
 
 /**
@@ -457,7 +547,14 @@ interface MakeTreeParams {
  * sequence `seqB`. The sequences have a nucleotide mutation at position 5 and an amino acid mutation at position 2 of
  * the CDS `S`
  */
-function makeTree({ refDates = false, newDates = false, extraNewTips = [] }: MakeTreeParams = {}): AuspiceJsonV2 {
+function makeTree({
+  refDates = false,
+  newDates = false,
+  extraNewTips = [],
+  cds = ['S'],
+  mutations = { nuc: ['A5T'], S: ['K2N'] },
+  distanceMeasure,
+}: MakeTreeParams = {}): AuspiceJsonV2 {
   function tip(name: string, clade: string, nodeType: 'Reference' | 'New'): AuspiceTreeNode {
     const isNew = nodeType === 'New'
     const hasDate = isNew ? newDates : refDates
@@ -469,7 +566,7 @@ function makeTree({ refDates = false, newDates = false, extraNewTips = [] }: Mak
         'Node type': { value: nodeType },
         'num_date': hasDate ? { value: 2020 } : undefined,
       },
-      branch_attrs: isNew ? { mutations: { nuc: ['A5T'], S: ['K2N'] } } : {},
+      branch_attrs: isNew ? { mutations } : {},
     }
   }
   function clade(name: string, label: string, tips: AuspiceTreeNode[]): AuspiceTreeNode {
@@ -497,12 +594,16 @@ function makeTree({ refDates = false, newDates = false, extraNewTips = [] }: Mak
         { key: 'clade_membership', title: 'Clade', type: 'categorical' },
         { key: 'Node type', title: 'Node type', type: 'categorical' },
       ],
-      display_defaults: { color_by: 'clade_membership', distance_measure: 'div', branch_label: 'clade' },
+      display_defaults: {
+        color_by: 'clade_membership',
+        branch_label: 'clade',
+        ...(distanceMeasure ? { distance_measure: distanceMeasure } : {}),
+      },
       filters: ['clade_membership', 'Node type'],
       panels: ['tree', 'entropy'],
       genome_annotations: {
         nuc: { start: 1, end: 30, strand: '+', type: 'source' },
-        S: { start: 1, end: 30, strand: '+', type: 'CDS' },
+        ...Object.fromEntries(cds.map((name) => [name, { start: 1, end: 30, strand: '+', type: 'CDS' }])),
       },
     },
     tree: {
@@ -522,6 +623,19 @@ function makeTree({ refDates = false, newDates = false, extraNewTips = [] }: Mak
         ]),
       ],
     },
+  }
+}
+
+/** Parameters of the figure summary of the tree of the given state, with a translation function that has no texts */
+async function summaryParams(state: AuspiceState) {
+  const i18n = i18next.createInstance()
+  await i18n.init({ lng: 'en', resources: {} })
+  return {
+    nodes: state.tree?.nodes ?? [],
+    visibility: state.tree?.visibility ?? [],
+    mainTreeNumTips: state.metadata?.mainTreeNumTips ?? 0,
+    availableDistanceMeasures: state.controls?.availableDistanceMeasures ?? [],
+    t: i18n.t.bind(i18n),
   }
 }
 
