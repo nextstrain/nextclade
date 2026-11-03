@@ -40,7 +40,14 @@ const Warning = styled(Alert)`
   font-size: 0.9rem;
   text-align: center;
   margin: 0;
-  padding: 5px 3px;
+  padding: 5px 2.75rem; /* symmetric, so the text stays centered and clear of the close button */
   border-radius: 0;
   z-index: 1010;
+
+  &.alert-dismissible > .close {
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 0.75rem;
+  }
 `
