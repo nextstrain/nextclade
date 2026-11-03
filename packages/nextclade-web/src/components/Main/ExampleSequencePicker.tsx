@@ -4,7 +4,6 @@ import React, { useCallback, useMemo, useState } from 'react'
 import {
   Dropdown as DropdownBase,
   DropdownToggle as DropdownToggleBase,
-  DropdownMenu as DropdownMenuBase,
   DropdownItem as DropdownItemBase,
   DropdownProps,
 } from 'reactstrap'
@@ -12,6 +11,7 @@ import { useSetExampleSequences } from 'src/components/Main/ButtonLoadExample'
 import { attrStrMaybe } from 'src/types'
 import styled from 'styled-components'
 import { useRecoilValue } from 'recoil'
+import { DropdownMenuInViewport } from 'src/components/Common/DropdownMenuInViewport'
 import { SearchBox } from 'src/components/Common/SearchBox'
 import { search } from 'src/helpers/search'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -87,7 +87,7 @@ const DropdownToggle = styled(DropdownToggleBase)`
   margin: 0;
 `
 
-const DropdownMenu = styled(DropdownMenuBase)`
+const DropdownMenu = styled(DropdownMenuInViewport)`
   position: absolute !important;
   background-color: ${(props) => props.theme.bodyBg};
   box-shadow: 1px 1px 20px 0 #0005;
@@ -100,6 +100,8 @@ const DropdownMenu = styled(DropdownMenuBase)`
 const DropdownItem = styled(DropdownItemBase)`
   width: 100% !important;
   padding: 0 !important;
+  white-space: normal;
+  overflow-wrap: anywhere;
 `
 
 const SearchBoxWrapper = styled.div`
@@ -108,6 +110,6 @@ const SearchBoxWrapper = styled.div`
 `
 
 const DropdownMenuListWrapper = styled.div`
-  max-height: 50vh;
+  max-height: 40vh;
   overflow-y: auto;
 `

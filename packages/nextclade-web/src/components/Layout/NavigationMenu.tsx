@@ -2,10 +2,10 @@ import React, { ReactNode, useCallback, useState } from 'react'
 import {
   Dropdown as DropdownBase,
   DropdownToggle as DropdownToggleBase,
-  DropdownMenu as DropdownMenuBase,
   DropdownProps,
 } from 'reactstrap'
 import styled from 'styled-components'
+import { DropdownMenuInViewport } from 'src/components/Common/DropdownMenuInViewport'
 import { MdOutlineMenu } from 'react-icons/md'
 
 export interface NavigationMenuProps extends DropdownProps {
@@ -19,11 +19,11 @@ export function NavigationMenu({ links, iconLinks, ...restProps }: NavigationMen
   const toggle = useCallback(() => setDropdownOpen((prevState) => !prevState), [])
 
   return (
-    <Dropdown inNavbar nav direction="left" isOpen={dropdownOpen} toggle={toggle} {...restProps}>
+    <Dropdown nav isOpen={dropdownOpen} toggle={toggle} {...restProps}>
       <DropdownToggle nav>
         <MdOutlineMenu size={30} />
       </DropdownToggle>
-      <DropdownMenu>
+      <DropdownMenu right>
         <DropdownMenuListWrapper>{links}</DropdownMenuListWrapper>
         {iconLinks && <IconLinksRow>{iconLinks}</IconLinksRow>}
       </DropdownMenu>
@@ -42,11 +42,7 @@ const DropdownToggle = styled(DropdownToggleBase)`
   margin: 0;
 `
 
-const DropdownMenu = styled(DropdownMenuBase)`
-  position: absolute !important;
-  right: 0 !important;
-  top: 20px !important;
-
+const DropdownMenu = styled(DropdownMenuInViewport)`
   background-color: ${(props) => props.theme.bodyBg};
   box-shadow: 1px 1px 20px 0 #0005;
   transition: opacity ease-out 0.25s;

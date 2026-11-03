@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from 'react'
 import {
   Dropdown as DropdownBase,
   DropdownToggle as DropdownToggleBase,
-  DropdownMenu as DropdownMenuBase,
   DropdownItem as DropdownItemBase,
   DropdownProps,
   UncontrolledAlert,
@@ -13,6 +12,7 @@ import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { search } from 'src/helpers/search'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
+import { DropdownMenuInViewport } from 'src/components/Common/DropdownMenuInViewport'
 import { localeAtom } from 'src/state/locale.state'
 import { getLocaleWithKey, Locale, localesArray } from 'src/i18n/i18n'
 
@@ -39,11 +39,11 @@ export function LanguageSwitcher({ ...restProps }: LanguageSwitcherProps) {
   }, [searchTerm])
 
   return (
-    <Dropdown inNavbar nav direction="left" isOpen={dropdownOpen} toggle={toggle} {...restProps}>
+    <Dropdown nav isOpen={dropdownOpen} toggle={toggle} {...restProps}>
       <DropdownToggle nav>
         <LabelShort locale={currentLocale} />
       </DropdownToggle>
-      <DropdownMenu>
+      <DropdownMenu right>
         <SearchBoxWrapper>
           <SearchBox searchTitle={t('Search languages')} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />
         </SearchBoxWrapper>
@@ -120,11 +120,7 @@ const DropdownToggle = styled(DropdownToggleBase)`
   margin: 0;
 `
 
-const DropdownMenu = styled(DropdownMenuBase)`
-  position: absolute !important;
-  right: 0 !important;
-  top: 20px !important;
-
+const DropdownMenu = styled(DropdownMenuInViewport)`
   background-color: ${(props) => props.theme.bodyBg};
   box-shadow: 1px 1px 20px 0 #0005;
   transition: opacity ease-out 0.25s;
