@@ -1,7 +1,7 @@
 declare module 'auspice/src/actions/tree' {
   import type { ThunkAction } from 'redux-thunk'
   import type { AnyAction } from 'redux'
-  import type { AuspiceState } from 'auspice'
+  import type { AuspiceDistanceMeasure, AuspiceState } from 'auspice'
 
   type AuspiceThunk = ThunkAction<void, AuspiceState, unknown, AnyAction>
 
@@ -22,4 +22,10 @@ declare module 'auspice/src/actions/tree' {
 
   /** Explode the tree by the given attribute, or rebuild the unexploded tree for `undefined` */
   export function explodeTree(attr: string | undefined): AuspiceThunk
+
+  /** Show the trees with the given branch length measure */
+  export function changeDistanceMeasure(metric: AuspiceDistanceMeasure): AuspiceThunk
+
+  /** Remove the second tree, and offer the branch length measures of the main tree again */
+  export function removeSecondTree(): AuspiceThunk
 }

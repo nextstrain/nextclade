@@ -11,6 +11,7 @@ declare module 'auspice/src/components/download/helperFunctions' {
     panelsInDOM: unknown,
     panelLayout: unknown,
     publications: Publication[],
+    temporalTree: boolean,
     caption?: string[],
   ): Promise<void>
 }

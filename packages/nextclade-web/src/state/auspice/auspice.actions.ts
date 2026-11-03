@@ -2,11 +2,16 @@ import copy from 'fast-copy'
 import type { AnyAction } from 'redux'
 import type { ThunkAction } from 'redux-thunk'
 import type { AuspiceJsonV2, AuspiceReduxNode, AuspiceState } from 'auspice'
-import { applyFilter, explodeTree, updateVisibleTipsAndBranchThicknesses } from 'auspice/src/actions/tree'
+import {
+  applyFilter,
+  explodeTree,
+  removeSecondTree,
+  updateVisibleTipsAndBranchThicknesses,
+} from 'auspice/src/actions/tree'
 import { changeColorBy } from 'auspice/src/actions/colors'
 import { toggleStreamTree } from 'auspice/src/actions/treeStreams'
 import { createTreeTooState } from 'auspice/src/actions/recomputeReduxState'
-import { REMOVE_TREE_TOO, TREE_TOO_DATA } from 'auspice/src/actions/types'
+import { TREE_TOO_DATA } from 'auspice/src/actions/types'
 import { getCdsByName } from 'auspice/src/util/entropy'
 import { encodeColorByGenotype } from 'auspice/src/util/getGenotype'
 import { genotypeSymbol, NODE_VISIBLE, nucleotide_gene, strainSymbol } from 'auspice/src/util/globals'
@@ -172,7 +177,7 @@ export function showSecondTree(secondTree: AuspiceJsonV2, mainTreeName: string, 
 export function hideSecondTree(): AuspiceThunk {
   return (dispatch, getState) => {
     if (getState().controls?.showTreeToo) {
-      dispatch({ type: REMOVE_TREE_TOO })
+      dispatch(removeSecondTree())
     }
   }
 }

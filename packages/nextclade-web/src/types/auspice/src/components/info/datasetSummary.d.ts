@@ -5,7 +5,8 @@ declare module 'auspice/src/components/info/datasetSummary' {
     nodes: AuspiceTreeNode[]
     visibility: number[]
     mainTreeNumTips: number
-    branchLengthsToDisplay?: string
+    /** Whether the tree offers a time axis, which adds the date range of the shown tips */
+    temporalTree: boolean
     t: unknown
   }
 

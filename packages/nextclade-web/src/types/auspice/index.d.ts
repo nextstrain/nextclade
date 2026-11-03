@@ -1,6 +1,9 @@
 declare module 'auspice' {
   export declare type AuspiceQuery = Record<string, unknown>
 
+  /** Branch length measure: divergence, date, or the cumulative count of the mutations of a genome or CDS */
+  export type AuspiceDistanceMeasure = 'div' | 'num_date' | `mutationCount:${string}`
+
   export interface AuspiceTreeState {
     name?: string | boolean
     loaded?: boolean
@@ -61,7 +64,7 @@ declare module 'auspice' {
 
   export interface AuspiceControlsState {
     defaults?: {
-      distanceMeasure?: string
+      distanceMeasure?: AuspiceDistanceMeasure
       layout?: string
       geoResolution?: string
       filters?: Record<string, string[]>
@@ -81,7 +84,7 @@ declare module 'auspice' {
     mutType?: string
     temporalConfidence?: { exists?: boolean; display?: boolean; on?: boolean }
     layout?: string
-    distanceMeasure?: string
+    distanceMeasure?: AuspiceDistanceMeasure
     dateMin?: Date
     dateMinNumeric?: number
     dateMax?: string
@@ -122,7 +125,8 @@ declare module 'auspice' {
     explodeAttr?: string
     zoomMin?: any
     zoomMax?: any
-    branchLengthsToDisplay?: string
+    /** Branch length measures that the shown trees offer, e.g. `num_date` only when every node has a date */
+    availableDistanceMeasures?: AuspiceDistanceMeasure[]
     sidebarOpen?: boolean
     treeLegendOpen?: any
     mapLegendOpen?: any

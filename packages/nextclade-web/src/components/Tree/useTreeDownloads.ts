@@ -102,7 +102,9 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
   const visibility = useSelector((state: AuspiceState) => state.tree?.visibility)
   const panelsToDisplay = useSelector((state: AuspiceState) => state.controls?.panelsToDisplay)
   const panelLayout = useSelector((state: AuspiceState) => state.controls?.panelLayout)
-  const branchLengthsToDisplay = useSelector((state: AuspiceState) => state.controls?.branchLengthsToDisplay)
+  const temporalTree = useSelector(
+    (state: AuspiceState) => state.controls?.availableDistanceMeasures?.includes('num_date') ?? false,
+  )
   const secondTreeName = useSelector((state: AuspiceState) => state.controls?.showTreeToo)
   const datasets = useRecoilValue(datasetsForAnalysisAtom)
 
@@ -141,7 +143,7 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
         nodes: nodes ?? [],
         visibility: visibility ?? [],
         mainTreeNumTips: metadata?.mainTreeNumTips ?? 0,
-        branchLengthsToDisplay,
+        temporalTree,
         t,
       }),
       publications: relevantPublications,
@@ -156,13 +158,13 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
       panelsToDisplay,
       panelLayout,
       relevantPublications,
+      temporalTree,
       caption,
     ).catch((error: unknown) => {
       const { message } = sanitizeError(error)
       dispatch(errorNotification({ message: t('The figure could not be saved'), details: message }))
     })
   }, [
-    branchLengthsToDisplay,
     datasetPath,
     datasetTag,
     dispatch,
@@ -173,6 +175,7 @@ function useSaveSvg({ datasetPath, datasetTag }: UseTreeDownloadsParams) {
     relevantPublications,
     secondDataset,
     t,
+    temporalTree,
     visibility,
   ])
 }

@@ -65,46 +65,32 @@ index d11def6d1ac56959b562bd02356321eb2c55f27c..c382465d9ace0605b9fe9c488532d178
    /* invert map to link each strain to a dummy value with lat/longs */
    // TODO XXX what about the shape here?
 diff --git a/src/actions/recomputeReduxState.js b/src/actions/recomputeReduxState.js
-index 0c972ff1423bc036d1cb95e61a5c8f0919b74d51..ebe39c06fd72b4481e6b4fa94055f0ef40396afb 100644
+index afbdfed55b01b6282a6ebef645f16701e74e878d..ad26dcc36d0677f81fd017033c3c8f626a55490f 100644
 --- a/src/actions/recomputeReduxState.js
 +++ b/src/actions/recomputeReduxState.js
-@@ -440,6 +440,7 @@ const modifyControlsStateViaTree = (state, tree, treeToo, metadata) => {
+@@ -488,6 +488,10 @@ const modifyControlsStateViaTree = (state, tree, treeToo, metadata, genomeMap) =
+   if (state.availableDistanceMeasures.length === 0) {
+     throw Error("Dataset JSON(s) have no valid branch measures (e.g. div, num_date)")
    }
-   let [aaMuts, nucMuts] = [false, false];
-   let num_date_confidence = false; /* flag. Is confidence defined anywhere on the tree? */
-+  let allNodesHaveNumDate = true; /* flag. Can every node be placed on a time axis? */
-   const examineNodes = function examineNodes(nodes) {
-     nodes.forEach((node) => {
-       /* check colorBys */
-@@ -463,6 +464,10 @@ const modifyControlsStateViaTree = (state, tree, treeToo, metadata) => {
-       if (!num_date_confidence && getTraitFromNode(node, "num_date", {confidence: true})) {
-         num_date_confidence = true;
-       }
-+      /* check num_date: a node without a date has no position on a time axis */
-+      if (allNodesHaveNumDate && getTraitFromNode(node, "num_date") === undefined) {
-+        allNodesHaveNumDate = false;
-+      }
-     });
-   };
-   examineNodes(tree.nodes);
-@@ -472,11 +477,12 @@ const modifyControlsStateViaTree = (state, tree, treeToo, metadata) => {
-     state.coloringsPresentOnTree.add("gt");
-   }
++  /* a dataset without the current measure (e.g. without dates, or a second tree without them) shows its first available one */
++  if (!state.availableDistanceMeasures.includes(state.distanceMeasure)) {
++    state.distanceMeasure = state.availableDistanceMeasures[0];
++  }
  
--  /* does the tree have date information? if not, disable controls, modify view */
--  const numDateAtRoot = getTraitFromNode(tree.nodes[0], "num_date") !== undefined;
-+  /* does the tree have date information? if not, disable controls, modify view. A tree where only some nodes have
-+  dates (e.g. sequences placed onto a dated tree) is shown by divergence, because the undated nodes would have no
-+  position on the time axis */
-   const divAtRoot = getDivFromNode(tree.nodes[0]) !== undefined;
--  state.branchLengthsToDisplay = (numDateAtRoot && divAtRoot) ? "divAndDate" :
--    numDateAtRoot ? "dateOnly" :
-+  state.branchLengthsToDisplay = (allNodesHaveNumDate && divAtRoot) ? "divAndDate" :
-+    allNodesHaveNumDate ? "dateOnly" :
-       "divOnly";
  
-   /* if branchLengthsToDisplay is "divOnly", force to display by divergence
-@@ -1151,7 +1157,9 @@ function instantiateSecondTree(secondTreeDataset, metadata, genomeMap, secondTre
+   /* if clade is available as a branch label, then set this as the "default". This
+@@ -1154,7 +1158,9 @@ export const createTreeTooState = ({
+ 
+   treeToo = updateSecondTree(tree, treeToo, controls, dispatch);
+ 
+-  /* precompute the distance-metric value onto each node. See util/computeDistanceMetric.ts */
++  /* precompute the distance-metric value onto each node. See util/computeDistanceMetric.ts
++  The main tree too, as the second tree may have changed the measure */
++  setDistanceMetric(tree.nodes, controls.distanceMeasure, true);
+   setDistanceMetric(treeToo.nodes, controls.distanceMeasure, true);
+ 
+   return {tree, treeToo, controls, metadata};
+@@ -1170,7 +1176,9 @@ function instantiateSecondTree(secondTreeDataset, metadata, genomeMap, secondTre
    castIncorrectTypes(metadata, treeToo);
    treeToo.debug = "RIGHT";
    treeToo.name = secondTreeName;
@@ -115,7 +101,7 @@ index 0c972ff1423bc036d1cb95e61a5c8f0919b74d51..ebe39c06fd72b4481e6b4fa94055f0ef
  
    const secondTreeColorings = convertColoringsListToDict(secondTreeDataset.meta?.colorings || []);
    const stateCountAttrs = gatherTraitNames(treeToo.nodes, secondTreeColorings);
-@@ -1160,7 +1168,7 @@ function instantiateSecondTree(secondTreeDataset, metadata, genomeMap, secondTre
+@@ -1179,7 +1187,7 @@ function instantiateSecondTree(secondTreeDataset, metadata, genomeMap, secondTre
    /* TODO: calc & display num tips in 2nd tree */
    // metadata.secondTreeNumTips = calcTotalTipsInTree(treeToo.nodes);
  
@@ -124,6 +110,40 @@ index 0c972ff1423bc036d1cb95e61a5c8f0919b74d51..ebe39c06fd72b4481e6b4fa94055f0ef
  }
  
  /**
+diff --git a/src/actions/tree.ts b/src/actions/tree.ts
+index e8a6bbab6c88ba0e0c0b67cf46da82d35c20f2a7..8f409a9bef6d030d577ee0d9ab1483c34e94ad50 100644
+--- a/src/actions/tree.ts
++++ b/src/actions/tree.ts
+@@ -9,7 +9,7 @@ import { applyToChildren } from "../components/tree/phyloTree/helpers";
+ import { constructVisibleTipLookupBetweenTrees } from "../util/treeTangleHelpers";
+ import { createVisibleLegendValues, getLegendOrder } from "../util/colorScale";
+ import { getTraitFromNode } from "../util/treeMiscHelpers";
+-import { setDistanceMetric } from "../util/computeDistanceMetric";
++import { setDistanceMetric, findAvailableDistanceMeasures } from "../util/computeDistanceMetric";
+ import { warningNotification } from "./notifications";
+ import { calcFullTipCounts, calcTipCounts } from "../util/treeCountingHelpers";
+ import { PhyloNode, Distance } from "../components/tree/phyloTree/types";
+@@ -509,6 +509,20 @@ export const explodeTree = (
+ 
+ 
+ 
++/**
++ * Remove the second tree. The branch length measures of the main tree alone are offered again, as the second tree
++ * restricted them to the measures that both trees have.
++ */
++export function removeSecondTree(): ThunkFunction {
++  return function(dispatch, getState) {
++    const { tree, entropy } = getState();
++    dispatch({
++      type: types.REMOVE_TREE_TOO,
++      availableDistanceMeasures: findAvailableDistanceMeasures(tree.nodes, entropy.genomeMap),
++    });
++  };
++}
++
+ export function changeDistanceMeasure(metric: Distance): ThunkFunction {
+   return function(dispatch, getState) {
+     const {controls, tree, treeToo} = getState();
 diff --git a/src/actions/updateMetadata/updateMetadata.ts b/src/actions/updateMetadata/updateMetadata.ts
 index 2a7b13070bf910d100ba3195972736ee3d2a4310..700119b50c9f9e0696250c49b0bdb7d0c5139b80 100644
 --- a/src/actions/updateMetadata/updateMetadata.ts
@@ -178,7 +198,7 @@ index ab53f83d52bf3b11208bdfd85aeb6d8b67912119..21b156765dccb1f8c566e107fabc5444
              options={selectOptions}
              isClearable={false}
 diff --git a/src/components/controls/choose-layout.js b/src/components/controls/choose-layout.js
-index abdf85bf6f8ff256def86374262470df7b92d6de..993c9d6dc6c4724f324f41e1dff06640e97c4bda 100644
+index 13a05dec85a5298e2b4a2cf2c977bd4ca56e9536..90b5e4ec7e2c54f3591c61d6b0fede6c09f3525a 100644
 --- a/src/components/controls/choose-layout.js
 +++ b/src/components/controls/choose-layout.js
 @@ -81,6 +81,7 @@ class ChooseLayout extends React.Component {
@@ -197,11 +217,54 @@ index abdf85bf6f8ff256def86374262470df7b92d6de..993c9d6dc6c4724f324f41e1dff06640
                value={options.filter(({value}) => value === selectedY.value)}
                onChange={(value) => this.props.dispatch(changeLayout({y: value.value, yLabel: value.label}))}
              />
+diff --git a/src/components/controls/choose-metric.tsx b/src/components/controls/choose-metric.tsx
+index d304a10ce242df64e98785873786bb8ca8937e17..0c380067656722eeb241c824aef93c971672e519 100644
+--- a/src/components/controls/choose-metric.tsx
++++ b/src/components/controls/choose-metric.tsx
+@@ -63,6 +63,8 @@ class ChooseMetric extends React.Component<ChooseMetricProps> {
+ 
+   override render(): JSX.Element | null {
+     const { t } = this.props;
++    /* a single measure leaves nothing to choose */
++    if (this.props.availableDistanceMeasures.length < 2) return null;
+     if (this.props.layout==="scatter" || this.props.layout==="clock") return null;
+ 
+     const options = this.options();
+@@ -79,6 +81,7 @@ class ChooseMetric extends React.Component<ChooseMetricProps> {
+ 
+         <div style={{width: controlsWidth, fontSize: 14, marginBottom: 8}}>
+           <CustomSelect
++            aria-label={t("sidebar:Branch Length")}
+             value={selected}
+             options={options}
+             isClearable={false}
+diff --git a/src/components/controls/choose-second-tree.js b/src/components/controls/choose-second-tree.js
+index c2df098873bcf1b109cb6b6aa9c2e02939396e15..4d257bf5b4607988626b8e9623570f84ce22adde 100644
+--- a/src/components/controls/choose-second-tree.js
++++ b/src/components/controls/choose-second-tree.js
+@@ -3,7 +3,7 @@ import { connect } from "react-redux";
+ import { withTranslation } from 'react-i18next';
+ 
+ import { loadSecondTree } from "../../actions/loadData";
+-import { REMOVE_TREE_TOO } from "../../actions/types";
++import { removeSecondTree } from "../../actions/tree";
+ import { controlsWidth } from "../../util/globals";
+ import { SidebarSubtitle } from "./styles";
+ import CustomSelect from "./customSelect";
+@@ -60,7 +60,7 @@ class ChooseSecondTree extends React.Component {
+             isMulti={false}
+             onChange={(opt) => {
+               if (opt.value === "REMOVE") {
+-                this.props.dispatch({type: REMOVE_TREE_TOO});
++                this.props.dispatch(removeSecondTree());
+               } else {
+                 this.props.dispatch(loadSecondTree(opt.value, displayedDataset));
+               }
 diff --git a/src/components/controls/choose-stream-trees.tsx b/src/components/controls/choose-stream-trees.tsx
-index ae2341db0f4b58db5ebdd5504c92f5a722df81de..a1359389c57f723194a2640df89977c380f077a4 100644
+index 9e4a885a1698c200c4cc6f450cc3ab674f3f1b98..cb47e50352cae525ebb0067a9fceb3c7a510bf32 100644
 --- a/src/components/controls/choose-stream-trees.tsx
 +++ b/src/components/controls/choose-stream-trees.tsx
-@@ -60,6 +60,7 @@ export const ChooseStreamTrees = (): JSX.Element => {
+@@ -63,6 +63,7 @@ export const ChooseStreamTrees = (): JSX.Element => {
            </SidebarSubtitleFlex>
            <div style={{width: controlsWidth, fontSize: 14}}>
              <CustomSelect
@@ -357,10 +420,10 @@ index a73fe7bf478e18e97a194de0243718e9d2cb53bf..a969f919f0f2ecbfa74727f33351733d
          {label === "" ? null : (
            <ToggleSubtitle>
 diff --git a/src/components/download/helperFunctions.js b/src/components/download/helperFunctions.js
-index 0e8ca5bd1ec93309b3f1a2706dd3b101955b2fb0..5f72b6e615508861aeccb5d55041b47b1d6b718a 100644
+index 1a30a620745d527c5dee9d01e3d698bbc297dbbd..fad5bebe4b3378c5d4f4519e7bfce524063fbaa1 100644
 --- a/src/components/download/helperFunctions.js
 +++ b/src/components/download/helperFunctions.js
-@@ -12,6 +12,8 @@ import { createDatasetJson } from "../../util/constructDatasetJson";
+@@ -13,6 +13,8 @@ import { DISTANCE } from "../../util/computeDistanceMetric";
  import { dataFont } from "../../globalStyles";
  import { htmlToSvg } from "./domToSvg";
  import { latoFontDefs } from "./embedFont";
@@ -369,7 +432,7 @@ index 0e8ca5bd1ec93309b3f1a2706dd3b101955b2fb0..5f72b6e615508861aeccb5d55041b47b
  
  export const isPaperURLValid = (d) => {
    return (
-@@ -464,6 +466,61 @@ const svgElementToPanel = (el) => {
+@@ -466,6 +468,61 @@ const svgElementToPanel = (el) => {
    return {x: 0, y: 0, width, height, inner};
  };
  
@@ -431,7 +494,7 @@ index 0e8ca5bd1ec93309b3f1a2706dd3b101955b2fb0..5f72b6e615508861aeccb5d55041b47b
  /* take the panels (see svgElementToPanel for struct) and calculate the overall size of the SVG
  as well as the offsets (x, y) to position panels appropriately within this */
  const createBoundingDimensionsAndPositionPanels = (panels, panelLayout, numLinesOfText) => {
-@@ -572,8 +629,14 @@ const injectAsSVGStrings = (output, key, data) => {
+@@ -574,8 +631,14 @@ const injectAsSVGStrings = (output, key, data) => {
    beyond the panel — spills out. An explicit clipPath (plus overflow="hidden" as belt-and-braces)
    clips it everywhere. The key is unique per panel, so the clipPath id is too. */
    const clipId = `${key}Clip`;
@@ -448,7 +511,7 @@ index 0e8ca5bd1ec93309b3f1a2706dd3b101955b2fb0..5f72b6e615508861aeccb5d55041b47b
    output.push(`<g clip-path="url(#${clipId})">`);
    output.push(data.inner);
    output.push("</g>");
-@@ -651,7 +714,7 @@ const writeSVGPossiblyIncludingMap = (dispatch, filePrefix, panelsInDOM, panelLa
+@@ -653,7 +716,7 @@ const writeSVGPossiblyIncludingMap = (dispatch, filePrefix, panelsInDOM, panelLa
  
    if (panelsInDOM.indexOf("tree") !== -1) {
      try {
@@ -457,7 +520,7 @@ index 0e8ca5bd1ec93309b3f1a2706dd3b101955b2fb0..5f72b6e615508861aeccb5d55041b47b
      } catch (e) {
        panels.tree = undefined;
        errors.push("tree");
-@@ -663,7 +726,7 @@ const writeSVGPossiblyIncludingMap = (dispatch, filePrefix, panelsInDOM, panelLa
+@@ -665,7 +728,7 @@ const writeSVGPossiblyIncludingMap = (dispatch, filePrefix, panelsInDOM, panelLa
      }
      if (panels.tree && document.getElementById('SecondTree')) {
        try {
@@ -466,7 +529,7 @@ index 0e8ca5bd1ec93309b3f1a2706dd3b101955b2fb0..5f72b6e615508861aeccb5d55041b47b
          if (document.getElementById('Tangle')) {
            panels.tangle = svgElementToPanel(document.getElementById("Tangle"));
          }
-@@ -747,7 +810,8 @@ const writeSVGPossiblyIncludingMap = (dispatch, filePrefix, panelsInDOM, panelLa
+@@ -749,7 +812,8 @@ const writeSVGPossiblyIncludingMap = (dispatch, filePrefix, panelsInDOM, panelLa
    falls back to the renderer's defaults (commonly a serif face at a too-light weight). The base
    weight 400 matches `html, p, div { font-weight: 400 }` in global.css. Text that sets its own
    font-family / font-weight (legend, footer, via htmlToSvg) overrides these. */
@@ -476,14 +539,14 @@ index 0e8ca5bd1ec93309b3f1a2706dd3b101955b2fb0..5f72b6e615508861aeccb5d55041b47b
    if (fontDefs) output.push(fontDefs); /* embedded @font-face so viewers render Lato, not a fallback */
    for (const key in panels) {
      if (panels[key]) {
-@@ -786,8 +850,41 @@ const writeSVGPossiblyIncludingMap = (dispatch, filePrefix, panelsInDOM, panelLa
+@@ -788,8 +852,41 @@ const writeSVGPossiblyIncludingMap = (dispatch, filePrefix, panelsInDOM, panelLa
    }
  };
  
--export const SVG = async (dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications) => {
+-export const SVG = async (dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications, temporalTree) => {
 +/* An embedding app may give its own text lines (HTML) as `caption`, which replace the dataset, attribution, license and
 +publication lines written for nextstrain datasets */
-+export const SVG = async (dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications, caption = undefined) => {
++export const SVG = async (dispatch, t, metadata, nodes, visibility, filePrefix, panelsInDOM, panelLayout, publications, temporalTree, caption = undefined) => {
 +  /* The entropy panel computes its bars only while it is on screen, and shows "data loading" below
 +  the fold. Compute the bars for the export, and write after the panel has drawn them. */
 +  if (panelsInDOM.indexOf("entropy") !== -1 && dispatch(calcEntropyBarsIfMissing)) {
@@ -491,7 +554,7 @@ index 0e8ca5bd1ec93309b3f1a2706dd3b101955b2fb0..5f72b6e615508861aeccb5d55041b47b
 +  }
 +
    /* make the text strings */
-+  const textStrings = caption ? [...caption] : nextstrainCaption(t, metadata, nodes, visibility, publications);
++  const textStrings = caption ? [...caption] : nextstrainCaption(t, metadata, nodes, visibility, publications, temporalTree);
 +
 +  /* embed the Lato font so the SVG renders identically outside the app (async: fetches the
 +  already-cached font files & base64-encodes them) */
@@ -515,11 +578,11 @@ index 0e8ca5bd1ec93309b3f1a2706dd3b101955b2fb0..5f72b6e615508861aeccb5d55041b47b
 +};
 +
 +/* Text lines below the figure for a nextstrain dataset */
-+const nextstrainCaption = (t, metadata, nodes, visibility, publications) => {
++const nextstrainCaption = (t, metadata, nodes, visibility, publications, temporalTree) => {
    const textStrings = [];
    textStrings.push(metadata.title);
    textStrings.push(`Last updated ${metadata.updated}`);
-@@ -806,17 +903,7 @@ export const SVG = async (dispatch, t, metadata, nodes, visibility, filePrefix,
+@@ -809,17 +906,7 @@ export const SVG = async (dispatch, t, metadata, nodes, visibility, filePrefix,
    publications.forEach((pub) => {
      textStrings.push(`<a href="${pub.href}">${pub.author}, ${pub.title}, ${pub.journal} (${pub.year})</a>`);
    });
@@ -670,10 +733,10 @@ index 5ce39213472cdb6ad959c587d0d3cd607df0db10..8a3d3e06f074ad16224854ddc35ea011
          </clipPath>
          <g id="Items">
 diff --git a/src/components/map/map.js b/src/components/map/map.js
-index 0e85d44ae0212e6c531501d74031f48e219e0f8e..f3e3f958039f59dc8c38260c35e723fd8363f31d 100644
+index f208ea58caf180a045c4387a4d88846750b6b987..4c0bf3780e06f9e7b23d1438a107d1cbfefdcc0d 100644
 --- a/src/components/map/map.js
 +++ b/src/components/map/map.js
-@@ -107,39 +107,46 @@ class Map extends React.Component {
+@@ -106,39 +106,46 @@ class Map extends React.Component {
      if (!window.L) {
        leaflet(); /* this sets up window.L */
      }
@@ -750,7 +813,7 @@ index 0e85d44ae0212e6c531501d74031f48e219e0f8e..f3e3f958039f59dc8c38260c35e723fd
      this.maybeChangeSize(this.props);
      const removed = this.maybeRemoveAllDemesAndTransmissions(this.props); /* geographic resolution just changed (ie., country to division), remove everything. this change is upstream of maybeDraw */
      // TODO: if demes are color blended circles, updating rather than redrawing demes would do
-@@ -551,7 +558,10 @@ class Map extends React.Component {
+@@ -550,7 +557,10 @@ class Map extends React.Component {
        // see scripts/transform-mapbox-style-json.js for an example.
        transformRequest: (url) => {
          // Upgrade insecure URLs (e.g. Mapbox's TileJSON references tile URLs over http://).
@@ -762,7 +825,7 @@ index 0e85d44ae0212e6c531501d74031f48e219e0f8e..f3e3f958039f59dc8c38260c35e723fd
          // Substitute the access token into URLs that template it. The placeholder is the token
          // value only — the surrounding query param (?access_token=, ?key=, …) comes from the
          // provider's own URL structure — so this works regardless of tile provider.
-@@ -735,8 +745,23 @@ class Map extends React.Component {
+@@ -734,8 +744,23 @@ class Map extends React.Component {
      );
    }
    componentWillUnmount() {
@@ -875,10 +938,10 @@ index 911bb2cc1f89c896b22ed28d3517649cc2505f8f..8ff35fbe14412ee1156e3c4bcd4de851
      this.mapToScreen();
    } else if (this.params.showStreamTrees && (changeColorBy || changeVisibility)) {
 diff --git a/src/components/tree/phyloTree/grid.js b/src/components/tree/phyloTree/grid.js
-index 8c34be4a2f8c79ce5cae7c9dc73177c42618c54d..ed9e7f1b8574ff0aa20e18038fcfc1b0ccfd1247 100644
+index 792965aa5e2f9dfef5f8eef12255282fa8f030a7..42d06234de2cbdc3d6dde48f4b38fdda0322d8ea 100644
 --- a/src/components/tree/phyloTree/grid.js
 +++ b/src/components/tree/phyloTree/grid.js
-@@ -22,7 +22,8 @@ export const hideGrid = function hideGrid() {
+@@ -23,7 +23,8 @@ export const hideGrid = function hideGrid() {
    }
  };
  
@@ -888,7 +951,7 @@ index 8c34be4a2f8c79ce5cae7c9dc73177c42618c54d..ed9e7f1b8574ff0aa20e18038fcfc1b0
    if (!("temporalWindow" in groups)) {
      groups.temporalWindow = svg.append("g").attr("id", "temporalWindow");
  
-@@ -33,10 +34,10 @@ const addSVGGroupsIfNeeded = (groups, svg) => {
+@@ -34,10 +35,10 @@ const addSVGGroupsIfNeeded = (groups, svg) => {
        .attr('class', 'temporalWindowEnd');
    }
    if (!("majorGrid" in groups)) {
@@ -901,7 +964,7 @@ index 8c34be4a2f8c79ce5cae7c9dc73177c42618c54d..ed9e7f1b8574ff0aa20e18038fcfc1b0
    }
    if (!("gridText" in groups)) {
      groups.gridText = svg.append("g").attr("id", "gridText");
-@@ -221,7 +222,7 @@ export const computeTemporalGridPoints = (numDateMin, numDateMax, pxAvailable, a
+@@ -222,7 +223,7 @@ export const computeTemporalGridPoints = (numDateMin, numDateMax, pxAvailable, a
   */
  export const addGrid = function addGrid() {
    const layout = this.layout;
@@ -910,7 +973,7 @@ index 8c34be4a2f8c79ce5cae7c9dc73177c42618c54d..ed9e7f1b8574ff0aa20e18038fcfc1b0
    if (layout==="unrooted") return;
    timerStart("addGrid");
  
-@@ -387,6 +388,26 @@ export const addGrid = function addGrid() {
+@@ -388,6 +389,26 @@ export const addGrid = function addGrid() {
          .attr("x", xTextPos(this.xScale, layout))
          .attr("y", yTextPos(this.yScale, layout));
  
@@ -937,7 +1000,28 @@ index 8c34be4a2f8c79ce5cae7c9dc73177c42618c54d..ed9e7f1b8574ff0aa20e18038fcfc1b0
    /* add axis labels */
    this.groups.axisText.selectAll("*").remove();
    this.svg.selectAll(".axisText").remove();
-@@ -413,9 +434,15 @@ export const addGrid = function addGrid() {
+@@ -414,14 +435,12 @@ export const addGrid = function addGrid() {
+     xAxisLabel = "Date";
+     yAxisLabel = distanceMeasureText("div", this.yScale)
+   } else if (layout === "scatter") {
+-    xAxisLabel = this.scatterVariables.xLabel;
+-    if (xAxisLabel === 'num_date' || xAxisLabel === 'div' || isMutationCountBranchLength(xAxisLabel)) {
+-      xAxisLabel = distanceMeasureText(xAxisLabel, this.xScale);
+-    }
+-    yAxisLabel = this.scatterVariables.yLabel;
+-    if (yAxisLabel === 'num_date' || yAxisLabel === 'div' || isMutationCountBranchLength(yAxisLabel)) {
+-      yAxisLabel = distanceMeasureText(yAxisLabel, this.xScale);
+-    }
++    /* An axis of a branch length measure gets the title of that measure in the other layouts, any other axis the label
++    of its variable. The labels are option titles (e.g. "Divergence"), so the test is on the variables */
++    const isMeasure = (variable) => variable === 'num_date' || variable === 'div' || isMutationCountBranchLength(variable);
++    const {x, y, xLabel, yLabel} = this.scatterVariables;
++    xAxisLabel = isMeasure(x) ? distanceMeasureText(x, this.xScale) : xLabel;
++    yAxisLabel = isMeasure(y) ? distanceMeasureText(y, this.yScale) : yLabel;
+   } else if (layout === "rect") {
+     xAxisLabel = distanceMeasureText(this.distance, this.xScale);
+   }
+@@ -435,9 +454,15 @@ export const addGrid = function addGrid() {
          .style("fill", this.params.tickLabelFill)
          .style("text-anchor", "middle")
          .attr("x", Math.abs(this.xScale.range()[1]-this.xScale.range()[0]) / 2)
@@ -954,7 +1038,7 @@ index 8c34be4a2f8c79ce5cae7c9dc73177c42618c54d..ed9e7f1b8574ff0aa20e18038fcfc1b0
      this.groups.axisText
        .append("text")
          .text(yAxisLabel)
-@@ -424,7 +451,12 @@ export const addGrid = function addGrid() {
+@@ -446,7 +471,12 @@ export const addGrid = function addGrid() {
          .style("font-family", this.params.fontFamily)
          .style("fill", this.params.tickLabelFill)
          .style("text-anchor", "middle")
@@ -1019,10 +1103,10 @@ index d37f293a1be1dadb39303d4430cb4e0b3b50331c..1401ccabf77646e5d0358b34bf958893
  
    const nodes = (this.params.showStreamTrees ? this.nodes.filter((d) => !d.n.inStream) : this.nodes)
 diff --git a/src/components/tree/phyloTree/layouts.ts b/src/components/tree/phyloTree/layouts.ts
-index 31747990c1a73011e72acfbaf544ac8e0f187613..3af282ce66a62423e49bb36072d46d58a1439745 100644
+index 2e0ca18906fdd6357f34cd54c36f751c6a264319..b8979d9be9df32f20537f76434c74d7e380c4016 100644
 --- a/src/components/tree/phyloTree/layouts.ts
 +++ b/src/components/tree/phyloTree/layouts.ts
-@@ -8,6 +8,8 @@ import { numDate } from "../../../util/colorHelpers";
+@@ -9,6 +9,8 @@ import { numDate } from "../../../util/colorHelpers";
  import { Layout, ScatterVariables } from "../../../reducers/controls";
  import { ReduxNode, colorBySymbol } from "../../../reducers/tree/types";
  import { Distance, Params, PhyloNode, PhyloTreeType, Ripple, TipLabelCallback } from "./types";
@@ -1031,7 +1115,7 @@ index 31747990c1a73011e72acfbaf544ac8e0f187613..3af282ce66a62423e49bb36072d46d58
  
  /**
   * assigns the attribute this.layout and calls the function that
-@@ -345,13 +347,15 @@ export const setScales = function setScales(this: PhyloTreeType): void {
+@@ -356,13 +358,15 @@ export const setScales = function setScales(this: PhyloTreeType): void {
  export const mapToScreen = function mapToScreen(this: PhyloTreeType): void {
    timerStart("mapToScreen");
    const inViewTerminalNodes = this.nodes.filter((d) => !d.n.hasChildren).filter((d) => d.inView);
@@ -1049,7 +1133,7 @@ index 31747990c1a73011e72acfbaf544ac8e0f187613..3af282ce66a62423e49bb36072d46d58
    };
  
    /* construct & set the range of the x & y scales */
-@@ -473,6 +477,8 @@ export const mapToScreen = function mapToScreen(this: PhyloTreeType): void {
+@@ -484,6 +488,8 @@ export const mapToScreen = function mapToScreen(this: PhyloTreeType): void {
    this.xScale.domain(xDomain);
    this.yScale.domain(yDomain);
  
@@ -1058,7 +1142,7 @@ index 31747990c1a73011e72acfbaf544ac8e0f187613..3af282ce66a62423e49bb36072d46d58
    const hiddenYPosition = this.yScale.range()[1] + 100;
    const hiddenXPosition = this.xScale.range()[0] - 100;
  
-@@ -636,9 +642,16 @@ export function getTipLabelPadding(
+@@ -647,9 +653,16 @@ export function getTipLabelPadding(
     * that the margin is sized from the labels actually on screen rather than the
     * strain names. Varies with `controls.tipLabelKey`. */
    tipLabel: TipLabelCallback,
@@ -1076,7 +1160,7 @@ index 31747990c1a73011e72acfbaf544ac8e0f187613..3af282ce66a62423e49bb36072d46d58
  
      let fontSize = params.tipLabelFontSizeL1;
      if (inViewTerminalNodes.length < params.tipLabelBreakL2) {
-@@ -648,12 +661,104 @@ export function getTipLabelPadding(
+@@ -659,12 +672,104 @@ export function getTipLabelPadding(
        fontSize = params.tipLabelFontSizeL3;
      }
  
@@ -1215,7 +1299,7 @@ index d4f928d487df9ad1b681caf4bedbd1c57e980c21..458ee23c9024a12b6f1b62c05a517049
  /* D R A W I N G    F U N C T I O N S */
  PhyloTree.prototype.setClipMask = renderers.setClipMask;
 diff --git a/src/components/tree/phyloTree/renderers.ts b/src/components/tree/phyloTree/renderers.ts
-index 367f3ec3a5b42c2f9db045300e6e74432247e54d..f1886ee0179e5282d200e1c5e6e0fe3689c60736 100644
+index 367f3ec3a5b42c2f9db045300e6e74432247e54d..a3d78897732352fdf1b74e49df1fd06b93ada1af 100644
 --- a/src/components/tree/phyloTree/renderers.ts
 +++ b/src/components/tree/phyloTree/renderers.ts
 @@ -221,7 +221,7 @@ export const drawTips = function drawTips(this: PhyloTreeType): void {
@@ -1321,10 +1405,10 @@ index 367f3ec3a5b42c2f9db045300e6e74432247e54d..f1886ee0179e5282d200e1c5e6e0fe36
          .attr("x", x0)
          .attr("y", y0)
 diff --git a/src/components/tree/phyloTree/types.ts b/src/components/tree/phyloTree/types.ts
-index 242c7d9625cd04f78781fa4f320ef3a65c3fb18e..386283c0c174dd56af08db16bc0ddad69f9222c6 100644
+index c2cf0666ade2aea2f4a82d8564ddeafc10df449e..ca1d176d9e64da2c36a9f2e6f279b042b1f918a1 100644
 --- a/src/components/tree/phyloTree/types.ts
 +++ b/src/components/tree/phyloTree/types.ts
-@@ -87,6 +87,10 @@ export type SVGProperty = keyof SVG
+@@ -88,6 +88,10 @@ export type SVGProperty = keyof SVG
  export interface PhyloNode extends SVG {
    angle?: number
    branch?: [string, string]
@@ -1335,7 +1419,7 @@ index 242c7d9625cd04f78781fa4f320ef3a65c3fb18e..386283c0c174dd56af08db16bc0ddad6
    branchStroke?: string
    conf?: [number, number]
  
-@@ -260,6 +264,8 @@ export interface PhyloTreeType {
+@@ -261,6 +265,8 @@ export interface PhyloTreeType {
    callbacks: Callbacks
    change: typeof change
    clearSVG: typeof renderers.clearSVG
@@ -1343,8 +1427,8 @@ index 242c7d9625cd04f78781fa4f320ef3a65c3fb18e..386283c0c174dd56af08db16bc0ddad6
 +  disposed: boolean
    confidencesInSVG: boolean
    dateRange: [number, number]
-   distance: Distance
-@@ -298,6 +304,8 @@ export interface PhyloTreeType {
+   distance: DistanceMeasure
+@@ -299,6 +305,8 @@ export interface PhyloTreeType {
      left: number
      right: number
      top: number
@@ -1389,6 +1473,73 @@ index 3e20d6df522fa2af4358659723d26bca2e674949..280bfb50539b509ed2507a937dc40abd
      /* remove the drawing, so a later mount on the same DOM starts from an empty SVG */
      for (const ref of [this.domRefs.mainTree, this.domRefs.secondTree]) {
        if (ref) select(ref).selectAll("*").remove();
+diff --git a/src/reducers/controls.ts b/src/reducers/controls.ts
+index 02d9d6c387f9390e68439c21a9d675023c952cb8..aa480bf59f7232c8c7d72b2ffe91d68dcd481b54 100644
+--- a/src/reducers/controls.ts
++++ b/src/reducers/controls.ts
+@@ -508,6 +508,7 @@ const Controls = (state: ControlsState = getDefaultControlsState(), action): Con
+       });
+     case types.REMOVE_TREE_TOO:
+       return Object.assign({}, state, {
++        availableDistanceMeasures: action.availableDistanceMeasures,
+         showTreeToo: false,
+         showTangle: false,
+         canTogglePanelLayout: hasMultipleGridPanels(state.panelsAvailable),
+diff --git a/src/util/computeDistanceMetric.ts b/src/util/computeDistanceMetric.ts
+index c4c224e7ffe0395e31721a0916664affe2e5c3d8..4c7c3a75d227f1fa234e34d126fe9ee0caa6a7ea 100644
+--- a/src/util/computeDistanceMetric.ts
++++ b/src/util/computeDistanceMetric.ts
+@@ -99,23 +99,45 @@ function setCumulativeMutationCount(
+ }
+ 
+ export function findAvailableDistanceMeasures(nodes: ReduxNode[], genomeMap: GenomeMap | undefined): DistanceMeasure[] {
+-  const numDateAtRoot = getTraitFromNode(nodes[0], "num_date") !== undefined;
++  /* A tree where only some nodes have dates (e.g. sequences placed onto a dated tree) is shown by divergence,
++  because the undated nodes would have no position on the time axis */
++  const allNodesHaveNumDate = nodes.every((node) => getTraitFromNode(node, "num_date") !== undefined);
+   const divAtRoot = getDivFromNode(nodes[0]) !== undefined;
+ 
+   const availableDistanceMeasures: DistanceMeasure[] = [
+-    ...(numDateAtRoot ? ['num_date' as const] : []),
++    ...(allNodesHaveNumDate ? ['num_date' as const] : []),
+     ...(divAtRoot ? ['div' as const] : []),
+   ];
+ 
++  /* A gene or CDS without any valid mutation on the tree would place every node at zero */
++  const mutatedGenes = genesWithValidMutations(nodes);
+   const chromosome = genomeMap?.[0];
+   if (chromosome) {
+-    if (!chromosome.proteinOnly) availableDistanceMeasures.push(`${MUTATION_COUNT_PREFIX}nuc`);
++    if (!chromosome.proteinOnly && mutatedGenes.has('nuc')) availableDistanceMeasures.push(`${MUTATION_COUNT_PREFIX}nuc`);
+     for (const gene of chromosome.genes) {
+       for (const cds of gene.cds) {
+-        availableDistanceMeasures.push(`${MUTATION_COUNT_PREFIX}${cds.name}`)
++        if (mutatedGenes.has(cds.name)) availableDistanceMeasures.push(`${MUTATION_COUNT_PREFIX}${cds.name}`)
+       }
+     }
+   }
+-  
++
+   return availableDistanceMeasures
+ }
++
++/** The genes and CDSs (keys of `branch_attrs.mutations`) with at least one valid mutation on the tree */
++function genesWithValidMutations(nodes: ReduxNode[]): Set<string> {
++  const genes = new Set<string>();
++  for (const node of nodes) {
++    for (const [gene, mutations] of Object.entries(node.branch_attrs?.mutations ?? {})) {
++      if (genes.has(gene)) continue;
++      const isAA = gene !== 'nuc';
++      if (mutations.some((m) => {
++        const { from, to } = parseMutation(m);
++        return validMutation(from, to, isAA);
++      })) {
++        genes.add(gene);
++      }
++    }
++  }
++  return genes;
++}
 diff --git a/src/util/extensions.ts b/src/util/extensions.ts
 index 939d1156923c7603360fdcfdd42cadcef3adc3d9..188ab78199f4c52e840e191e6f61690f9432a45e 100644
 --- a/src/util/extensions.ts
@@ -1438,10 +1589,10 @@ index 939d1156923c7603360fdcfdd42cadcef3adc3d9..188ab78199f4c52e840e191e6f61690f
    }
    console.error("Requested non-existing extension", what);
 diff --git a/src/util/metadataJsonParsing.ts b/src/util/metadataJsonParsing.ts
-index 5b200a6bd9ae93b1b868a9549f744eee15f419fa..d833149e6a551c2d72f7c4612479e333747b4809 100644
+index 80711f23b363ea115d60916c40116bbe0e696eaa..e2eb200d741422e9f5eabc1041d75921bbdb3d38 100644
 --- a/src/util/metadataJsonParsing.ts
 +++ b/src/util/metadataJsonParsing.ts
-@@ -126,7 +126,7 @@ export function parseJsonMetaBlock(json: unknown): { metadata: Metadata, entropy
+@@ -129,7 +129,7 @@ export function parseJsonMetaBlock(json: unknown): { metadata: Metadata, entropy
  
  }
  

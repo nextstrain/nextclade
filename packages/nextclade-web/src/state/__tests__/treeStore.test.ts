@@ -41,13 +41,16 @@ describe('tree store', () => {
     test('shows a tree by divergence only when a placed sequence has no date', () => {
       const { controls } = getTreeStore(makeTree({ refDates: true, newDates: false })).getState()
 
-      expect([controls?.branchLengthsToDisplay, controls?.distanceMeasure]).toStrictEqual(['divOnly', 'div'])
+      expect([controls?.availableDistanceMeasures, controls?.distanceMeasure]).toStrictEqual([
+        ['div', 'mutationCount:nuc', 'mutationCount:S'],
+        'div',
+      ])
     })
 
     test('offers the time axis when every node has a date', () => {
       const { controls } = getTreeStore(makeTree({ refDates: true, newDates: true })).getState()
 
-      expect(controls?.branchLengthsToDisplay).toBe('divAndDate')
+      expect(controls?.availableDistanceMeasures).toStrictEqual(['num_date', 'div', 'mutationCount:nuc', 'mutationCount:S'])
     })
   })
 
