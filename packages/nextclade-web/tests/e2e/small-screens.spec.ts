@@ -114,7 +114,9 @@ test.describe('Popovers and menus of the start page on phones', () => {
         await expect(menu).toBeInViewport({ ratio: 1 })
         const truncatedDates = await menu
           .getByText(RELEASE_DATE)
-          .evaluateAll((dates) => dates.filter((date) => date.scrollWidth > date.clientWidth).map((date) => date.textContent))
+          .evaluateAll((dates) =>
+            dates.filter((date) => date.scrollWidth > date.clientWidth).map((date) => date.textContent),
+          )
         expect(truncatedDates).toEqual([])
       })
     })

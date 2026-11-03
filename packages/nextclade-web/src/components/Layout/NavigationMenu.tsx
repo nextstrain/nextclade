@@ -1,9 +1,5 @@
 import React, { ReactNode, useCallback, useState } from 'react'
-import {
-  Dropdown as DropdownBase,
-  DropdownToggle as DropdownToggleBase,
-  DropdownProps,
-} from 'reactstrap'
+import { Dropdown as DropdownBase, DropdownToggle as DropdownToggleBase, DropdownProps } from 'reactstrap'
 import styled from 'styled-components'
 import { DropdownMenuInViewport } from 'src/components/Common/DropdownMenuInViewport'
 import { MdOutlineMenu } from 'react-icons/md'
