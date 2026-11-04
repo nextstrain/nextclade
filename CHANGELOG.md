@@ -1,3 +1,9 @@
+## Unreleased
+
+### Nextclade Web: start page
+
+- **Help of the single-dataset mode**: the help popup of the "Single dataset" tab showed its first paragraph twice. See [#1851](https://github.com/nextstrain/nextclade/pull/1851)
+
 ## 3.29.0
 
 ### Nextclade Web: tree page
