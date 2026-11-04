@@ -198,8 +198,6 @@ build_one() {
     local image_label="${base_image}${base_version:+${base_version}}"
     printf "Building '%s/%s:%s-%s'\n" "${DOCKER_ORG}" "${project_name}" "${version}" "${image_label}"
 
-    # Keep the build log and print it only when the build fails, because the quiet mode of buildx drops the
-    # output of the failed step, such as the errors of apt.
     local build_log
     # shellcheck disable=SC2086
     if ! build_log="$(docker buildx build --progress=plain \
