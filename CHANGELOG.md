@@ -1,9 +1,18 @@
-## Unreleased
+## 3.29.0
 
 ### Nextclade Web: tree page
 
 - **Branch length by mutation count**: the tree page embeds Auspice 3.2.0 (2026-10-29), up from 3.1.0. The new "Branch Length" select in the sidebar draws the tree by divergence or by the number of mutations between the root and each node: nucleotide mutations of the genome, or amino acid mutations of one CDS. It lists the CDSs that have at least one mutation on the tree. The private mutations of your sequences count too. Deletions and missing bases (`N`) do not count, and a reversion counts as one more mutation. The scatter layout also offers the mutation counts as axes. See the [Auspice changelog](https://github.com/nextstrain/auspice/blob/db211cc6b44296d92529844502a95a3e68710449/CHANGELOG.md#version-320---20261029) and [#1847](https://github.com/nextstrain/nextclade/pull/1847)
 - **Space after links in SVG figures**: in the text below an SVG figure, the text after a link lost the space before it, so a figure with the map named its source as "Natural Earth5.1.2". Each text line in the figure now starts at its first visible character. See [#1847](https://github.com/nextstrain/nextclade/pull/1847)
+
+### Nextclade Web: start page
+
+- **Reset button**: the "Reset" button of the dataset suggestions is enabled whenever there is a selected dataset or a suggestion result to clear. Before, it was enabled only when the suggestion found matching datasets, so a dataset that you selected yourself, or a suggestion without matches or with an error, could not be reset. See [#1848](https://github.com/nextstrain/nextclade/pull/1848)
+- **No false alert at the end of a suggestion**: when the dataset suggestion finished, the red "No matching datasets" alert showed for a moment before the matching datasets appeared. The suggestion now shows its result only after it has all of it. See [#1850](https://github.com/nextstrain/nextclade/pull/1850)
+
+### Nextclade Web: layout
+
+- **Menus and popups on phones**: on phones, the examples menu, the language menu and the navigation menu stay inside the screen, and long dataset paths in the examples menu wrap. Help popups open below or above their button and scroll when their text is long. The dataset version menu shows the full release dates. The navigation menu button has a name for screen readers. See [#1848](https://github.com/nextstrain/nextclade/pull/1848)
 
 ## 3.28.0
 
