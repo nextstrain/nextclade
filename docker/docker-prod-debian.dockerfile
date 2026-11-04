@@ -14,15 +14,14 @@ RUN set -euxo pipefail >/dev/null \
 && ln -s "/usr/bin/nextclade" "/nextclade" \
 && ln -s "/usr/bin/nextalign" "/nextalign"
 
-# Debian 11 is end-of-life: its packages moved to archive.debian.org, which has no bullseye-security suite.
-# Security updates come from the snapshot taken right after the final update (2026-08-31).
+# Debian 11 is end-of-life: its packages, including the final security updates, moved to archive.debian.org.
 RUN set -euxo pipefail >/dev/null \
 && source "/etc/os-release" \
 && if [[ "${VERSION_CODENAME}" == "bullseye" ]]; then \
   printf "%s\n" \
     "deb http://archive.debian.org/debian bullseye main" \
     "deb http://archive.debian.org/debian bullseye-updates main" \
-    "deb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/20260901T000000Z bullseye-security main" \
+    "deb http://archive.debian.org/debian-security bullseye-security main" \
   > "/etc/apt/sources.list"; \
 fi
 
