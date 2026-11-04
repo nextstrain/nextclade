@@ -22,12 +22,6 @@ export function TabSingleDatasetHelp() {
 
       <p>
         {t(
-          'In single-dataset mode all sequences are analyzed using the same dataset. A dataset can be selected manually by clicking on "Select reference dataset" or "Change reference dataset" buttons. Nextclade can also suggest the most appropriate dataset from your sequences.',
-        )}
-      </p>
-
-      <p>
-        {t(
           'If there is no current selection and if the "Suggest automatically" toggle is enabled (green), then dataset suggestion runs automatically once sequence data is provided and suggested dataset is selected automatically. Automatic suggestion will not override your selected dataset, but might warn you if the selected dataset does not match the sequences provided.',
         )}
       </p>
