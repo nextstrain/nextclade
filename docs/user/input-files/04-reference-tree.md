@@ -128,9 +128,9 @@ Properties:
 
 - `default`: string, optional. The entry pre-selected in the Nextclade Web "Relative to" dropdown. Must be one of the `search[].name` values or a built-in id: `__root__` for the reference sequence (this is the default), `__parent__` for the nearest node (private mutations), or `__clade_founder__` for the founder of the clade. Any other value is ignored and falls back to `__root__`. Note that the attribute founder entries (`__founder_of_<attribute>__`) cannot be used here.
 
-- `search`: array of objects, optional. Each object describes one search. Each search corresponds to an entry in the "Relative to" dropdown in the web app and a set of CSV/TSV columns `relativeMutations['searchName']`. Note that these names no longer need to correspond to node names.
-  - `search[].name`: required unique identifier of the search entry
-  - `search[].displayName`, `search.description`: optional friendly name and description to be displayed in the UI (dropdown)
+- `search`: array of objects, optional. Each object describes one search. Each search corresponds to an entry in the "Relative to" dropdown in the web app and a set of CSV/TSV columns `relativeMutations['<displayName>'].*`, or `relativeMutations['<name>'].*` when the search has no `displayName`. The search in the example above produces the columns `relativeMutations['JN.1 (24A)'].*`.
+  - `search[].name`: required unique identifier of the search entry, used in `default` and `order.entries`. Free text: it does not need to match a node name
+  - `search[].displayName`, `search[].description`: optional friendly name and description to be displayed in the UI (dropdown). The `displayName` is also the key of the CSV/TSV columns
   - `search[].criteria`: array of objects, optional. One or multiple search criteria. Criteria should be described such that during search run only one criterion matches a pair of query and node. If there are multiple matches, then one (unspecified) match is taken and a warning is emitted.
     - `search[].criteria[].qry`: array of objects, optional. Each object describes which query samples this search applies to (matched against the sample's placement node on the reference tree). Leave empty to apply to every sample. Only `clade` and `cladeNodeAttrs` are used for query matching; `name` is not considered here.
       - `search[].criteria[].qry[].clade`: array of strings, optional. Query clades to consider for this search. At least one match is necessary for sample to match.
