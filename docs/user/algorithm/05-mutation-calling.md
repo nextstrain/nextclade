@@ -54,7 +54,7 @@ After that Nextclade calls nucleotide and aminoacid mutations relative to the cl
 
 The search and mutation calling happens separately for clades as well as for each custom clade-like attribute (unless excluded in the [pathogen config](../input-files/05-pathogen-config.md)).
 
-Clade founder search is a built-in convenience wrapper for a [node search and relative mutations](#arbitrary-node-search-and-relative-mutations) with pre-agreed search criteria (matching clades).
+Clade founder search is a built-in convenience wrapper for a [node search and relative mutations](#arbitrary-node-search-and-relative-mutations) with pre-agreed search criteria (matching clades). It differs from a custom `ancestor-earliest` search in one case: when the sample is placed directly on the clade founder, the clade founder search returns that node, while the custom search skips the placement node and finds no result.
 
 > ⚠️ Nextclade assumes that all clades and clade-like attributes defined on the [input reference tree](../input-files/04-reference-tree.md) are [monophyletic](https://en.wikipedia.org/wiki/Monophyly). In this context it means that that all nodes belonging to one clade are a single connected component on the tree. Moreover, tree should be sufficiently large and diverse, such that early samples of each of the clades are well represented. Nextclade official datasets enforce these requirements, however third-party dataset authors and users of their datasets need to take additional care.
 
