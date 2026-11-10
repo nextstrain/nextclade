@@ -141,10 +141,10 @@ Properties:
       - `search[].criteria[].node[].name`: array of strings, optional. Searched node names. At least one match.
       - `search[].criteria[].node[].clade`: array of strings, optional. Searched node clades. At least one match is necessary for node to match.
       - `search[].criteria[].node[].cladeNodeAttrs`: optional mapping from name of the clade-like attr to a list of searched values for this attr. At least one match is necessary for node to match.
-      - `search[].criteria[].node[].searchAlgo`: string, optional. Search algorithm to use
+      - `search[].criteria[].node[].searchAlgo`: string, optional. Search algorithm to use. The ancestor searches skip the node where the sample is placed, so a sample placed directly on a matching node gets no result
         - `full` (default): simple loop over all nodes until first match is found
-        - `ancestor-earliest`: start with the current sample and traverse the graph against edge directions, looking for matching nodes, until it reaches root node. The result is the last encountered matching node.
-        - `ancestor-nearest`: start with the current sample and traverse the graph against edge directions, looking for matching nodes. The first match is the result.
+        - `ancestor-earliest`: start with the parent of the node where the sample is placed on the tree and traverse the graph against edge directions, looking for matching nodes, until it reaches root node. The result is the last encountered matching node.
+        - `ancestor-nearest`: start with the parent of the node where the sample is placed on the tree and traverse the graph against edge directions, looking for matching nodes. The first match is the result.
 
 - `builtins`: object, optional. Overrides the label and tooltip of the three built-in dropdown entries. This is a display-only change: it does not affect alignment, mutation calling, or which nodes are used. Keys are the built-in ids; each value is an object with optional `displayName` (dropdown label) and `description` (tooltip). Omit a key, or either sub-field, to keep the default.
   - `__root__`: the reference sequence. Defaults: `displayName` "Reference", `description` "Reference sequence".
