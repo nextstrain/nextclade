@@ -70,13 +70,13 @@ The mutation calling step results in a set of mutations and various practical me
 
 Mutations can be viewed in the last column of the results table in [Nextclade Web](../nextclade-web/index.rst).
 
-The "Genetic feature" dropdown allows switching between nucleotide sequence and CDSes (if genome annotation is provided). The "Relative to" dropdown allows to select the target for comparison:
+The "Genetic feature" dropdown allows switching between nucleotide sequence and CDSes (if genome annotation is provided). The "Relative to" dropdown allows to select the target for comparison. Each entry corresponds to a group of columns in the [CSV and TSV output](../output-files/04-results-tsv.md):
 
-- "Reference" - shows mutations relative to the [reference sequence](../input-files/02-reference-sequence.md)
-- "Parent" - shows private mutations, i.e. mutations relative to the parent (nearest) node
-- "Clade founder" - shows mutations relative to clade founder
-- "<attribute> founder" - shows mutations relative to clade-like attribute founder (if any defined)
-- any additional entries show mutations relative to the node(s) found according to the custom search criteria (if any defined)
+- "Reference" - shows mutations relative to the [reference sequence](../input-files/02-reference-sequence.md). Columns: `substitutions`, `deletions`, `aaSubstitutions` etc.
+- "Parent" - shows private mutations, i.e. mutations relative to the parent (nearest) node. Columns: `privateNucMutations.*` and `privateAaMutations.*`
+- "Clade founder" - shows mutations relative to clade founder. Columns: `founderMuts['clade'].*`
+- "<attribute> founder" - shows mutations relative to clade-like attribute founder (if any defined). Columns: `founderMuts['<attribute.name>'].*`
+- any additional entries show mutations relative to the node(s) found according to the custom search criteria (if any defined). Columns: `relativeMutations['<search.displayName>'].*`
 
 The "Mut" column shows total number of nucleotide mutations and its mouseover tooltip lists the mutations.
 
