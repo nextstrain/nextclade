@@ -93,6 +93,8 @@ As a dataset author, in order to add clade-like attributes to your reference tre
 
 #### Relative mutations
 
+Nextclade always reports mutations relative to the reference sequence, the parent node, the clade founder and the founder of each clade-like attribute (see [Mutation calling](../algorithm/05-mutation-calling.md)). These need no configuration. To also compare sequences with other nodes of interest, for example a vaccine strain, define custom searches.
+
 Add object under `.meta.extensions.nextclade.ref_nodes`:
 
 ```json
