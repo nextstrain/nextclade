@@ -52,7 +52,7 @@ For each query sample possessing a clade, Nextclade finds a corresponding "clade
 
 After that Nextclade calls nucleotide and aminoacid mutations relative to the clade founder.
 
-The search and mutation calling happens separately for clades as well as for each custom clade-like attribute (unless excluded in the [pathogen config](../input-files/05-pathogen-config.md)).
+The search and mutation calling happens separately for clades as well as for each custom clade-like attribute (unless excluded with `skipAsReference` in the [reference tree](../input-files/04-reference-tree.md#clade-like-attributes)).
 
 Clade founder search is a built-in convenience wrapper for a [node search and relative mutations](#arbitrary-node-search-and-relative-mutations) with pre-agreed search criteria (matching clades). It differs from a custom `ancestor-earliest` search in one case: when the sample is placed directly on the clade founder, the clade founder search returns that node, while the custom search skips the placement node and finds no result.
 

@@ -71,7 +71,7 @@ As a dataset author, in order to add clade-like attributes to your reference tre
    - `displayName` - (required) human-friendly name of the attribute. Will be shown in Nextclade Web.
    - `description` - (optional) human-friendly description of the attribute. Will be shown in Nextclade Web.
    - `hideInWeb` - (optional) set this to `true` to hide attribute's column from Nextclade Web
-   - `skipAsReference` - (optional) - set this to `true` to no use the attribute for calculating clade founder nodes and relative mutations.
+   - `skipAsReference` - (optional) set this to `true` to exclude the attribute from founder node search: Nextclade Web shows no founder entry for it in the "Relative to" dropdown, and the outputs contain no `founderMuts` columns or fields for it.
 
 2. For each node in the tree, add node attribute with the same name as the `name` field in the attribute's description and with the value corresponding to the value of the clade, lineage etc. of this node:
 
