@@ -325,6 +325,7 @@ mod tests {
   use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
+  use std::iter::once;
 
   #[rstest]
   #[rustfmt::skip]
@@ -372,7 +373,8 @@ mod tests {
   }
 
   const PATHOGEN_JSON: &str = r#"{ "schemaVersion": "3.0.0" }"#;
-  const PATHOGEN_JSON_RATIO_10: &str = r#"{ "schemaVersion": "3.0.0", "alignmentParams": { "maxSeedChainDeletionRatio": 10 } }"#;
+  const PATHOGEN_JSON_RATIO_10: &str =
+    r#"{ "schemaVersion": "3.0.0", "alignmentParams": { "maxSeedChainDeletionRatio": 10 } }"#;
 
   // The check is off unless the dataset or the CLI sets the ratio, with every preset. The CLI overrides the dataset
   #[rstest]
@@ -391,7 +393,7 @@ mod tests {
   ) -> Result<(), Report> {
     let virus_properties = VirusProperties::from_str(&pathogen_json)?;
     let input_params = NextcladeInputParamsOptional {
-      alignment: Some(AlignPairwiseParamsOptional::try_parse_from(["nextclade"].iter().chain(cli_args))?),
+      alignment: Some(AlignPairwiseParamsOptional::try_parse_from(once(&"nextclade").chain(cli_args))?),
       ..NextcladeInputParamsOptional::default()
     };
 
