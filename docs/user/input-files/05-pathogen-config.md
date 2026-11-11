@@ -129,30 +129,38 @@ Example configuration for SARS-CoV-2:
 
 #### `recombination`
 
-Optional. Recombination detection configuration. Detection is enabled by default for datasets that have a reference tree; it can be disabled per dataset. Details of the algorithm and its parameters are described in [Algorithm: Recombination detection](../algorithm/08-recombination-detection.md).
+Optional. Recombination detection configuration. Detection is off unless the dataset enables it. Details of the algorithm, its parameters, and the checks of its calls are described in [Algorithm: Recombination detection](../algorithm/08-recombination-detection.md).
 
 Fields (all optional):
 
-- `enabled`: whether recombination detection runs for this dataset. Defaults to `true`.
+- `enabled`: whether recombination detection runs for this dataset. Defaults to `false`. Nextclade CLI overrides it in both directions with `--with-recombination` and `--without-recombination`.
 - `gamma`: HMM state transition rate. Defaults to `0.01 / L` (`L` = reference length).
 - `muW`: mutation emission probability in the wildtype state. Defaults to the mean terminal branch length of the reference tree.
 - `muR`: mutation emission probability in the recombinant state. Defaults to the median substitution distance between leaves of different clades (a tree-based proxy for inter-clade divergence).
+- `minRegionLength`: minimal span of a recombinant region, in nucleotides. Defaults to `50`.
+- `maxRegionMissingFraction`: maximal fraction of missing sites in the span of a recombinant region. Defaults to `0.5`.
+- `maxRecombinantFraction`: maximal total span of the recombinant regions of a sequence, as a fraction of the span of its aligned region. Defaults to `2/3`.
 
-When set explicitly, the three numeric parameters must satisfy the model constraints, or the dataset fails to load:
+When set explicitly, the numeric settings must satisfy these constraints, or the dataset fails to load:
 
 - `gamma`, `muW`, and `muR` must each be in the open interval (0, 1).
 - `gamma` must be less than 0.5 (state switching must be rarer than staying).
 - `muR` must be greater than `muW` (the recombinant state must carry elevated divergence).
+- `maxRegionMissingFraction` and `maxRecombinantFraction` must each be in the closed interval [0, 1].
 
-Explicit `enabled: true` on a dataset that cannot support detection (no reference tree, fewer than two clades, or no per-branch mutations) is a load-time error. Default-on (`enabled` unset) skips silently instead.
+When detection is enabled, every reason that blocks it fails the dataset load with an error that names the cause: no reference tree, a parameter that the tree cannot estimate (for example fewer than two clades, or no per-branch mutations), or an absent or disabled [`qc.privateMutations`](#qc) rule, which the checks of the calls need.
 
-Any parameter left unset is estimated from the reference tree. Set parameters explicitly to override the estimate, or set `enabled` to `false` to turn the feature off:
+Any HMM parameter left unset is estimated from the reference tree. Dataset curators should review the estimates and freeze them in `pathogen.json`; Nextclade reports the effective parameters in the `recombinationParams` field of `nextclade.json`. Example for SARS-CoV-2:
 
 ```json
 {
   "enabled": true,
-  "muW": 0.0002,
-  "muR": 0.007
+  "gamma": 3.3e-7,
+  "muW": 0.00017,
+  "muR": 0.0061,
+  "minRegionLength": 50,
+  "maxRegionMissingFraction": 0.5,
+  "maxRecombinantFraction": 0.667
 }
 ```
 
