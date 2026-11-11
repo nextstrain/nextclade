@@ -1,6 +1,6 @@
 # Recombination Detection
 
-Nextclade flags putative recombinant regions by running a two-state HMM along each query sequence after alignment and mutation calling. Intervals where mutation density relative to the inferred parent is elevated are reported as putative recombinant regions.
+Nextclade flags putative recombinant regions by running a two-state HMM along each query sequence after alignment and mutation calling. Intervals where mutation density relative to the inferred parent is elevated are candidate regions. Checks of the calls then keep only the candidates with strong evidence. Detection runs only for datasets that enable it.
 
 ## Provenance
 
@@ -20,13 +20,13 @@ A related family of methods uses hidden Markov models that walk along a sequence
 
 ## Model
 
-The detector is a two-state <a id="gloss-use-1"></a>Hidden Markov Model <sup>[1](#gloss-1)</sup> [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L14-L48)] with states **wildtype** ($w$) and **recombinant** ($r$), decoded with the <a id="gloss-use-2"></a>Viterbi algorithm <sup>[2](#gloss-2)</sup>. At each reference position $l$ the model sees one of three <a id="gloss-use-3"></a>observations <sup>[3](#gloss-3)</sup> relative to the sequence's inferred parent (tree attachment point):
+The detector is a two-state <a id="gloss-use-1"></a>Hidden Markov Model <sup>[1](#gloss-1)</sup> [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L14-L48)] with states **wildtype** ($w$) and **recombinant** ($r$), decoded with the <a id="gloss-use-2"></a>Viterbi algorithm <sup>[2](#gloss-2)</sup>. At each reference position $l$ the model sees one of three <a id="gloss-use-3"></a>observations <sup>[3](#gloss-3)</sup> relative to the sequence's inferred parent (tree attachment point) [[src](../../packages/nextclade/src/analyze/recombination/observations.rs)]:
 
 - `Ref`: the position matches the parent
 - `Mut`: the position differs from the parent (a private substitution)
 - `Missing`: the position carries no usable information -- N, deletion, ambiguity, placement-masked site, or outside the alignment
 
-`Missing` positions emit probability 1 in both states (<a id="gloss-use-4"></a>marginalization <sup>[4](#gloss-4)</sup> over missing data) [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L271-L278)], so they contribute no <a id="gloss-use-5"></a>emission <sup>[5](#gloss-5)</sup> evidence while still allowing <a id="gloss-use-6"></a>transitions <sup>[6](#gloss-6)</sup> and state persistence across uncovered stretches.
+`Missing` positions emit probability 1 in both states (<a id="gloss-use-4"></a>marginalization <sup>[4](#gloss-4)</sup> over missing data) [[src](../../packages/nextclade/src/analyze/recombination/params.rs)], so they contribute no <a id="gloss-use-5"></a>emission <sup>[5](#gloss-5)</sup> evidence while still allowing <a id="gloss-use-6"></a>transitions <sup>[6](#gloss-6)</sup> and state persistence across uncovered stretches.
 
 The joint likelihood for observation sequence $s = (s_1, \ldots, s_L)$ given hidden states $h = (h_1, \ldots, h_L)$ is [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L25-L28)]:
 
@@ -36,11 +36,11 @@ where $h_l \in \{w, r\}$, $P(s_l \mid h_l)$ is the emission probability, and $T$
 
 ### Parameters
 
-Three parameters govern the model [[prototype](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/code/recomb_inference/recombination_parameters.py#L5-L9)] [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L184-L191)]:
+Three parameters govern the model [[prototype](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/code/recomb_inference/recombination_parameters.py#L5-L9)] [[src](../../packages/nextclade/src/analyze/recombination/params.rs)]:
 
 | Parameter | Meaning                                                     | Default estimation                                           |
 | --------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
-| $\gamma$  | $T(h_l = r \mid h_{l-1} = w) = T(h_l = w \mid h_{l-1} = r)$ | $1 / L_{\text{ref}}$                                         |
+| $\gamma$  | $T(h_l = r \mid h_{l-1} = w) = T(h_l = w \mid h_{l-1} = r)$ | $0.01 / L_{\text{ref}}$                                      |
 | $\mu_w$   | $P(s_l = 1 \mid h_l = w)$                                   | Mean terminal branch length / $L_{\text{ref}}$               |
 | $\mu_r$   | $P(s_l = 1 \mid h_l = r)$                                   | Median pairwise inter-clade leaf distance / $L_{\text{ref}}$ |
 
@@ -48,19 +48,19 @@ where $L_{\text{ref}}$ is the reference sequence length.
 
 #### Estimation
 
-Parameters are resolved once per dataset at initialization from the reference tree [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L37-L91)], not per sequence. The algorithm notes discuss several strategies [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L39-L48)]; the tree-based rule of thumb was adopted:
+Parameters are resolved once per dataset at initialization from the reference tree [[src](../../packages/nextclade/src/analyze/recombination/estimate.rs)], not per sequence. The algorithm notes discuss several strategies [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L39-L48)]; the tree-based rule of thumb was adopted:
 
-- $\mu_w$ = mean terminal branch length / $L_{\text{ref}}$ [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L188-L202)]: typical divergence of a newly attached sequence
-- $\mu_r$ = median pairwise inter-clade leaf distance / $L_{\text{ref}}$ [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L204-L249)]: expected mutation density in a region from a different clade, computed via <a id="gloss-use-8"></a>MRCA <sup>[8](#gloss-8)</sup>-based path distances using per-branch mutation lists (not Auspice divergence units, which may use different scales)
-- $\gamma = 1 / L_{\text{ref}}$ [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L183-L186)]: one expected state switch per genome, so the model only switches when emission evidence is strong
+- $\mu_w$ = mean terminal branch length / $L_{\text{ref}}$: typical divergence of a newly attached sequence
+- $\mu_r$ = median pairwise inter-clade leaf distance / $L_{\text{ref}}$: expected mutation density in a region from a different clade, computed via <a id="gloss-use-7"></a>MRCA <sup>[7](#gloss-7)</sup>-based path distances using per-branch mutation lists (not Auspice divergence units, which may use different scales)
+- $\gamma = 0.01 / L_{\text{ref}}$: in many viral species recombinants are rare, so the expected switch rate is far below one per genome. The low rate also needs more mutations for a call and removes very short calls
 
-Both $\mu_w$ and $\mu_r$ count true substitutions only: a branch mutation is counted only when both its reference and query bases are present (non-gap). Indels are excluded because the decoder never observes them -- deletions are routed to `Missing` and there is no insertion channel at all, so calibrating the emission rates against indels would score events the model cannot see. A deletion is also one event, not a run of per-site mutations. Branch mutations are classified structurally (a gap character in the reference or the query base) rather than by string suffix, so the substitution-only event set the observation vector uses also calibrates the rates. Malformed annotations surface as errors [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L251-L274)].
+Both $\mu_w$ and $\mu_r$ count true substitutions only: a branch mutation is counted only when both its reference and query bases are present (non-gap). Indels are excluded because the decoder never observes them -- deletions are routed to `Missing` and there is no insertion channel at all, so calibrating the emission rates against indels would score events the model cannot see. A deletion is also one event, not a run of per-site mutations. Branch mutations are classified structurally (a gap character in the reference or the query base) rather than by string suffix, so the substitution-only event set the observation vector uses also calibrates the rates. Malformed annotations surface as errors.
 
-A scientific review of the first implementation (2026-11) found the mean terminal branch length for $\mu_w$ and the median inter-clade leaf distance for $\mu_r$ reasonable, on CVA16, EV-D68, SARS-CoV-2, flu H3N2 HA, RSV-A and mpox. The estimates are a fallback: dataset curators should freeze reviewed values in `pathogen.json` when they enable detection.
+A scientific review of the first implementation (2026-11) found the mean terminal branch length for $\mu_w$ and the median inter-clade leaf distance for $\mu_r$ reasonable, on CVA16, EV-D68, SARS-CoV-2, flu H3N2 HA, RSV-A and mpox. The same review moved the default $\gamma$ from $1 / L_{\text{ref}}$ to $0.01 / L_{\text{ref}}$. The estimates are a fallback: dataset curators should freeze reviewed values in `pathogen.json` when they enable detection.
 
 #### Transition cost and emission evidence
 
-The transition matrix is symmetric: $T = \begin{pmatrix} 1-\gamma & \gamma \\ \gamma & 1-\gamma \end{pmatrix}$. Each state transition costs $c = \ln\!\bigl((1 - \gamma) / \gamma\bigr)$ nats in the Viterbi log-space decoder; the decoder switches state only when accumulated emission evidence exceeds $c$. Smaller $\gamma$ raises $c$, requiring denser mutation blocks to trigger a switch. The default $\gamma = 1 / L_{\text{ref}}$ yields $c \approx 10.3$ nats for a 30 kb genome.
+The transition matrix is symmetric: $T = \begin{pmatrix} 1-\gamma & \gamma \\ \gamma & 1-\gamma \end{pmatrix}$. Each state transition costs $c = \ln\!\bigl((1 - \gamma) / \gamma\bigr)$ nats in the Viterbi log-space decoder; the decoder switches state only when accumulated emission evidence exceeds $c$. Smaller $\gamma$ raises $c$, requiring denser mutation blocks to trigger a switch. The default $\gamma = 0.01 / L_{\text{ref}}$ yields $c \approx 14.9$ nats for a 30 kb genome.
 
 Per-site emission evidence (nats are the natural-logarithm unit of information):
 
@@ -68,17 +68,17 @@ Per-site emission evidence (nats are the natural-logarithm unit of information):
 - `Ref`: $\ln\!\bigl((1 - \mu_w) / (1 - \mu_r)\bigr)$ toward wildtype
 - `Missing`: 0 (emission probability 1 in both states)
 
-The interplay between $c$ and the per-site evidence determines how many mutations a block needs to trigger a recombinant call.
+The interplay between $c$ and the per-site evidence determines how many mutations a block needs to trigger a recombinant call. An interior region pays two switches; a region at an edge of the sequence pays one, and a call over the whole sequence pays none, which is why the [sequence checks](#sequence-checks) exist.
 
 #### Validation
 
-Three invariants are enforced [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L248-L268)]:
+Three invariants are enforced [[src](../../packages/nextclade/src/analyze/recombination/params.rs)]:
 
 - All parameters in $(0, 1)$: closed endpoints produce $\log(0) = -\infty$
 - $\gamma < 0.5$: at 0.5 the chain is memoryless (uniform transition matrix); above 0.5 it prefers alternation. The spec's $\gamma \ll 1/L$ [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L41)] is stricter for any real genome; $\gamma < 0.5$ is the weakest invariant preventing degenerate decoding
 - $\mu_r > \mu_w$: otherwise a `Mut` observation provides zero or negative evidence for the recombinant state, making the states indistinguishable
 
-Enforced on every construction path, including JSON deserialization (`TryFrom` on an unvalidated wire struct [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L182-L209)]), so invalid instances cannot exist even across the WASM boundary.
+Enforced on every construction path, including JSON deserialization (`TryFrom` on an unvalidated wire struct), so invalid instances cannot exist even across the WASM boundary.
 
 ### Viterbi decoding
 
@@ -86,79 +86,92 @@ The decoder works in log-space to avoid underflow on long genomes. The forward p
 
 $$\log V_l(k) = \log P(s_l \mid h_l = k) + \max_{k'} \left[\log V_{l-1}(k') + \log T(k \mid k')\right]$$
 
-where $V_l(k)$ is the probability of the most likely path ending in state $k$ at position $l$. The backward pass traces pointers from $\arg\max_k V_L(k)$ back to position 1, recovering the most likely state sequence $h^*$ [[prototype](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/code/recomb_inference/viterbi_recombination.py#L69-L105)] [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L508-L565)].
+where $V_l(k)$ is the probability of the most likely path ending in state $k$ at position $l$. The backward pass traces pointers from $\arg\max_k V_L(k)$ back to position 1, recovering the most likely state sequence $h^*$ [[prototype](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/code/recomb_inference/viterbi_recombination.py#L69-L105)] [[src](../../packages/nextclade/src/analyze/recombination/decode.rs)].
 
-### Forward-backward scoring
+## Checks of the calls
 
-After Viterbi identifies recombinant intervals, the <a id="gloss-use-7"></a>forward-backward <sup>[7](#gloss-7)</sup> algorithm [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L97-L202)] computes per-site posterior marginals $P(h_l = r \mid s)$ in log-space over the same observation vector and parameters. These marginals are the basis of posterior (maximum-posterior-marginal) decoding <a id="cite-12"></a>[Durbin et al. 1998](https://doi.org/10.1017/CBO9780511790492) [[12](#ref-12)], which scores each position by its probability summed over all state paths, rather than committing to the single most-probable path Viterbi returns. The forward messages are [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L110-L130)]:
+The scientific review of the first implementation ran it on the example sequences of CVA16, EV-D68, SARS-CoV-2, flu H3N2 HA, RSV-A and mpox. Most calls marked regions of high mutation density as expected; some were dubious: regions of a few tens of nucleotides next to missing runs, regions that consist mostly of `N`, and calls over the whole sequence for divergent queries and short fragments, where the all-recombinant path pays no switch cost. The review asked for calls only where the evidence is strong, at the cost of missing ambiguous cases. The checks below come from the reviewers' reimplementation of the call pipeline [[src](../../packages/nextclade/src/analyze/recombination/call_qc.rs)].
 
-$$\log \alpha_{l}(k) = \log P(s_l \mid h_l = k) + \text{log-sum-exp}_{k'} \left[\log \alpha_{l-1}(k') + \log T(k \mid k')\right]$$
+### Region checks
 
-and the backward messages are [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L137-L155)]:
+Applied to each decoded region after the trimming of missing ends. A missing site is a site that the decoder observes as `Missing`.
 
-$$\log \beta_{l}(k) = \text{log-sum-exp}_{k'} \left[\log T(k' \mid k) + \log P(s_{l+1} \mid h_{l+1} = k') + \log \beta_{l+1}(k')\right]$$
+- Drop the region when the fraction of missing sites in its span is above `maxRegionMissingFraction` (default 0.5)
+- Otherwise drop it when its span is below `minRegionLength` nucleotides (default 50)
 
-The per-site marginal is $P(h_l = r \mid s) = \exp\!\bigl(\log \alpha_l(r) + \log \beta_l(r) - \log Z\bigr)$ where $\log Z = \text{log-sum-exp}_k\!\bigl(\log \alpha_l(k) + \log \beta_l(k)\bigr)$ [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L160-L175)] [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L434-L489)].
+### Sequence checks
 
-Each Viterbi-decoded interval receives a confidence score: the mean posterior marginal within it [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L492-L505)]. Near 1 = high certainty, near 0.5 = ambiguous. This is the reliability measure natural to an HMM -- certainty aggregated over all paths -- which Viterbi's hard state assignment cannot express.
+Applied to the regions that pass the region checks. Either rule drops all regions of the sequence, and the sequence gets no call. The rules run in this order:
+
+1. **Coverage**: the total span of the regions divided by the span of the alignment range is above `maxRecombinantFraction` (default 2/3). A sequence that is recombinant almost everywhere carries no localized signal
+2. **Rest of the sequence**: the rest must still fit the tree. Remove the private substitutions and private deletions inside the regions, and compute the weighted total of the private-mutation QC rule on the remaining ones, with the weights of `qc.privateMutations`. The rest fails when the weighted total is at least $(\text{typical} + \text{cutoff}) \cdot L_m / L_{\text{ref}}$, where $L_m$ is the number of covered sites outside the regions (inside the alignment, not missing). This is the private-mutation score with `typical` and `cutoff` each scaled by $L_m / L_{\text{ref}}$ reaching 100, so a shorter rest gets a stricter threshold. A sequence with $L_m = 0$ gives no evidence that its rest fits the tree, and fails. Placement is not recomputed
+
+The scaling uses the fraction of the genome ($L_m / L_{\text{ref}}$), as the review's author specified. The reviewers' script used the fraction of covered sites of the sequence instead, which is never smaller, so sequences with long missing runs can lose additional calls compared to the script. The deletions inside the regions are masked like the substitutions; the script counted all private deletion ranges of the sequence. The private-mutation weighted total comes from the QC rule's own counting [[src](../../packages/nextclade/src/qc/qc_rule_private_mutations.rs)], so the two cannot diverge.
 
 ## Pipeline integration
 
-Recombination detection runs per-sequence in the parallel phase, after private mutation calling [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/run/nextclade_run_one.rs#L442-L467)]. It is first gated on the private-substitution count: a sequence below `minPrivateSubsToRun` is skipped without assembling an observation vector [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/run/nextclade_run_one.rs#L447-L451)]. For a sequence that passes the gate, the steps are:
+### Opt-in
 
-1. `fn recombination_missing_ranges()`: assemble non-comparable positions (N, deletions, ambiguities, placement-masked sites) [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L106-L119)]
-2. `fn build_observations()`: construct the observation vector; mutations are applied first, then non-comparable ranges override them to `Missing` (missing data must not contribute to the likelihood) [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L128-L171)]
-3. `fn viterbi_decode()`: log-space Viterbi with uniform prior and symmetric transitions [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L508-L565)]
-4. `fn extract_recombinant_intervals()`: collect maximal runs of the recombinant state as half-open ranges [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L568-L591)]
-5. `fn trim_intervals_to_covered()`: trim leading/trailing `Missing` from interval endpoints [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L74-L85)]
-6. `fn forward_backward_marginals()`: run the forward-backward algorithm over the same observation vector to obtain per-site $P(\text{recombinant} \mid s)$; skipped when no regions were found (steps 3--5 returned empty) [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L434-L489)]
-7. `fn compute_interval_confidences()`: mean posterior marginal within each interval, yielding one confidence score per region [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L492-L505)]
+Detection is off unless the dataset enables it with `recombination.enabled: true` in `pathogen.json` [[src](../../packages/nextclade/src/analyze/recombination/config.rs)]. The model does not fit every pathogen: in HIV, the whole genome carries a high density of private mutations, so most calls would be false. Nextclade CLI overrides the dataset in both directions with `--with-recombination` and `--without-recombination`; one function decides [[src](../../packages/nextclade/src/analyze/recombination/config.rs)]. Nextclade Web has no user switch. Whether a dataset should be able to forbid detection, and whether Web gets a switch, is open: `kb/issues/M-recombination-user-opt-in.md`.
+
+When detection is on, the dataset setup runs once at `Nextclade::new` [[src](../../packages/nextclade/src/analyze/recombination/setup.rs)], and every reason that blocks detection fails the dataset load with an error that names the cause:
+
+- no reference tree, so there are no parent-relative mutations to observe
+- an invalid setting: an HMM parameter outside $(0, 1)$, $\gamma \geq 0.5$, both $\mu_w$ and $\mu_r$ given with $\mu_r \leq \mu_w$, or a fraction outside $[0, 1]$
+- a parameter that the tree cannot estimate: fewer than two leaf clades for $\mu_r$, no per-branch nucleotide mutations, another degenerate topology, or estimates with $\mu_r \leq \mu_w$
+- an absent or disabled `qc.privateMutations` rule, which the rest-of-sequence check needs
+
+There is no silent skip: a curator who enables detection learns at load time why it cannot run.
+
+### Per sequence
+
+Detection runs per sequence in the parallel phase, after private mutation calling [[src](../../packages/nextclade/src/run/nextclade_run_one.rs)] [[src](../../packages/nextclade/src/analyze/recombination/run.rs)]. A sequence without private substitutions is skipped: every site is `Ref` or `Missing`, and the recombinant state cannot outscore the wildtype state, so the skip is exact. For the other sequences:
+
+1. Assemble non-comparable positions (N, deletions, ambiguities, placement-masked sites) and build the observation vector; mutations are applied first, then non-comparable ranges override them to `Missing` (missing data must not contribute to the likelihood)
+2. Viterbi-decode with uniform prior and symmetric transitions
+3. Collect maximal runs of the recombinant state as half-open ranges, and trim leading and trailing `Missing` from each
+4. Apply the [region checks](#region-checks), then the [sequence checks](#sequence-checks)
 
 ## Configuration
 
+All settings sit in the `recombination` object of `pathogen.json`. Values for SARS-CoV-2:
+
+```json
+"recombination": {
+  "enabled": true,
+  "gamma": 3.3e-7,
+  "muW": 0.00017,
+  "muR": 0.0061,
+  "minRegionLength": 50,
+  "maxRegionMissingFraction": 0.5,
+  "maxRecombinantFraction": 0.667
+}
+```
+
+`enabled` defaults to `false`. `minRegionLength`, `maxRegionMissingFraction` and `maxRecombinantFraction` are optional, with the defaults above. Whether each setting gets a CLI flag is open: `kb/issues/N-recombination-cli-parameter-flags.md`.
+
 ### Overrides
 
-Each parameter resolves independently [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L37-L91)]: explicit `pathogen.json` values are validated [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L147-L155)] and used verbatim; only unset parameters are estimated. Out-of-range overrides are dataset-level errors. A dataset supplying all three never invokes the estimator, so a degenerate tree cannot block loading. When a parameter is unset and its estimate is undefined (e.g. fewer than two clades for $\mu_r$), detection is skipped; see [Enable/disable](#enabledisable).
+Each HMM parameter resolves independently: explicit `pathogen.json` values are validated and used verbatim; only unset parameters are estimated. A dataset supplying all three never invokes the estimator, so a degenerate tree cannot block loading.
 
 ### Freezing parameters into a dataset (data repository)
 
-The run-time estimate above recomputes the parameters from whatever reference tree a dataset ships. A dataset can instead carry frozen, reviewed values as explicit `pathogen.json` overrides, so that the model a reviewer signed off on is not silently shifted by a later tree update. The [`nextclade_data`](https://github.com/nextstrain/nextclade_data) repository provides `scripts/recombination_params` for computing them, a Python mirror of the Rust estimator that must produce identical values.
+The run-time estimate recomputes the parameters from whatever reference tree a dataset ships. A dataset can instead carry frozen, reviewed values as explicit `pathogen.json` overrides, so that the model a reviewer signed off on is not silently shifted by a later tree update. The [`nextclade_data`](https://github.com/nextstrain/nextclade_data) repository provides `scripts/recombination_params` for computing them, a Python mirror of the Rust estimator that must produce identical values.
 
 - Inputs: `--input-tree` (Auspice `tree.json`) and `--input-ref` (`reference.fasta`), plus an optional `--pathogen`.
-- With `--pathogen`, the three estimates are written into that file's `recombination` object in place, preserving any existing `enabled` decision and otherwise defaulting it on; without it, the parameters are printed as JSON to stdout for inspection.
+- With `--pathogen`, the three estimates are written into that file's `recombination` object in place; without it, the parameters are printed as JSON to stdout for inspection. The script writes only `gamma`, `muW` and `muR`, never `enabled`, so freezing parameters does not switch detection on.
 
-The helper mirrors the Rust estimator exactly: true substitutions only (both reference and query bases present, so neither insertions nor deletions count), leaf-only clade grouping, median pairwise inter-clade **leaf-to-leaf** distance, and strict validation of branch-mutation tokens. Freezing all three bypasses the run-time estimator entirely (see [Overrides](#overrides)). Parity is guarded by tests in `nextclade_data` `tests/test_recombination_params.py` that use the Rust unit-test fixtures as the oracle.
-
-### Minimum private substitutions to run
-
-`minPrivateSubsToRun` gates detection per sequence [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L375-L421)]. Default: 1. A sequence with zero private substitutions has an all-`Ref`/`Missing` observation vector, so the recombinant state can never win -- the default is an exact optimization, not a heuristic. Raising it above 1 trades sensitivity for throughput.
-
-### Enable/disable
-
-Detection is on by default. The `enabled` field of the `recombination` config object in `pathogen.json` is optional and tri-state: absent (or an absent config object) means default-on, `true` is an explicit opt-in, and `false` disables detection [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L403-L414)].
-
-A dataset **cannot support** detection when any of the following holds (`RecombinationSkipReason` enum [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L104-L144)]]):
-
-- `NoReferenceTree`: no reference tree, so there are no parent-relative mutations to observe
-- `FewerThanTwoClades`: fewer than two leaf clades, so inter-clade divergence ($\mu_r$) is undefined
-- `NoBranchMutations`: no per-branch nucleotide mutations, so the divergence rates that calibrate the model cannot be estimated
-- `TreeEstimateUnavailable`: a required estimate is undefined for some other degenerate topology
-- `RecombinantRateNotElevated`: a degenerate estimate with $\mu_r \leq \mu_w$, leaving the two states indistinguishable
-
-Decided once at `Nextclade::new` [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/run/nextclade_wasm.rs#L409-L444)]:
-
-- **Default-on** (`enabled` absent): silently skipped
-- **Explicit `enabled: true`**: dataset-level error naming the cause. An explicit request that cannot be honored fails loudly
-
-Invalid explicit parameters are a dataset-level error regardless of `enabled`: any of the three outside the open interval $(0, 1)$ [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L147-L155)], $\gamma \geq 0.5$, or both $\mu_w$ and $\mu_r$ supplied with $\mu_r \leq \mu_w$ [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L73-L83)].
+The helper mirrors the Rust estimator exactly: the same `gamma` default, true substitutions only (both reference and query bases present, so neither insertions nor deletions count), leaf-only clade grouping, median pairwise inter-clade **leaf-to-leaf** distance, and strict validation of branch-mutation tokens. Freezing all three bypasses the run-time estimator entirely (see [Overrides](#overrides)). Parity is guarded by tests in `nextclade_data` `tests/test_recombination_params.py` that use the Rust unit-test fixtures as the oracle.
 
 ## Output
 
-Recombination is an observation about sequence origin, not a quality metric, so results go into dedicated output columns rather than the QC system. The structured per-region data (coordinates, lengths) does not fit the scalar QC score model ([design meeting](https://docs.google.com/document/d/1EGIaSpCdSfgnPO0m4h9_OweGnw8wSGCio3ATK-xfof8?hl=en#heading=h.yh3vb8at25y1)).
+Recombination is an observation about sequence origin, not a quality metric, so results go into dedicated output fields rather than the QC system. The structured per-region data (coordinates, lengths) does not fit the scalar QC score model ([design meeting](https://docs.google.com/document/d/1EGIaSpCdSfgnPO0m4h9_OweGnw8wSGCio3ATK-xfof8?hl=en#heading=h.yh3vb8at25y1)).
+
+When detection is off for a dataset, the outputs carry no recombination fields: no `recombination` object per sequence, no `recombinationParams` in `nextclade.json`, no `recombination.*` columns, and no column or markers in Nextclade Web. A sequence whose calls the checks drop has no `recombination` object and empty columns.
 
 ### Data model
 
-`RecombinationResult`:
+`RecombinationResult` [[src](../../packages/nextclade/src/analyze/recombination/result.rs)]:
 
 - `regions`: non-empty list of `RecombinationRegion`
 - `totalRegions`: number of regions
@@ -169,16 +182,14 @@ Recombination is an observation about sequence origin, not a quality metric, so 
 
 - `range`: half-open interval in reference coordinates
 - `length`: nucleotide span
-- `confidence: Option<f64>`: mean posterior $P(\text{recombinant} \mid s)$ within the interval
 
-`RecombinationResult::from_ranges()` returns `Option<Self>`: `None` when no intervals are found, collapsing "ran, found nothing" and "didn't run" into one representation.
+`RecombinationResult::from_ranges()` returns `Option<Self>`: `None` when no region passes the checks.
 
 ### CSV/TSV columns
 
-Recombination columns belong to a dedicated `Recombination` category (selectable via `--output-columns-selection recombination`), all visible by default:
+Recombination columns belong to a dedicated `Recombination` category (selectable via `--output-columns-selection recombination`), present only for datasets that run detection [[src](../../packages/nextclade/src/io/nextclade_csv.rs)]:
 
 - `recombination.regions`: comma-delimited list of `begin-end` ranges (1-based closed)
-- `recombination.regionConfidences`: comma-delimited confidence scores per region (3 decimal places); empty when forward-backward did not run
 - `recombination.totalRegions`: number of regions
 - `recombination.totalLength`: total nucleotide length of all regions
 - `recombination.longestRegion.range`: range of the longest region
@@ -190,52 +201,51 @@ The `recombination` field of the per-sequence result object is omitted when `Non
 
 ```json
 {
-  "regions": [{ "range": { "begin": 100, "end": 200 }, "length": 100, "confidence": 0.95 }],
+  "regions": [{ "range": { "begin": 100, "end": 200 }, "length": 100 }],
   "totalRegions": 1,
   "totalLength": 100,
-  "longestRegion": { "range": { "begin": 100, "end": 200 }, "length": 100, "confidence": 0.95 }
+  "longestRegion": { "range": { "begin": 100, "end": 200 }, "length": 100 }
 }
 ```
 
-`confidence` is present on each region when forward-backward has run. Currently forward-backward runs unconditionally for non-empty region sets, so in practice the field is always present.
+The effective HMM parameters are reported once at the top level of `nextclade.json` as `recombinationParams`.
 
 ### Viewer
 
 Recombinant intervals appear as purple rectangles in the sequence view per the [design meeting](https://docs.google.com/document/d/1EGIaSpCdSfgnPO0m4h9_OweGnw8wSGCio3ATK-xfof8?hl=en#heading=h.yh3vb8at25y1):
 
 - Color: purple (`#8f2fd4` fill, `#e0b3ff` border), distinct from mutation and QC markers
-- Confidence mapped to opacity (min fill 0.35, min border 0.5). Full opacity when confidence unavailable
-- Tooltip: range, length, confidence percentage
+- Tooltip: range and length
 - Shown in all nucleotide views with fixed reference coordinates (identical rendering regardless of "Relative to" selection). Markers count toward the per-view display threshold
 - No gene labels (intervals span multiple genes) or `Missing` annotations (handled by [interval trimming](#interval-trimming))
 
-The results table includes a "Rec." column (placed after clade columns) showing total recombinant length:
+For datasets that run detection, the results table includes a "Rec." column (placed after clade columns) showing total recombinant length:
 
-- Cell tooltip: region count, total length with genome percentage, longest region with range/length/percentage, and a region list (capped at 20) with each region's confidence
+- Cell tooltip: region count, total length with genome percentage, longest region with range/length/percentage, and a region list (capped at 20)
 - Sortable by total recombinant length; sequences without recombination results sort to the bottom
 
 ## Differences from spec
 
 ### Three-valued observations
 
-The observation model uses three values (`Ref`, `Mut`, `Missing`) rather than binary $\{0, 1\}$ [[prototype](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/code/recomb_inference/viterbi_recombination.py#L17)]. A `Missing` observation [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L88-L97)] emits with probability 1 in both states, covering two categories of positions that carry no usable evidence [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L89-L95)]:
+The observation model uses three values (`Ref`, `Mut`, `Missing`) rather than binary $\{0, 1\}$ [[prototype](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/code/recomb_inference/viterbi_recombination.py#L17)]. A `Missing` observation emits with probability 1 in both states, covering two categories of positions that carry no usable evidence [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L89-L95)]:
 
 - **N characters**: no emission evidence, but transitions still cross N runs, so a recombinant region bridging an N stretch is not split into two
 - **Deletions**: a large deletion is one mutational event, not a cluster of per-site mutations; counting each deleted position as `Mut` would inflate local mutation density and trigger false calls
 
-`fn build_observations()` [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L128-L171)] layers three sources: alignment range (covered = `Ref`), private substitutions (`Mut`), then non-comparable ranges (`Missing`). The last step is final: a non-comparable position stays `Missing` even if a mutation also maps to it, because missing data must not contribute to the likelihood.
+The observation vector layers three sources: alignment range (covered = `Ref`), private substitutions (`Mut`), then non-comparable ranges (`Missing`). The last step is final: a non-comparable position stays `Missing` even if a mutation also maps to it, because missing data must not contribute to the likelihood.
 
 ### Placement-masked sites
 
-Placement-masked positions are treated as `Missing` [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/run/nextclade_run_one.rs#L433-L440)]. Without this, a masked site that differs from the parent would be scored as `Mut`, which could produce a false recombinant call at a <a id="gloss-use-9"></a>homoplasic <sup>[9](#gloss-9)</sup> site. Not addressed in the meeting spec.
+Placement-masked positions are treated as `Missing`. Without this, a masked site that differs from the parent would be scored as `Mut`, which could produce a false recombinant call at a <a id="gloss-use-8"></a>homoplasic <sup>[8](#gloss-8)</sup> site. Not addressed in the meeting spec.
 
 ### Interval trimming
 
-Leading and trailing `Missing` positions are trimmed from each decoded interval [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination.rs#L74-L85)]. Internal `Missing` stretches remain bridged. An interval with no covered positions is dropped entirely. Required by the [meeting spec](https://docs.google.com/document/d/1EGIaSpCdSfgnPO0m4h9_OweGnw8wSGCio3ATK-xfof8?hl=en#heading=h.yh3vb8at25y1): "we do not want leading/trailing deletion range annotations".
+Leading and trailing `Missing` positions are trimmed from each decoded interval [[src](../../packages/nextclade/src/analyze/recombination/decode.rs)]. Internal `Missing` stretches remain bridged. An interval with no covered positions is dropped entirely. Required by the [meeting spec](https://docs.google.com/document/d/1EGIaSpCdSfgnPO0m4h9_OweGnw8wSGCio3ATK-xfof8?hl=en#heading=h.yh3vb8at25y1): "we do not want leading/trailing deletion range annotations".
 
-### Forward-backward confidence
+### No confidence score
 
-Forward-backward [[prototype](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/code/recomb_inference/forward_backward.py#L115-L192)] [[spec](https://github.com/mmolari/recomb_inference/blob/944ec48a93a1/notes/n01_algorithm.typ#L97-L202)] runs only when Viterbi finds at least one recombinant region. All-wildtype sequences skip it entirely, avoiding two $O(L)$ message arrays for the common case. Only per-interval mean marginals are stored, not per-site.
+The decoded intervals carry no confidence score. Forward-backward posterior marginals were considered as a per-region confidence, but the [checks of the calls](#checks-of-the-calls) are the agreed evidence filter, and a second, uncalibrated number next to each call would invite thresholds that nobody validated.
 
 ### Parameter validation
 
@@ -252,10 +262,18 @@ After detecting a breakpoint, should Nextclade split the sequence and place each
 No. The current implementation detects and reports intervals. Three alternatives were discussed and deferred:
 
 - Split the sequence at breakpoints and run separate tree placements
-- Mask recombinant regions and re-run the pipeline
+- Mask recombinant regions and re-run the pipeline, including placement of the flagged regions on the tree after masking
 - Assign clades per gene (e.g. VP1 and 3D for Enteroviruses, whose evolution is shaped by frequent inter-serotype recombination <a id="cite-11"></a>[Simmonds 2006](https://doi.org/10.1128/jvi.01076-06) [[11](#ref-11)])
 
 Downstream consumers can mask and re-run if needed.
+
+### 2. Reversions
+
+A reversion is stronger evidence of recombination than other private mutations. The model treats all private substitutions alike.
+
+### 3. Variable transition rate
+
+A `gamma` that varies along the genome, for viruses with known recombination hot and cold spots.
 
 ## Glossary
 
@@ -265,14 +283,13 @@ Downstream consumers can mask and re-run if needed.
 4. <a id="gloss-4"></a> **Marginalization.** Summing (or in log-space, log-sum-exp-ing) over all possible values of an unobserved variable to eliminate it from a probability expression. For `Missing` observations, $P(s_l \mid h_l) = 1$ (uniform over emissions), so the position contributes no evidence to state discrimination. [↩](#gloss-use-4)
 5. <a id="gloss-5"></a> **Emission probability.** $P(s_l \mid h_l = k)$: the probability of observing $s_l$ given hidden state $k$. In this model, $P(s_l = 1 \mid h_l = w) = \mu_w$ and $P(s_l = 1 \mid h_l = r) = \mu_r$. [↩](#gloss-use-5)
 6. <a id="gloss-6"></a> **Transition probability.** $T(h_l = k' \mid h_{l-1} = k)$: the probability of moving from state $k$ to state $k'$ between adjacent positions. Symmetric in this model: $T(r \mid w) = T(w \mid r) = \gamma$, $T(w \mid w) = T(r \mid r) = 1 - \gamma$. [↩](#gloss-use-6)
-7. <a id="gloss-7"></a> **Forward-backward algorithm.** Computes per-site marginal probabilities $P(h_l = k \mid s)$ by combining forward messages $\alpha_{l,k} = P(s_1, \ldots, s_l, h_l = k)$ and backward messages $\beta_{l,k} = P(s_{l+1}, \ldots, s_L \mid h_l = k)$. Same $O(L \cdot K^2)$ complexity as Viterbi but gives posterior probabilities rather than a single best path (<a id="cite-2b"></a>[Rabiner 1989](https://doi.org/10.1109/5.18626) [[2](#ref-2)]). [↩](#gloss-use-7)
-8. <a id="gloss-8"></a> **MRCA (Most Recent Common Ancestor).** The deepest node in a phylogenetic tree that is an ancestor of two given leaves. Used here to compute pairwise inter-clade distances for estimating $\mu_r$: $d(a, b) = d_{\text{root}}(a) + d_{\text{root}}(b) - 2 \cdot d_{\text{root}}(\text{MRCA}(a, b))$ [[src](https://github.com/nextstrain/nextclade/blob/d69f48972/packages/nextclade/src/analyze/recombination_estimate.rs#L241)]. [↩](#gloss-use-8)
-9. <a id="gloss-9"></a> **Homoplasy (homoplasic site).** A character state shared by taxa but not inherited from a common ancestor, arising from convergent or parallel mutation or reversion rather than shared descent. A homoplasic site is a genome position where the same substitution recurs independently on separate lineages, so a match to the parent there is weak evidence of shared ancestry. [↩](#gloss-use-9)
+7. <a id="gloss-7"></a> **MRCA (Most Recent Common Ancestor).** The deepest node in a phylogenetic tree that is an ancestor of two given leaves. Used here to compute pairwise inter-clade distances for estimating $\mu_r$: $d(a, b) = d_{\text{root}}(a) + d_{\text{root}}(b) - 2 \cdot d_{\text{root}}(\text{MRCA}(a, b))$ [[src](../../packages/nextclade/src/analyze/recombination/estimate.rs)]. [↩](#gloss-use-7)
+8. <a id="gloss-8"></a> **Homoplasy (homoplasic site).** A character state shared by taxa but not inherited from a common ancestor, arising from convergent or parallel mutation or reversion rather than shared descent. A homoplasic site is a genome position where the same substitution recurs independently on separate lineages, so a match to the parent there is weak evidence of shared ancestry. [↩](#gloss-use-8)
 
 ## References
 
 1. <a id="ref-1"></a> Baum, Leonard E., Ted Petrie, George W. Soules, and Norman Weiss. 1970. "A Maximization Technique Occurring in the Statistical Analysis of Probabilistic Functions of Markov Chains." _The Annals of Mathematical Statistics_ 41(1):164-171. https://doi.org/10.1214/aoms/1177697196 [↩](#cite-1)
-2. <a id="ref-2"></a> Rabiner, Lawrence R. 1989. "A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition." _Proceedings of the IEEE_ 77(2):257-286. https://doi.org/10.1109/5.18626 [↩¹](#cite-2a) [↩²](#cite-2b)
+2. <a id="ref-2"></a> Rabiner, Lawrence R. 1989. "A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition." _Proceedings of the IEEE_ 77(2):257-286. https://doi.org/10.1109/5.18626 [↩](#cite-2a)
 3. <a id="ref-3"></a> Viterbi, Andrew J. 1967. "Error Bounds for Convolutional Codes and an Asymptotically Optimum Decoding Algorithm." _IEEE Transactions on Information Theory_ 13(2):260-269. https://doi.org/10.1109/TIT.1967.1054010 [↩](#cite-3)
 4. <a id="ref-4"></a> Martin, Darren P., Arvind Varsani, Philippe Roumagnac, et al. 2021. "RDP5: A Computer Program for Analyzing Recombination in, and Removing Signals of Recombination from, Nucleotide Sequence Datasets." _Virus Evolution_ 7(1):veaa087. https://doi.org/10.1093/ve/veaa087 [↩](#cite-4)
 5. <a id="ref-5"></a> Boni, Maciej F., David Posada, and Marcus W. Feldman. 2007. "An Exact Nonparametric Method for Inferring Mosaic Structure in Sequence Triplets." _Genetics_ 176(2):1035-1047. https://doi.org/10.1534/genetics.106.068874 [↩](#cite-5)
@@ -282,4 +299,3 @@ Downstream consumers can mask and re-run if needed.
 9. <a id="ref-9"></a> Schultz, Anne-Kathrin, Ming Zhang, Thomas Leitner, et al. 2006. "A Jumping Profile Hidden Markov Model and Applications to Recombination Sites in HIV and HCV Genomes." _BMC Bioinformatics_ 7:265. https://doi.org/10.1186/1471-2105-7-265 [↩](#cite-9)
 10. <a id="ref-10"></a> Westesson, Oscar, and Ian Holmes. 2009. "Accurate Detection of Recombinant Breakpoints in Whole-Genome Alignments." _PLoS Computational Biology_ 5(3):e1000318. https://doi.org/10.1371/journal.pcbi.1000318 [↩](#cite-10)
 11. <a id="ref-11"></a> Simmonds, Peter. 2006. "Recombination and Selection in the Evolution of Picornaviruses and Other Mammalian Positive-Stranded RNA Viruses." _Journal of Virology_ 80(22):11124-11140. https://doi.org/10.1128/jvi.01076-06 [↩](#cite-11)
-12. <a id="ref-12"></a> Durbin, Richard, Sean R. Eddy, Anders Krogh, and Graeme Mitchison. 1998. _Biological Sequence Analysis: Probabilistic Models of Proteins and Nucleic Acids_. Cambridge University Press. https://doi.org/10.1017/CBO9780511790492 [↩](#cite-12)
