@@ -372,7 +372,15 @@ mod tests {
       include_mut_patterns: false,
     };
 
-    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &[], true, &column_config);
+    let headers = prepare_headers(
+      &[],
+      &[],
+      &AuspiceRefNodesDesc::default(),
+      &[],
+      &[],
+      true,
+      &column_config,
+    );
 
     // Verify headers are in canonical order as defined in CSV_COLUMN_CONFIG_MAP_DEFAULT
     let expected_order = vec![
@@ -448,7 +456,15 @@ mod tests {
       include_mut_patterns: true,
     };
 
-    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &[], true, &column_config);
+    let headers = prepare_headers(
+      &[],
+      &[],
+      &AuspiceRefNodesDesc::default(),
+      &[],
+      &[],
+      true,
+      &column_config,
+    );
 
     assert!(!headers.iter().any(|h| h.contains("mutationPatterns")));
   }

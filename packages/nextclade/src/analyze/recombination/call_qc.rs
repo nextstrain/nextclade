@@ -66,7 +66,8 @@ pub(crate) fn is_region_supported(
   obs: &[RecombinationObs],
   config: &RecombinationCallQcConfig,
 ) -> bool {
-  compute_missing_fraction(region, obs) <= config.max_region_missing_fraction && region.len() >= config.min_region_length
+  compute_missing_fraction(region, obs) <= config.max_region_missing_fraction
+    && region.len() >= config.min_region_length
 }
 
 /// Fraction of the sites in the span of a region that the decoder observes as `Missing`.
@@ -75,9 +76,9 @@ pub(crate) fn compute_missing_fraction(region: &NucRefGlobalRange, obs: &[Recomb
   if span == 0 {
     return 0.0;
   }
-  let missing = obs
-    .get(region.to_std())
-    .map_or(span, |sites| sites.iter().filter(|o| **o == RecombinationObs::Missing).count());
+  let missing = obs.get(region.to_std()).map_or(span, |sites| {
+    sites.iter().filter(|o| **o == RecombinationObs::Missing).count()
+  });
   missing as f64 / span as f64
 }
 
@@ -100,7 +101,10 @@ pub(crate) fn is_rest_consistent_with_tree(
   config: &QcRulesConfigPrivateMutations,
 ) -> bool {
   let ref_len = sequence.obs.len();
-  let covered_inside: usize = regions.iter().map(|region| count_covered_in(region, sequence.obs)).sum();
+  let covered_inside: usize = regions
+    .iter()
+    .map(|region| count_covered_in(region, sequence.obs))
+    .sum();
   let covered_outside = count_covered(sequence.obs).saturating_sub(covered_inside);
   let counts = PrivateMutationCounts::count(sequence.private_nuc_mutations, |pos| {
     !regions.iter().any(|region| region.contains(pos))
