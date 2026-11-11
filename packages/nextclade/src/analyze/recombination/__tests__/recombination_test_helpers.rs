@@ -2,7 +2,6 @@
 
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::letter_ranges::NucRange;
-use crate::analyze::recombination::config::RecombinationConfig;
 use crate::analyze::recombination::observations::RecombinationObs;
 use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE};
 use crate::analyze::recombination::result::RecombinationRegion;
@@ -58,13 +57,6 @@ pub fn nuc_range(begin: usize, end: usize) -> NucRange {
   NucRange {
     range: NucRefGlobalRange::from_usize(begin, end),
     letter: Nuc::N,
-  }
-}
-
-pub fn cfg_min_subs(n: usize) -> RecombinationConfig {
-  RecombinationConfig {
-    min_private_subs_to_run: Some(n),
-    ..RecombinationConfig::default()
   }
 }
 
