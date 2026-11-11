@@ -1956,7 +1956,7 @@
           "format": "double"
         },
         "maxSeedChainDeletionRatio": {
-          "description": "Largest allowed deletion between two consecutive seeds of the seed chain, as a multiple of the query length. A finite number of at least 0.\n\nWhen a deletion between two seeds is longer, and both parts of the chain around it hold at least `--min-seed-chain-part-cover` of the seed length, the sequence is not aligned and an error is reported. This rejects sequences whose parts match distant regions of the reference, for example both inverted terminal repeats of mpox. Large values turn the check off. The `short-sequences` alignment preset turns the check off, because its short seeds can also match far from the true position of a short query.",
+          "description": "Largest allowed deletion between two consecutive seeds of the seed chain, as a multiple of the query length. A finite number of at least 0. Not set by default, which turns the check off.\n\nWhen this parameter is set, a deletion between two seeds is longer than this multiple of the query length, and both parts of the chain around it hold at least `--min-seed-chain-part-cover` of the seed length, the sequence is not aligned and an error is reported. This rejects sequences whose parts match distant regions of the reference, for example a read that covers both inverted terminal repeats of mpox, which Nextclade would otherwise align with one deletion of almost the whole genome.\n\nThe check can also reject correct alignments: a short and divergent query has few seeds, so one spurious seed far from its true position can pass the part-cover condition. The banded alignment ignores such a seed, but the check rejects the whole sequence. Check the results on representative data before setting this parameter.",
           "type": [
             "number",
             "null"
@@ -1964,7 +1964,7 @@
           "format": "double"
         },
         "minSeedChainPartCover": {
-          "description": "Smallest fraction of the total seed length that each part of the seed chain, before and after the deletion that `--max-seed-chain-deletion-ratio` checks, must hold for the sequence to be rejected. A finite number between 0 and 1.\n\nA part with fewer seeds usually stays out of the final alignment, because terminal gaps are free. Values above 0.5 turn the check off.",
+          "description": "Smallest fraction of the total seed length that each part of the seed chain, before and after the deletion that `--max-seed-chain-deletion-ratio` checks, must hold for the sequence to be rejected. A finite number between 0 and 1. Has an effect only when `--max-seed-chain-deletion-ratio` is set.\n\nA part with fewer seeds usually stays out of the final alignment, because terminal gaps are free. Values above 0.5 turn the check off.",
           "type": [
             "number",
             "null"

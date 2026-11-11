@@ -6,7 +6,7 @@ Nextclade aligns a query to the reference with one linear pairwise alignment. Be
 
 A long deletion between two far parts is a claim about the genome: the bases between the parts are absent. For most inputs with such a chain, nothing supports that claim. The region between the parts was never sequenced, or the second part is a technical artifact. Nextclade then reports a deletion, a coverage and a QC status that the data does not support. The opposite error also occurs: a chain that links a single spurious seed far away looks like such a case, although the alignment is correct.
 
-Nextclade 3.26.0 added a check that rejects the whole sequence when its chain contains a long gap with enough seeds on both sides ([#1801](https://github.com/nextstrain/nextclade/pull/1801)). The check is on by default (`--max-seed-chain-deletion-ratio` 10, `--min-seed-chain-part-cover` 0.2), and the `short-sequences` preset turns it off ([packages/nextclade/src/align/align.rs#L76-L98](../../packages/nextclade/src/align/align.rs#L76-L98), [packages/nextclade/src/align/seed_match.rs#L519](../../packages/nextclade/src/align/seed_match.rs#L519)). In the data below, most of its rejections were correct alignments, and the rest lost sound parts together with the unsound result. With the check off, every sequence with distant parts gets the long-deletion result, as before 3.26.0. This proposal describes the options for a correct treatment.
+Nextclade 3.26.0 added a check that rejects the whole sequence when its chain contains a long gap with enough seeds on both sides ([#1801](https://github.com/nextstrain/nextclade/pull/1801)). Releases 3.26.0 to 3.29.0 ran the check by default (`--max-seed-chain-deletion-ratio` 10, `--min-seed-chain-part-cover` 0.2). In the data below, most of its rejections were correct alignments, and the rest lost sound parts together with the unsound result. The check is now off by default and runs only when `--max-seed-chain-deletion-ratio` or `maxSeedChainDeletionRatio` in `alignmentParams` of `pathogen.json` is set ([packages/nextclade/src/align/align.rs#L77-L103](../../packages/nextclade/src/align/align.rs#L77-L103), [packages/nextclade/src/align/seed_match.rs#L519](../../packages/nextclade/src/align/seed_match.rs#L519)). With the check off, every sequence with distant parts gets the long-deletion result, as before 3.26.0. This proposal describes the options for a correct treatment.
 
 ## Requirements
 
@@ -21,7 +21,7 @@ Nextclade 3.26.0 added a check that rejects the whole sequence when its chain co
 
 ### Sources
 
-- Example sequences of the datasets in `nextstrain/nextclade_data`, and 323 mpox sequences of a user report, used in the evaluation of #1801
+- Example sequences of the datasets in `nextstrain/nextclade_data`, and 323 mpox sequences of a user report, used in the evaluation of #1801. The report: https://phylo-lab.slack.com/archives/CBVHPFMGX/p1791921148398729
 - Public Pathoplexus data, latest version of each sequence, downloaded on 2026-11-11 from `https://lapis.pathoplexus.org/<organism>/sample/unalignedNucleotideSequences`. Nextclade 3.24.0 (before the check) and 3.29.0 (check on by default) were run with `--retry-reverse-complement=true` and the dataset tags that Pathoplexus uses. The upgrade of Pathoplexus from 3.24 to 3.28 reported new alignment errors in [pathoplexus/pathoplexus#1217](https://github.com/pathoplexus/pathoplexus/issues/1217)
 
 | Organism  | Dataset and tag                                               | Sequences | Rejected by the check |
@@ -75,21 +75,17 @@ A 2,480 nt mpox fragment. The first 1,638 nt match reference 2470-4107 with 10 s
 
 In about 44,600 Pathoplexus sequences of five organisms, 15 sequences (0.03 %) carry distant parts that a linear alignment cannot represent, and the check also rejects 99 correct alignments. In the dataset examples, 1 of 4,751 sequences was affected. The problem is rare but real, it occurs in public INSDC records, and the previous output for it was wrong without any warning.
 
-## Short-term step
-
-Until a correct treatment exists, the check is turned off by default: it runs only when `--max-seed-chain-deletion-ratio` or `maxSeedChainDeletionRatio` in `alignmentParams` of `pathogen.json` is set. This stops the false rejections, and sequences with distant parts get their pre-3.26.0 result back, which is unsound for the joined-amplicon and fold-back classes. Work item: [`tickets/align-seed-chain-check-off-by-default.md`](../tickets/align-seed-chain-check-off-by-default.md).
-
 ## Design axes
 
 The axes are independent unless a coupling is stated.
 
 ### A. Treatment of a chain with a distant gap
 
-- A1. **Reject the whole sequence** (current default, since 3.26.0)
+- A1. **Reject the whole sequence** (default of 3.26.0 to 3.29.0, and the current behavior with the check on)
   - (+) No unsound result reaches the output
   - (-) Loses every sound part: both amplicons of a joined record, the 1,638 sound nt of the fold-back read
   - (-) Breaks pipelines that aligned these sequences before, as in pathoplexus/pathoplexus#1217
-- A2. **Align as one linear alignment with a long deletion** (behavior of 3.25.0 and before, and of the current release with the check off)
+- A2. **Align as one linear alignment with a long deletion** (behavior of 3.25.0 and before, and the current default)
   - (+) No sequence is lost, and the output is the same as in old releases
   - (-) Fake deletions, inflated coverage and QC "good" for unsequenced regions, as in `PP_000KAQ4.3`; or a forced placement with false substitutions, as in `PP_0029GNM.1`
   - (-) A band across the whole distance: 2.76 GB for the mpox fold-back read
@@ -201,7 +197,7 @@ Together, these give a sound result for each class of the evidence: the spurious
 
 ## Issues
 
-- [`issues/H-align-seed-chain-check-rejects-correct-alignments.md`](../issues/H-align-seed-chain-check-rejects-correct-alignments.md): axes A3 and B
+- [`issues/M-align-seed-chain-check-rejects-correct-alignments.md`](../issues/M-align-seed-chain-check-rejects-correct-alignments.md): axes A3 and B
 - [`issues/H-align-distant-parts-reported-as-deletion.md`](../issues/H-align-distant-parts-reported-as-deletion.md): axes A, C, D and E
 - [`issues/M-align-unknown-length-gap-not-recognized.md`](../issues/M-align-unknown-length-gap-not-recognized.md): axis B4
 - [`issues/N-output-errors-without-codes.md`](../issues/N-output-errors-without-codes.md): axis F1

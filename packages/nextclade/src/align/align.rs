@@ -17,6 +17,7 @@ use crate::utils::num_human::format_number_human;
 use crate::{make_error, o};
 use eyre::{Report, WrapErr};
 use log::{info, trace, warn};
+use ordered_float::OrderedFloat;
 use std::cmp::max;
 
 /// Length ratio of query and reference above which the band-limit error describes the query as much longer than the
@@ -74,20 +75,23 @@ pub fn align_nuc(
     .wrap_err("When calculating seed matches")?;
 
   // Checked after the orientation is chosen, so that the rejection does not start the reverse-complement retry
-  if let Some(DistantSeedChainGap {
-    ref_range_before,
-    ref_range_after,
-    deletion,
-  }) = find_distant_seed_chain_gap(
-    &seed_matches,
-    qry_len,
-    *params.max_seed_chain_deletion_ratio,
-    *params.min_seed_chain_part_cover,
-  ) {
+  if let Some(OrderedFloat(max_seed_chain_deletion_ratio)) = params.max_seed_chain_deletion_ratio
+    && let Some(DistantSeedChainGap {
+      ref_range_before,
+      ref_range_after,
+      deletion,
+    }) = find_distant_seed_chain_gap(
+      &seed_matches,
+      qry_len,
+      max_seed_chain_deletion_ratio,
+      *params.min_seed_chain_part_cover,
+    )
+  {
     return make_error!(
       "Unable to align: the sequence matches two distant parts of the reference (positions {}-{} and {}-{}), which would need a deletion of {} nt in a sequence of {} nt. \
       This is likely due to a sequence from repeated regions (for example inverted terminal repeats), a chimeric or concatenated sequence, or an incorrect reference sequence. \
-      The limits can be changed with the Nextclade CLI flags '--max-seed-chain-deletion-ratio' and '--min-seed-chain-part-cover', or in 'alignmentParams' of pathogen.json.",
+      The check is on because '--max-seed-chain-deletion-ratio' or 'maxSeedChainDeletionRatio' in 'alignmentParams' of pathogen.json is set. \
+      Remove that setting to align the sequence, or change the limits with '--max-seed-chain-deletion-ratio' and '--min-seed-chain-part-cover'.",
       ref_range_before.start + 1,
       ref_range_before.end,
       ref_range_after.start + 1,
@@ -1164,7 +1168,7 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
     Ok(())
   }
 
-  const DISTANT_PARTS_ERROR: &str = "Unable to align: the sequence matches two distant parts of the reference (positions 1001-1400 and 21001-21400), which would need a deletion of 19,600 nt in a sequence of 800 nt. This is likely due to a sequence from repeated regions (for example inverted terminal repeats), a chimeric or concatenated sequence, or an incorrect reference sequence. The limits can be changed with the Nextclade CLI flags '--max-seed-chain-deletion-ratio' and '--min-seed-chain-part-cover', or in 'alignmentParams' of pathogen.json.";
+  const DISTANT_PARTS_ERROR: &str = "Unable to align: the sequence matches two distant parts of the reference (positions 1001-1400 and 21001-21400), which would need a deletion of 19,600 nt in a sequence of 800 nt. This is likely due to a sequence from repeated regions (for example inverted terminal repeats), a chimeric or concatenated sequence, or an incorrect reference sequence. The check is on because '--max-seed-chain-deletion-ratio' or 'maxSeedChainDeletionRatio' in 'alignmentParams' of pathogen.json is set. Remove that setting to align the sequence, or change the limits with '--max-seed-chain-deletion-ratio' and '--min-seed-chain-part-cover'.";
 
   // Query of two segments of a 30 kb reference, 19,600 nt apart
   #[rstest]
@@ -1179,7 +1183,7 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
     let ref_seq = helpers::random_nuc_seq(30_000, 1);
     let qry_seq = helpers::cut_segments(&ref_seq, qry_ranges);
     let params = AlignPairwiseParams {
-      max_seed_chain_deletion_ratio: max_seed_chain_deletion_ratio.into(),
+      max_seed_chain_deletion_ratio: Some(max_seed_chain_deletion_ratio.into()),
       ..AlignPairwiseParams::default()
     };
     let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &GeneMap::new(), &params);
@@ -1192,19 +1196,19 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
   // Queries of two segments of a 30 kb reference. Expected: internal deletions of the aligned query
   #[rstest]
   #[rustfmt::skip]
-  #[case::near(                     &[1_000..1_400,  2_000..2_400],   10.0, vec![600]    )]
-  #[case::distant_one_part_small(   &[1_000..2_000, 22_000..22_150],  10.0, vec![20_000] )]
-  #[case::distant_check_turned_off( &[1_000..1_400, 21_000..21_400], 100.0, vec![19_600] )]
+  #[case::near(                         &[1_000..1_400,  2_000..2_400],  Some(10.0), vec![600]    )]
+  #[case::distant_one_part_small(       &[1_000..2_000, 22_000..22_150], Some(10.0), vec![20_000] )]
+  #[case::distant_check_off_by_default( &[1_000..1_400, 21_000..21_400], None,       vec![19_600] )]
   #[trace]
   fn test_align_aligns_seed_chain_of_near_or_small_distant_parts(
     #[case] qry_ranges: &[Range<usize>],
-    #[case] max_seed_chain_deletion_ratio: f64,
+    #[case] max_seed_chain_deletion_ratio: Option<f64>,
     #[case] expected_deletions: Vec<usize>,
   ) -> Result<(), Report> {
     let ref_seq = helpers::random_nuc_seq(30_000, 1);
     let qry_seq = helpers::cut_segments(&ref_seq, qry_ranges);
     let params = AlignPairwiseParams {
-      max_seed_chain_deletion_ratio: max_seed_chain_deletion_ratio.into(),
+      max_seed_chain_deletion_ratio: max_seed_chain_deletion_ratio.map(OrderedFloat),
       ..AlignPairwiseParams::default()
     };
     let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &GeneMap::new(), &params);
@@ -1238,7 +1242,7 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
     let gap = find_distant_seed_chain_gap(
       &seed_matches,
       qry_seq.len(),
-      *params.max_seed_chain_deletion_ratio,
+      10.0,
       min_seed_chain_part_cover,
     );
 
@@ -1249,7 +1253,7 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
   // With the reverse-complement retry, the check runs once, on the chain of the chosen orientation
   #[rstest]
   #[rustfmt::skip]
-  #[case::forward_rejected_without_retry( helpers::distant_parts_with_reverse_complemented_tail, "Unable to align: the sequence matches two distant parts of the reference (positions 1001-1400 and 21001-21400), which would need a deletion of 19,600 nt in a sequence of 1,300 nt. This is likely due to a sequence from repeated regions (for example inverted terminal repeats), a chimeric or concatenated sequence, or an incorrect reference sequence. The limits can be changed with the Nextclade CLI flags '--max-seed-chain-deletion-ratio' and '--min-seed-chain-part-cover', or in 'alignmentParams' of pathogen.json.")]
+  #[case::forward_rejected_without_retry( helpers::distant_parts_with_reverse_complemented_tail, "Unable to align: the sequence matches two distant parts of the reference (positions 1001-1400 and 21001-21400), which would need a deletion of 19,600 nt in a sequence of 1,300 nt. This is likely due to a sequence from repeated regions (for example inverted terminal repeats), a chimeric or concatenated sequence, or an incorrect reference sequence. The check is on because '--max-seed-chain-deletion-ratio' or 'maxSeedChainDeletionRatio' in 'alignmentParams' of pathogen.json is set. Remove that setting to align the sequence, or change the limits with '--max-seed-chain-deletion-ratio' and '--min-seed-chain-part-cover'.")]
   #[case::reverse_complement_rejected(    helpers::reverse_complemented_distant_parts,         DISTANT_PARTS_ERROR)]
   #[trace]
   fn test_align_rejects_distant_seed_chain_of_chosen_orientation(
@@ -1261,6 +1265,7 @@ ref	.	CDS	16	39	.	-	0	Name=CDS1
     let (ref_seq, qry_seq) = input();
     let params = AlignPairwiseParams {
       retry_reverse_complement: true,
+      max_seed_chain_deletion_ratio: Some(OrderedFloat(10.0)),
       ..AlignPairwiseParams::default()
     };
     let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &GeneMap::new(), &params);

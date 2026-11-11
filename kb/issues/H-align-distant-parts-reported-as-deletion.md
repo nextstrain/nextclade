@@ -2,7 +2,7 @@
 
 ## Problem
 
-A query whose parts match distant regions of the reference has no sound result. Without the seed chain check (before 3.26.0, with the `short-sequences` preset, or with a large `--max-seed-chain-deletion-ratio`), it gets one linear alignment with a long deletion between the parts. The region between the parts was not sequenced, so the deletion, the coverage and the QC status are unsound. With the check (the default since 3.26.0), the whole sequence is rejected and its sound parts are lost.
+A query whose parts match distant regions of the reference has no sound result. By default, and in all releases before 3.26.0, it gets one linear alignment with a long deletion between the parts. The region between the parts was not sequenced, so the deletion, the coverage and the QC status are unsound. With the seed chain check (`--max-seed-chain-deletion-ratio`, on by default in 3.26.0 to 3.29.0), the whole sequence is rejected and its sound parts are lost.
 
 Examples from public Pathoplexus data, aligned with Nextclade 3.24.0, before the check:
 
@@ -15,7 +15,7 @@ In about 44,600 Pathoplexus sequences of five organisms, 15 sequences have this 
 ## Code
 
 - Seed chaining without a gap cost: `fn chain_seeds()` ([packages/nextclade/src/align/seed_match.rs#L326](../../packages/nextclade/src/align/seed_match.rs#L326))
-- Check before the band is built: `fn align_nuc()` ([packages/nextclade/src/align/align.rs#L76-L98](../../packages/nextclade/src/align/align.rs#L76-L98)) and `fn find_distant_seed_chain_gap()` ([packages/nextclade/src/align/seed_match.rs#L519](../../packages/nextclade/src/align/seed_match.rs#L519))
+- Check before the band is built: `fn align_nuc()` ([packages/nextclade/src/align/align.rs#L77-L103](../../packages/nextclade/src/align/align.rs#L77-L103)) and `fn find_distant_seed_chain_gap()` ([packages/nextclade/src/align/seed_match.rs#L519](../../packages/nextclade/src/align/seed_match.rs#L519))
 - Coverage counts deleted bases inside the alignment range as covered ([packages/nextclade/src/run/nextclade_run_one.rs#L168-L170](../../packages/nextclade/src/run/nextclade_run_one.rs#L168-L170))
 
 ## Fix
