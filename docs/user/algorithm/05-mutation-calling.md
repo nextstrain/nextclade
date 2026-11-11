@@ -52,9 +52,9 @@ For each query sample possessing a clade, Nextclade finds a corresponding "clade
 
 After that Nextclade calls nucleotide and aminoacid mutations relative to the clade founder.
 
-The search and mutation calling happens separately for clades as well as for each custom clade-like attribute (unless excluded in the [pathogen config](../input-files/05-pathogen-config.md)).
+The search and mutation calling happens separately for clades as well as for each custom clade-like attribute (unless excluded with `skipAsReference` in the [reference tree](../input-files/04-reference-tree.md#clade-like-attributes)).
 
-Clade founder search is a built-in convenience wrapper for a [node search and relative mutations](#arbitrary-node-search-and-relative-mutations) with pre-agreed search criteria (matching clades).
+Clade founder search is a built-in convenience wrapper for a [node search and relative mutations](#arbitrary-node-search-and-relative-mutations) with pre-agreed search criteria (matching clades). It differs from a custom `ancestor-earliest` search in one case: when the sample is placed directly on the clade founder, the clade founder search returns that node, while the custom search skips the placement node and finds no result.
 
 > ⚠️ Nextclade assumes that all clades and clade-like attributes defined on the [input reference tree](../input-files/04-reference-tree.md) are [monophyletic](https://en.wikipedia.org/wiki/Monophyly). In this context it means that that all nodes belonging to one clade are a single connected component on the tree. Moreover, tree should be sufficiently large and diverse, such that early samples of each of the clades are well represented. Nextclade official datasets enforce these requirements, however third-party dataset authors and users of their datasets need to take additional care.
 
@@ -70,13 +70,13 @@ The mutation calling step results in a set of mutations and various practical me
 
 Mutations can be viewed in the last column of the results table in [Nextclade Web](../nextclade-web/index.rst).
 
-The "Genetic feature" dropdown allows switching between nucleotide sequence and CDSes (if genome annotation is provided). The "Relative to" dropdown allows to select the target for comparison:
+The "Genetic feature" dropdown allows switching between nucleotide sequence and CDSes (if genome annotation is provided). The "Relative to" dropdown allows to select the target for comparison. Each entry corresponds to a group of columns in the [CSV and TSV output](../output-files/04-results-tsv.md):
 
-- "Reference" - shows mutations relative to the [reference sequence](../input-files/02-reference-sequence.md)
-- "Parent" - shows private mutations, i.e. mutations relative to the parent (nearest) node
-- "Clade founder" - shows mutations relative to clade founder
-- "<attribute> founder" - shows mutations relative to clade-like attribute founder (if any defined)
-- any additional entries show mutations relative to the node(s) found according to the custom search criteria (if any defined)
+- "Reference" - shows mutations relative to the [reference sequence](../input-files/02-reference-sequence.md). Columns: `substitutions`, `deletions`, `aaSubstitutions` etc.
+- "Parent" - shows private mutations, i.e. mutations relative to the parent (nearest) node. Columns: `privateNucMutations.*` and `privateAaMutations.*`
+- "Clade founder" - shows mutations relative to clade founder. Columns: `founderMuts['clade'].*`
+- "<attribute> founder" - shows mutations relative to clade-like attribute founder (if any defined). Columns: `founderMuts['<attribute.name>'].*`
+- any additional entries show mutations relative to the node(s) found according to the custom search criteria (if any defined). Columns: `relativeMutations['<search.displayName>'].*`
 
 The "Mut" column shows total number of nucleotide mutations and its mouseover tooltip lists the mutations.
 
