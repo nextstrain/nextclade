@@ -127,9 +127,9 @@ mod tests {
   // rest gives no evidence that the sequence fits the tree, and fails also without mutations.
   #[rustfmt::skip]
   #[rstest]
-  #[case::short_rest_below(    ("R".repeat(75) + &"X".repeat(25), vec![60]),     true)]
-  #[case::short_rest_at(       ("R".repeat(75) + &"X".repeat(25), vec![60, 61]), false)]
-  #[case::no_rest_no_mutations(("R".repeat(50) + &"X".repeat(50), vec![]),       false)]
+  #[case::short_rest_below(    (["R".repeat(75), "X".repeat(25)].concat(), vec![60]),     true)]
+  #[case::short_rest_at(       (["R".repeat(75), "X".repeat(25)].concat(), vec![60, 61]), false)]
+  #[case::no_rest_no_mutations((["R".repeat(50), "X".repeat(50)].concat(), vec![]),       false)]
   #[trace]
   fn test_recombination_call_qc_rest_of_sequence_scales_with_covered_sites(
     #[case] (observations, unlabeled): (String, Vec<usize>),

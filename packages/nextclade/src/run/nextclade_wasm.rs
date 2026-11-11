@@ -344,7 +344,7 @@ impl Nextclade {
     } = inputs;
 
     let is_recombination_enabled =
-      is_recombination_enabled(&params.recombination, virus_properties.recombination.as_ref());
+      is_recombination_enabled(params.recombination, virus_properties.recombination.as_ref());
     let params = NextcladeInputParams::from_optional(params, &virus_properties)?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
     let seed_index = CodonSpacedIndex::from_sequence(&ref_seq);

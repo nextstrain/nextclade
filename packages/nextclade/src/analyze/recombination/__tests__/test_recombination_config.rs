@@ -30,7 +30,7 @@ mod tests {
       without_recombination: user == Some(false),
     };
     let config = dataset.map(|enabled| RecombinationConfig { enabled, ..RecombinationConfig::default() });
-    assert_eq!(expected, is_recombination_enabled(&user, config.as_ref()));
+    assert_eq!(expected, is_recombination_enabled(user, config.as_ref()));
   }
 
   #[rustfmt::skip]

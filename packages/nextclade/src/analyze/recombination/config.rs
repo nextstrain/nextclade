@@ -10,7 +10,7 @@ use smart_default::SmartDefault;
 ///
 /// The user's choice (`--with-recombination`, `--without-recombination`) overrides `recombination.enabled` of the
 /// dataset. Without either, detection is off.
-pub fn is_recombination_enabled(user: &RecombinationUserParams, config: Option<&RecombinationConfig>) -> bool {
+pub fn is_recombination_enabled(user: RecombinationUserParams, config: Option<&RecombinationConfig>) -> bool {
   user
     .choice()
     .unwrap_or_else(|| config.is_some_and(|config| config.enabled))
@@ -81,7 +81,7 @@ pub struct RecombinationUserParams {
 
 impl RecombinationUserParams {
   /// The user's choice: `Some(true)` = on, `Some(false)` = off, `None` = the dataset decides.
-  pub const fn choice(&self) -> Option<bool> {
+  pub const fn choice(self) -> Option<bool> {
     match (self.with_recombination, self.without_recombination) {
       (true, false) => Some(true),
       (false, true) => Some(false),
