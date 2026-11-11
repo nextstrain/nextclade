@@ -24,7 +24,7 @@ mod tests {
   fn test_recombination_estimate_all_params_from_tree() {
     let graph = two_clade_tree();
     let params = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
-    pretty_assert_ulps_eq!(1.0 / 100.0, params.gamma(), max_ulps = 2);
+    pretty_assert_ulps_eq!(0.01 / 100.0, params.gamma(), max_ulps = 2);
     pretty_assert_ulps_eq!(2.0 / 100.0, params.mu_w(), max_ulps = 2);
     pretty_assert_ulps_eq!(5.0 / 100.0, params.mu_r(), max_ulps = 2);
   }
@@ -70,7 +70,7 @@ mod tests {
       mu_r: Some(OrderedFloat(0.2)),
     };
     let params = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();
-    pretty_assert_ulps_eq!(1.0 / 100.0, params.gamma(), max_ulps = 2); // still estimated
+    pretty_assert_ulps_eq!(0.01 / 100.0, params.gamma(), max_ulps = 2); // still estimated
     pretty_assert_ulps_eq!(0.01, params.mu_w(), max_ulps = 2);
     pretty_assert_ulps_eq!(0.2, params.mu_r(), max_ulps = 2);
   }

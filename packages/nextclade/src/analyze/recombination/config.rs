@@ -25,7 +25,7 @@ pub struct RecombinationConfig {
   /// to load.
   pub enabled: bool,
 
-  /// State transition rate of the HMM. Absent = `1 / L`, where `L` is the reference length. Must be in (0, 0.5).
+  /// State transition rate of the HMM. Absent = `0.01 / L`, where `L` is the reference length. Must be in (0, 0.5).
   #[serde(skip_serializing_if = "Option::is_none")]
   #[schemars(range(min = 0.0, max = 0.5))]
   pub gamma: Option<OrderedFloat<f64>>,

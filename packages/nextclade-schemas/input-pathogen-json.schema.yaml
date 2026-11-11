@@ -875,15 +875,8 @@ definitions:
         description: Whether recombination detection runs for this dataset. The command-line flags `--with-recombination` and `--without-recombination` override it. When detection runs and the dataset cannot support it, the dataset fails to load.
         default: false
         type: boolean
-      minPrivateSubsToRun:
-        description: Minimum private substitutions for detection to run. Defaults to 1 (skips sequences with no recombinant signal).
-        type:
-        - integer
-        - 'null'
-        format: uint
-        minimum: 0.0
       gamma:
-        description: State transition rate of the HMM. Absent = `1 / L`, where `L` is the reference length. Must be in (0, 0.5).
+        description: State transition rate of the HMM. Absent = `0.01 / L`, where `L` is the reference length. Must be in (0, 0.5).
         type:
         - number
         - 'null'

@@ -31,7 +31,7 @@ Three dataset-specific parameters:
 
 Each can be set in the [pathogen configuration](../input-files/05-pathogen-config.md). Unset parameters are estimated from the reference:
 
-- `gamma` defaults to `1 / L` (reference length). A single state switch then costs ~`ln L`, so only sustained dense stretches open a recombinant interval.
+- `gamma` defaults to `0.01 / L` (`L` = reference length): in many viral species recombinants are rare, so the expected switch rate is far below one per genome. A single state switch then costs about `ln(100 L)`, so only sustained dense stretches open a recombinant interval, and very short calls disappear.
 - `muW`: mean terminal branch length of the reference tree (substitutions per site).
 - `muR`: median pairwise substitution distance between leaves of different clades (per site).
 
