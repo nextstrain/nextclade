@@ -186,6 +186,7 @@ export async function serializeResultsCsv(
   refNodesJson: AuspiceRefNodesDesc,
   aaMotifsDescs: AaMotifsDesc[],
   mutationPatternKeys: string[],
+  isRecombinationEnabled: boolean,
   delimiter: string,
   csvColumnConfig: CsvColumnConfig,
 ) {
@@ -206,6 +207,7 @@ export async function serializeResultsCsv(
       refNodesStr,
       aaMotifsDescsStr,
       mutationPatternKeysStr,
+      isRecombinationEnabled,
       delimiter,
       csvColumnConfigStr,
     ),

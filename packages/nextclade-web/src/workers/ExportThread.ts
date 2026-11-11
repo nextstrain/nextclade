@@ -89,6 +89,7 @@ export class ExportWorker {
     refNodes: AuspiceRefNodesDesc,
     aaMotifsDescs: AaMotifsDesc[],
     mutationPatternKeys: string[],
+    isRecombinationEnabled: boolean,
     delimiter: string,
     csvColumnConfig: CsvColumnConfig,
   ) {
@@ -101,6 +102,7 @@ export class ExportWorker {
         refNodes,
         aaMotifsDescs,
         mutationPatternKeys,
+        isRecombinationEnabled,
         delimiter,
         csvColumnConfig,
       ),

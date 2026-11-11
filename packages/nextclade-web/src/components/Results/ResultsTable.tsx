@@ -28,6 +28,7 @@ import {
 import {
   aaMotifsDescsAtom,
   cladeNodeAttrDescsAtom,
+  isRecombinationEnabledAtom,
   phenotypeAttrDescsAtom,
   seqIndicesFilteredAtom,
   sortAnalysisResultsAtom,
@@ -188,6 +189,7 @@ export function ResultsTable() {
   const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom({ datasetName }))
   const phenotypeAttrDescs = useRecoilValue(phenotypeAttrDescsAtom({ datasetName }))
   const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
+  const isRecombinationEnabled = useRecoilValue(isRecombinationEnabledAtom({ datasetName }))
 
   const cladeColorStyle = useRecoilValue(cladeColorStyleAtom)
 
@@ -227,6 +229,7 @@ export function ResultsTable() {
       seqNamesSelectedOnTree,
       phenotypeAttrDescs: phenotypeAttrDescs ?? [],
       aaMotifsDescs: aaMotifsDescs ?? [],
+      isRecombinationEnabled,
     }))
   }, [
     aaMotifsDescs,
@@ -239,6 +242,7 @@ export function ResultsTable() {
     dynamicAaMotifsColumnWidthPx,
     dynamicCladeColumnWidthPx,
     dynamicPhenotypeColumnWidthPx,
+    isRecombinationEnabled,
     phenotypeAttrDescs,
     seqIndices,
     seqNamesSelectedOnTree,
@@ -503,15 +507,17 @@ export function ResultsTable() {
 
         {dynamicCladeColumns}
 
-        <TableHeaderCell basis={columnWidthsPx.recombination} grow={0} shrink={0}>
-          <TableHeaderCellContent>
-            <TableCellText>{t('Rec.')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByRecombinantLengthAsc} sortDesc={sortByRecombinantLengthDesc} />
-          </TableHeaderCellContent>
-          <ButtonHelpStyled identifier="btn-help-col-recombination">
-            <HelpTipsColumnRecombination />
-          </ButtonHelpStyled>
-        </TableHeaderCell>
+        {isRecombinationEnabled && (
+          <TableHeaderCell basis={columnWidthsPx.recombination} grow={0} shrink={0}>
+            <TableHeaderCellContent>
+              <TableCellText>{t('Rec.')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByRecombinantLengthAsc} sortDesc={sortByRecombinantLengthDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelpStyled identifier="btn-help-col-recombination">
+              <HelpTipsColumnRecombination />
+            </ButtonHelpStyled>
+          </TableHeaderCell>
+        )}
 
         {dynamicPhenotypeColumns}
 

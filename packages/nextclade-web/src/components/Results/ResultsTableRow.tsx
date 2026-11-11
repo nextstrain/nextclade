@@ -25,6 +25,8 @@ export interface TableRowDatum {
   seqNamesSelectedOnTree: ReadonlySet<string>
   phenotypeAttrDescs: PhenotypeAttrDesc[]
   aaMotifsDescs: AaMotifsDesc[]
+  /** Whether the dataset runs recombination detection, which decides whether the table has the recombination column */
+  isRecombinationEnabled: boolean
 }
 
 export interface RowProps extends ListChildComponentProps {
@@ -46,6 +48,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
     seqNamesSelectedOnTree,
     phenotypeAttrDescs,
     aaMotifsDescs,
+    isRecombinationEnabled,
   } = useMemo(() => data[index], [data, index])
 
   const { result, error } = useAtomValue(analysisResultAtom(seqIndex))
@@ -69,6 +72,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
         seqNamesSelectedOnTree={seqNamesSelectedOnTree}
         phenotypeAttrDescs={phenotypeAttrDescs}
         aaMotifsDescs={aaMotifsDescs}
+        isRecombinationEnabled={isRecombinationEnabled}
         viewedGene={viewedGene}
       />
     )
