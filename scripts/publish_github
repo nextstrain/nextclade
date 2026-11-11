@@ -140,7 +140,7 @@ gh release upload \
 react_to_release() {
   emoji=${1:-rocket}
 
-  release_id=$(curl -fsSL \
+  release_id=$(curl -fsSL --retry 8 --retry-all-errors \
     -H "Accept: application/vnd.github.v3+json" \
     -H "Authorization: token ${GITHUB_TOKEN}" \
     "https://api.github.com/repos/${repo}/releases/tags/${version}" |

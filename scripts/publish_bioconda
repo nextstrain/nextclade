@@ -38,7 +38,7 @@ mkdir -p "${artifacts_dir}"
 
 function download_artifact() {
   name=${1:?}
-  curl -fsSL -o "${artifacts_dir}/${name}" "https://github.com/nextstrain/nextclade/releases/latest/download/${name}"
+  curl -fsSL --retry 8 --retry-all-errors -o "${artifacts_dir}/${name}" "https://github.com/nextstrain/nextclade/releases/latest/download/${name}"
 }
 export -f download_artifact
 

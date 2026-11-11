@@ -113,6 +113,8 @@ ENV TERM="xterm-256color"
 ENV HOME="/home/${USER}"
 ENV CARGO_HOME="${HOME}/.cargo"
 ENV CARGO_INSTALL_ROOT="${HOME}/.cargo/install"
+# Retry crate downloads for about a minute, instead of the default 3 retries, to ride out short outages of crates.io
+ENV CARGO_NET_RETRY="10"
 ENV RUSTUP_HOME="${HOME}/.rustup"
 ENV NODE_DIR="/opt/node"
 ENV PATH="/usr/lib/llvm-${CLANG_VERSION}/bin:${NODE_DIR}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"

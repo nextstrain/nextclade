@@ -115,6 +115,26 @@ function is_ci() {
   fi
 }
 
+# Runs a command up to `$1` times, doubling the pause after each failure, and returns the status of the last attempt.
+# Rides out short outages of package mirrors and download hosts.
+function retry() {
+  local max_attempts="$1"
+  shift
+  local delay_secs=30
+  local attempt
+  local status
+  for ((attempt = 1; ; attempt++)); do
+    "$@" && return 0 || status=$?
+    if ((attempt >= max_attempts)); then
+      return "${status}"
+    fi
+    printf 'Command failed with status %d (attempt %d of %d). Retrying in %ds: %s\n' \
+      "${status}" "${attempt}" "${max_attempts}" "${delay_secs}" "$*" >&2
+    sleep "${delay_secs}"
+    ((delay_secs *= 2))
+  done
+}
+
 export THIS_DIR=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   pwd
@@ -587,7 +607,17 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
       docker buildx create --name "${BUILDX_BUILDER}" --driver docker-container --driver-opt network=host
   fi
 
-  ${NICE} docker buildx build \
+  # The image build downloads packages and tools from many hosts, and in CI no one is present to restart it after an
+  # outage. The builder keeps the layers of completed steps, so each attempt resumes at the step that failed.
+  DOCKER_BUILD_ATTEMPTS="${DOCKER_BUILD_ATTEMPTS:-}"
+  if [ -z "${DOCKER_BUILD_ATTEMPTS}" ]; then
+    DOCKER_BUILD_ATTEMPTS=1
+    if [ "$(is_ci)" == "1" ]; then
+      DOCKER_BUILD_ATTEMPTS=5
+    fi
+  fi
+
+  retry "${DOCKER_BUILD_ATTEMPTS}" ${NICE} docker buildx build \
     --builder="${BUILDX_BUILDER}" \
     --file="docker/docker-dev.dockerfile" \
     --target="${DOCKER_TARGET}" \

@@ -272,12 +272,12 @@ jobs:
         run: |
           mkdir -p "${HOME}/bin"
           GH_CLI_VERSION=$(./scripts/get-version gh)
-          curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 "gh_${GH_CLI_VERSION}_linux_amd64/bin/gh"
+          curl -fsSL --retry 8 --retry-all-errors "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 "gh_${GH_CLI_VERSION}_linux_amd64/bin/gh"
 
-          sudo apt-get install brotli pigz parallel rename --yes -qq >/dev/null
+          sudo apt-get -o Acquire::Retries=10 install brotli pigz parallel rename --yes -qq >/dev/null
 
           pushd /tmp >/dev/null
-            curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            curl -fsSL --retry 8 --retry-all-errors "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip -oqq awscliv2.zip
             sudo ./aws/install --update
           popd >/dev/null
