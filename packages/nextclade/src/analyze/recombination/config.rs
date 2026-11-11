@@ -4,6 +4,7 @@
 use clap::Parser;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
 
 /// Decide whether recombination detection runs for a dataset.
 ///
@@ -16,7 +17,7 @@ pub fn is_recombination_enabled(user: &RecombinationUserParams, config: Option<&
 /// Dataset configuration for recombination detection (`recombination` in `pathogen.json`).
 ///
 /// A given HMM parameter is used verbatim; an absent one is computed from the reference tree and the reference length.
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Clone, Debug, SmartDefault, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct RecombinationConfig {
@@ -40,6 +41,16 @@ pub struct RecombinationConfig {
   #[serde(skip_serializing_if = "Option::is_none")]
   #[schemars(range(min = 0.0, max = 1.0))]
   pub mu_r: Option<OrderedFloat<f64>>,
+
+  /// Minimal span of a recombinant region, in nucleotides. A shorter region is dropped.
+  #[default = 50]
+  pub min_region_length: usize,
+
+  /// Maximal fraction of missing sites (`N`, other ambiguity codes, deletions, placement-masked sites) in the span of
+  /// a recombinant region. A region with a higher fraction is dropped. Must be in [0, 1].
+  #[default(OrderedFloat(0.5))]
+  #[schemars(range(min = 0.0, max = 1.0))]
+  pub max_region_missing_fraction: OrderedFloat<f64>,
 }
 
 /// Recombination detection switches of the command-line interface. They override `recombination.enabled` of the

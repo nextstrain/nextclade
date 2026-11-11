@@ -3,18 +3,19 @@
 //! Two-state HMM (wildtype/recombinant), Viterbi-decoded.
 //! Sites emit `Ref`, `Mut`, or `Missing` relative to the inferred parent. `Missing` emits
 //! probability 1 in both states (marginalization), so transitions cross it but it adds no evidence.
-//! Recombinant runs, trimmed to covered endpoints, are reported as putative recombinant regions.
+//! Recombinant runs, trimmed to covered endpoints and filtered by the call checks, are reported as putative
+//! recombinant regions.
 //!
-//! Entry points: `run_recombination` (per-sequence), `estimate::resolve_recombination_params`
-//! (per-dataset setup).
+//! Entry points: `run_recombination` (per-sequence), `setup::resolve_recombination_setup` (per-dataset setup).
 
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
+use crate::analyze::recombination::call_qc::filter_regions;
 use crate::analyze::recombination::decode::find_recombinant_regions;
 use crate::analyze::recombination::observations::{build_observations, collect_missing_ranges};
-use crate::analyze::recombination::params::RecombinationHmmParams;
 use crate::analyze::recombination::result::RecombinationResult;
+use crate::analyze::recombination::setup::RecombinationSetup;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::NucRefGlobalRange;
 
@@ -36,8 +37,8 @@ pub struct RecombinationRunInput<'a> {
   pub masked_ranges: &'a [NucRefGlobalRange],
 }
 
-/// Detect recombinant regions for one sequence, or `None` when nothing is found.
-pub fn run_recombination(params: &RecombinationHmmParams, input: &RecombinationRunInput) -> Option<RecombinationResult> {
+/// Detect recombinant regions for one sequence, or `None` when no region passes the call checks.
+pub fn run_recombination(setup: &RecombinationSetup, input: &RecombinationRunInput) -> Option<RecombinationResult> {
   // Without private substitutions, every site is `Ref` or `Missing`, and the recombinant state cannot outscore the
   // wildtype state. Skipping these sequences is exact.
   if input.private_substitutions.is_empty() {
@@ -53,6 +54,7 @@ pub fn run_recombination(params: &RecombinationHmmParams, input: &RecombinationR
     &mutated_positions,
   );
 
-  let regions = find_recombinant_regions(&observations, params);
+  let regions = find_recombinant_regions(&observations, &setup.params);
+  let regions = filter_regions(regions, &observations, &setup.call_qc);
   RecombinationResult::from_ranges(regions)
 }

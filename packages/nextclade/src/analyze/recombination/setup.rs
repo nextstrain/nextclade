@@ -1,5 +1,6 @@
 //! Per-dataset setup of recombination detection, resolved once when the dataset loads.
 
+use crate::analyze::recombination::call_qc::RecombinationCallQcConfig;
 use crate::analyze::recombination::config::RecombinationConfig;
 use crate::analyze::recombination::estimate::resolve_recombination_params;
 use crate::analyze::recombination::params::RecombinationHmmParams;
@@ -33,6 +34,8 @@ pub fn resolve_recombination_setup(
 pub struct RecombinationSetup {
   /// HMM parameters
   pub params: RecombinationHmmParams,
+  /// Settings of the checks of the decoded calls
+  pub call_qc: RecombinationCallQcConfig,
 }
 
 fn resolve_enabled(
@@ -45,6 +48,25 @@ fn resolve_enabled(
       "No reference tree is available, and recombination detection requires one to derive parent-relative mutations"
     );
   };
-  let params = resolve_recombination_params(config, graph, ref_len)?;
-  Ok(RecombinationSetup { params })
+  let default_config = RecombinationConfig::default();
+  let config = config.unwrap_or(&default_config);
+  let params = resolve_recombination_params(Some(config), graph, ref_len)?;
+  let call_qc = resolve_call_qc(config)?;
+  Ok(RecombinationSetup { params, call_qc })
+}
+
+fn resolve_call_qc(config: &RecombinationConfig) -> Result<RecombinationCallQcConfig, Report> {
+  let max_region_missing_fraction = validate_fraction("maxRegionMissingFraction", config.max_region_missing_fraction.0)?;
+  Ok(RecombinationCallQcConfig {
+    min_region_length: config.min_region_length,
+    max_region_missing_fraction,
+  })
+}
+
+/// Validate a fraction in `pathogen.json`: it must be in the closed interval [0, 1].
+fn validate_fraction(name: &str, value: f64) -> Result<f64, Report> {
+  if !(0.0..=1.0).contains(&value) {
+    return make_error!("`recombination.{name}` in pathogen.json must be in the closed interval [0, 1], but got {value}");
+  }
+  Ok(value)
 }

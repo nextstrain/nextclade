@@ -460,7 +460,7 @@ pub fn nextclade_run_one(
   // in `run_recombination`.
   let recombination = recombination_setup.as_ref().and_then(|setup| {
     run_recombination(
-      &setup.params,
+      setup,
       &RecombinationRunInput {
         ref_len: ref_seq.len(),
         alignment_range: &alignment_range,

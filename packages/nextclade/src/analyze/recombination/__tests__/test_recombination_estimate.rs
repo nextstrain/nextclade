@@ -49,10 +49,10 @@ mod tests {
   fn test_recombination_estimate_config_override_is_used_verbatim() {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
-      enabled: true,
       gamma: Some(OrderedFloat(0.1)),
       mu_w: None,
       mu_r: None,
+      ..RecombinationConfig::default()
     };
     let params = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(0.1, params.gamma(), max_ulps = 2);
@@ -64,10 +64,10 @@ mod tests {
   fn test_recombination_estimate_partial_mu_overrides_used() {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
-      enabled: true,
       gamma: None,
       mu_w: Some(OrderedFloat(0.01)),
       mu_r: Some(OrderedFloat(0.2)),
+      ..RecombinationConfig::default()
     };
     let params = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(0.01 / 100.0, params.gamma(), max_ulps = 2); // still estimated
@@ -91,10 +91,10 @@ mod tests {
     let graph = two_clade_tree(); // estimated mu_w = 0.02
     // Only muR is overridden (0.01 <= estimated muW), so the two states cannot be told apart.
     let config = RecombinationConfig {
-      enabled: true,
       gamma: None,
       mu_w: None,
       mu_r: Some(OrderedFloat(0.01)),
+      ..RecombinationConfig::default()
     };
     assert_error!(
       resolve_recombination_params(Some(&config), &graph, REF_LEN),
@@ -108,10 +108,10 @@ mod tests {
     let graph = two_clade_tree();
     // Both rates explicit with muR <= muW: a misconfiguration, reported as a dataset-level error.
     let config = RecombinationConfig {
-      enabled: true,
       gamma: None,
       mu_w: Some(OrderedFloat(0.05)),
       mu_r: Some(OrderedFloat(0.01)),
+      ..RecombinationConfig::default()
     };
     assert_error!(
       resolve_recombination_params(Some(&config), &graph, REF_LEN),
@@ -124,10 +124,10 @@ mod tests {
     let graph = two_clade_tree();
     // gamma = 0.7 is within (0, 1) but not a sticky HMM; the resolution surfaces the model error.
     let config = RecombinationConfig {
-      enabled: true,
       gamma: Some(OrderedFloat(0.7)),
       mu_w: None,
       mu_r: None,
+      ..RecombinationConfig::default()
     };
     assert_error!(
       resolve_recombination_params(Some(&config), &graph, REF_LEN),
@@ -139,10 +139,10 @@ mod tests {
   fn test_recombination_estimate_errors_on_out_of_range_override() {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
-      enabled: true,
       gamma: Some(OrderedFloat(1.5)),
       mu_w: None,
       mu_r: None,
+      ..RecombinationConfig::default()
     };
     assert_error!(
       resolve_recombination_params(Some(&config), &graph, REF_LEN),
@@ -155,10 +155,10 @@ mod tests {
     let graph = two_clade_tree();
     // Per-field validation names the offending field, so a bad muW override is not misreported as gamma.
     let config = RecombinationConfig {
-      enabled: true,
       gamma: None,
       mu_w: Some(OrderedFloat(1.5)),
       mu_r: None,
+      ..RecombinationConfig::default()
     };
     assert_error!(
       resolve_recombination_params(Some(&config), &graph, REF_LEN),
@@ -265,10 +265,10 @@ mod tests {
     // three parameters must resolve regardless: the estimator is not consulted when a value is given.
     let graph = single_clade_tree();
     let config = RecombinationConfig {
-      enabled: true,
       gamma: Some(OrderedFloat(0.01)),
       mu_w: Some(OrderedFloat(0.02)),
       mu_r: Some(OrderedFloat(0.2)),
+      ..RecombinationConfig::default()
     };
     let params = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(0.01, params.gamma(), max_ulps = 2);
@@ -321,10 +321,10 @@ mod tests {
     ) {
       let mu_r = mu_w + offset;
       let config = RecombinationConfig {
-        enabled: true,
         gamma: Some(OrderedFloat(gamma)),
         mu_w: Some(OrderedFloat(mu_w)),
         mu_r: Some(OrderedFloat(mu_r)),
+        ..RecombinationConfig::default()
       };
       let graph = two_clade_tree();
       let params = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();

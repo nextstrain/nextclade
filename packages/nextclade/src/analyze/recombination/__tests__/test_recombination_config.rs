@@ -68,20 +68,34 @@ mod tests {
   fn test_recombination_config_serde_full_roundtrip() {
     // Every camelCase field deserializes into its Rust field, and reserializes to the same shape
     // (fields declared in struct order; unset optionals stay omitted via skip_serializing_if).
-    let json = r#"{"enabled":true,"gamma":0.01,"muW":0.005,"muR":0.05}"#;
+    let json = r#"{"enabled":true,"gamma":0.01,"muW":0.005,"muR":0.05,"minRegionLength":30,"maxRegionMissingFraction":0.25}"#;
     let config: RecombinationConfig = serde_json::from_str(json).unwrap();
     let expected = RecombinationConfig {
       enabled: true,
       gamma: Some(OrderedFloat(0.01)),
       mu_w: Some(OrderedFloat(0.005)),
       mu_r: Some(OrderedFloat(0.05)),
+      min_region_length: 30,
+      max_region_missing_fraction: OrderedFloat(0.25),
     };
     assert_eq!(expected, config);
     assert_eq!(json, serde_json::to_string(&config).unwrap());
   }
 
+  // Oracle: the defaults of the call checks agreed for detection (minimal region length 50, maximal missing fraction
+  // 0.5).
   #[test]
   fn test_recombination_config_serde_default() {
-    assert_eq!(r#"{"enabled":false}"#, serde_json::to_string(&RecombinationConfig::default()).unwrap());
+    let config: RecombinationConfig = serde_json::from_str("{}").unwrap();
+    let expected = RecombinationConfig {
+      enabled: false,
+      gamma: None,
+      mu_w: None,
+      mu_r: None,
+      min_region_length: 50,
+      max_region_missing_fraction: OrderedFloat(0.5),
+    };
+    assert_eq!(expected, config);
+    assert_eq!(expected, RecombinationConfig::default());
   }
 }

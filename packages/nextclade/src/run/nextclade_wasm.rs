@@ -429,7 +429,7 @@ impl Nextclade {
       graph.as_ref(),
       ref_seq.len(),
     )?;
-    if let Some(RecombinationSetup { params }) = &recombination {
+    if let Some(RecombinationSetup { params, .. }) = &recombination {
       info!(
         "Recombination detection enabled with gamma={}, muW={}, muR={}",
         params.gamma(),

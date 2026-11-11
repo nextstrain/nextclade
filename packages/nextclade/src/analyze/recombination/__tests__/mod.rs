@@ -1,5 +1,6 @@
 mod recombination_test_helpers;
 mod test_gm_recombination;
+mod test_recombination_call_qc;
 mod test_recombination_config;
 mod test_recombination_decode;
 mod test_recombination_estimate;
