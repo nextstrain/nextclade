@@ -48,6 +48,13 @@ RUN set -euxo pipefail >/dev/null \
 
 ARG CLANG_VERSION
 
+# Retry failed package downloads, which apt does not do by default before apt 2.3.2. The apt of Ubuntu 20.04 and
+# Debian 9 retries at once and does not retry index files, so this rides out dropped connections, and the retries of
+# the whole image build in `docker/dev` ride out longer outages.
+RUN set -euxo pipefail >/dev/null \
+&& if [[ "$DOCKER_BASE_IMAGE" != debian* ]] && [[ "$DOCKER_BASE_IMAGE" != ubuntu* ]]; then exit 0; fi \
+&& printf 'Acquire::Retries "5";\n' > "/etc/apt/apt.conf.d/80-retries"
+
 # Install required packages if running Debian or Ubuntu
 # The `sed` distrusts the roots of the compromised eMudhra intermediate CAs, because the archives of Ubuntu 20.04
 # and Debian 9 have no fixed `ca-certificates` (https://emudhra.we-have-a-problem.com/)

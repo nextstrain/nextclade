@@ -27,8 +27,8 @@ fi
 
 RUN set -euxo pipefail >/dev/null \
 && export DEBIAN_FRONTEND=noninteractive \
-&& apt-get update -qq \
-&& apt-get install --no-install-recommends --yes -qq \
+&& apt-get -o Acquire::Retries=5 update -qq \
+&& apt-get -o Acquire::Retries=5 install --no-install-recommends --yes -qq \
   bash \
   ca-certificates \
   curl \
