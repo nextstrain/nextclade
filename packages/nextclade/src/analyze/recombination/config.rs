@@ -5,10 +5,6 @@ use clap::Parser;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 
-/// Minimum private substitutions for detection to run. Zero subs = all-Ref/Missing observation
-/// vector, so the recombinant state can never outscore wildtype. Skipping is exact, not heuristic.
-pub const DEFAULT_MIN_PRIVATE_SUBS_TO_RUN: usize = 1;
-
 /// Decide whether recombination detection runs for a dataset.
 ///
 /// The user's choice (`--with-recombination`, `--without-recombination`) overrides `recombination.enabled` of the
@@ -29,11 +25,6 @@ pub struct RecombinationConfig {
   /// to load.
   pub enabled: bool,
 
-  /// Minimum private substitutions for detection to run. Defaults to 1 (skips sequences with no
-  /// recombinant signal).
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub min_private_subs_to_run: Option<usize>,
-
   /// State transition rate of the HMM. Absent = `1 / L`, where `L` is the reference length. Must be in (0, 0.5).
   #[serde(skip_serializing_if = "Option::is_none")]
   #[schemars(range(min = 0.0, max = 0.5))]
@@ -49,15 +40,6 @@ pub struct RecombinationConfig {
   #[serde(skip_serializing_if = "Option::is_none")]
   #[schemars(range(min = 0.0, max = 1.0))]
   pub mu_r: Option<OrderedFloat<f64>>,
-}
-
-impl RecombinationConfig {
-  /// Configured minimum private-sub count, or default when unset.
-  pub fn min_private_subs_to_run(config: Option<&RecombinationConfig>) -> usize {
-    config
-      .and_then(|c| c.min_private_subs_to_run)
-      .unwrap_or(DEFAULT_MIN_PRIVATE_SUBS_TO_RUN)
-  }
 }
 
 /// Recombination detection switches of the command-line interface. They override `recombination.enabled` of the

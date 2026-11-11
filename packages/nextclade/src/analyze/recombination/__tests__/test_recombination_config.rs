@@ -1,9 +1,7 @@
-//! `RecombinationConfig` and `RecombinationUserParams` semantics: the on/off decision, serde defaults, minimum
-//! private-sub threshold.
+//! `RecombinationConfig` and `RecombinationUserParams` semantics: the on/off decision and serde defaults.
 
 #[cfg(test)]
 mod tests {
-  use crate::analyze::recombination::__tests__::recombination_test_helpers::cfg_min_subs;
   use crate::analyze::recombination::config::{RecombinationConfig, RecombinationUserParams, is_recombination_enabled};
   use clap::Parser;
   use clap::error::ErrorKind;
@@ -66,26 +64,14 @@ mod tests {
     assert_eq!(expected, config.enabled);
   }
 
-  #[rustfmt::skip]
-  #[rstest]
-  #[case::absent(         None,                                   1)]
-  #[case::field_omitted(  Some(RecombinationConfig::default()),   1)]
-  #[case::explicit_one(   Some(cfg_min_subs(1)),                  1)]
-  #[case::explicit_three( Some(cfg_min_subs(3)),                  3)]
-  #[case::explicit_zero(  Some(cfg_min_subs(0)),                  0)]
-  fn test_recombination_config_min_private_subs_to_run(#[case] config: Option<RecombinationConfig>, #[case] expected: usize) {
-    assert_eq!(expected, RecombinationConfig::min_private_subs_to_run(config.as_ref()));
-  }
-
   #[test]
   fn test_recombination_config_serde_full_roundtrip() {
     // Every camelCase field deserializes into its Rust field, and reserializes to the same shape
     // (fields declared in struct order; unset optionals stay omitted via skip_serializing_if).
-    let json = r#"{"enabled":true,"minPrivateSubsToRun":3,"gamma":0.01,"muW":0.005,"muR":0.05}"#;
+    let json = r#"{"enabled":true,"gamma":0.01,"muW":0.005,"muR":0.05}"#;
     let config: RecombinationConfig = serde_json::from_str(json).unwrap();
     let expected = RecombinationConfig {
       enabled: true,
-      min_private_subs_to_run: Some(3),
       gamma: Some(OrderedFloat(0.01)),
       mu_w: Some(OrderedFloat(0.005)),
       mu_r: Some(OrderedFloat(0.05)),

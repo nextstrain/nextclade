@@ -11,7 +11,6 @@
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
-use crate::analyze::recombination::config::RecombinationConfig;
 use crate::analyze::recombination::decode::find_recombinant_regions;
 use crate::analyze::recombination::observations::{build_observations, collect_missing_ranges};
 use crate::analyze::recombination::params::RecombinationHmmParams;
@@ -37,14 +36,11 @@ pub struct RecombinationRunInput<'a> {
   pub masked_ranges: &'a [NucRefGlobalRange],
 }
 
-/// Detect recombinant regions for one sequence, or `None` when skipped or nothing found.
-/// Gated on `minPrivateSubsToRun` (default 1).
-pub fn run_recombination(
-  params: &RecombinationHmmParams,
-  config: Option<&RecombinationConfig>,
-  input: &RecombinationRunInput,
-) -> Option<RecombinationResult> {
-  if input.private_substitutions.len() < RecombinationConfig::min_private_subs_to_run(config) {
+/// Detect recombinant regions for one sequence, or `None` when nothing is found.
+pub fn run_recombination(params: &RecombinationHmmParams, input: &RecombinationRunInput) -> Option<RecombinationResult> {
+  // Without private substitutions, every site is `Ref` or `Missing`, and the recombinant state cannot outscore the
+  // wildtype state. Skipping these sequences is exact.
+  if input.private_substitutions.is_empty() {
     return None;
   }
 

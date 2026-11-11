@@ -50,7 +50,6 @@ mod tests {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
       enabled: true,
-      min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(0.1)),
       mu_w: None,
       mu_r: None,
@@ -66,7 +65,6 @@ mod tests {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
       enabled: true,
-      min_private_subs_to_run: None,
       gamma: None,
       mu_w: Some(OrderedFloat(0.01)),
       mu_r: Some(OrderedFloat(0.2)),
@@ -94,7 +92,6 @@ mod tests {
     // Only muR is overridden (0.01 <= estimated muW), so the two states cannot be told apart.
     let config = RecombinationConfig {
       enabled: true,
-      min_private_subs_to_run: None,
       gamma: None,
       mu_w: None,
       mu_r: Some(OrderedFloat(0.01)),
@@ -112,7 +109,6 @@ mod tests {
     // Both rates explicit with muR <= muW: a misconfiguration, reported as a dataset-level error.
     let config = RecombinationConfig {
       enabled: true,
-      min_private_subs_to_run: None,
       gamma: None,
       mu_w: Some(OrderedFloat(0.05)),
       mu_r: Some(OrderedFloat(0.01)),
@@ -129,7 +125,6 @@ mod tests {
     // gamma = 0.7 is within (0, 1) but not a sticky HMM; the resolution surfaces the model error.
     let config = RecombinationConfig {
       enabled: true,
-      min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(0.7)),
       mu_w: None,
       mu_r: None,
@@ -145,7 +140,6 @@ mod tests {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
       enabled: true,
-      min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(1.5)),
       mu_w: None,
       mu_r: None,
@@ -162,7 +156,6 @@ mod tests {
     // Per-field validation names the offending field, so a bad muW override is not misreported as gamma.
     let config = RecombinationConfig {
       enabled: true,
-      min_private_subs_to_run: None,
       gamma: None,
       mu_w: Some(OrderedFloat(1.5)),
       mu_r: None,
@@ -273,7 +266,6 @@ mod tests {
     let graph = single_clade_tree();
     let config = RecombinationConfig {
       enabled: true,
-      min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(0.01)),
       mu_w: Some(OrderedFloat(0.02)),
       mu_r: Some(OrderedFloat(0.2)),
@@ -330,7 +322,6 @@ mod tests {
       let mu_r = mu_w + offset;
       let config = RecombinationConfig {
         enabled: true,
-        min_private_subs_to_run: None,
         gamma: Some(OrderedFloat(gamma)),
         mu_w: Some(OrderedFloat(mu_w)),
         mu_r: Some(OrderedFloat(mu_r)),

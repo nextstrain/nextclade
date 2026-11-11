@@ -134,7 +134,6 @@ Optional. Recombination detection configuration. Detection is enabled by default
 Fields (all optional):
 
 - `enabled`: whether recombination detection runs for this dataset. Defaults to `true`.
-- `minPrivateSubsToRun`: minimum private substitutions a sequence must carry for detection to run. Defaults to `1` (zero-substitution sequences can never produce a call, so the default is an exact skip). Raising it trades sensitivity for speed.
 - `gamma`: HMM state transition rate. Defaults to `1 / L` (`L` = reference length).
 - `muW`: mutation emission probability in the wildtype state. Defaults to the mean terminal branch length of the reference tree.
 - `muR`: mutation emission probability in the recombinant state. Defaults to the median substitution distance between leaves of different clades (a tree-based proxy for inter-clade divergence).
