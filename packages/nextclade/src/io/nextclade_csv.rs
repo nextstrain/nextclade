@@ -318,7 +318,6 @@ mod tests {
       include_rel_muts: false,
       include_clade_founder_muts: false,
       include_mut_patterns: false,
-      include_recombination: false,
     };
 
     let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &[], &column_config);
