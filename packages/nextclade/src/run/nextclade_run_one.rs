@@ -464,7 +464,7 @@ pub fn nextclade_run_one(
       &RecombinationRunInput {
         ref_len: ref_seq.len(),
         alignment_range: &alignment_range,
-        private_substitutions: &private_nuc_mutations.private_substitutions,
+        private_nuc_mutations: &private_nuc_mutations,
         missing: &missing,
         non_acgtns: &non_acgtns,
         deletions: &deletions,

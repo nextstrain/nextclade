@@ -51,6 +51,13 @@ pub struct RecombinationConfig {
   #[default(OrderedFloat(0.5))]
   #[schemars(range(min = 0.0, max = 1.0))]
   pub max_region_missing_fraction: OrderedFloat<f64>,
+
+  /// Maximal total span of the recombinant regions of a sequence, as a fraction of the span of its alignment range.
+  /// Above it, a sequence is recombinant almost everywhere, carries no localized signal, and gets no call. Must be in
+  /// [0, 1].
+  #[default(OrderedFloat(2.0 / 3.0))]
+  #[schemars(range(min = 0.0, max = 1.0))]
+  pub max_recombinant_fraction: OrderedFloat<f64>,
 }
 
 /// Recombination detection switches of the command-line interface. They override `recombination.enabled` of the
