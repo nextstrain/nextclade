@@ -21,7 +21,7 @@ mod tests {
     let graph = two_clade_tree();
     // Oracle: hand-computed estimates of `two_clade_tree` (see its fixture comment).
     let expected = RecombinationSetup {
-      params: RecombinationHmmParams::new(1.0 / 100.0, 2.0 / 100.0, 5.0 / 100.0).unwrap(),
+      params: RecombinationHmmParams::new(0.01 / 100.0, 2.0 / 100.0, 5.0 / 100.0).unwrap(),
     };
     assert_eq!(
       Some(expected),

@@ -1,7 +1,7 @@
 //! Estimation of recombination HMM parameters from the reference tree.
 //!
 //! `mu_w` = mean terminal branch length (substitution count / ref_len). `mu_r` = median pairwise
-//! inter-clade leaf distance / ref_len. `gamma` = `1 / ref_len`. Substitution counts come from
+//! inter-clade leaf distance / ref_len. `gamma` = `0.01 / ref_len`. Substitution counts come from
 //! per-branch `nuc` mutation lists, sidestepping ambiguous Auspice divergence units.
 //!
 //! Each parameter is resolved independently: `pathogen.json` override (validated, verbatim) >
@@ -23,6 +23,11 @@ use std::collections::BTreeMap;
 
 /// Key under which nucleotide (as opposed to per-gene) mutations are stored in branch attributes.
 const NUC_MUTATIONS_KEY: &str = "nuc";
+
+/// Expected number of state switches per genome, which gives the default transition rate `gamma`. In many viral
+/// species recombinants are rare, so the expected switch rate is far below one per genome. The low rate also needs
+/// more mutations for a call, which removes very short calls.
+pub const EXPECTED_SWITCHES_PER_GENOME: f64 = 0.01;
 
 /// Resolve the three HMM parameters: `pathogen.json` overrides > tree-based fallbacks.
 ///
@@ -117,9 +122,9 @@ fn count_clades(graph: &AuspiceGraph) -> usize {
     .count()
 }
 
-/// Transition rate fallback: one expected state switch per genome length.
+/// Transition rate fallback: `EXPECTED_SWITCHES_PER_GENOME` state switches per genome length.
 fn estimate_gamma(ref_len: usize) -> Option<f64> {
-  accept_as_probability(1.0 / ref_len as f64)
+  accept_as_probability(EXPECTED_SWITCHES_PER_GENOME / ref_len as f64)
 }
 
 /// Wildtype emission fallback: mean terminal branch length (substitutions) per site.

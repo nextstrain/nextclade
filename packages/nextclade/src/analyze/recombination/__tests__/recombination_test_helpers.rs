@@ -17,7 +17,7 @@ use maplit::btreemap;
 pub const REF_LEN: usize = 100;
 
 // Test-scale parameters: short fixtures decode with clean interval boundaries.
-// At genome scale, gamma ~ 1/L makes state switches too costly for L~50 inputs.
+// At genome scale, gamma ~ 0.01/L makes state switches too costly for L~50 inputs.
 // Per-site signals:
 //   switch cost      c   = ln((1-gamma)/gamma) = ln(0.95/0.05) ~ 2.94 nats
 //   Mut -> recombinant    = ln(mu_r/mu_w)      = ln(0.5/0.05)  ~ 2.30 nats
@@ -80,7 +80,7 @@ pub fn path_log_prob(obs: &[RecombinationObs], states: &[bool], params: &Recombi
 // Two clades A and B. Leaves: A1 (2 nuc muts), B1 (1 mut on B + 1 own = rd 2), B2 (1 + 3 = rd 4).
 // Mean terminal branch length = (2+1+3)/3 = 2 -> mu_w = 2/100 = 0.02.
 // Inter-clade leaf pairs: A1<->B1 = 2+2-0 = 4, A1<->B2 = 2+4-0 = 6.
-// median{4, 6} = 5 -> mu_r = 5/100 = 0.05. gamma = 1/100 = 0.01.
+// median{4, 6} = 5 -> mu_r = 5/100 = 0.05. gamma = 0.01/100 = 0.0001.
 pub fn two_clade_tree() -> AuspiceGraph {
   let json = indoc! {r#"{
     "version": "v2",
