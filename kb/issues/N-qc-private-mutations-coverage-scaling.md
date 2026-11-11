@@ -10,7 +10,7 @@ The private-mutation QC rule ([`packages/nextclade/src/qc/qc_rule_private_mutati
 
 The rule does not depend on how much of the genome the sequence covers. A fragment that covers 10% of the genome gets the same `typical` and `cutoff` as a complete genome, so the rule is lenient on fragments and on sequences with long missing runs.
 
-The rest-of-sequence check of recombination detection scales `typical` and `cutoff` by the covered fraction of the genome (see [kb/tickets/feat-recombination-opt-in-and-call-qc.md](../tickets/feat-recombination-opt-in-and-call-qc.md)). The scientific review suggests that the same scaling may be useful for the regular rule.
+The rest-of-sequence check of recombination detection scales `typical` and `cutoff` by the covered fraction of the genome (see [kb/decisions/recombination-detection.md](../decisions/recombination-detection.md)). The scientific review suggests that the same scaling may be useful for the regular rule.
 
 ## Current state
 
