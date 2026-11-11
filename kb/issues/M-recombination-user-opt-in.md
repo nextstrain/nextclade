@@ -4,7 +4,7 @@
 
 ## Context
 
-Recombination detection is opt-in. The dataset switches it on with `recombination.enabled` in `pathogen.json`, and the CLI flags `--with-recombination` and `--without-recombination` override that value (see [kb/tickets/feat-recombination-opt-in-and-call-qc.md](../tickets/feat-recombination-opt-in-and-call-qc.md)).
+Recombination detection is opt-in. The dataset switches it on with `recombination.enabled` in `pathogen.json`, and the CLI flags `--with-recombination` and `--without-recombination` override that value (see [kb/decisions/recombination-detection.md](../decisions/recombination-detection.md)).
 
 The scientific review of the first implementation describes a different model:
 
