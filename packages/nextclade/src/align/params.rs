@@ -151,13 +151,16 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub min_seed_cover: OrderedFloat<f64>,
 
-  /// Largest allowed deletion between two consecutive seeds of the seed chain, as a multiple of the query length. A finite number of at least 0.
+  /// Largest allowed deletion between two consecutive seeds of the seed chain, as a multiple of the query length. A finite number of at least 0. Not set by default, which turns the check off.
   ///
-  /// When a deletion between two seeds is longer, and both parts of the chain around it hold at least `--min-seed-chain-part-cover` of the seed length, the sequence is not aligned and an error is reported. This rejects sequences whose parts match distant regions of the reference, for example both inverted terminal repeats of mpox. Large values turn the check off. The `short-sequences` alignment preset turns the check off, because its short seeds can also match far from the true position of a short query.
+  /// When this parameter is set, a deletion between two seeds is longer than this multiple of the query length, and both parts of the chain around it hold at least `--min-seed-chain-part-cover` of the seed length, the sequence is not aligned and an error is reported. This rejects sequences whose parts match distant regions of the reference, for example a read that covers both inverted terminal repeats of mpox, which Nextclade would otherwise align with one deletion of almost the whole genome.
+  ///
+  /// The check can also reject correct alignments: a short and divergent query has few seeds, so one spurious seed far from its true position can pass the part-cover condition. The banded alignment ignores such a seed, but the check rejects the whole sequence. Check the results on representative data before setting this parameter.
   #[clap(long)]
-  pub max_seed_chain_deletion_ratio: OrderedFloat<f64>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub max_seed_chain_deletion_ratio: Option<OrderedFloat<f64>>,
 
-  /// Smallest fraction of the total seed length that each part of the seed chain, before and after the deletion that `--max-seed-chain-deletion-ratio` checks, must hold for the sequence to be rejected. A finite number between 0 and 1.
+  /// Smallest fraction of the total seed length that each part of the seed chain, before and after the deletion that `--max-seed-chain-deletion-ratio` checks, must hold for the sequence to be rejected. A finite number between 0 and 1. Has an effect only when `--max-seed-chain-deletion-ratio` is set.
   ///
   /// A part with fewer seeds usually stays out of the final alignment, because terminal gaps are free. Values above 0.5 turn the check off.
   #[clap(long)]
@@ -215,7 +218,7 @@ impl Default for AlignPairwiseParams {
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
       min_seed_cover: OrderedFloat(0.33),
-      max_seed_chain_deletion_ratio: OrderedFloat(10.0),
+      max_seed_chain_deletion_ratio: None,
       min_seed_chain_part_cover: OrderedFloat(0.2),
       kmer_length: 10,       // Should not be much larger than 1/divergence of amino acids
       kmer_distance: 50,     // Distance between successive k-mers
@@ -265,7 +268,6 @@ impl AlignPairwiseParams {
         allowed_mismatches: 5, // increase to keep more seeds
         window_size: 20,
         excess_bandwidth: 20,
-        max_seed_chain_deletion_ratio: OrderedFloat(f64::MAX), // short seeds also match far from the true position
         ..AlignPairwiseParams::default()
       }),
     }
@@ -296,8 +298,9 @@ Refer to user documentation for more details."#
       );
     }
 
-    let max_seed_chain_deletion_ratio = *self.max_seed_chain_deletion_ratio;
-    if !(max_seed_chain_deletion_ratio.is_finite() && max_seed_chain_deletion_ratio >= 0.0) {
+    if let Some(OrderedFloat(max_seed_chain_deletion_ratio)) = self.max_seed_chain_deletion_ratio
+      && !(max_seed_chain_deletion_ratio.is_finite() && max_seed_chain_deletion_ratio >= 0.0)
+    {
       return make_error!(
         "Alignment parameter '--max-seed-chain-deletion-ratio' (maxSeedChainDeletionRatio) must be a finite number of at least 0, but found: {max_seed_chain_deletion_ratio}"
       );
@@ -339,7 +342,7 @@ mod tests {
     #[case] expected_message: &str,
   ) {
     let params = AlignPairwiseParams {
-      max_seed_chain_deletion_ratio: OrderedFloat(max_seed_chain_deletion_ratio),
+      max_seed_chain_deletion_ratio: Some(OrderedFloat(max_seed_chain_deletion_ratio)),
       min_seed_chain_part_cover: OrderedFloat(min_seed_chain_part_cover),
       ..AlignPairwiseParams::default()
     };
@@ -349,17 +352,18 @@ mod tests {
 
   #[rstest]
   #[rustfmt::skip]
-  #[case::ratio_zero(           0.0,      0.2 )]
-  #[case::preset_short_seqs(    f64::MAX, 0.2 )]
-  #[case::part_cover_zero(      10.0,     0.0 )]
-  #[case::part_cover_one(       10.0,     1.0 )]
+  #[case::ratio_unset(          None,           0.2 )]
+  #[case::ratio_zero(           Some(0.0),      0.2 )]
+  #[case::ratio_largest(        Some(f64::MAX), 0.2 )]
+  #[case::part_cover_zero(      Some(10.0),     0.0 )]
+  #[case::part_cover_one(       Some(10.0),     1.0 )]
   #[trace]
   fn test_params_accepts_seed_chain_parameters_at_domain_bounds(
-    #[case] max_seed_chain_deletion_ratio: f64,
+    #[case] max_seed_chain_deletion_ratio: Option<f64>,
     #[case] min_seed_chain_part_cover: f64,
   ) -> Result<(), Report> {
     let params = AlignPairwiseParams {
-      max_seed_chain_deletion_ratio: OrderedFloat(max_seed_chain_deletion_ratio),
+      max_seed_chain_deletion_ratio: max_seed_chain_deletion_ratio.map(OrderedFloat),
       min_seed_chain_part_cover: OrderedFloat(min_seed_chain_part_cover),
       ..AlignPairwiseParams::default()
     };
@@ -367,28 +371,33 @@ mod tests {
     params.validate()
   }
 
+  const PATHOGEN_JSON: &str = r#"{ "schemaVersion": "3.0.0" }"#;
+  const PATHOGEN_JSON_RATIO_10: &str = r#"{ "schemaVersion": "3.0.0", "alignmentParams": { "maxSeedChainDeletionRatio": 10 } }"#;
+
+  // The check is off unless the dataset or the CLI sets the ratio, with every preset. The CLI overrides the dataset
   #[rstest]
   #[rustfmt::skip]
-  #[case::preset_only(          r#"{ "schemaVersion": "3.0.0" }"#,                                                  f64::MAX )]
-  #[case::pathogen_json_value(  r#"{ "schemaVersion": "3.0.0", "alignmentParams": { "maxSeedChainDeletionRatio": 10 } }"#, 10.0     )]
+  #[case::default_preset(             &[],                                         PATHOGEN_JSON,          None       )]
+  #[case::default_preset_dataset(     &[],                                         PATHOGEN_JSON_RATIO_10, Some(10.0) )]
+  #[case::short_seqs_preset(          &["--alignment-preset", "short-sequences"],  PATHOGEN_JSON,          None       )]
+  #[case::short_seqs_preset_dataset(  &["--alignment-preset", "short-sequences"],  PATHOGEN_JSON_RATIO_10, Some(10.0) )]
+  #[case::high_diversity_preset(      &["--alignment-preset", "high-diversity"],   PATHOGEN_JSON,          None       )]
+  #[case::cli_overrides_dataset(      &["--max-seed-chain-deletion-ratio", "5"],   PATHOGEN_JSON_RATIO_10, Some(5.0)  )]
   #[trace]
-  fn test_params_short_sequences_preset_turns_off_seed_chain_check_unless_dataset_sets_it(
+  fn test_params_seed_chain_check_is_off_unless_dataset_or_cli_sets_ratio(
+    #[case] cli_args: &[&str],
     #[case] pathogen_json: &str,
-    #[case] expected_ratio: f64,
+    #[case] expected_ratio: Option<f64>,
   ) -> Result<(), Report> {
     let virus_properties = VirusProperties::from_str(&pathogen_json)?;
     let input_params = NextcladeInputParamsOptional {
-      alignment: Some(AlignPairwiseParamsOptional::try_parse_from([
-        "nextclade",
-        "--alignment-preset",
-        "short-sequences",
-      ])?),
+      alignment: Some(AlignPairwiseParamsOptional::try_parse_from(["nextclade"].iter().chain(cli_args))?),
       ..NextcladeInputParamsOptional::default()
     };
 
     let params = NextcladeInputParams::from_optional(&input_params, &virus_properties)?;
 
-    assert_eq!(OrderedFloat(expected_ratio), params.alignment.max_seed_chain_deletion_ratio);
+    assert_eq!(expected_ratio.map(OrderedFloat), params.alignment.max_seed_chain_deletion_ratio);
     Ok(())
   }
 }

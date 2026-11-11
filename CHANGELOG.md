@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Nextclade CLI and Nextclade Web: alignment
+
+- **Seed chain check is off by default**: Nextclade 3.26.0 started to reject sequences whose seed chain links distant parts of the reference (see [#1801](https://github.com/nextstrain/nextclade/pull/1801)). The check also rejected correct alignments of short, divergent sequences. Such a sequence has few seeds in total, so one spurious seed far from its true position passed the part-cover condition, although the alignment ignored that seed. For example, it rejected about a hundred human metapneumovirus amplicons of 100 to 600 nt that Nextclade 3.24.0 aligned correctly. The check now runs only when `--max-seed-chain-deletion-ratio` or `maxSeedChainDeletionRatio` in `alignmentParams` of `pathogen.json` is set, so these sequences align again. Sequences with two parts from distant regions of the reference, for example two amplicons that a record joins with a run of 100 `N` (the INSDC notation for a gap of unknown length), again get one long deletion between the parts. Set the parameter to reject them. The parameter has no default value, and `--min-seed-chain-part-cover` has an effect only when it is set. A `pathogen.json` that sets either parameter stays valid. The error message of a rejected sequence now says how to turn the check off. See [#1855](https://github.com/nextstrain/nextclade/pull/1855)
+
 ### Nextclade Web: start page
 
 - **Help of the single-dataset mode**: the help popup of the "Single dataset" tab showed its first paragraph twice. See [#1851](https://github.com/nextstrain/nextclade/pull/1851)
