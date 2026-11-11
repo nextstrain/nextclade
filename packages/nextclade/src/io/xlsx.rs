@@ -25,6 +25,7 @@ pub fn results_to_excel_sheet(
     &initial_data.ref_nodes,
     &initial_data.aa_motif_keys,
     &initial_data.mutation_pattern_keys,
+    initial_data.recombination_params.is_some(),
     column_config,
   );
 

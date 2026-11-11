@@ -85,6 +85,7 @@ impl NextcladeOrderedWriter {
         ref_nodes,
         aa_motifs_keys,
         mutation_pattern_keys,
+        recombination_params.is_some(),
         csv_column_config,
       )
     })?;
@@ -98,6 +99,7 @@ impl NextcladeOrderedWriter {
         ref_nodes,
         aa_motifs_keys,
         mutation_pattern_keys,
+        recombination_params.is_some(),
         csv_column_config,
       )
     })?;

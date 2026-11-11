@@ -28,6 +28,7 @@ import {
   cladeNodeAttrDescsAtom,
   csvColumnConfigAtom,
   initialDataAtom,
+  isRecombinationEnabledAtom,
   mutationPatternKeysAtom,
   phenotypeAttrDescsAtom,
   refNodesAtom,
@@ -160,6 +161,7 @@ async function prepareCsvData(
   refNodes: AuspiceRefNodesDesc | undefined,
   aaMotifsDescs: AaMotifsDesc[] | undefined,
   mutationPatternKeys: string[],
+  isRecombinationEnabled: boolean,
   csvColumnConfig: CsvColumnConfig,
   delimiter: string,
   worker: ExportWorker,
@@ -172,6 +174,7 @@ async function prepareCsvData(
     refNodes ?? {},
     aaMotifsDescs ?? [],
     mutationPatternKeys,
+    isRecombinationEnabled,
     delimiter,
     csvColumnConfig,
   )
@@ -396,6 +399,7 @@ async function prepareAllExportData(
       refNodes,
       aaMotifsDescs ?? [],
       mutationPatternKeys,
+      notUndefinedOrNull(recombinationParams),
       csvColumnConfig,
       ';',
       worker,
@@ -408,6 +412,7 @@ async function prepareAllExportData(
       refNodes,
       aaMotifsDescs ?? [],
       mutationPatternKeys,
+      notUndefinedOrNull(recombinationParams),
       csvColumnConfig,
       '\t',
       worker,
@@ -534,6 +539,7 @@ function createCsvExportHook(delimiter: string, mimeType: string) {
     const refNodes = useRecoilValue(refNodesAtom({ datasetName }))
     const aaMotifsDescs = useRecoilValue(aaMotifsDescsAtom({ datasetName }))
     const mutationPatternKeys = useRecoilValue(mutationPatternKeysAtom({ datasetName })) ?? NO_MUTATION_PATTERN_KEYS
+    const isRecombinationEnabled = useRecoilValue(isRecombinationEnabledAtom({ datasetName }))
     const csvColumnConfig = useRecoilValue(csvColumnConfigAtom)
 
     const exportFn = useCallback(
@@ -553,6 +559,7 @@ function createCsvExportHook(delimiter: string, mimeType: string) {
           refNodes,
           aaMotifsDescs,
           mutationPatternKeys,
+          isRecombinationEnabled,
           csvColumnConfig,
           delimiter,
           worker,
@@ -568,6 +575,7 @@ function createCsvExportHook(delimiter: string, mimeType: string) {
         refNodes,
         aaMotifsDescs,
         mutationPatternKeys,
+        isRecombinationEnabled,
         csvColumnConfig,
       ],
     )

@@ -37,6 +37,7 @@ import {
   showMediocreFilterAtom,
 } from 'src/state/resultFilters.state'
 import { persistAtom } from 'src/state/persist/localStorage'
+import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 
 // Stores analysis result for a single sequence (defined by sequence index)
 // Do not use setState on this atom directly, use `analysisResultAtom` instead!
@@ -239,6 +240,18 @@ export const datasetHasTreeAtom = selectorFamily<boolean | undefined, { datasetN
     ({ datasetName }) =>
     ({ get }) =>
       get(initialDataAtom(datasetName))?.hasTree,
+})
+
+/**
+ * Whether the analysis of the dataset runs recombination detection. Known as soon as the analysis has loaded the
+ * dataset; false before that.
+ */
+export const isRecombinationEnabledAtom = selectorFamily<boolean, { datasetName: string }>({
+  key: 'isRecombinationEnabled',
+  get:
+    ({ datasetName }) =>
+    ({ get }) =>
+      notUndefinedOrNull(get(initialDataAtom(datasetName))?.recombinationParams),
 })
 
 export const csvColumnConfigAtom = atom<CsvColumnConfig | undefined>({

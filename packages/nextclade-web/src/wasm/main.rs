@@ -238,6 +238,7 @@ impl NextcladeWasm {
     ref_nodes_json_str: &str,
     aa_motifs_keys_json_str: &str,
     mutation_pattern_keys_json_str: &str,
+    is_recombination_enabled: bool,
     delimiter: char,
     csv_colum_config_json_str: &str,
   ) -> Result<String, JsError> {
@@ -290,6 +291,7 @@ impl NextcladeWasm {
       &ref_nodes,
       &aa_motifs_keys,
       &mutation_pattern_keys,
+      is_recombination_enabled,
       delimiter as u8,
       &csv_colum_config,
     ))
