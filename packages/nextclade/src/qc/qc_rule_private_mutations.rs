@@ -87,10 +87,7 @@ pub struct PrivateMutationCounts {
 impl PrivateMutationCounts {
   /// Count the private mutations at the positions that `is_counted` accepts. A deletion range counts when all its
   /// positions are accepted.
-  pub fn count(
-    private_nuc_mutations: &PrivateNucMutations,
-    is_counted: impl Fn(NucRefGlobalPosition) -> bool,
-  ) -> Self {
+  pub fn count(private_nuc_mutations: &PrivateNucMutations, is_counted: impl Fn(NucRefGlobalPosition) -> bool) -> Self {
     let PrivateNucMutations {
       reversion_substitutions,
       labeled_substitutions,
@@ -195,7 +192,10 @@ mod tests {
       unlabeled_substitutions: 2,
       deletion_ranges: 2,
     };
-    assert_eq!(expected, PrivateMutationCounts::count(&helpers::private_mutations(), |_| true));
+    assert_eq!(
+      expected,
+      PrivateMutationCounts::count(&helpers::private_mutations(), |_| true)
+    );
   }
 
   // A deletion range counts only when all its positions are accepted: the range 50-51 straddles the cutoff.
@@ -208,7 +208,10 @@ mod tests {
       deletion_ranges: 0,
     };
     let is_counted = |pos: NucRefGlobalPosition| pos.as_usize() < 51;
-    assert_eq!(expected, PrivateMutationCounts::count(&helpers::private_mutations(), is_counted));
+    assert_eq!(
+      expected,
+      PrivateMutationCounts::count(&helpers::private_mutations(), is_counted)
+    );
   }
 
   // Oracle: weights of `QcRulesConfigPrivateMutations::example()` (reversions 1, labeled 2, unlabeled 1, deletion

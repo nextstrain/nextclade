@@ -62,7 +62,8 @@ fn resolve_call_qc(
   config: &RecombinationConfig,
   qc_config: Option<&QcConfig>,
 ) -> Result<RecombinationCallQcConfig, Report> {
-  let max_region_missing_fraction = validate_fraction("maxRegionMissingFraction", config.max_region_missing_fraction.0)?;
+  let max_region_missing_fraction =
+    validate_fraction("maxRegionMissingFraction", config.max_region_missing_fraction.0)?;
   let max_recombinant_fraction = validate_fraction("maxRecombinantFraction", config.max_recombinant_fraction.0)?;
   let Some(private_mutations) = qc_config
     .map(|qc_config| &qc_config.private_mutations)
@@ -84,7 +85,9 @@ fn resolve_call_qc(
 /// Validate a fraction in `pathogen.json`: it must be in the closed interval [0, 1].
 fn validate_fraction(name: &str, value: f64) -> Result<f64, Report> {
   if !(0.0..=1.0).contains(&value) {
-    return make_error!("`recombination.{name}` in pathogen.json must be in the closed interval [0, 1], but got {value}");
+    return make_error!(
+      "`recombination.{name}` in pathogen.json must be in the closed interval [0, 1], but got {value}"
+    );
   }
   Ok(value)
 }

@@ -11,7 +11,9 @@ use smart_default::SmartDefault;
 /// The user's choice (`--with-recombination`, `--without-recombination`) overrides `recombination.enabled` of the
 /// dataset. Without either, detection is off.
 pub fn is_recombination_enabled(user: &RecombinationUserParams, config: Option<&RecombinationConfig>) -> bool {
-  user.choice().unwrap_or_else(|| config.is_some_and(|config| config.enabled))
+  user
+    .choice()
+    .unwrap_or_else(|| config.is_some_and(|config| config.enabled))
 }
 
 /// Dataset configuration for recombination detection (`recombination` in `pathogen.json`).

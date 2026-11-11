@@ -18,7 +18,10 @@ mod tests {
 
   #[test]
   fn test_recombination_setup_off_needs_no_tree() {
-    assert_eq!(None, resolve_recombination_setup(false, None, None, None, REF_LEN).unwrap());
+    assert_eq!(
+      None,
+      resolve_recombination_setup(false, None, None, None, REF_LEN).unwrap()
+    );
   }
 
   #[test]

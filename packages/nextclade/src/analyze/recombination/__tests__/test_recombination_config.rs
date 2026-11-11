@@ -47,7 +47,8 @@ mod tests {
 
   #[test]
   fn test_recombination_config_user_params_from_cli_rejects_both_flags() {
-    let result = RecombinationUserParams::try_parse_from(["nextclade", "--with-recombination", "--without-recombination"]);
+    let result =
+      RecombinationUserParams::try_parse_from(["nextclade", "--with-recombination", "--without-recombination"]);
     let error = result.map(|_| ()).map_err(|error| error.kind());
     assert_eq!(Err(ErrorKind::ArgumentConflict), error);
   }

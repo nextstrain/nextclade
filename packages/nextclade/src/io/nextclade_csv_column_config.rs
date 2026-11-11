@@ -264,7 +264,11 @@ mod tests {
   // The default configuration enables the recombination columns.
   #[test]
   fn test_nextclade_csv_column_config_default_enables_recombination() {
-    assert!(CsvColumnConfig::default().categories.contains_key(&CsvColumnCategory::Recombination));
+    assert!(
+      CsvColumnConfig::default()
+        .categories
+        .contains_key(&CsvColumnCategory::Recombination)
+    );
   }
 
   // Selecting the `recombination` category (kebab-case per the enum's strum serialization) puts the
