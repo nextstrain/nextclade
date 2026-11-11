@@ -8,18 +8,15 @@ use crate::analyze::find_lost_start_codons::find_cdses_with_start_codon;
 use crate::analyze::mutation_patterns::MutationPatterns;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
-use crate::analyze::recombination::config::RecombinationConfig;
-use crate::analyze::recombination::estimate::{
-  RecombinationResolution, RecombinationSkipReason, resolve_recombination_params,
-};
+use crate::analyze::recombination::config::is_recombination_enabled;
 use crate::analyze::recombination::params::RecombinationHmmParams;
+use crate::analyze::recombination::setup::{RecombinationSetup, resolve_recombination_setup};
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::{GeneMap, filter_gene_map};
 use crate::graph::graph::Graph;
 use crate::io::fasta::{FastaRecord, read_one_fasta_from_str};
 use crate::io::nextclade_csv_column_config::CsvColumnConfig;
 use crate::io::nwk_writer::nwk_write_to_string;
-use crate::make_error;
 use crate::run::nextclade_run_one::nextclade_run_one;
 use crate::run::params::{NextcladeInputParams, NextcladeInputParamsOptional};
 use crate::run::validate_ref_seq::validate_ref_seq;
@@ -314,9 +311,8 @@ pub struct Nextclade {
   pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
   pub ref_nodes: AuspiceRefNodesDesc,
 
-  // Recombination HMM parameters, resolved once per run from config and the reference tree.
-  // None when detection is disabled, no tree is available, or parameters could not be resolved.
-  pub recombination_params: Option<RecombinationHmmParams>,
+  // Recombination detection settings, resolved once per dataset. None when detection is off.
+  pub recombination: Option<RecombinationSetup>,
 }
 
 pub struct InitialStateWithAa {
@@ -347,6 +343,7 @@ impl Nextclade {
       virus_properties,
     } = inputs;
 
+    let is_recombination_enabled = is_recombination_enabled(&params.recombination, virus_properties.recombination.as_ref());
     let params = NextcladeInputParams::from_optional(params, &virus_properties)?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
     let seed_index = CodonSpacedIndex::from_sequence(&ref_seq);
@@ -426,42 +423,20 @@ impl Nextclade {
     let mutation_patterns = MutationPatterns::new(virus_properties.mutation_patterns.as_ref())
       .wrap_err("When preparing mutation patterns")?;
 
-    // Recombination detection is enabled by default; resolve its parameters once per dataset from the
-    // config and the reference tree. When the dataset cannot support detection, an explicit
-    // `enabled: true` is a hard error (the request cannot be honored), while the default-on case skips
-    // silently. Detection requires a tree for parent-relative mutations, so a tree-less dataset is one
-    // such "cannot support" case.
-    let recombination_config = virus_properties.recombination.as_ref();
-    let recombination_params = if !RecombinationConfig::is_enabled(recombination_config) {
-      None
-    } else {
-      let explicit = RecombinationConfig::is_explicitly_enabled(recombination_config);
-      let resolution = match &graph {
-        None => RecombinationResolution::Skipped(RecombinationSkipReason::NoReferenceTree),
-        // An invalid explicit `pathogen.json` override propagates as a dataset-level error here.
-        Some(graph) => resolve_recombination_params(recombination_config, graph, ref_seq.len())?,
-      };
-      match resolution {
-        RecombinationResolution::Resolved(params) => {
-          info!(
-            "Recombination detection enabled with gamma={}, muW={}, muR={}",
-            params.gamma(),
-            params.mu_w(),
-            params.mu_r()
-          );
-          Some(params)
-        }
-        RecombinationResolution::Skipped(reason) if explicit => {
-          return make_error!(
-            "Recombination detection is enabled for this dataset (recombination.enabled=true in \
-             pathogen.json), but cannot run: {}. Provide the missing input, set the parameters \
-             explicitly, or remove recombination.enabled to skip silently.",
-            reason.message()
-          );
-        }
-        RecombinationResolution::Skipped(_) => None,
-      }
-    };
+    let recombination = resolve_recombination_setup(
+      is_recombination_enabled,
+      virus_properties.recombination.as_ref(),
+      graph.as_ref(),
+      ref_seq.len(),
+    )?;
+    if let Some(RecombinationSetup { params }) = &recombination {
+      info!(
+        "Recombination detection enabled with gamma={}, muW={}, muR={}",
+        params.gamma(),
+        params.mu_w(),
+        params.mu_r()
+      );
+    }
 
     Ok(Self {
       dataset_name,
@@ -485,7 +460,7 @@ impl Nextclade {
       clade_attr_descs,
       phenotype_attr_descs,
       ref_nodes,
-      recombination_params,
+      recombination,
     })
   }
 
@@ -501,7 +476,7 @@ impl Nextclade {
       phenotype_attr_descs: self.phenotype_attr_descs.clone(),
       phenotype_attr_keys: self.phenotype_attr_descs.iter().map(|desc| desc.name.clone()).collect(),
       ref_nodes: self.ref_nodes.clone(),
-      recombination_params: self.recombination_params,
+      recombination_params: self.recombination.as_ref().map(|setup| setup.params),
       aa_motifs_descs: self.aa_motifs_descs.clone(),
       aa_motif_keys: self.aa_motifs_keys.clone(),
       mutation_pattern_keys: self.mutation_patterns.ids().map(ToOwned::to_owned).collect(),

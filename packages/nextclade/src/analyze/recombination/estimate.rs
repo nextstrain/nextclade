@@ -5,7 +5,7 @@
 //! per-branch `nuc` mutation lists, sidestepping ambiguous Auspice divergence units.
 //!
 //! Each parameter is resolved independently: `pathogen.json` override (validated, verbatim) >
-//! tree estimate. Out-of-range override = dataset error. Undefined estimate = skip with reason.
+//! tree estimate. An out-of-range override or an undefined estimate is a dataset error.
 
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::nuc_sub::NucSub;
@@ -26,13 +26,13 @@ const NUC_MUTATIONS_KEY: &str = "nuc";
 
 /// Resolve the three HMM parameters: `pathogen.json` overrides > tree-based fallbacks.
 ///
-/// Out-of-range override or explicit `muR <= muW` = dataset error. Missing override + undefined
-/// estimate = `Skipped` with reason.
+/// An out-of-range override, a parameter with neither an override nor a definable tree estimate, and `muR <= muW` are
+/// dataset errors that name the cause.
 pub fn resolve_recombination_params(
   config: Option<&RecombinationConfig>,
   graph: &AuspiceGraph,
   ref_len: usize,
-) -> Result<RecombinationResolution, Report> {
+) -> Result<RecombinationHmmParams, Report> {
   // Each parameter: validated override when present, tree estimate otherwise.
   let gamma = match config.and_then(|c| c.gamma) {
     Some(value) => Some(validate_override("gamma", value)?),
@@ -49,86 +49,39 @@ pub fn resolve_recombination_params(
 
   let (Some(gamma), Some(mu_w), Some(mu_r)) = (gamma, mu_w, mu_r) else {
     // A required parameter has neither an override nor a definable tree estimate.
-    let reason = if count_clades(graph) < 2 {
-      RecombinationSkipReason::FewerThanTwoClades
+    return if count_clades(graph) < 2 {
+      make_error!(
+        "The reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be \
+         estimated. Set `recombination.muR` in pathogen.json"
+      )
     } else if !has_any_branch_mutations(graph)? {
-      RecombinationSkipReason::NoBranchMutations
+      make_error!(
+        "The reference tree carries no per-branch nucleotide mutations, so the wildtype and recombinant divergence \
+         rates cannot be estimated. Set `recombination.muW` and `recombination.muR` in pathogen.json"
+      )
     } else {
-      RecombinationSkipReason::TreeEstimateUnavailable
+      make_error!(
+        "A recombination parameter could not be estimated from the reference tree and the reference length \
+         (degenerate topology)"
+      )
     };
-    return Ok(RecombinationResolution::Skipped(reason));
   };
 
-  // Recombinant state must have elevated mutation density. Both rates from pathogen.json with
-  // muR <= muW = misconfiguration (error); degenerate tree estimate = skip.
+  // Recombinant state must have elevated mutation density.
   if mu_r <= mu_w {
     let both_explicit = config.and_then(|c| c.mu_w).is_some() && config.and_then(|c| c.mu_r).is_some();
-    if both_explicit {
-      return make_error!(
-        "Recombination parameters in pathogen.json require muR > muW, but got muW={mu_w} and muR={mu_r}"
-      );
-    }
-    return Ok(RecombinationResolution::Skipped(
-      RecombinationSkipReason::RecombinantRateNotElevated { mu_w, mu_r },
-    ));
+    return if both_explicit {
+      make_error!("Recombination parameters in pathogen.json require muR > muW, but got muW={mu_w} and muR={mu_r}")
+    } else {
+      make_error!(
+        "The recombinant divergence rate does not exceed the wildtype rate (muW={mu_w}, muR={mu_r}), so the two \
+         states of the HMM cannot be told apart. Set `recombination.muW` and `recombination.muR` in pathogen.json"
+      )
+    };
   }
 
-  // `new` is the single invariant gate. The `mu_r <= mu_w` branch above is policy (error vs skip),
-  // not validation.
-  Ok(RecombinationResolution::Resolved(RecombinationHmmParams::new(
-    gamma, mu_w, mu_r,
-  )?))
-}
-
-/// Outcome of resolving recombination parameters for a dataset.
-#[derive(Debug, Clone)]
-pub enum RecombinationResolution {
-  /// Detection runs with these parameters.
-  Resolved(RecombinationHmmParams),
-  /// Detection is skipped for the stated reason. Not an error: the dataset cannot support detection.
-  Skipped(RecombinationSkipReason),
-}
-
-/// Why detection cannot run. Default-on = silent skip; explicit `enabled: true` = error.
-#[derive(Debug, Clone)]
-pub enum RecombinationSkipReason {
-  /// No reference tree is available; detection needs one for parent-relative mutations.
-  NoReferenceTree,
-  /// Fewer than two clades -- inter-clade divergence (`muR`) is undefined.
-  FewerThanTwoClades,
-  /// No per-branch `nuc` mutations -- divergence rates undefined (e.g. tree with only divergence
-  /// values).
-  NoBranchMutations,
-  /// Required parameter not estimable (degenerate topology or no leaves).
-  TreeEstimateUnavailable,
-  /// Estimated muR does not exceed muW -- states are indistinguishable.
-  RecombinantRateNotElevated { mu_w: f64, mu_r: f64 },
-}
-
-impl RecombinationSkipReason {
-  /// Human-readable explanation, for logs, error messages, and the per-sequence `warnings` output.
-  pub fn message(&self) -> String {
-    match self {
-      Self::NoReferenceTree => "no reference tree is available, and recombination detection requires one to derive \
-         parent-relative mutations"
-        .to_owned(),
-      Self::FewerThanTwoClades => {
-        "the reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated"
-          .to_owned()
-      }
-      Self::NoBranchMutations => {
-        "the reference tree carries no per-branch nucleotide mutations, so the wildtype and recombinant \
-         divergence rates cannot be estimated"
-          .to_owned()
-      }
-      Self::TreeEstimateUnavailable => {
-        "a required parameter could not be estimated from the reference tree (degenerate topology)".to_owned()
-      }
-      Self::RecombinantRateNotElevated { mu_w, mu_r } => {
-        format!("the estimated recombinant divergence rate does not exceed the wildtype rate (muW={mu_w}, muR={mu_r})")
-      }
-    }
-  }
+  // `new` is the single invariant gate.
+  RecombinationHmmParams::new(gamma, mu_w, mu_r)
 }
 
 /// Validate a `pathogen.json` parameter override. An out-of-range value is a dataset-level error.

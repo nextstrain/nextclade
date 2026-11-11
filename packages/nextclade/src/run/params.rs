@@ -1,5 +1,6 @@
 use crate::align::params::{AlignPairwiseParams, AlignPairwiseParamsOptional};
 use crate::analyze::aa_changes_find_for_cds::{AaChangesParams, AaChangesParamsOptional};
+use crate::analyze::recombination::config::RecombinationUserParams;
 use crate::analyze::virus_properties::VirusProperties;
 use crate::run::params_general::{NextcladeGeneralParams, NextcladeGeneralParamsOptional};
 use crate::tree::params::{TreeBuilderParams, TreeBuilderParamsOptional};
@@ -22,6 +23,10 @@ pub struct NextcladeInputParamsOptional {
 
   #[clap(flatten, next_help_heading = "Amino acid related parameters")]
   pub aa_changes: Option<AaChangesParamsOptional>,
+
+  #[clap(flatten, next_help_heading = "Recombination detection")]
+  #[serde(default)]
+  pub recombination: RecombinationUserParams,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]

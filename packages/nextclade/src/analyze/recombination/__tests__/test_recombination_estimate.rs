@@ -1,17 +1,15 @@
-//! Resolving HMM parameters: `pathogen.json` override precedence, skip reasons, hard errors, and
-//! the `accept_as_probability` helper.
+//! Resolving HMM parameters: `pathogen.json` override precedence, errors, and the `accept_as_probability` helper.
 
 #[cfg(test)]
 mod tests {
   use crate::analyze::recombination::__tests__::recombination_test_helpers::{
     REF_LEN, disconnected_clade_tree, external_tree_with_deletion, internal_only_second_clade_tree, nested_clade_tree,
-    resolved, single_clade_tree, three_clade_tree, tree_with_insertion, tree_with_malformed_mutation,
+    single_clade_tree, three_clade_tree, tree_with_insertion, tree_with_malformed_mutation,
     two_clade_no_mutations_tree, two_clade_tree,
   };
   use crate::analyze::recombination::config::RecombinationConfig;
   use crate::analyze::recombination::estimate::{
-    RecombinationResolution, RecombinationSkipReason, accept_as_probability, compute_inter_clade_leaf_distances,
-    estimate_mu_w, resolve_recombination_params,
+    accept_as_probability, compute_inter_clade_leaf_distances, estimate_mu_w, resolve_recombination_params,
   };
   use crate::tree::tree::{AuspiceGraph, AuspiceGraphMeta};
   use crate::{assert_error, pretty_assert_ulps_eq};
@@ -25,7 +23,7 @@ mod tests {
   #[test]
   fn test_recombination_estimate_all_params_from_tree() {
     let graph = two_clade_tree();
-    let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
+    let params = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(1.0 / 100.0, params.gamma(), max_ulps = 2);
     pretty_assert_ulps_eq!(2.0 / 100.0, params.mu_w(), max_ulps = 2);
     pretty_assert_ulps_eq!(5.0 / 100.0, params.mu_r(), max_ulps = 2);
@@ -51,13 +49,13 @@ mod tests {
   fn test_recombination_estimate_config_override_is_used_verbatim() {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
-      enabled: Some(true),
+      enabled: true,
       min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(0.1)),
       mu_w: None,
       mu_r: None,
     };
-    let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
+    let params = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(0.1, params.gamma(), max_ulps = 2);
     pretty_assert_ulps_eq!(2.0 / 100.0, params.mu_w(), max_ulps = 2);
     pretty_assert_ulps_eq!(5.0 / 100.0, params.mu_r(), max_ulps = 2);
@@ -67,13 +65,13 @@ mod tests {
   fn test_recombination_estimate_partial_mu_overrides_used() {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
-      enabled: Some(true),
+      enabled: true,
       min_private_subs_to_run: None,
       gamma: None,
       mu_w: Some(OrderedFloat(0.01)),
       mu_r: Some(OrderedFloat(0.2)),
     };
-    let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
+    let params = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(1.0 / 100.0, params.gamma(), max_ulps = 2); // still estimated
     pretty_assert_ulps_eq!(0.01, params.mu_w(), max_ulps = 2);
     pretty_assert_ulps_eq!(0.2, params.mu_r(), max_ulps = 2);
@@ -82,35 +80,29 @@ mod tests {
   #[test]
   fn test_recombination_estimate_single_clade_is_unresolved() {
     let graph = single_clade_tree();
-    // mu_r is undefined with a single clade and there is no override, so the model is skipped.
-    let resolution = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
-    assert!(
-      matches!(
-        resolution,
-        RecombinationResolution::Skipped(RecombinationSkipReason::FewerThanTwoClades)
-      ),
-      "got {resolution:?}"
+    // mu_r is undefined with a single clade and there is no override.
+    assert_error!(
+      resolve_recombination_params(None, &graph, REF_LEN),
+      "The reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated. \
+       Set `recombination.muR` in pathogen.json"
     );
   }
 
   #[test]
-  fn test_recombination_estimate_skips_when_recombinant_rate_not_elevated() {
+  fn test_recombination_estimate_errors_when_recombinant_rate_not_elevated() {
     let graph = two_clade_tree(); // estimated mu_w = 0.02
-    // Only muR is overridden (0.01 <= muW), so this is a degenerate estimate, not a misconfiguration: skip.
+    // Only muR is overridden (0.01 <= estimated muW), so the two states cannot be told apart.
     let config = RecombinationConfig {
-      enabled: Some(true),
+      enabled: true,
       min_private_subs_to_run: None,
       gamma: None,
       mu_w: None,
       mu_r: Some(OrderedFloat(0.01)),
     };
-    let resolution = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();
-    assert!(
-      matches!(
-        resolution,
-        RecombinationResolution::Skipped(RecombinationSkipReason::RecombinantRateNotElevated { .. })
-      ),
-      "got {resolution:?}"
+    assert_error!(
+      resolve_recombination_params(Some(&config), &graph, REF_LEN),
+      "The recombinant divergence rate does not exceed the wildtype rate (muW=0.02, muR=0.01), so the two states of \
+       the HMM cannot be told apart. Set `recombination.muW` and `recombination.muR` in pathogen.json"
     );
   }
 
@@ -119,7 +111,7 @@ mod tests {
     let graph = two_clade_tree();
     // Both rates explicit with muR <= muW: a misconfiguration, reported as a dataset-level error.
     let config = RecombinationConfig {
-      enabled: Some(true),
+      enabled: true,
       min_private_subs_to_run: None,
       gamma: None,
       mu_w: Some(OrderedFloat(0.05)),
@@ -136,7 +128,7 @@ mod tests {
     let graph = two_clade_tree();
     // gamma = 0.7 is within (0, 1) but not a sticky HMM; the resolution surfaces the model error.
     let config = RecombinationConfig {
-      enabled: Some(true),
+      enabled: true,
       min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(0.7)),
       mu_w: None,
@@ -152,7 +144,7 @@ mod tests {
   fn test_recombination_estimate_errors_on_out_of_range_override() {
     let graph = two_clade_tree();
     let config = RecombinationConfig {
-      enabled: Some(true),
+      enabled: true,
       min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(1.5)),
       mu_w: None,
@@ -169,7 +161,7 @@ mod tests {
     let graph = two_clade_tree();
     // Per-field validation names the offending field, so a bad muW override is not misreported as gamma.
     let config = RecombinationConfig {
-      enabled: Some(true),
+      enabled: true,
       min_private_subs_to_run: None,
       gamma: None,
       mu_w: Some(OrderedFloat(1.5)),
@@ -187,7 +179,7 @@ mod tests {
     // Leaf distances: A1<->B1=6, A1<->C1=9, B1<->C1=11; median=9 -> mu_r=0.09.
     // Terminal branches 2, 4, 6 -> mean 4 -> mu_w=0.04.
     let graph = three_clade_tree();
-    let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
+    let params = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(4.0 / 100.0, params.mu_w(), max_ulps = 2);
     pretty_assert_ulps_eq!(9.0 / 100.0, params.mu_r(), max_ulps = 2);
   }
@@ -199,7 +191,7 @@ mod tests {
     // Cross-clade pairs: {10,8,10,8,6,6,14,12} -> median = (8+10)/2 = 9 -> mu_r = 0.09
     // Terminal branches: 1,8,6,1,4 -> mean 4 -> mu_w = 0.04
     let graph = nested_clade_tree();
-    let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
+    let params = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(4.0 / 100.0, params.mu_w(), max_ulps = 2);
     pretty_assert_ulps_eq!(9.0 / 100.0, params.mu_r(), max_ulps = 2);
   }
@@ -234,15 +226,10 @@ mod tests {
       mu_w: Some(OrderedFloat(0.01)),
       ..RecombinationConfig::default()
     };
-
-    let resolution = resolve_recombination_params(Some(&config), &graph, 0).unwrap();
-
-    assert!(
-      matches!(
-        resolution,
-        RecombinationResolution::Skipped(RecombinationSkipReason::TreeEstimateUnavailable)
-      ),
-      "got {resolution:?}"
+    assert_error!(
+      resolve_recombination_params(Some(&config), &graph, 0),
+      "A recombination parameter could not be estimated from the reference tree and the reference length \
+       (degenerate topology)"
     );
   }
 
@@ -251,37 +238,31 @@ mod tests {
     // Terminal branches counting substitutions only: A1=2, B1=1 (the `A15-` deletion excluded).
     // mean = (2+1)/2 = 1.5 -> mu_w = 1.5/100 = 0.015. If the deletion were counted, B1=2 and mu_w=0.02.
     let graph = external_tree_with_deletion();
-    let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
+    let params = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(1.5 / 100.0, params.mu_w(), max_ulps = 2);
   }
 
   #[test]
   fn test_recombination_estimate_internal_only_clade_is_fewer_than_two_clades() {
     // Internal node I is labeled clade "B" but no leaf is; the two leaves are both clade "A".
-    // The skip reason is derived from leaf clades, so it must be FewerThanTwoClades.
+    // The error is derived from leaf clades, so it reports fewer than two clades.
     let graph = internal_only_second_clade_tree();
-    let resolution = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
-    assert!(
-      matches!(
-        resolution,
-        RecombinationResolution::Skipped(RecombinationSkipReason::FewerThanTwoClades)
-      ),
-      "got {resolution:?}"
+    assert_error!(
+      resolve_recombination_params(None, &graph, REF_LEN),
+      "The reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated. \
+       Set `recombination.muR` in pathogen.json"
     );
   }
 
   #[test]
-  fn test_recombination_estimate_no_branch_mutations_skip_reason() {
-    // Two clades, but no `nuc` branch mutations: rates are undefined, so the reason distinguishes the
+  fn test_recombination_estimate_no_branch_mutations_error() {
+    // Two clades, but no `nuc` branch mutations: rates are undefined, so the error distinguishes the
     // missing-annotation cause from a generic degenerate topology.
     let graph = two_clade_no_mutations_tree();
-    let resolution = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
-    assert!(
-      matches!(
-        resolution,
-        RecombinationResolution::Skipped(RecombinationSkipReason::NoBranchMutations)
-      ),
-      "got {resolution:?}"
+    assert_error!(
+      resolve_recombination_params(None, &graph, REF_LEN),
+      "The reference tree carries no per-branch nucleotide mutations, so the wildtype and recombinant divergence \
+       rates cannot be estimated. Set `recombination.muW` and `recombination.muR` in pathogen.json"
     );
   }
 
@@ -291,13 +272,13 @@ mod tests {
     // three parameters must resolve regardless: the estimator is not consulted when a value is given.
     let graph = single_clade_tree();
     let config = RecombinationConfig {
-      enabled: Some(true),
+      enabled: true,
       min_private_subs_to_run: None,
       gamma: Some(OrderedFloat(0.01)),
       mu_w: Some(OrderedFloat(0.02)),
       mu_r: Some(OrderedFloat(0.2)),
     };
-    let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
+    let params = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(0.01, params.gamma(), max_ulps = 2);
     pretty_assert_ulps_eq!(0.02, params.mu_w(), max_ulps = 2);
     pretty_assert_ulps_eq!(0.2, params.mu_r(), max_ulps = 2);
@@ -308,7 +289,7 @@ mod tests {
     // The insertion "-10A" (gap reference) is an indel the decoder never observes, so it is not
     // counted: B1's branch length is 1 (substitution "A40C" only), A1's is 2, mean (2+1)/2 = 1.5.
     let graph = tree_with_insertion();
-    let params = resolved(resolve_recombination_params(None, &graph, REF_LEN).unwrap());
+    let params = resolve_recombination_params(None, &graph, REF_LEN).unwrap();
     pretty_assert_ulps_eq!(1.5 / 100.0, params.mu_w(), max_ulps = 2);
   }
 
@@ -321,23 +302,6 @@ mod tests {
       "When counting recombination branch mutations from tree annotation 'not-a-mutation': \
        Unable to parse nucleotide mutation: 'not-a-mutation'"
     );
-  }
-
-  #[rustfmt::skip]
-  #[rstest]
-  #[case::no_reference_tree(RecombinationSkipReason::NoReferenceTree,
-    "no reference tree is available, and recombination detection requires one to derive parent-relative mutations")]
-  #[case::fewer_than_two(RecombinationSkipReason::FewerThanTwoClades,
-    "the reference tree has fewer than two clades, so the recombinant divergence rate (muR) cannot be estimated")]
-  #[case::no_mutations(RecombinationSkipReason::NoBranchMutations,
-    "the reference tree carries no per-branch nucleotide mutations, so the wildtype and recombinant divergence rates cannot be estimated")]
-  #[case::tree_unavailable(RecombinationSkipReason::TreeEstimateUnavailable,
-    "a required parameter could not be estimated from the reference tree (degenerate topology)")]
-  #[case::not_elevated(RecombinationSkipReason::RecombinantRateNotElevated { mu_w: 0.05, mu_r: 0.01 },
-    "the estimated recombinant divergence rate does not exceed the wildtype rate (muW=0.05, muR=0.01)")]
-  #[trace]
-  fn test_recombination_skip_reason_message(#[case] reason: RecombinationSkipReason, #[case] expected: &str) {
-    assert_eq!(expected, reason.message());
   }
 
   #[rustfmt::skip]
@@ -365,14 +329,14 @@ mod tests {
     ) {
       let mu_r = mu_w + offset;
       let config = RecombinationConfig {
-        enabled: Some(true),
+        enabled: true,
         min_private_subs_to_run: None,
         gamma: Some(OrderedFloat(gamma)),
         mu_w: Some(OrderedFloat(mu_w)),
         mu_r: Some(OrderedFloat(mu_r)),
       };
       let graph = two_clade_tree();
-      let params = resolved(resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap());
+      let params = resolve_recombination_params(Some(&config), &graph, REF_LEN).unwrap();
       proptest::prop_assert_eq!(params.gamma().to_bits(), gamma.to_bits());
       proptest::prop_assert_eq!(params.mu_w().to_bits(), mu_w.to_bits());
       proptest::prop_assert_eq!(params.mu_r().to_bits(), mu_r.to_bits());

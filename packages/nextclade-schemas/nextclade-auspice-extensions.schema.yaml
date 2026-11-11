@@ -476,7 +476,7 @@ definitions:
         - $ref: '#/definitions/MutationPatternsConfig'
         - type: 'null'
       recombination:
-        description: Recombination detection configuration. If absent, detection runs with all parameters estimated.
+        description: Recombination detection configuration. If absent, detection is off.
         anyOf:
         - $ref: '#/definitions/RecombinationConfig'
         - type: 'null'
@@ -1144,16 +1144,15 @@ definitions:
         minimum: 0.0
   RecombinationConfig:
     description: |-
-      Dataset configuration for recombination detection (`pathogen.json`).
+      Dataset configuration for recombination detection (`recombination` in `pathogen.json`).
 
-      Each field is optional. A given value is used verbatim; otherwise a fallback is computed from the reference tree. Absent config or omitted `enabled` leaves detection on (see `is_enabled`).
+      A given HMM parameter is used verbatim; an absent one is computed from the reference tree and the reference length.
     type: object
     properties:
       enabled:
-        description: Whether recombination detection runs. Absent = on by default; `true` = explicit opt-in (failure to support detection is an error, not a silent skip); `false` = disabled.
-        type:
-        - boolean
-        - 'null'
+        description: Whether recombination detection runs for this dataset. The command-line flags `--with-recombination` and `--without-recombination` override it. When detection runs and the dataset cannot support it, the dataset fails to load.
+        default: false
+        type: boolean
       minPrivateSubsToRun:
         description: Minimum private substitutions for detection to run. Defaults to 1 (skips sequences with no recombinant signal).
         type:
@@ -1162,7 +1161,7 @@ definitions:
         format: uint
         minimum: 0.0
       gamma:
-        description: State transition rate override. Absent = `1 / ref_len`. Must be in (0, 0.5).
+        description: State transition rate of the HMM. Absent = `1 / L`, where `L` is the reference length. Must be in (0, 0.5).
         type:
         - number
         - 'null'
@@ -1170,7 +1169,7 @@ definitions:
         maximum: 0.5
         minimum: 0.0
       muW:
-        description: Wildtype emission probability override. Absent = estimated from tree. Must be in (0, 1).
+        description: Mutation emission probability in the wildtype state. Absent = estimated from the tree. Must be in (0, 1).
         type:
         - number
         - 'null'
@@ -1178,7 +1177,7 @@ definitions:
         maximum: 1.0
         minimum: 0.0
       muR:
-        description: Recombinant emission probability override. Absent = estimated from tree. Must be in (0, 1) and greater than `muW`.
+        description: Mutation emission probability in the recombinant state. Absent = estimated from the tree. Must be in (0, 1) and greater than `muW`.
         type:
         - number
         - 'null'

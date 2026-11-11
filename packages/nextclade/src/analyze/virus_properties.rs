@@ -379,7 +379,7 @@ pub struct VirusProperties {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub mutation_patterns: Option<MutationPatternsConfig>,
 
-  /// Recombination detection configuration. If absent, detection runs with all parameters estimated.
+  /// Recombination detection configuration. If absent, detection is off.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub recombination: Option<RecombinationConfig>,
 
