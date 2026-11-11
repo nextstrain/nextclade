@@ -7,4 +7,5 @@ mod test_recombination_estimate;
 mod test_recombination_observations;
 mod test_recombination_params;
 mod test_recombination_result;
+mod test_recombination_run;
 mod test_recombination_setup;

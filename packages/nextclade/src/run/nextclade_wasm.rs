@@ -427,6 +427,7 @@ impl Nextclade {
       is_recombination_enabled,
       virus_properties.recombination.as_ref(),
       graph.as_ref(),
+      virus_properties.qc.as_ref(),
       ref_seq.len(),
     )?;
     if let Some(RecombinationSetup { params, .. }) = &recombination {

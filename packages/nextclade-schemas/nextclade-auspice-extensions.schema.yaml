@@ -1190,6 +1190,13 @@ definitions:
         format: double
         maximum: 1.0
         minimum: 0.0
+      maxRecombinantFraction:
+        description: Maximal total span of the recombinant regions of a sequence, as a fraction of the span of its alignment range. Above it, a sequence is recombinant almost everywhere, carries no localized signal, and gets no call. Must be in [0, 1].
+        default: 0.6666666666666666
+        type: number
+        format: double
+        maximum: 1.0
+        minimum: 0.0
   NextcladeGeneralParamsOptional:
     type: object
     properties:
