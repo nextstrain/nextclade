@@ -2,7 +2,7 @@ use crate::alphabet::nuc::Nuc;
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::NucDel;
-use crate::coord::position::PositionLike;
+use crate::coord::position::{NucRefGlobalPosition, PositionLike};
 use crate::coord::range::Range;
 use crate::qc::qc_config::QcRulesConfigPrivateMutations;
 use crate::qc::qc_run::{QcRule, QcStatus};
@@ -52,19 +52,8 @@ pub fn rule_private_mutations(
     return None;
   }
 
-  // Note that we count *individual* nucleotide substitutions, but contiguous *ranges* of deletions.
-  // That is, a 2 adjacent substitutions give a total of 2, but 2 adjacent deletions give a total of 1.
-  let num_reversion_substitutions = private_nuc_mutations.reversion_substitutions.len();
-  let num_labeled_substitutions = private_nuc_mutations.labeled_substitutions.len();
-  let num_unlabeled_substitutions = private_nuc_mutations.unlabeled_substitutions.len();
-  let deletion_ranges = find_deletion_ranges(&private_nuc_mutations.private_deletions);
-  let total_deletion_ranges = deletion_ranges.len();
-
-  let weighted_total = 0.0
-    + *config.weight_reversion_substitutions * num_reversion_substitutions as f64
-    + *config.weight_labeled_substitutions * num_labeled_substitutions as f64
-    + *config.weight_unlabeled_substitutions * num_unlabeled_substitutions as f64
-    + total_deletion_ranges as f64;
+  let counts = PrivateMutationCounts::count(private_nuc_mutations, |_| true);
+  let weighted_total = counts.weighted_total(config);
 
   // the score hits 100 if the excess mutations equals the cutoff value
   let score = (clamp_min(weighted_total - *config.typical, 0.0) * 100.0) / *config.cutoff;
@@ -73,14 +62,64 @@ pub fn rule_private_mutations(
   Some(QcResultPrivateMutations {
     score,
     status,
-    num_reversion_substitutions,
-    num_labeled_substitutions,
-    num_unlabeled_substitutions,
-    total_deletion_ranges,
+    num_reversion_substitutions: counts.reversion_substitutions,
+    num_labeled_substitutions: counts.labeled_substitutions,
+    num_unlabeled_substitutions: counts.unlabeled_substitutions,
+    total_deletion_ranges: counts.deletion_ranges,
     weighted_total,
     excess: weighted_total - *config.typical,
     cutoff: *config.cutoff,
   })
+}
+
+/// Private nucleotide mutations, counted by the categories that the private mutations QC rule weighs.
+///
+/// Substitutions count individually, but deletions count as contiguous ranges: 2 adjacent substitutions give a total
+/// of 2, but 2 adjacent deletions give a total of 1.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct PrivateMutationCounts {
+  pub reversion_substitutions: usize,
+  pub labeled_substitutions: usize,
+  pub unlabeled_substitutions: usize,
+  pub deletion_ranges: usize,
+}
+
+impl PrivateMutationCounts {
+  /// Count the private mutations at the positions that `is_counted` accepts. A deletion range counts when all its
+  /// positions are accepted.
+  pub fn count(
+    private_nuc_mutations: &PrivateNucMutations,
+    is_counted: impl Fn(NucRefGlobalPosition) -> bool,
+  ) -> Self {
+    let PrivateNucMutations {
+      reversion_substitutions,
+      labeled_substitutions,
+      unlabeled_substitutions,
+      private_deletions,
+      ..
+    } = private_nuc_mutations;
+    Self {
+      reversion_substitutions: reversion_substitutions.iter().filter(|sub| is_counted(sub.pos)).count(),
+      labeled_substitutions: labeled_substitutions
+        .iter()
+        .filter(|sub| is_counted(sub.substitution.pos))
+        .count(),
+      unlabeled_substitutions: unlabeled_substitutions.iter().filter(|sub| is_counted(sub.pos)).count(),
+      deletion_ranges: find_deletion_ranges(private_deletions)
+        .iter()
+        .filter(|del| del.range.iter().all(&is_counted))
+        .count(),
+    }
+  }
+
+  /// Weighted total of the private mutations QC rule: the substitutions of each category multiplied by the weight of
+  /// the category, plus the deletion ranges.
+  pub fn weighted_total(&self, config: &QcRulesConfigPrivateMutations) -> f64 {
+    *config.weight_reversion_substitutions * self.reversion_substitutions as f64
+      + *config.weight_labeled_substitutions * self.labeled_substitutions as f64
+      + *config.weight_unlabeled_substitutions * self.unlabeled_substitutions as f64
+      + self.deletion_ranges as f64
+  }
 }
 
 /// Finds all contiguous ranges of private nucleotide deletions.
@@ -140,4 +179,73 @@ fn find_deletion_ranges(dels: &[NucDel]) -> Vec<NucRange> {
   });
 
   ranges
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::pretty_assert_ulps_eq;
+  use pretty_assertions::assert_eq;
+
+  #[test]
+  fn test_qc_rule_private_mutations_counts_all() {
+    let expected = PrivateMutationCounts {
+      reversion_substitutions: 1,
+      labeled_substitutions: 1,
+      unlabeled_substitutions: 2,
+      deletion_ranges: 2,
+    };
+    assert_eq!(expected, PrivateMutationCounts::count(&helpers::private_mutations(), |_| true));
+  }
+
+  // A deletion range counts only when all its positions are accepted: the range 50-51 straddles the cutoff.
+  #[test]
+  fn test_qc_rule_private_mutations_counts_accepted_positions() {
+    let expected = PrivateMutationCounts {
+      reversion_substitutions: 1,
+      labeled_substitutions: 1,
+      unlabeled_substitutions: 1,
+      deletion_ranges: 0,
+    };
+    let is_counted = |pos: NucRefGlobalPosition| pos.as_usize() < 51;
+    assert_eq!(expected, PrivateMutationCounts::count(&helpers::private_mutations(), is_counted));
+  }
+
+  // Oracle: weights of `QcRulesConfigPrivateMutations::example()` (reversions 1, labeled 2, unlabeled 1, deletion
+  // ranges 1): 1 * 1 + 2 * 1 + 1 * 2 + 2 = 7.
+  #[test]
+  fn test_qc_rule_private_mutations_weighted_total() {
+    let counts = PrivateMutationCounts::count(&helpers::private_mutations(), |_| true);
+    let config = QcRulesConfigPrivateMutations::example();
+    pretty_assert_ulps_eq!(7.0, counts.weighted_total(&config), max_ulps = 1);
+  }
+
+  mod helpers {
+    use crate::alphabet::nuc::Nuc;
+    use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
+    use crate::analyze::nuc_del::NucDel;
+    use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
+    use crate::coord::position::NucRefGlobalPosition;
+    use crate::o;
+
+    /// Reversion at 0-based 10, labeled substitution at 20, unlabeled substitutions at 30 and 60, deletion ranges
+    /// [50, 52) and [70, 71).
+    pub fn private_mutations() -> PrivateNucMutations {
+      let sub = |s: &str| -> NucSub { s.parse().unwrap() };
+      let del = |pos: isize| NucDel {
+        pos: NucRefGlobalPosition::from(pos),
+        ref_nuc: Nuc::A,
+      };
+      PrivateNucMutations {
+        reversion_substitutions: vec![sub("G11A")],
+        labeled_substitutions: vec![NucSubLabeled {
+          substitution: sub("C21T"),
+          labels: vec![o!("21A")],
+        }],
+        unlabeled_substitutions: vec![sub("A31G"), sub("T61C")],
+        private_deletions: vec![del(50), del(51), del(70)],
+        ..PrivateNucMutations::default()
+      }
+    }
+  }
 }
