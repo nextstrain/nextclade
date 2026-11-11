@@ -123,7 +123,7 @@ pub fn nextclade_run_one(
     primers,
     ref_nodes,
     mutation_patterns,
-    recombination_params,
+    recombination: recombination_setup,
     ..
   } = &state;
 
@@ -449,18 +449,18 @@ pub fn nextclade_run_one(
   // Placement-masked positions are non-comparable for recombination: a masked site that differs from
   // the parent must not be scored as `Mut`, or it could manufacture a false recombinant call at a
   // homoplasic site. `graph` is `None` for tree-less datasets, in which case this is an empty slice
-  // and the recombination closure never runs (`recombination_params` is `None`).
+  // and the recombination closure never runs (`recombination_setup` is `None`).
   let masked_ranges: &[NucRefGlobalRange] = graph
     .as_ref()
     .map(|g| g.data.meta.placement_mask_ranges())
     .unwrap_or_default();
 
   // Recombination detection: decode putative recombinant regions from the parent-relative mutation
-  // pattern. Runs only when parameters were resolved once per run (requires a reference tree). The
-  // per-sequence gate and step order live in `run_recombination`.
-  let recombination = recombination_params.as_ref().and_then(|params| {
+  // pattern. Runs only when detection is on for the dataset. The per-sequence gate and step order live
+  // in `run_recombination`.
+  let recombination = recombination_setup.as_ref().and_then(|setup| {
     run_recombination(
-      params,
+      &setup.params,
       virus_properties.recombination.as_ref(),
       &RecombinationRunInput {
         ref_len: ref_seq.len(),

@@ -1,45 +1,69 @@
-//! `RecombinationConfig` semantics: enablement, serde defaults, minimum private-sub threshold.
+//! `RecombinationConfig` and `RecombinationUserParams` semantics: the on/off decision, serde defaults, minimum
+//! private-sub threshold.
 
 #[cfg(test)]
 mod tests {
   use crate::analyze::recombination::__tests__::recombination_test_helpers::cfg_min_subs;
-  use crate::analyze::recombination::config::RecombinationConfig;
+  use crate::analyze::recombination::config::{RecombinationConfig, RecombinationUserParams, is_recombination_enabled};
+  use clap::Parser;
+  use clap::error::ErrorKind;
   use ordered_float::OrderedFloat;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
+  // The dataset decides when the user makes no choice; absent config or `enabled` means off. The user's flags
+  // override the dataset in both directions.
   #[rustfmt::skip]
   #[rstest]
-  #[case::absent(None,                                                                                      true)]
-  #[case::default(Some(RecombinationConfig::default()),                                                     true)]
-  #[case::explicit_on(Some(RecombinationConfig { enabled: Some(true),  ..RecombinationConfig::default() }), true)]
-  #[case::explicit_off(Some(RecombinationConfig { enabled: Some(false), ..RecombinationConfig::default() }), false)]
-  fn test_recombination_config_is_enabled_default_on(#[case] config: Option<RecombinationConfig>, #[case] expected: bool) {
-    assert_eq!(expected, RecombinationConfig::is_enabled(config.as_ref()));
+  #[case::no_choice_absent(      (None,        None),        false)]
+  #[case::no_choice_default(     (None,        Some(false)), false)]
+  #[case::no_choice_enabled(     (None,        Some(true)),  true)]
+  #[case::user_on_absent(        (Some(true),  None),        true)]
+  #[case::user_on_disabled(      (Some(true),  Some(false)), true)]
+  #[case::user_off_enabled(      (Some(false), Some(true)),  false)]
+  #[case::user_off_absent(       (Some(false), None),        false)]
+  #[trace]
+  fn test_recombination_config_is_recombination_enabled(
+    #[case] (user, dataset): (Option<bool>, Option<bool>),
+    #[case] expected: bool,
+  ) {
+    let user = RecombinationUserParams {
+      with_recombination: user == Some(true),
+      without_recombination: user == Some(false),
+    };
+    let config = dataset.map(|enabled| RecombinationConfig { enabled, ..RecombinationConfig::default() });
+    assert_eq!(expected, is_recombination_enabled(&user, config.as_ref()));
   }
 
   #[rustfmt::skip]
   #[rstest]
-  // is_explicitly_enabled is true only for `enabled: true`; default-on states are not explicit.
-  #[case::absent(None,                                                                                       false)]
-  #[case::default(Some(RecombinationConfig::default()),                                                      false)]
-  #[case::explicit_on(Some(RecombinationConfig { enabled: Some(true),  ..RecombinationConfig::default() }),  true)]
-  #[case::explicit_off(Some(RecombinationConfig { enabled: Some(false), ..RecombinationConfig::default() }), false)]
-  fn test_recombination_config_is_explicitly_enabled(#[case] config: Option<RecombinationConfig>, #[case] expected: bool) {
-    assert_eq!(expected, RecombinationConfig::is_explicitly_enabled(config.as_ref()));
+  #[case::none(        &[],                          None)]
+  #[case::with(        &["--with-recombination"],    Some(true))]
+  #[case::without(     &["--without-recombination"], Some(false))]
+  #[trace]
+  fn test_recombination_config_user_params_from_cli(#[case] args: &[&str], #[case] expected: Option<bool>) {
+    let argv = [&["nextclade"], args].concat();
+    let params = RecombinationUserParams::try_parse_from(argv).unwrap();
+    assert_eq!(expected, params.choice());
+  }
+
+  #[test]
+  fn test_recombination_config_user_params_from_cli_rejects_both_flags() {
+    let result = RecombinationUserParams::try_parse_from(["nextclade", "--with-recombination", "--without-recombination"]);
+    let error = result.map(|_| ()).map_err(|error| error.kind());
+    assert_eq!(Err(ErrorKind::ArgumentConflict), error);
   }
 
   #[rustfmt::skip]
   #[rstest]
-  // `enabled`: None (absent/omitted) = default-on, Some(true) = on, Some(false) = off.
-  #[case::empty_object("{}",                    None,        true)]
-  #[case::enabled_omitted(r#"{"gamma": 0.01}"#, None,        true)]
-  #[case::enabled_true(r#"{"enabled": true}"#,  Some(true),  true)]
-  #[case::enabled_false(r#"{"enabled": false}"#, Some(false), false)]
-  fn test_recombination_config_serde_default_enabled(#[case] json: &str, #[case] enabled: Option<bool>, #[case] is_enabled: bool) {
+  #[case::empty_object(   "{}",                    false)]
+  #[case::enabled_omitted(r#"{"gamma": 0.01}"#,    false)]
+  #[case::enabled_true(   r#"{"enabled": true}"#,  true)]
+  #[case::enabled_false(  r#"{"enabled": false}"#, false)]
+  #[trace]
+  fn test_recombination_config_serde_default_enabled(#[case] json: &str, #[case] expected: bool) {
     let config: RecombinationConfig = serde_json::from_str(json).unwrap();
-    assert_eq!(enabled, config.enabled);
-    assert_eq!(is_enabled, RecombinationConfig::is_enabled(Some(&config)));
+    assert_eq!(expected, config.enabled);
   }
 
   #[rustfmt::skip]
@@ -60,7 +84,7 @@ mod tests {
     let json = r#"{"enabled":true,"minPrivateSubsToRun":3,"gamma":0.01,"muW":0.005,"muR":0.05}"#;
     let config: RecombinationConfig = serde_json::from_str(json).unwrap();
     let expected = RecombinationConfig {
-      enabled: Some(true),
+      enabled: true,
       min_private_subs_to_run: Some(3),
       gamma: Some(OrderedFloat(0.01)),
       mu_w: Some(OrderedFloat(0.005)),
@@ -71,8 +95,7 @@ mod tests {
   }
 
   #[test]
-  fn test_recombination_config_serde_default_is_empty_object() {
-    // All fields unset -> `{}` (every field is `skip_serializing_if`), the shape an absent config takes.
-    assert_eq!("{}", serde_json::to_string(&RecombinationConfig::default()).unwrap());
+  fn test_recombination_config_serde_default() {
+    assert_eq!(r#"{"enabled":false}"#, serde_json::to_string(&RecombinationConfig::default()).unwrap());
   }
 }

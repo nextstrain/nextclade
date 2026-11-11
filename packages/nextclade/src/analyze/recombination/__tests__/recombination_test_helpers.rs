@@ -3,7 +3,6 @@
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::recombination::config::RecombinationConfig;
-use crate::analyze::recombination::estimate::RecombinationResolution;
 use crate::analyze::recombination::observations::RecombinationObs;
 use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE};
 use crate::analyze::recombination::result::RecombinationRegion;
@@ -84,14 +83,6 @@ pub fn path_log_prob(obs: &[RecombinationObs], states: &[bool], params: &Recombi
     total += params.compute_log_emission(obs[l])[state_idx(states[l])];
   }
   total
-}
-
-/// Unwrap a resolution to its parameters, panicking if skipped.
-pub fn resolved(resolution: RecombinationResolution) -> RecombinationHmmParams {
-  match resolution {
-    RecombinationResolution::Resolved(params) => params,
-    skipped @ RecombinationResolution::Skipped(_) => panic!("expected resolved parameters, got {skipped:?}"),
-  }
 }
 
 // Two clades A and B. Leaves: A1 (2 nuc muts), B1 (1 mut on B + 1 own = rd 2), B2 (1 + 3 = rd 4).
