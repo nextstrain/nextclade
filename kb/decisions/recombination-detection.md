@@ -154,14 +154,11 @@ All settings sit in the `recombination` object of `pathogen.json`. Values for SA
 
 Each HMM parameter resolves independently: explicit `pathogen.json` values are validated and used verbatim; only unset parameters are estimated. A dataset supplying all three never invokes the estimator, so a degenerate tree cannot block loading.
 
-### Freezing parameters into a dataset (data repository)
+### Freezing parameters into a dataset
 
-The run-time estimate recomputes the parameters from whatever reference tree a dataset ships. A dataset can instead carry frozen, reviewed values as explicit `pathogen.json` overrides, so that the model a reviewer signed off on is not silently shifted by a later tree update. The [`nextclade_data`](https://github.com/nextstrain/nextclade_data) repository provides `scripts/recombination_params` for computing them, a Python mirror of the Rust estimator that must produce identical values.
+The run-time estimate recomputes the parameters from whatever reference tree a dataset ships. A dataset can instead carry frozen, reviewed values as explicit `pathogen.json` overrides, so that the model a reviewer signed off on is not silently shifted by a later tree update. Freezing all three bypasses the run-time estimator entirely (see [Overrides](#overrides)).
 
-- Inputs: `--input-tree` (Auspice `tree.json`) and `--input-ref` (`reference.fasta`), plus an optional `--pathogen`.
-- With `--pathogen`, the three estimates are written into that file's `recombination` object in place; without it, the parameters are printed as JSON to stdout for inspection. The script writes only `gamma`, `muW` and `muR`, never `enabled`, so freezing parameters does not switch detection on.
-
-The helper mirrors the Rust estimator exactly: the same `gamma` default, true substitutions only (both reference and query bases present, so neither insertions nor deletions count), leaf-only clade grouping, median pairwise inter-clade **leaf-to-leaf** distance, and strict validation of branch-mutation tokens. Freezing all three bypasses the run-time estimator entirely (see [Overrides](#overrides)). Parity is guarded by tests in `nextclade_data` `tests/test_recombination_params.py` that use the Rust unit-test fixtures as the oracle.
+Nextclade reports the effective values of each run as `recombinationParams` in `nextclade.json` and in the log, so a curator takes them from a run with detection on (`--with-recombination`) and copies them into the `recombination` object. Freezing the values does not switch detection on: `enabled` is a separate decision of the curator.
 
 ## Output
 
