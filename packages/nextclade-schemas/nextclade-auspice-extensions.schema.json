@@ -751,6 +751,17 @@
             }
           ]
         },
+        "recombination": {
+          "description": "Recombination detection configuration. If absent, detection runs with all parameters estimated.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RecombinationConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "generalParams": {
           "description": "General analysis parameters (e.g. includeReference, inOrder, replaceUnknown).",
           "anyOf": [
@@ -1723,6 +1734,58 @@
           "default": 5,
           "type": "integer",
           "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "RecombinationConfig": {
+      "description": "Dataset configuration for recombination detection (`pathogen.json`).\n\nEach field is optional. A given value is used verbatim; otherwise a fallback is computed from the reference tree. Absent config or omitted `enabled` leaves detection on (see `is_enabled`).",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "description": "Whether recombination detection runs. Absent = on by default; `true` = explicit opt-in (failure to support detection is an error, not a silent skip); `false` = disabled.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "minPrivateSubsToRun": {
+          "description": "Minimum private substitutions for detection to run. Defaults to 1 (skips sequences with no recombinant signal).",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "gamma": {
+          "description": "State transition rate override. Absent = `1 / ref_len`. Must be in (0, 0.5).",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double",
+          "maximum": 0.5,
+          "minimum": 0.0
+        },
+        "muW": {
+          "description": "Wildtype emission probability override. Absent = estimated from tree. Must be in (0, 1).",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double",
+          "maximum": 1.0,
+          "minimum": 0.0
+        },
+        "muR": {
+          "description": "Recombinant emission probability override. Absent = estimated from tree. Must be in (0, 1) and greater than `muW`.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double",
+          "maximum": 1.0,
           "minimum": 0.0
         }
       }
