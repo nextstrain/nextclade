@@ -24,7 +24,6 @@ export function RecombinationMarkers({ sequence, pixelsPerBase }: RecombinationM
           index={index}
           seqName={seqName}
           region={region.range}
-          confidence={region.confidence}
           pixelsPerBase={pixelsPerBase}
         />
       ))}

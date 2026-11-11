@@ -25,8 +25,6 @@ import sys
 from pathlib import Path
 
 FIXTURES_DIR = Path(__file__).resolve().parent
-# Column index of the recombinant state in the prototype's (L, 2) marginal array (0 = wildtype).
-RECOMBINANT = 1
 
 
 def main() -> None:
@@ -48,11 +46,7 @@ def main() -> None:
 
     sys.path.insert(0, str(code_dir))
     import numpy as np
-    from recomb_inference import (
-        RecombinationParameters,
-        forward_backward_recombination_logexp,
-        viterbi_recombination,
-    )
+    from recomb_inference import RecombinationParameters, viterbi_recombination
 
     inputs = json.loads((FIXTURES_DIR / "gm_recombination_inputs.json").read_text())
 
@@ -64,13 +58,11 @@ def main() -> None:
         mutations = np.asarray(case["mutations"], dtype=int)
 
         states = viterbi_recombination(mutations, params)
-        marginals = forward_backward_recombination_logexp(mutations, params)
 
         cases.append(
             {
                 "name": case["name"],
                 "viterbiStates": [int(s) for s in states],
-                "fbMarginals": [float(m) for m in marginals[:, RECOMBINANT]],
             }
         )
 

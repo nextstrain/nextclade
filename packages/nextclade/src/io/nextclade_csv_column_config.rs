@@ -150,7 +150,6 @@ pub static CSV_COLUMN_CONFIG_MAP_DEFAULT: LazyLock<CsvColumnConfigMap> = LazyLoc
     },
     CsvColumnCategory::Recombination => indexmap! {
       o!("recombination.regions") => true,
-      o!("recombination.regionConfidences") => true,
       o!("recombination.totalRegions") => true,
       o!("recombination.totalLength") => true,
       o!("recombination.longestRegion.range") => true,
@@ -283,13 +282,12 @@ mod tests {
     assert!(!config.categories.contains_key(&CsvColumnCategory::Recombination));
   }
 
-  // Oracle: kb/decisions/recombination-detection.md "CSV/TSV columns" enumerates exactly these six
+  // Oracle: kb/decisions/recombination-detection.md "CSV/TSV columns" enumerates exactly these five
   // columns for the Recombination category, all enabled by default.
   #[test]
   fn test_nextclade_csv_column_config_default_map_recombination_columns() {
     let expected = indexmap! {
       o!("recombination.regions") => true,
-      o!("recombination.regionConfidences") => true,
       o!("recombination.totalRegions") => true,
       o!("recombination.totalLength") => true,
       o!("recombination.longestRegion.range") => true,
