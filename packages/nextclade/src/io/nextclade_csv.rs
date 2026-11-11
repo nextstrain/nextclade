@@ -1,5 +1,7 @@
 use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
-use crate::io::nextclade_csv_column_config::{CSV_POSSIBLE_COLUMNS, CsvColumnConfig};
+use crate::io::nextclade_csv_column_config::{
+  CSV_COLUMN_CONFIG_MAP_DEFAULT, CSV_POSSIBLE_COLUMNS, CsvColumnCategory, CsvColumnConfig,
+};
 use crate::io::nextclade_csv_row::NextcladeResultsCsvRow;
 use crate::o;
 use crate::tree::tree::{AuspiceRefNodeSearchDesc, AuspiceRefNodesDesc, CladeNodeAttrKeyDesc};
@@ -10,12 +12,15 @@ use eyre::Report;
 use itertools::{Itertools, chain};
 use std::path::Path;
 
+/// Prepare the column names of the output table. `is_recombination_enabled` tells whether the dataset ran
+/// recombination detection; without it, the table has no recombination columns.
 pub fn prepare_headers(
   custom_node_attr_descs: &[CladeNodeAttrKeyDesc],
   phenotype_attr_keys: &[String],
   ref_nodes: &AuspiceRefNodesDesc,
   aa_motifs_keys: &[String],
   mutation_pattern_keys: &[String],
+  is_recombination_enabled: bool,
   column_config: &CsvColumnConfig,
 ) -> Vec<String> {
   // Get names of enabled columns
@@ -31,6 +36,7 @@ pub fn prepare_headers(
 
     chain![category_headers, individual_headers]
       .unique()
+      .filter(|header| is_recombination_enabled || !is_recombination_column(header))
       .map(String::from)
       .collect_vec()
   };
@@ -115,6 +121,12 @@ pub fn prepare_headers(
   }
 
   headers
+}
+
+fn is_recombination_column(header: &str) -> bool {
+  CSV_COLUMN_CONFIG_MAP_DEFAULT
+    .get(&CsvColumnCategory::Recombination)
+    .is_some_and(|columns| columns.contains_key(header))
 }
 
 fn sort_headers_by_canonical_order(headers: Vec<String>) -> Vec<String> {
@@ -222,6 +234,7 @@ impl NextcladeResultsCsvFileWriter {
     ref_nodes: &AuspiceRefNodesDesc,
     aa_motifs_keys: &[String],
     mutation_pattern_keys: &[String],
+    is_recombination_enabled: bool,
     column_config: &CsvColumnConfig,
   ) -> Result<Self, Report> {
     let headers: Vec<String> = prepare_headers(
@@ -230,6 +243,7 @@ impl NextcladeResultsCsvFileWriter {
       ref_nodes,
       aa_motifs_keys,
       mutation_pattern_keys,
+      is_recombination_enabled,
       column_config,
     );
     let csv_writer = CsvVecFileWriter::new(filepath, delimiter, &headers)?;
@@ -260,6 +274,7 @@ pub fn results_to_csv_string(
   ref_nodes: &AuspiceRefNodesDesc,
   aa_motifs_keys: &[String],
   mutation_pattern_keys: &[String],
+  is_recombination_enabled: bool,
   delimiter: u8,
   column_config: &CsvColumnConfig,
 ) -> Result<String, Report> {
@@ -272,6 +287,7 @@ pub fn results_to_csv_string(
       ref_nodes,
       aa_motifs_keys,
       mutation_pattern_keys,
+      is_recombination_enabled,
       column_config,
     );
     let csv_writer = CsvVecWriter::new(&mut buf, delimiter, &headers)?;
@@ -294,8 +310,44 @@ pub fn results_to_csv_string(
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::io::nextclade_csv_column_config::CsvColumnCategory;
   use indexmap::indexmap;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  // Oracle: the recombination columns of the default column configuration (`CSV_COLUMN_CONFIG_MAP_DEFAULT`). A dataset
+  // without recombination detection gets none of them, also when the column configuration selects them.
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::enabled(  true,  vec![
+    "recombination.regions",
+    "recombination.totalRegions",
+    "recombination.totalLength",
+    "recombination.longestRegion.range",
+    "recombination.longestRegion.length",
+  ])]
+  #[case::disabled( false, vec![])]
+  #[trace]
+  fn test_prepare_headers_recombination_columns(#[case] is_recombination_enabled: bool, #[case] expected: Vec<&str>) {
+    let column_config = CsvColumnConfig {
+      individual: vec![o!("recombination.regions")],
+      ..CsvColumnConfig::default()
+    };
+    let headers = prepare_headers(
+      &[],
+      &[],
+      &AuspiceRefNodesDesc::default(),
+      &[],
+      &[],
+      is_recombination_enabled,
+      &column_config,
+    );
+    let actual = headers
+      .iter()
+      .map(String::as_str)
+      .filter(|header| header.starts_with("recombination."))
+      .collect_vec();
+    assert_eq!(expected, actual);
+  }
 
   #[test]
   fn test_prepare_headers_canonical_order() {
@@ -320,7 +372,15 @@ mod tests {
       include_mut_patterns: false,
     };
 
-    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &[], &column_config);
+    let headers = prepare_headers(
+      &[],
+      &[],
+      &AuspiceRefNodesDesc::default(),
+      &[],
+      &[],
+      true,
+      &column_config,
+    );
 
     // Verify headers are in canonical order as defined in CSV_COLUMN_CONFIG_MAP_DEFAULT
     let expected_order = vec![
@@ -396,7 +456,15 @@ mod tests {
       include_mut_patterns: true,
     };
 
-    let headers = prepare_headers(&[], &[], &AuspiceRefNodesDesc::default(), &[], &[], &column_config);
+    let headers = prepare_headers(
+      &[],
+      &[],
+      &AuspiceRefNodesDesc::default(),
+      &[],
+      &[],
+      true,
+      &column_config,
+    );
 
     assert!(!headers.iter().any(|h| h.contains("mutationPatterns")));
   }
@@ -424,6 +492,7 @@ mod tests {
       &AuspiceRefNodesDesc::default(),
       &[],
       &pattern_keys,
+      true,
       &column_config,
     );
 
@@ -466,6 +535,7 @@ mod tests {
       &AuspiceRefNodesDesc::default(),
       &[],
       &pattern_keys,
+      true,
       &column_config,
     );
 
@@ -502,6 +572,7 @@ mod tests {
       &AuspiceRefNodesDesc::default(),
       &[o!("glycosylation")],
       &[o!("adar")],
+      true,
       &column_config,
     );
 
@@ -544,6 +615,7 @@ mod tests {
       &AuspiceRefNodesDesc::default(),
       &[],
       &pattern_keys,
+      true,
       &column_config,
     );
 

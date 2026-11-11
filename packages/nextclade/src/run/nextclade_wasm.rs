@@ -8,6 +8,9 @@ use crate::analyze::find_lost_start_codons::find_cdses_with_start_codon;
 use crate::analyze::mutation_patterns::MutationPatterns;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::phenotype::get_phenotype_attr_descs;
+use crate::analyze::recombination::config::is_recombination_enabled;
+use crate::analyze::recombination::params::RecombinationHmmParams;
+use crate::analyze::recombination::setup::{RecombinationSetup, resolve_recombination_setup};
 use crate::analyze::virus_properties::{AaMotifsDesc, PhenotypeAttrDesc, VirusProperties};
 use crate::gene::gene_map::{GeneMap, filter_gene_map};
 use crate::graph::graph::Graph;
@@ -26,6 +29,7 @@ use crate::types::outputs::NextcladeOutputs;
 use crate::utils::option::{OptionMapRefFallible, find_some};
 use eyre::{Report, WrapErr, eyre};
 use itertools::Itertools;
+use log::info;
 use optfield::optfield;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -246,6 +250,8 @@ pub struct AnalysisInitialData {
   pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
   pub phenotype_attr_keys: Vec<String>,
   pub ref_nodes: AuspiceRefNodesDesc,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub recombination_params: Option<RecombinationHmmParams>,
   pub aa_motifs_descs: Vec<AaMotifsDesc>,
   pub aa_motif_keys: Vec<String>,
   pub mutation_pattern_keys: Vec<String>,
@@ -304,6 +310,9 @@ pub struct Nextclade {
   pub clade_attr_descs: Vec<CladeNodeAttrKeyDesc>,
   pub phenotype_attr_descs: Vec<PhenotypeAttrDesc>,
   pub ref_nodes: AuspiceRefNodesDesc,
+
+  // Recombination detection settings, resolved once per dataset. None when detection is off.
+  pub recombination: Option<RecombinationSetup>,
 }
 
 pub struct InitialStateWithAa {
@@ -334,6 +343,8 @@ impl Nextclade {
       virus_properties,
     } = inputs;
 
+    let is_recombination_enabled =
+      is_recombination_enabled(params.recombination, virus_properties.recombination.as_ref());
     let params = NextcladeInputParams::from_optional(params, &virus_properties)?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
     let seed_index = CodonSpacedIndex::from_sequence(&ref_seq);
@@ -413,6 +424,22 @@ impl Nextclade {
     let mutation_patterns = MutationPatterns::new(virus_properties.mutation_patterns.as_ref())
       .wrap_err("When preparing mutation patterns")?;
 
+    let recombination = resolve_recombination_setup(
+      is_recombination_enabled,
+      virus_properties.recombination.as_ref(),
+      graph.as_ref(),
+      virus_properties.qc.as_ref(),
+      ref_seq.len(),
+    )?;
+    if let Some(RecombinationSetup { params, .. }) = &recombination {
+      info!(
+        "Recombination detection enabled with gamma={}, muW={}, muR={}",
+        params.gamma(),
+        params.mu_w(),
+        params.mu_r()
+      );
+    }
+
     Ok(Self {
       dataset_name,
       ref_record,
@@ -435,6 +462,7 @@ impl Nextclade {
       clade_attr_descs,
       phenotype_attr_descs,
       ref_nodes,
+      recombination,
     })
   }
 
@@ -450,6 +478,7 @@ impl Nextclade {
       phenotype_attr_descs: self.phenotype_attr_descs.clone(),
       phenotype_attr_keys: self.phenotype_attr_descs.iter().map(|desc| desc.name.clone()).collect(),
       ref_nodes: self.ref_nodes.clone(),
+      recombination_params: self.recombination.as_ref().map(|setup| setup.params),
       aa_motifs_descs: self.aa_motifs_descs.clone(),
       aa_motif_keys: self.aa_motifs_keys.clone(),
       mutation_pattern_keys: self.mutation_patterns.ids().map(ToOwned::to_owned).collect(),

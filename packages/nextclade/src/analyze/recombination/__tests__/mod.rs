@@ -1,0 +1,11 @@
+mod recombination_test_helpers;
+mod test_gm_recombination;
+mod test_recombination_call_qc;
+mod test_recombination_config;
+mod test_recombination_decode;
+mod test_recombination_estimate;
+mod test_recombination_observations;
+mod test_recombination_params;
+mod test_recombination_result;
+mod test_recombination_run;
+mod test_recombination_setup;

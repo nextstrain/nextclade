@@ -1,0 +1,98 @@
+//! `RecombinationResult` summarization and serde: counts and lengths.
+
+#[cfg(test)]
+mod tests {
+  use crate::analyze::recombination::__tests__::recombination_test_helpers::{obs, ranges, region, test_params};
+  use crate::analyze::recombination::decode::find_recombinant_regions;
+  use crate::analyze::recombination::result::RecombinationResult;
+  use crate::coord::range::NucRefGlobalRange;
+  use crate::io::json::{JsonPretty, json_stringify};
+  use indoc::indoc;
+  use pretty_assertions::assert_eq;
+
+  #[test]
+  fn test_recombination_result_summary() {
+    let result = RecombinationResult::from_ranges(ranges(&[(10, 25), (40, 50)])).unwrap();
+    let expected = RecombinationResult {
+      regions: vec![region(10, 25), region(40, 50)],
+      total_regions: 2,
+      total_length: 25, // 15 + 10
+      longest_region: region(10, 25),
+    };
+    assert_eq!(expected, result);
+  }
+
+  #[test]
+  fn test_recombination_result_empty_returns_none() {
+    assert_eq!(None, RecombinationResult::from_ranges(vec![]));
+  }
+
+  #[test]
+  fn test_recombination_result_serde_round_trip() {
+    let result = RecombinationResult::from_ranges(ranges(&[(10, 25)])).unwrap();
+    let json = json_stringify(&result, JsonPretty(true)).unwrap();
+    let expected = indoc! {r#"{
+      "regions": [
+        {
+          "range": {
+            "begin": 10,
+            "end": 25
+          },
+          "length": 15
+        }
+      ],
+      "totalRegions": 1,
+      "totalLength": 15,
+      "longestRegion": {
+        "range": {
+          "begin": 10,
+          "end": 25
+        },
+        "length": 15
+      }
+    }"#};
+    assert_eq!(expected, json);
+    let deserialized: RecombinationResult = serde_json::from_str(&json).unwrap();
+    assert_eq!(result, deserialized);
+  }
+
+  #[test]
+  fn test_recombination_integration_no_result_when_no_regions() {
+    let observations = obs("RRRRRRRRRRRRRRRRRRRR");
+    let params = test_params();
+    let regions = find_recombinant_regions(&observations, &params);
+    assert_eq!(Vec::<NucRefGlobalRange>::new(), regions);
+    assert_eq!(None, RecombinationResult::from_ranges(regions));
+  }
+
+  proptest::proptest! {
+    #![proptest_config(proptest::prelude::ProptestConfig::with_cases(512))]
+
+    // Summary fields consistent with inputs: count matches, total is sum of spans, longest has max
+    // length.
+    #[test]
+    fn test_prop_recombination_result_summary_consistent(
+      items in proptest::collection::vec((0_usize..1000, 1_usize..500), 1..30),
+    ) {
+      let ranges: Vec<NucRefGlobalRange> = items
+        .iter()
+        .map(|&(begin, span)| NucRefGlobalRange::from_usize(begin, begin + span))
+        .collect();
+
+      let result = RecombinationResult::from_ranges(ranges.clone()).unwrap();
+
+      proptest::prop_assert_eq!(result.total_regions, ranges.len());
+      proptest::prop_assert_eq!(result.regions.len(), ranges.len());
+      // Expected totals derive from the generated spans (each range is `begin..begin + span`, so its
+      // length is `span`), an oracle independent of the `NucRefGlobalRange::len` used in production.
+      let expected_total: usize = items.iter().map(|&(_, span)| span).sum();
+      proptest::prop_assert_eq!(result.total_length, expected_total);
+      let max_len = items.iter().map(|&(_, span)| span).max().unwrap();
+      proptest::prop_assert_eq!(result.longest_region.length, max_len);
+      for (region, range) in result.regions.iter().zip(&ranges) {
+        proptest::prop_assert_eq!(region.length, range.len());
+        proptest::prop_assert_eq!(&region.range, range);
+      }
+    }
+  }
+}

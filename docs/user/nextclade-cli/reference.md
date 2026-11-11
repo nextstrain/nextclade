@@ -477,6 +477,8 @@ For short help type: `nextclade -h`, for extended help type: `nextclade --help`.
 
 
 
+* `--with-recombination` — Run recombination detection, also for datasets that do not enable it (`recombination.enabled` in `pathogen.json`). Analysis fails for a dataset that cannot support detection
+* `--without-recombination` — Do not run recombination detection, also for datasets that enable it (`recombination.enabled` in `pathogen.json`)
 * `-j`, `--jobs <JOBS>` — Number of processing jobs. If not specified, all available CPU threads will be used
 
 

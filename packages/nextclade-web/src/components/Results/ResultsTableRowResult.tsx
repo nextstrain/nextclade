@@ -35,6 +35,7 @@ import { type CladeColorScale, getCladeColor } from 'src/components/Results/clad
 import { CLADE_NODE_ATTR } from 'src/constants'
 import { ColumnCoverage } from 'src/components/Results/ColumnCoverage'
 import { ColumnAaMotifs } from 'src/components/Results/ColumnAaMotifs'
+import { ColumnRecombination } from 'src/components/Results/ColumnRecombination'
 
 export interface ResultsTableRowResultProps {
   rowIndex: number
@@ -45,6 +46,7 @@ export interface ResultsTableRowResultProps {
   seqNamesSelectedOnTree: ReadonlySet<string>
   phenotypeAttrDescs: PhenotypeAttrDesc[]
   aaMotifsDescs: AaMotifsDesc[]
+  isRecombinationEnabled: boolean
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicCladeColumnWidthPx: string
   dynamicPhenotypeColumnWidthPx: string
@@ -97,6 +99,7 @@ export function ResultsTableRowResult({
   seqNamesSelectedOnTree,
   phenotypeAttrDescs,
   aaMotifsDescs,
+  isRecombinationEnabled,
   columnWidthsPx,
   dynamicCladeColumnWidthPx,
   dynamicPhenotypeColumnWidthPx,
@@ -164,6 +167,12 @@ export function ResultsTableRowResult({
             />
           </TableCellAlignedLeft>
         ))}
+
+      {isRecombinationEnabled && (
+        <TableCell basis={columnWidthsPx.recombination} grow={0} shrink={0}>
+          <ColumnRecombination analysisResult={analysisResult} />
+        </TableCell>
+      )}
 
       {phenotypeAttrDescs.map(({ name }) => (
         <TableCellAlignedLeft key={name} basis={dynamicPhenotypeColumnWidthPx} grow={0} shrink={0}>

@@ -475,6 +475,11 @@ definitions:
         anyOf:
         - $ref: '#/definitions/MutationPatternsConfig'
         - type: 'null'
+      recombination:
+        description: Recombination detection configuration. If absent, detection is off.
+        anyOf:
+        - $ref: '#/definitions/RecombinationConfig'
+        - type: 'null'
       generalParams:
         description: General analysis parameters (e.g. includeReference, inOrder, replaceUnknown).
         anyOf:
@@ -1136,6 +1141,61 @@ definitions:
         default: 5
         type: integer
         format: uint
+        minimum: 0.0
+  RecombinationConfig:
+    description: |-
+      Dataset configuration for recombination detection (`recombination` in `pathogen.json`).
+
+      A given HMM parameter is used verbatim; an absent one is computed from the reference tree and the reference length.
+    type: object
+    properties:
+      enabled:
+        description: Whether recombination detection runs for this dataset. The command-line flags `--with-recombination` and `--without-recombination` override it. When detection runs and the dataset cannot support it, the dataset fails to load.
+        default: false
+        type: boolean
+      gamma:
+        description: State transition rate of the HMM. Absent = `0.01 / L`, where `L` is the reference length. Must be in (0, 0.5).
+        type:
+        - number
+        - 'null'
+        format: double
+        maximum: 0.5
+        minimum: 0.0
+      muW:
+        description: Mutation emission probability in the wildtype state. Absent = estimated from the tree. Must be in (0, 1).
+        type:
+        - number
+        - 'null'
+        format: double
+        maximum: 1.0
+        minimum: 0.0
+      muR:
+        description: Mutation emission probability in the recombinant state. Absent = estimated from the tree. Must be in (0, 1) and greater than `muW`.
+        type:
+        - number
+        - 'null'
+        format: double
+        maximum: 1.0
+        minimum: 0.0
+      minRegionLength:
+        description: Minimal span of a recombinant region, in nucleotides. A shorter region is dropped.
+        default: 50
+        type: integer
+        format: uint
+        minimum: 0.0
+      maxRegionMissingFraction:
+        description: Maximal fraction of missing sites (`N`, other ambiguity codes, deletions, placement-masked sites) in the span of a recombinant region. A region with a higher fraction is dropped. Must be in [0, 1].
+        default: 0.5
+        type: number
+        format: double
+        maximum: 1.0
+        minimum: 0.0
+      maxRecombinantFraction:
+        description: Maximal total span of the recombinant regions of a sequence, as a fraction of the span of its alignment range. Above it, a sequence is recombinant almost everywhere, carries no localized signal, and gets no call. Must be in [0, 1].
+        default: 0.6666666666666666
+        type: number
+        format: double
+        maximum: 1.0
         minimum: 0.0
   NextcladeGeneralParamsOptional:
     type: object

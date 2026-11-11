@@ -33,6 +33,7 @@ use crate::analyze::nuc_changes::{FindNucChangesOutput, find_nuc_changes};
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::phenotype::calculate_phenotype;
+use crate::analyze::recombination::run::{RecombinationRunInput, run_recombination};
 use crate::analyze::virus_properties::PhenotypeData;
 use crate::coord::coord_map_global::CoordMapGlobal;
 use crate::coord::position::PositionLike;
@@ -122,6 +123,7 @@ pub fn nextclade_run_one(
     primers,
     ref_nodes,
     mutation_patterns,
+    recombination: recombination_setup,
     ..
   } = &state;
 
@@ -444,6 +446,33 @@ pub fn nextclade_run_one(
     NextcladeResultWithGraph::default()
   };
 
+  // Placement-masked positions are non-comparable for recombination: a masked site that differs from
+  // the parent must not be scored as `Mut`, or it could manufacture a false recombinant call at a
+  // homoplasic site. `graph` is `None` for tree-less datasets, in which case this is an empty slice
+  // and the recombination closure never runs (`recombination_setup` is `None`).
+  let masked_ranges: &[NucRefGlobalRange] = graph
+    .as_ref()
+    .map(|g| g.data.meta.placement_mask_ranges())
+    .unwrap_or_default();
+
+  // Recombination detection: decode putative recombinant regions from the parent-relative mutation
+  // pattern. Runs only when detection is on for the dataset. The per-sequence gate and step order live
+  // in `run_recombination`.
+  let recombination = recombination_setup.as_ref().and_then(|setup| {
+    run_recombination(
+      setup,
+      &RecombinationRunInput {
+        ref_len: ref_seq.len(),
+        alignment_range: &alignment_range,
+        private_nuc_mutations: &private_nuc_mutations,
+        missing: &missing,
+        non_acgtns: &non_acgtns,
+        deletions: &deletions,
+        masked_ranges,
+      },
+    )
+  });
+
   let aa_motifs = find_aa_motifs(&state.aa_motifs_search, &translation);
   let aa_motifs_changes = find_aa_motifs_changes(aa_motifs_ref, &aa_motifs, ref_translation, &translation)?;
 
@@ -542,6 +571,7 @@ pub fn nextclade_run_one(
       aa_motifs,
       aa_motifs_changes,
       qc,
+      recombination,
       clade,
       private_nuc_mutations,
       private_aa_mutations,

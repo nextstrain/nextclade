@@ -10,6 +10,7 @@ use crate::analyze::mutation_patterns::MutationPatternEventTypeCount;
 use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
+use crate::analyze::recombination::result::RecombinationResult;
 use crate::coord::range::NucRefGlobalRange;
 use crate::io::nextclade_csv::mut_pattern_cols;
 use crate::o;
@@ -75,6 +76,7 @@ impl NextcladeResultsCsvRow {
       cds_coverage,
       phenotype_values,
       qc,
+      recombination,
       custom_node_attributes,
       is_reverse_complement,
       warnings,
@@ -314,6 +316,34 @@ impl NextcladeResultsCsvRow {
     self.add_entry("alignmentEnd", &alignment_range.end.to_string())?;
     self.add_entry("coverage", coverage)?;
     self.add_entry("cdsCoverage", &format_cds_coverage(cds_coverage, ARRAY_ITEM_DELIMITER))?;
+    self.add_entry(
+      "recombination.regions",
+      &format_recombinant_regions(recombination.as_ref(), ARRAY_ITEM_DELIMITER),
+    )?;
+    self.add_entry(
+      "recombination.totalRegions",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.total_regions.to_string()),
+    )?;
+    self.add_entry(
+      "recombination.totalLength",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.total_length.to_string()),
+    )?;
+    self.add_entry(
+      "recombination.longestRegion.range",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.longest_region.range.to_string()),
+    )?;
+    self.add_entry(
+      "recombination.longestRegion.length",
+      &recombination
+        .as_ref()
+        .map_or_else(String::new, |rec| rec.longest_region.length.to_string()),
+    )?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
       qc.missing_data.as_ref().map(|md| md.missing_data_threshold.to_string()),
@@ -572,6 +602,13 @@ pub fn format_nuc_deletions(deletions: &[NucDelRange], delimiter: &str) -> Strin
 }
 
 #[inline]
+pub fn format_recombinant_regions(recombination: Option<&RecombinationResult>, delimiter: &str) -> String {
+  recombination.map_or_else(String::new, |rec| {
+    rec.regions.iter().map(|r| r.range.to_string()).join(delimiter)
+  })
+}
+
+#[inline]
 pub fn format_nuc_insertions(nuc_insertions: &[Insertion<Nuc>], delimiter: &str) -> String {
   nuc_insertions
     .iter()
@@ -800,5 +837,33 @@ mod tests {
     // Documented TSV format `nucSubstitution:<ref>><qry>:<count>` (docs/user/output-files/04-results-tsv.md)
     let expected = "nucSubstitution:A>G:8,nucSubstitution:T>C:6";
     assert_eq!(expected, format_mutation_pattern_event_type_counts(&counts, ","));
+  }
+
+  fn ranges(pairs: &[(usize, usize)]) -> Vec<NucRefGlobalRange> {
+    pairs
+      .iter()
+      .map(|&(begin, end)| NucRefGlobalRange::from_usize(begin, end))
+      .collect()
+  }
+
+  // Oracle: kb/decisions/recombination-detection.md "CSV/TSV columns" -- `recombination.regions` is a
+  // comma-delimited list of `begin-end` ranges in 1-based closed coordinates. The 1-based closed
+  // rendering comes from `Range`'s Display impl (begin+1..end), so a 0-based half-open [100, 200)
+  // prints as `101-200` and a single-position [100, 101) prints as `101`.
+  #[rustfmt::skip]
+  #[rstest]
+  #[case::single(          &[(100, 200)],              "101-200")]
+  #[case::multiple(        &[(100, 200), (300, 350)],  "101-200,301-350")]
+  #[case::single_position( &[(100, 101)],              "101")]
+  #[trace]
+  fn test_nextclade_csv_row_format_recombinant_regions_some(#[case] pairs: &[(usize, usize)], #[case] expected: &str) {
+    let result = RecombinationResult::from_ranges(ranges(pairs)).unwrap();
+    assert_eq!(expected, format_recombinant_regions(Some(&result), ARRAY_ITEM_DELIMITER));
+  }
+
+  // A `None` result is the "detection did not run / found nothing" case and renders as an empty cell.
+  #[test]
+  fn test_nextclade_csv_row_format_recombinant_regions_none_is_empty() {
+    assert_eq!("", format_recombinant_regions(None, ARRAY_ITEM_DELIMITER));
   }
 }

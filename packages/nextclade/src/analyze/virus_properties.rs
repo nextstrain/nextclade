@@ -3,6 +3,7 @@ use crate::alphabet::aa::Aa;
 use crate::alphabet::nuc::Nuc;
 use crate::analyze::aa_changes_find_for_cds::AaChangesParamsOptional;
 use crate::analyze::aa_sub::AaGenotype;
+use crate::analyze::recombination::config::RecombinationConfig;
 use crate::coord::position::AaRefPosition;
 use crate::coord::position::NucRefGlobalPosition;
 use crate::coord::range::AaRefRange;
@@ -378,6 +379,10 @@ pub struct VirusProperties {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub mutation_patterns: Option<MutationPatternsConfig>,
 
+  /// Recombination detection configuration. If absent, detection is off.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub recombination: Option<RecombinationConfig>,
+
   /// General analysis parameters (e.g. includeReference, inOrder, replaceUnknown).
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub general_params: Option<NextcladeGeneralParamsOptional>,
@@ -713,6 +718,7 @@ impl VirusProperties {
       mut_labels: LabelledMutationsConfig::example(),
       qc: Some(QcConfig::example()),
       mutation_patterns: Some(MutationPatternsConfig::example()),
+      recombination: None,
       general_params: None,
       alignment_params: None,
       tree_builder_params: None,

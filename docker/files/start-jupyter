@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+: ${JUPYTER_PORT:-10000}
+
+if [ ! -d "${HOME}/.jupyter/lab" ]; then
+  cp -r "/.jupyter" "${HOME}/"
+fi
+
+echo "🧪 Starting Jupyter Lab on port ${JUPYTER_PORT}"
+
+jupyter lab \
+  -y --no-browser \
+  --ip='*' --port=${JUPYTER_PORT} \
+  --IdentityProvider.token='' \
+  --ServerApp.log_level=ERROR \
+  --ExtensionApp.log_level=ERROR \
+  --LabApp.log_level=ERROR \
+  --FileCheckpoints.checkpoint_dir=/workdir/.cache/.ipynb_checkpoints

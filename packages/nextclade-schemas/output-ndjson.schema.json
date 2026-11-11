@@ -426,6 +426,17 @@
         }
       ]
     },
+    "recombination": {
+      "description": "Putative recombinant regions detected by the HMM. Absent when detection did not run.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RecombinationResult"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "customNodeAttributes": {
       "description": "Clade-like attributes from the nearest tree node, keyed by attribute name",
       "type": "object",
@@ -2990,6 +3001,63 @@
         },
         "codon": {
           "description": "0-indexed codon position of the stop codon within the CDS",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "RecombinationResult": {
+      "description": "Per-sequence detection result. Always has at least one region; empty results are `None`.",
+      "type": "object",
+      "required": [
+        "longestRegion",
+        "regions",
+        "totalLength",
+        "totalRegions"
+      ],
+      "properties": {
+        "regions": {
+          "description": "Putative recombinant intervals.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RecombinationRegion"
+          }
+        },
+        "totalRegions": {
+          "description": "Number of recombinant regions.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "totalLength": {
+          "description": "Total length of all recombinant regions, in nucleotides.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "longestRegion": {
+          "description": "The longest recombinant region.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/RecombinationRegion"
+            }
+          ]
+        }
+      }
+    },
+    "RecombinationRegion": {
+      "description": "A putative recombinant interval.",
+      "type": "object",
+      "required": [
+        "length",
+        "range"
+      ],
+      "properties": {
+        "range": {
+          "$ref": "#/definitions/Range_for_Position"
+        },
+        "length": {
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
