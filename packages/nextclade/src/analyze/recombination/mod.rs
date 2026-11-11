@@ -1,3 +1,4 @@
+pub mod call_qc;
 pub mod config;
 pub mod decode;
 pub mod estimate;

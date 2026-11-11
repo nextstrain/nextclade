@@ -899,6 +899,19 @@ definitions:
         format: double
         maximum: 1.0
         minimum: 0.0
+      minRegionLength:
+        description: Minimal span of a recombinant region, in nucleotides. A shorter region is dropped.
+        default: 50
+        type: integer
+        format: uint
+        minimum: 0.0
+      maxRegionMissingFraction:
+        description: Maximal fraction of missing sites (`N`, other ambiguity codes, deletions, placement-masked sites) in the span of a recombinant region. A region with a higher fraction is dropped. Must be in [0, 1].
+        default: 0.5
+        type: number
+        format: double
+        maximum: 1.0
+        minimum: 0.0
   NextcladeGeneralParamsOptional:
     type: object
     properties:
