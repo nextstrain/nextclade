@@ -12,6 +12,7 @@ export interface GetStatusIconAndTextParams {
 }
 
 export const PendingIcon = styled(BsFillQuestionDiamondFill)`
+  flex-shrink: 0;
   width: 1rem;
   height: 1rem;
   color: ${(props) => props.theme.gray650};
@@ -19,6 +20,7 @@ export const PendingIcon = styled(BsFillQuestionDiamondFill)`
   filter: drop-shadow(2px 1px 2px rgba(0, 0, 0, 0.2));
 `
 export const SuccessIcon = styled(FaCheckCircle)`
+  flex-shrink: 0;
   margin-bottom: 2px;
   width: 1rem;
   height: 1rem;
@@ -27,6 +29,7 @@ export const SuccessIcon = styled(FaCheckCircle)`
   filter: drop-shadow(2px 1px 2px rgba(0, 0, 0, 0.2));
 `
 export const WarningIcon = styled(AiFillWarning)`
+  flex-shrink: 0;
   width: 1rem;
   height: 1rem;
   color: ${(props) => props.theme.warning};
@@ -34,6 +37,7 @@ export const WarningIcon = styled(AiFillWarning)`
   filter: drop-shadow(2px 1px 2px rgba(0, 0, 0, 0.2));
 `
 export const ErrorIcon = styled(BsFillXOctagonFill)`
+  flex-shrink: 0;
   width: 1rem;
   height: 1rem;
   color: ${(props) => props.theme.danger};

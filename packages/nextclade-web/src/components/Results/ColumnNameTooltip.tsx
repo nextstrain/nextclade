@@ -23,6 +23,7 @@ const TableSlim = styled(TableSlimBase)`
 `
 
 export const DuplicateIcon = styled(IoDuplicateSharp)`
+  flex-shrink: 0;
   width: 1rem;
   height: 1rem;
   color: ${(props) => props.theme.warning};
