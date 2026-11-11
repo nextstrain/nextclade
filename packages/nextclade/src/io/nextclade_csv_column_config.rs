@@ -34,18 +34,13 @@ pub enum CsvColumnCategory {
 
 pub type CsvColumnConfigMap = IndexMap<CsvColumnCategory, IndexMap<String, bool>>;
 
-// Configuration for enabling/disabling CSV columns or categories of them.
-// The `include_*` fields are independent per-category toggles, so a flat set of bools is the natural
-// representation rather than a state machine.
+// Configuration for enabling/disabling CSV columns or categories of them
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[allow(
   clippy::struct_excessive_bools,
   reason = "each flag toggles one independent group of dynamic columns and maps to one checkbox in Nextclade Web"
 )]
-// Fill missing fields from `Default` (the single source of truth) so an older serialized config
-// lacking a newer toggle (e.g. `includeRecombination`) still deserializes with its established value.
-#[serde(default)]
 pub struct CsvColumnConfig {
   pub categories: CsvColumnConfigMap,
   pub individual: Vec<String>,
@@ -53,7 +48,6 @@ pub struct CsvColumnConfig {
   pub include_clade_founder_muts: bool,
   pub include_rel_muts: bool,
   pub include_mut_patterns: bool,
-  pub include_recombination: bool,
 }
 
 impl CsvColumnConfig {
@@ -94,7 +88,6 @@ impl CsvColumnConfig {
       let include_clade_founder_muts = categories.contains(&CsvColumnCategory::CladeFounderMuts);
 
       let include_mut_patterns = categories.contains(&CsvColumnCategory::MutPatterns);
-      let include_recombination = categories.contains(&CsvColumnCategory::Recombination);
 
       let categories = categories
         .into_iter()
@@ -111,7 +104,6 @@ impl CsvColumnConfig {
         include_clade_founder_muts,
         include_rel_muts,
         include_mut_patterns,
-        include_recombination,
       })
     }
   }
@@ -126,7 +118,6 @@ impl Default for CsvColumnConfig {
       include_clade_founder_muts: true,
       include_rel_muts: true,
       include_mut_patterns: true,
-      include_recombination: true,
     }
   }
 }
@@ -274,15 +265,14 @@ mod tests {
   // The default configuration enables the recombination columns.
   #[test]
   fn test_nextclade_csv_column_config_default_enables_recombination() {
-    assert!(CsvColumnConfig::default().include_recombination);
+    assert!(CsvColumnConfig::default().categories.contains_key(&CsvColumnCategory::Recombination));
   }
 
-  // Selecting the `recombination` category (kebab-case per the enum's strum serialization) sets its
-  // include flag and puts the category into the resolved column map.
+  // Selecting the `recombination` category (kebab-case per the enum's strum serialization) puts the
+  // category into the resolved column map.
   #[test]
   fn test_nextclade_csv_column_config_new_recombination_category_selected() {
     let config = CsvColumnConfig::new(&[o!("recombination")]).unwrap();
-    assert!(config.include_recombination);
     assert!(config.categories.contains_key(&CsvColumnCategory::Recombination));
   }
 
@@ -290,7 +280,6 @@ mod tests {
   #[test]
   fn test_nextclade_csv_column_config_new_other_category_excludes_recombination() {
     let config = CsvColumnConfig::new(&[o!("general")]).unwrap();
-    assert!(!config.include_recombination);
     assert!(!config.categories.contains_key(&CsvColumnCategory::Recombination));
   }
 
