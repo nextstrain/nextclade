@@ -4,7 +4,6 @@ import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { formatRange } from 'src/helpers/formatRange'
-import { formatPercentage } from 'src/helpers/formatPercentage'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe as useTranslation } from 'src/helpers/useTranslationSafe'
 
@@ -15,13 +14,12 @@ export interface RecombinationMarkerProps {
   index: number
   seqName: string
   region: Range
-  confidence?: number
   pixelsPerBase: number
 }
 
 export const SequenceMarkerRecombination = React.memo(SequenceMarkerRecombinationUnmemoed)
 
-function SequenceMarkerRecombinationUnmemoed({ index, seqName, region, confidence, pixelsPerBase }: RecombinationMarkerProps) {
+function SequenceMarkerRecombinationUnmemoed({ index, seqName, region, pixelsPerBase }: RecombinationMarkerProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
@@ -34,27 +32,21 @@ function SequenceMarkerRecombinationUnmemoed({ index, seqName, region, confidenc
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
   const x = region.begin * pixelsPerBase - halfNuc
 
-  const fillOpacity = Math.max(0.35, confidence ?? 1.0)
-  const borderOpacity = Math.max(0.5, confidence ?? 1.0)
-
   // No gene/codon labels: recombinant intervals can span multiple genes.
   return (
     <g>
       <rect
         fill={recombinationBorderColor}
-        fillOpacity={borderOpacity}
         x={x - 1}
         y={1.75}
         width={width + 2}
         stroke={recombinationBorderColor}
-        strokeOpacity={borderOpacity}
         strokeWidth={0.5}
         height={7}
       />
       <rect
         id={id}
         fill={recombinationColor}
-        fillOpacity={fillOpacity}
         x={x}
         y={2.5}
         width={width}
@@ -77,13 +69,6 @@ function SequenceMarkerRecombinationUnmemoed({ index, seqName, region, confidenc
                 <td>{t('Nucleotide length')}</td>
                 <td>{nucLength}</td>
               </tr>
-
-              {confidence !== undefined && (
-                <tr>
-                  <td>{t('Confidence')}</td>
-                  <td>{formatPercentage(confidence)}</td>
-                </tr>
-              )}
             </tbody>
           </TableSlim>
         </Tooltip>

@@ -3,19 +3,16 @@
 use crate::coord::range::NucRefGlobalRange;
 use serde::{Deserialize, Serialize};
 
-/// A putative recombinant interval with optional forward-backward confidence.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+/// A putative recombinant interval.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecombinationRegion {
   pub range: NucRefGlobalRange,
   pub length: usize,
-  /// Mean posterior P(recombinant) from forward-backward within this interval.
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub confidence: Option<f64>,
 }
 
 /// Per-sequence detection result. Always has at least one region; empty results are `None`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecombinationResult {
   /// Putative recombinant intervals.
@@ -32,33 +29,18 @@ pub struct RecombinationResult {
 }
 
 impl RecombinationResult {
-  /// Summarize decoded regions, each paired with its optional confidence. `None` when empty.
-  ///
-  /// Pairing range and confidence at the input makes a per-region confidence count mismatch
-  /// unrepresentable: every region carries exactly its own confidence, so no length invariant
-  /// needs enforcing.
-  pub(crate) fn from_ranges(regions: Vec<(NucRefGlobalRange, Option<f64>)>) -> Option<Self> {
-    if regions.is_empty() {
-      return None;
-    }
-    let regions: Vec<RecombinationRegion> = regions
+  /// Summarize decoded regions. `None` when empty.
+  pub(crate) fn from_ranges(ranges: Vec<NucRefGlobalRange>) -> Option<Self> {
+    let regions: Vec<RecombinationRegion> = ranges
       .into_iter()
-      .map(|(range, confidence)| {
+      .map(|range| {
         let length = range.len();
-        RecombinationRegion {
-          range,
-          length,
-          confidence,
-        }
+        RecombinationRegion { range, length }
       })
       .collect();
+    let longest_region = regions.iter().max_by_key(|r| r.length)?.clone();
     let total_regions = regions.len();
     let total_length = regions.iter().map(|r| r.length).sum();
-    let longest_region = regions
-      .iter()
-      .max_by_key(|r| r.length)
-      .expect("regions is non-empty: empty case returns None above")
-      .clone();
     Some(Self {
       regions,
       total_regions,

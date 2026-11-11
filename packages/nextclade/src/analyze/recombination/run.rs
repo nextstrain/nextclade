@@ -1,9 +1,9 @@
 //! HMM-based recombination detection.
 //!
-//! Two-state HMM (wildtype/recombinant), Viterbi-decoded, optionally forward-backward scored.
+//! Two-state HMM (wildtype/recombinant), Viterbi-decoded.
 //! Sites emit `Ref`, `Mut`, or `Missing` relative to the inferred parent. `Missing` emits
 //! probability 1 in both states (marginalization), so transitions cross it but it adds no evidence.
-//! Recombinant runs, trimmed to covered endpoints, are reported with optional confidence scores.
+//! Recombinant runs, trimmed to covered endpoints, are reported as putative recombinant regions.
 //!
 //! Entry points: `run_recombination` (per-sequence), `estimate::resolve_recombination_params`
 //! (per-dataset setup).
@@ -13,9 +13,6 @@ use crate::analyze::nuc_del::NucDelRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::recombination::config::RecombinationConfig;
 use crate::analyze::recombination::decode::find_recombinant_regions;
-use crate::analyze::recombination::forward_backward::{
-  compute_forward_backward_marginals, compute_interval_confidences,
-};
 use crate::analyze::recombination::observations::{build_observations, collect_missing_ranges};
 use crate::analyze::recombination::params::RecombinationHmmParams;
 use crate::analyze::recombination::result::RecombinationResult;
@@ -61,13 +58,5 @@ pub fn run_recombination(
   );
 
   let regions = find_recombinant_regions(&observations, params);
-  let regions_with_confidence: Vec<(NucRefGlobalRange, Option<f64>)> = if regions.is_empty() {
-    Vec::new()
-  } else {
-    let marginals = compute_forward_backward_marginals(&observations, params);
-    let confidences = compute_interval_confidences(&marginals, &regions);
-    regions.into_iter().zip(confidences.into_iter().map(Some)).collect()
-  };
-
-  RecombinationResult::from_ranges(regions_with_confidence)
+  RecombinationResult::from_ranges(regions)
 }

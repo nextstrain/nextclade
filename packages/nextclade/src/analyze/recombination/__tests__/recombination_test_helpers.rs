@@ -4,7 +4,6 @@ use crate::alphabet::nuc::Nuc;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::recombination::config::RecombinationConfig;
 use crate::analyze::recombination::estimate::RecombinationResolution;
-use crate::analyze::recombination::forward_backward::compute_log_sum_exp_2;
 use crate::analyze::recombination::observations::RecombinationObs;
 use crate::analyze::recombination::params::{RECOMBINANT, RecombinationHmmParams, WILDTYPE};
 use crate::analyze::recombination::result::RecombinationRegion;
@@ -49,11 +48,10 @@ pub fn ranges(pairs: &[(usize, usize)]) -> Vec<NucRefGlobalRange> {
     .collect()
 }
 
-pub fn region(begin: usize, end: usize, confidence: Option<f64>) -> RecombinationRegion {
+pub fn region(begin: usize, end: usize) -> RecombinationRegion {
   RecombinationRegion {
     range: NucRefGlobalRange::from_usize(begin, end),
     length: end - begin,
-    confidence,
   }
 }
 
@@ -86,34 +84,6 @@ pub fn path_log_prob(obs: &[RecombinationObs], states: &[bool], params: &Recombi
     total += params.compute_log_emission(obs[l])[state_idx(states[l])];
   }
   total
-}
-
-/// Brute-force posterior marginals over all `2^L` paths. `O(2^L)` -- tractable only for short
-/// vectors, but a genuine oracle (exhaustive enumeration, not the alpha/beta recurrence).
-pub fn bruteforce_marginals(obs: &[RecombinationObs], params: &RecombinationHmmParams) -> Vec<[f64; 2]> {
-  let n = obs.len();
-  let paths: Vec<Vec<bool>> = (0..(1_u32 << n))
-    .map(|mask| (0..n).map(|i| (mask >> i) & 1 == 1).collect())
-    .collect();
-  let log_joint: Vec<f64> = paths.iter().map(|path| path_log_prob(obs, path, params)).collect();
-  let log_total = log_joint.iter().copied().fold(f64::NEG_INFINITY, compute_log_sum_exp_2);
-
-  (0..n)
-    .map(|site| {
-      let log_marginal = |recombinant: bool| {
-        paths
-          .iter()
-          .zip(&log_joint)
-          .filter(|(path, _)| path[site] == recombinant)
-          .map(|(_, &lj)| lj)
-          .fold(f64::NEG_INFINITY, compute_log_sum_exp_2)
-      };
-      [
-        (log_marginal(false) - log_total).exp(),
-        (log_marginal(true) - log_total).exp(),
-      ]
-    })
-    .collect()
 }
 
 /// Unwrap a resolution to its parameters, panicking if skipped.

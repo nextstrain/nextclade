@@ -344,10 +344,6 @@ impl NextcladeResultsCsvRow {
         .as_ref()
         .map_or_else(String::new, |rec| rec.longest_region.length.to_string()),
     )?;
-    self.add_entry(
-      "recombination.regionConfidences",
-      &format_recombinant_region_confidences(recombination.as_ref(), ARRAY_ITEM_DELIMITER),
-    )?;
     self.add_entry_maybe(
       "qc.missingData.missingDataThreshold",
       qc.missing_data.as_ref().map(|md| md.missing_data_threshold.to_string()),
@@ -613,17 +609,6 @@ pub fn format_recombinant_regions(recombination: Option<&RecombinationResult>, d
 }
 
 #[inline]
-pub fn format_recombinant_region_confidences(recombination: Option<&RecombinationResult>, delimiter: &str) -> String {
-  recombination.map_or_else(String::new, |rec| {
-    rec
-      .regions
-      .iter()
-      .filter_map(|r| r.confidence.map(|c| format!("{c:.3}")))
-      .join(delimiter)
-  })
-}
-
-#[inline]
 pub fn format_nuc_insertions(nuc_insertions: &[Insertion<Nuc>], delimiter: &str) -> String {
   nuc_insertions
     .iter()
@@ -815,7 +800,6 @@ mod tests {
   use super::*;
   use crate::alphabet::nuc::Nuc;
   use crate::analyze::mutation_patterns::MutationPatternNucSubstitutionTypeCount;
-  use crate::analyze::recombination::result::RecombinationRegion;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -873,8 +857,7 @@ mod tests {
   #[case::single_position( &[(100, 101)],              "101")]
   #[trace]
   fn test_nextclade_csv_row_format_recombinant_regions_some(#[case] pairs: &[(usize, usize)], #[case] expected: &str) {
-    let regions: Vec<_> = ranges(pairs).into_iter().map(|r| (r, None)).collect();
-    let result = RecombinationResult::from_ranges(regions).unwrap();
+    let result = RecombinationResult::from_ranges(ranges(pairs)).unwrap();
     assert_eq!(expected, format_recombinant_regions(Some(&result), ARRAY_ITEM_DELIMITER));
   }
 
@@ -882,64 +865,5 @@ mod tests {
   #[test]
   fn test_nextclade_csv_row_format_recombinant_regions_none_is_empty() {
     assert_eq!("", format_recombinant_regions(None, ARRAY_ITEM_DELIMITER));
-  }
-
-  // Oracle: kb/decisions/recombination-detection.md "CSV/TSV columns" -- `recombination.regionConfidences`
-  // is a comma-delimited list of per-region confidences at 3 decimal places.
-  #[test]
-  fn test_nextclade_csv_row_format_recombinant_region_confidences_three_decimals() {
-    let regions: Vec<_> = ranges(&[(100, 200), (300, 350)])
-      .into_iter()
-      .zip([Some(0.95), Some(0.5)])
-      .collect();
-    let result = RecombinationResult::from_ranges(regions).unwrap();
-    assert_eq!(
-      "0.950,0.500",
-      format_recombinant_region_confidences(Some(&result), ARRAY_ITEM_DELIMITER)
-    );
-  }
-
-  #[test]
-  fn test_nextclade_csv_row_format_recombinant_region_confidences_none_is_empty() {
-    assert_eq!("", format_recombinant_region_confidences(None, ARRAY_ITEM_DELIMITER));
-  }
-
-  // Regions carrying no confidence (forward-backward did not produce scores) are filtered out, so the
-  // cell is empty rather than listing placeholder values.
-  #[test]
-  fn test_nextclade_csv_row_format_recombinant_region_confidences_absent_is_empty() {
-    let regions: Vec<_> = ranges(&[(100, 200)]).into_iter().map(|r| (r, None)).collect();
-    let result = RecombinationResult::from_ranges(regions).unwrap();
-    assert_eq!(
-      "",
-      format_recombinant_region_confidences(Some(&result), ARRAY_ITEM_DELIMITER)
-    );
-  }
-
-  // The confidence list contains one entry per region that has a score; a region whose `confidence` is
-  // `None` contributes nothing. Built directly because the `from_ranges` constructor sets confidence
-  // uniformly for all regions, so a per-region mix is only reachable by constructing the value.
-  #[test]
-  fn test_nextclade_csv_row_format_recombinant_region_confidences_skips_regions_without_score() {
-    let scored = RecombinationRegion {
-      range: NucRefGlobalRange::from_usize(100, 200),
-      length: 100,
-      confidence: Some(0.95),
-    };
-    let unscored = RecombinationRegion {
-      range: NucRefGlobalRange::from_usize(300, 350),
-      length: 50,
-      confidence: None,
-    };
-    let result = RecombinationResult {
-      total_regions: 2,
-      total_length: 150,
-      longest_region: scored.clone(),
-      regions: vec![scored, unscored],
-    };
-    assert_eq!(
-      "0.950",
-      format_recombinant_region_confidences(Some(&result), ARRAY_ITEM_DELIMITER)
-    );
   }
 }
