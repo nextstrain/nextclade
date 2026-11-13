@@ -335,6 +335,8 @@ definitions:
           weightUnlabeledDeletions: 1.0
           typical: 5.0
           cutoff: 15.0
+          lengthScaling:
+            minLength: 300
         snpClusters:
           enabled: true
           windowSize: 100
@@ -666,6 +668,8 @@ definitions:
         weightUnlabeledDeletions: 1.0
         typical: 5.0
         cutoff: 15.0
+        lengthScaling:
+          minLength: 300
       snpClusters:
         enabled: true
         windowSize: 100
@@ -762,6 +766,24 @@ definitions:
         default: 0.0
         type: number
         format: double
+      lengthScaling:
+        description: Scale `missingDataThreshold` and `scoreBias` with the number of aligned positions
+        anyOf:
+        - $ref: '#/definitions/QcLengthScaling'
+        - type: 'null'
+  QcLengthScaling:
+    description: Scaling of the thresholds of a QC rule by `max(length, minLength) / referenceLength`
+    examples:
+    - minLength: 300
+    type: object
+    required:
+    - minLength
+    properties:
+      minLength:
+        description: Lowest length (in nucleotides) used for scaling, at most the length of the reference sequence
+        type: integer
+        format: uint
+        minimum: 1.0
   QcRulesConfigMixedSites:
     description: Configuration for QC rule "mixed sites"
     examples:
@@ -778,6 +800,11 @@ definitions:
         type: integer
         format: uint
         minimum: 0.0
+      lengthScaling:
+        description: Scale `mixedSitesThreshold` with the number of aligned positions that are not `N`
+        anyOf:
+        - $ref: '#/definitions/QcLengthScaling'
+        - type: 'null'
   QcRulesConfigPrivateMutations:
     description: Configuration for QC rule "private mutations"
     examples:
@@ -790,6 +817,8 @@ definitions:
       weightUnlabeledDeletions: 1.0
       typical: 5.0
       cutoff: 15.0
+      lengthScaling:
+        minLength: 300
     type: object
     properties:
       enabled:
@@ -835,6 +864,11 @@ definitions:
         default: 0.0
         type: number
         format: double
+      lengthScaling:
+        description: Scale `typical` and `cutoff` with the number of aligned positions that hold an A, C, G or T or a deletion
+        anyOf:
+        - $ref: '#/definitions/QcLengthScaling'
+        - type: 'null'
   QcRulesConfigSnpClusters:
     description: Configuration for QC rule "SNP clusters"
     examples:

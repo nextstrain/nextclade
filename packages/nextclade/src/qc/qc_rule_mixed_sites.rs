@@ -1,6 +1,9 @@
 use crate::alphabet::letter::Letter;
 use crate::alphabet::nuc::Nuc;
 use crate::qc::qc_config::QcRulesConfigMixedSites;
+use crate::qc::qc_length_scaling::{
+  QcResultLengthScaling, QcSequenceLengths, qc_length_scaling, qc_length_scaling_factor,
+};
 use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
@@ -20,8 +23,11 @@ pub struct QcResultMixedSites {
   pub status: QcStatus,
   /// Total number of ambiguous (non-ACGTN, non-gap) nucleotide positions
   pub total_mixed_sites: usize,
-  /// Threshold from the dataset configuration at which the score reaches 100
+  /// Threshold from the dataset configuration at which the score reaches 100, before length scaling
   pub mixed_sites_threshold: usize,
+  /// Length scaling of `mixedSitesThreshold`
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub length_scaling: Option<QcResultLengthScaling>,
 }
 
 impl QcRule for QcResultMixedSites {
@@ -32,6 +38,7 @@ impl QcRule for QcResultMixedSites {
 
 pub fn rule_mixed_sites(
   nucleotide_composition: &BTreeMap<Nuc, usize>,
+  lengths: &QcSequenceLengths,
   config: &QcRulesConfigMixedSites,
 ) -> Option<QcResultMixedSites> {
   if !config.enabled {
@@ -45,10 +52,13 @@ pub fn rule_mixed_sites(
     .map(|(_, total)| total)
     .sum();
 
-  let score = clamp_min(
-    100.0 * (total_mixed_sites as f64 / config.mixed_sites_threshold as f64),
-    0.0,
-  );
+  let length_scaling = config
+    .length_scaling
+    .as_ref()
+    .map(|length_scaling| qc_length_scaling(length_scaling, lengths.sequenced, lengths.reference));
+  let threshold = config.mixed_sites_threshold as f64 * qc_length_scaling_factor(length_scaling.as_ref());
+
+  let score = clamp_min(100.0 * (total_mixed_sites as f64 / threshold), 0.0);
   let status = QcStatus::from_score(score);
 
   Some(QcResultMixedSites {
@@ -56,5 +66,6 @@ pub fn rule_mixed_sites(
     status,
     total_mixed_sites,
     mixed_sites_threshold: config.mixed_sites_threshold,
+    length_scaling,
   })
 }

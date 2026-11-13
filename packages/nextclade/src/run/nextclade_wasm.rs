@@ -346,6 +346,12 @@ impl Nextclade {
 
     validate_ref_seq(&ref_record.seq_name, &ref_seq)?;
 
+    if let Some(qc_config) = &virus_properties.qc {
+      qc_config
+        .validate_for_reference(ref_seq.len())
+        .wrap_err("When validating QC configuration")?;
+    }
+
     let aa_motifs_search = AaMotifsSearch::new(&virus_properties.aa_motifs)?;
 
     // If genome annotation is present, calculate AA-related parameters
