@@ -2,7 +2,7 @@
 
 ## Problem
 
-A query whose parts match distant regions of the reference has no sound result. Without the seed chain check (before 3.26.0, with the `short-sequences` preset, or with a large `--max-seed-chain-deletion-ratio`), it gets one linear alignment with a long deletion between the parts. The region between the parts was not sequenced, so the deletion, the coverage and the QC status are unsound. With the check (the default since 3.26.0), the whole sequence is rejected and its sound parts are lost.
+A query whose parts match distant regions of the reference has no sound result. Without the seed chain check (before 3.26.0, with the `short-sequences` preset, or with a large `--max-seed-chain-deletion-ratio`), it gets one linear alignment with a long deletion between the parts. The region between the parts was not sequenced, so the deletion, the coverage and the QC status are unsound. QC length scaling counts the region as covered too, so it gives the parts thresholds near those of a full genome instead of thresholds for their own length. With the check (the default since 3.26.0), the whole sequence is rejected and its sound parts are lost.
 
 Examples from public Pathoplexus data, aligned with Nextclade 3.24.0, before the check:
 
@@ -16,7 +16,7 @@ In about 44,600 Pathoplexus sequences of five organisms, 15 sequences have this 
 
 - Seed chaining without a gap cost: `fn chain_seeds()` ([packages/nextclade/src/align/seed_match.rs#L326](../../packages/nextclade/src/align/seed_match.rs#L326))
 - Check before the band is built: `fn align_nuc()` ([packages/nextclade/src/align/align.rs#L76-L98](../../packages/nextclade/src/align/align.rs#L76-L98)) and `fn find_distant_seed_chain_gap()` ([packages/nextclade/src/align/seed_match.rs#L519](../../packages/nextclade/src/align/seed_match.rs#L519))
-- Coverage counts deleted bases inside the alignment range as covered ([packages/nextclade/src/run/nextclade_run_one.rs#L168-L170](../../packages/nextclade/src/run/nextclade_run_one.rs#L168-L170))
+- Coverage and the lengths of QC length scaling count deleted bases inside the alignment range as covered ([packages/nextclade/src/run/nextclade_run_one.rs#L169-L171](../../packages/nextclade/src/run/nextclade_run_one.rs#L169-L171), [#L474-L479](../../packages/nextclade/src/run/nextclade_run_one.rs#L474-L479))
 
 ## Fix
 
@@ -34,3 +34,4 @@ Align each well-supported part on its own and report the reference between colli
 
 - Unit tests with in-memory references for each class: joined parts with an `N` run, fold-back duplicate, contiguous junction
 - Compare the results on the Pathoplexus sequences of the proposal with Nextclade 3.24.0: the 15 joined records get two aligned blocks with their own substitutions and no deletion, and no other result changes
+- With a dataset that sets `lengthScaling`, check that the QC length of a joined record covers its aligned parts only
