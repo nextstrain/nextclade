@@ -801,7 +801,7 @@ definitions:
         type: number
         format: double
       weightReversionDeletions:
-        description: Weight multiplier for reversion deletions in the weighted total
+        description: 'Has no effect: private deletions are not divided into categories'
         default: 1.0
         type: number
         format: double
@@ -811,7 +811,7 @@ definitions:
         type: number
         format: double
       weightLabeledDeletions:
-        description: Weight multiplier for labeled deletions in the weighted total
+        description: 'Has no effect: private deletions are not divided into categories'
         default: 1.0
         type: number
         format: double
@@ -821,7 +821,7 @@ definitions:
         type: number
         format: double
       weightUnlabeledDeletions:
-        description: Weight multiplier for unlabeled deletions in the weighted total
+        description: 'Has no effect: private deletions are not divided into categories'
         default: 1.0
         type: number
         format: double
