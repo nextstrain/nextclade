@@ -124,6 +124,21 @@ Example configuration for SARS-CoV-2:
 }
 ```
 
+`missingData`, `mixedSites` and `privateMutations` accept an optional `lengthScaling` object, which scales the thresholds of the rule with the length of the sequence. `minLength` is the shortest length used for scaling. See [Algorithm: Quality control](../algorithm/06-quality-control.md#scaling-with-sequence-length).
+
+```json
+{
+  "qc": {
+    "privateMutations": {
+      "enabled": true,
+      "typical": 500,
+      "cutoff": 1000,
+      "lengthScaling": { "minLength": 300 }
+    }
+  }
+}
+```
+
 #### `compatibility`
 
 Optional. Minimum Nextclade CLI/web version required to use this dataset. If not provided, no compatibility checks are performed.
