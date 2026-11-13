@@ -20,9 +20,12 @@ export function formatQCPrivateMutations<TFunction extends TFunctionInterface>(
     numUnlabeledSubstitutions,
     totalDeletionRanges,
     weightedTotal,
+    excess,
+    cutoff,
+    lengthScaling,
   } = privateMutations
 
-  return t(
+  const counts = t(
     'QC score: {{score}}. ' +
       'Reverted substitutions: {{numReversionSubstitutions}}, ' +
       'Labeled substitutions: {{numLabeledSubstitutions}}, ' +
@@ -38,4 +41,15 @@ export function formatQCPrivateMutations<TFunction extends TFunctionInterface>(
       weightedTotal,
     },
   )
+
+  if (!lengthScaling) {
+    return counts
+  }
+
+  const scaling = t('Thresholds scaled to {{length}} nucleotides: typical {{typical}}, cutoff {{cutoff}}', {
+    length: lengthScaling.length,
+    typical: round(weightedTotal - excess, 1),
+    cutoff: round(cutoff * lengthScaling.factor, 1),
+  })
+  return `${counts}. ${scaling}`
 }
