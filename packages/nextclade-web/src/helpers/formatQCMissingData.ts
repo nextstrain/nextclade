@@ -13,7 +13,8 @@ export function formatQCMissingData<TFunction extends TFunctionInterface>(
     return undefined
   }
 
-  const { score, totalMissing, missingDataThreshold, status } = missingData
+  const { score, totalMissing, missingDataThreshold, lengthScaling, status } = missingData
+  const allowed = lengthScaling ? round(missingDataThreshold, 1) : missingDataThreshold
 
   let message = t('Missing data found')
   if (status === 'bad') {
@@ -23,7 +24,7 @@ export function formatQCMissingData<TFunction extends TFunctionInterface>(
   return t('{{message}}. Total Ns: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
     message,
     total: totalMissing,
-    allowed: missingDataThreshold,
+    allowed,
     score: round(score),
   })
 }
