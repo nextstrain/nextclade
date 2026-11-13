@@ -13,7 +13,8 @@ export function formatQCMixedSites<TFunction extends TFunctionInterface>(
     return undefined
   }
 
-  const { score, totalMixedSites, mixedSitesThreshold, status } = mixedSites
+  const { score, totalMixedSites, mixedSitesThreshold, lengthScaling, status } = mixedSites
+  const allowed = lengthScaling ? round(mixedSitesThreshold * lengthScaling.factor, 1) : mixedSitesThreshold
 
   let message = t('Mixed sites found')
   if (status === 'bad') {
@@ -23,7 +24,7 @@ export function formatQCMixedSites<TFunction extends TFunctionInterface>(
   return t('{{message}}: total {{total}} ({{allowed}} allowed). QC score: {{score}}', {
     message,
     total: totalMixedSites,
-    allowed: mixedSitesThreshold,
+    allowed,
     score: round(score),
   })
 }

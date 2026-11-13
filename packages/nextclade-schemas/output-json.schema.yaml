@@ -1907,9 +1907,14 @@ definitions:
         format: uint
         minimum: 0.0
       missingDataThreshold:
-        description: Effective threshold above which the score reaches 100 (scoreBias + missingDataThreshold from config)
+        description: Effective threshold above which the score reaches 100 (scoreBias + missingDataThreshold, after length scaling)
         type: number
         format: double
+      lengthScaling:
+        description: Length scaling of `scoreBias` and `missingDataThreshold`
+        anyOf:
+        - $ref: '#/definitions/QcResultLengthScaling'
+        - type: 'null'
   QcStatus:
     description: |-
       Overall quality category derived from a numeric QC score.
@@ -1928,6 +1933,22 @@ definitions:
       type: string
       enum:
       - bad
+  QcResultLengthScaling:
+    description: Length scaling that a QC rule applied to its thresholds
+    type: object
+    required:
+    - factor
+    - length
+    properties:
+      length:
+        description: Length (in nucleotides) used for scaling, at least `lengthScaling.minLength`
+        type: integer
+        format: uint
+        minimum: 0.0
+      factor:
+        description: 'Factor applied to the thresholds: `length` divided by the reference length'
+        type: number
+        format: double
   QcResultMixedSites:
     description: |-
       Result of the mixed sites QC rule.
@@ -1954,10 +1975,15 @@ definitions:
         format: uint
         minimum: 0.0
       mixedSitesThreshold:
-        description: Threshold from the dataset configuration at which the score reaches 100
+        description: Threshold from the dataset configuration at which the score reaches 100, before length scaling
         type: integer
         format: uint
         minimum: 0.0
+      lengthScaling:
+        description: Length scaling of `mixedSitesThreshold`
+        anyOf:
+        - $ref: '#/definitions/QcResultLengthScaling'
+        - type: 'null'
   QcResultPrivateMutations:
     description: |-
       Result of the private mutations QC rule.
@@ -2008,13 +2034,18 @@ definitions:
         type: number
         format: double
       excess:
-        description: Excess above the typical number of private mutations (weightedTotal - typical)
+        description: Excess above the typical number of private mutations (weightedTotal - typical, after length scaling)
         type: number
         format: double
       cutoff:
-        description: Cutoff from the dataset configuration at which the score reaches 100
+        description: Cutoff from the dataset configuration at which the score reaches 100, before length scaling
         type: number
         format: double
+      lengthScaling:
+        description: Length scaling of `typical` and `cutoff`
+        anyOf:
+        - $ref: '#/definitions/QcResultLengthScaling'
+        - type: 'null'
   QcResultSnpClusters:
     description: |-
       Result of the SNP clusters QC rule.

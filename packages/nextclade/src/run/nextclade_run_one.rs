@@ -44,6 +44,7 @@ use crate::graph::node::GraphNodeKey;
 use crate::io::fasta::parse_fasta_header;
 use crate::io::gff3_writer::GFF_ATTRIBUTES_TO_REMOVE;
 use crate::o;
+use crate::qc::qc_length_scaling::QcSequenceLengths;
 use crate::qc::qc_run::qc_run;
 use crate::run::nextclade_wasm::{AnalysisOutput, Nextclade};
 use crate::translate::aa_alignment_ranges::{GatherAaAlignmentRangesResult, gather_aa_alignment_ranges};
@@ -470,6 +471,12 @@ pub fn nextclade_run_one(
         &private_nuc_mutations,
         &nucleotide_composition,
         total_missing,
+        &QcSequenceLengths {
+          reference: ref_seq.len(),
+          aligned: total_aligned_nucs,
+          sequenced: total_aligned_nucs - total_missing,
+          covered: total_covered_nucs,
+        },
         &translation,
         &frame_shifts,
         qc_config,

@@ -510,7 +510,10 @@
               "weightUnlabeledSubstitutions": 1.0,
               "weightUnlabeledDeletions": 1.0,
               "typical": 5.0,
-              "cutoff": 15.0
+              "cutoff": 15.0,
+              "lengthScaling": {
+                "minLength": 300
+              }
             },
             "snpClusters": {
               "enabled": true,
@@ -1048,7 +1051,10 @@
             "weightUnlabeledSubstitutions": 1.0,
             "weightUnlabeledDeletions": 1.0,
             "typical": 5.0,
-            "cutoff": 15.0
+            "cutoff": 15.0,
+            "lengthScaling": {
+              "minLength": 300
+            }
           },
           "snpClusters": {
             "enabled": true,
@@ -1197,6 +1203,37 @@
           "default": 0.0,
           "type": "number",
           "format": "double"
+        },
+        "lengthScaling": {
+          "description": "Scale `missingDataThreshold` and `scoreBias` with the number of aligned positions",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/QcLengthScaling"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "QcLengthScaling": {
+      "description": "Scaling of the thresholds of a QC rule by `max(length, minLength) / referenceLength`",
+      "examples": [
+        {
+          "minLength": 300
+        }
+      ],
+      "type": "object",
+      "required": [
+        "minLength"
+      ],
+      "properties": {
+        "minLength": {
+          "description": "Lowest length (in nucleotides) used for scaling, at most the length of the reference sequence",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 1.0
         }
       }
     },
@@ -1220,6 +1257,17 @@
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
+        },
+        "lengthScaling": {
+          "description": "Scale `mixedSitesThreshold` with the number of aligned positions that are not `N`",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/QcLengthScaling"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -1235,7 +1283,10 @@
           "weightUnlabeledSubstitutions": 1.0,
           "weightUnlabeledDeletions": 1.0,
           "typical": 5.0,
-          "cutoff": 15.0
+          "cutoff": 15.0,
+          "lengthScaling": {
+            "minLength": 300
+          }
         }
       ],
       "type": "object",
@@ -1251,7 +1302,7 @@
           "format": "double"
         },
         "weightReversionDeletions": {
-          "description": "Weight multiplier for reversion deletions in the weighted total",
+          "description": "Has no effect: private deletions are not divided into categories",
           "default": 1.0,
           "type": "number",
           "format": "double"
@@ -1263,7 +1314,7 @@
           "format": "double"
         },
         "weightLabeledDeletions": {
-          "description": "Weight multiplier for labeled deletions in the weighted total",
+          "description": "Has no effect: private deletions are not divided into categories",
           "default": 1.0,
           "type": "number",
           "format": "double"
@@ -1275,7 +1326,7 @@
           "format": "double"
         },
         "weightUnlabeledDeletions": {
-          "description": "Weight multiplier for unlabeled deletions in the weighted total",
+          "description": "Has no effect: private deletions are not divided into categories",
           "default": 1.0,
           "type": "number",
           "format": "double"
@@ -1291,6 +1342,17 @@
           "default": 0.0,
           "type": "number",
           "format": "double"
+        },
+        "lengthScaling": {
+          "description": "Scale `typical` and `cutoff` with the number of aligned positions that hold an A, C, G or T or a deletion",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/QcLengthScaling"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },

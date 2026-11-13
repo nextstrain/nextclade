@@ -331,6 +331,13 @@ impl NextcladeResultsCsvRow {
       qc.missing_data.as_ref().map(|md| md.total_missing.to_string()),
     )?;
     self.add_entry_maybe(
+      "qc.missingData.lengthScaling.factor",
+      qc.missing_data
+        .as_ref()
+        .and_then(|md| md.length_scaling.as_ref())
+        .map(|length_scaling| length_scaling.factor.to_string()),
+    )?;
+    self.add_entry_maybe(
       "qc.mixedSites.mixedSitesThreshold",
       qc.mixed_sites.as_ref().map(|ms| ms.mixed_sites_threshold.to_string()),
     )?;
@@ -345,6 +352,13 @@ impl NextcladeResultsCsvRow {
     self.add_entry_maybe(
       "qc.mixedSites.totalMixedSites",
       qc.mixed_sites.as_ref().map(|ms| ms.total_mixed_sites.to_string()),
+    )?;
+    self.add_entry_maybe(
+      "qc.mixedSites.lengthScaling.factor",
+      qc.mixed_sites
+        .as_ref()
+        .and_then(|ms| ms.length_scaling.as_ref())
+        .map(|length_scaling| length_scaling.factor.to_string()),
     )?;
     self.add_entry_maybe(
       "qc.privateMutations.cutoff",
@@ -365,6 +379,13 @@ impl NextcladeResultsCsvRow {
     self.add_entry_maybe(
       "qc.privateMutations.total",
       qc.private_mutations.as_ref().map(|pm| pm.weighted_total.to_string()),
+    )?;
+    self.add_entry_maybe(
+      "qc.privateMutations.lengthScaling.factor",
+      qc.private_mutations
+        .as_ref()
+        .and_then(|pm| pm.length_scaling.as_ref())
+        .map(|length_scaling| length_scaling.factor.to_string()),
     )?;
     self.add_entry_maybe(
       "qc.snpClusters.clusteredSNPs",

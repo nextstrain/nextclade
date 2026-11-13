@@ -5,6 +5,9 @@ use crate::analyze::nuc_del::NucDel;
 use crate::coord::position::PositionLike;
 use crate::coord::range::Range;
 use crate::qc::qc_config::QcRulesConfigPrivateMutations;
+use crate::qc::qc_length_scaling::{
+  QcResultLengthScaling, QcSequenceLengths, qc_length_scaling, qc_length_scaling_factor,
+};
 use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
@@ -32,10 +35,13 @@ pub struct QcResultPrivateMutations {
   pub total_deletion_ranges: usize,
   /// Weighted sum of all private mutation categories
   pub weighted_total: f64,
-  /// Excess above the typical number of private mutations (weightedTotal - typical)
+  /// Excess above the typical number of private mutations (weightedTotal - typical, after length scaling)
   pub excess: f64,
-  /// Cutoff from the dataset configuration at which the score reaches 100
+  /// Cutoff from the dataset configuration at which the score reaches 100, before length scaling
   pub cutoff: f64,
+  /// Length scaling of `typical` and `cutoff`
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub length_scaling: Option<QcResultLengthScaling>,
 }
 
 impl QcRule for QcResultPrivateMutations {
@@ -46,6 +52,7 @@ impl QcRule for QcResultPrivateMutations {
 
 pub fn rule_private_mutations(
   private_nuc_mutations: &PrivateNucMutations,
+  lengths: &QcSequenceLengths,
   config: &QcRulesConfigPrivateMutations,
 ) -> Option<QcResultPrivateMutations> {
   if !config.enabled {
@@ -66,8 +73,17 @@ pub fn rule_private_mutations(
     + *config.weight_unlabeled_substitutions * num_unlabeled_substitutions as f64
     + total_deletion_ranges as f64;
 
+  let length_scaling = config
+    .length_scaling
+    .as_ref()
+    .map(|length_scaling| qc_length_scaling(length_scaling, lengths.covered, lengths.reference));
+  let factor = qc_length_scaling_factor(length_scaling.as_ref());
+  let typical = *config.typical * factor;
+  let cutoff = *config.cutoff * factor;
+
   // the score hits 100 if the excess mutations equals the cutoff value
-  let score = (clamp_min(weighted_total - *config.typical, 0.0) * 100.0) / *config.cutoff;
+  let excess = weighted_total - typical;
+  let score = (clamp_min(excess, 0.0) * 100.0) / cutoff;
   let status = QcStatus::from_score(score);
 
   Some(QcResultPrivateMutations {
@@ -78,8 +94,9 @@ pub fn rule_private_mutations(
     num_unlabeled_substitutions,
     total_deletion_ranges,
     weighted_total,
-    excess: weighted_total - *config.typical,
+    excess,
     cutoff: *config.cutoff,
+    length_scaling,
   })
 }
 
