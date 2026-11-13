@@ -61,6 +61,28 @@ Beware that the position of known stop codons in `pathogen.json` is 0-indexed, i
 
 Frame shifting insertions or deletions typically result in a garbled translation or a premature stop. Nextalign currently doesn't translate frame shifted coding sequences and each frame shift is assigned a QC score 75. Note, however, that clade 21H (Mu) has a frame shift towards the end of ORF3a that results in a premature stop. Known frame shifts (those listed in `ignoredFrameShifts`) in `pathogen.json` are not penalized.
 
+## Scaling with sequence length
+
+The thresholds of the missing data (N), mixed sites (M) and private mutations (P) rules are set for a full genome, so they rarely flag a sequence that covers only one gene. With `lengthScaling` in a rule, the rule multiplies its thresholds by
+
+$$f = \frac{\max(L, L_\text{min})}{L_\text{ref}}$$
+
+where $L_\text{ref}$ is the reference length, $L_\text{min}$ is `lengthScaling.minLength`, and $L$ is the length of the sequence on the reference, deletions included:
+
+| Rule                  | Scaled parameters                   | $L$                                                      |
+| --------------------- | ----------------------------------- | -------------------------------------------------------- |
+| Missing data (N)      | `scoreBias`, `missingDataThreshold` | aligned positions                                        |
+| Mixed sites (M)       | `mixedSitesThreshold`               | aligned positions without `N`                            |
+| Private mutations (P) | `typical`, `cutoff`                 | aligned positions without `N` and ambiguous nucleotides  |
+
+For example, in a 10 kb genome with `typical` 500 and `cutoff` 1000, a 300 bp sequence with 100 private mutations scores 0. With scaling, $f = 0.03$, `typical` becomes 15, `cutoff` becomes 30, and the score is $(100 - 15) \cdot 100 / 30 \approx 283$.
+
+`minLength` keeps a few events in a short sequence from flagging it. One event above the scaled tolerance in such a sequence adds $100 \, w \, L_\text{ref} / (t \, L_\text{min})$ to the score, where $t$ is the threshold of the rule and $w$ is the largest event weight (1 for missing data and mixed sites). Choose `minLength` so that this stays low, for example below 30.
+
+Scaling assumes that events are spread evenly over the genome, so fragments of fast-mutating regions get higher scores.
+
+Results of a scaled rule contain `lengthScaling` with the `length` and `factor` used. CSV and TSV outputs have the factor in the `qc.<rule>.lengthScaling.factor` columns. `missingDataThreshold` and `excess` are scaled, while `mixedSitesThreshold` and `cutoff` are the values from `pathogen.json`.
+
 ## Interpretation
 
 Nextclade's QC warnings don't necessarily mean your sequences are problematic, but these issues warrant closer examination. You may explore the rest of the analysis results for the flagged sequences to make the decision.
