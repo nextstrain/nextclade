@@ -65,7 +65,7 @@ pub struct QcRulesConfigPrivateMutations {
   #[serde(default = "one")]
   pub weight_reversion_substitutions: OrderedFloat<f64>,
 
-  /// Weight multiplier for reversion deletions in the weighted total
+  /// Has no effect: private deletions are not divided into categories
   #[serde(default = "one")]
   pub weight_reversion_deletions: OrderedFloat<f64>,
 
@@ -73,7 +73,7 @@ pub struct QcRulesConfigPrivateMutations {
   #[serde(default = "one")]
   pub weight_labeled_substitutions: OrderedFloat<f64>,
 
-  /// Weight multiplier for labeled deletions in the weighted total
+  /// Has no effect: private deletions are not divided into categories
   #[serde(default = "one")]
   pub weight_labeled_deletions: OrderedFloat<f64>,
 
@@ -81,7 +81,7 @@ pub struct QcRulesConfigPrivateMutations {
   #[serde(default = "one")]
   pub weight_unlabeled_substitutions: OrderedFloat<f64>,
 
-  /// Weight multiplier for unlabeled deletions in the weighted total
+  /// Has no effect: private deletions are not divided into categories
   #[serde(default = "one")]
   pub weight_unlabeled_deletions: OrderedFloat<f64>,
 

@@ -71,10 +71,7 @@ Example configuration for SARS-CoV-2:
       "cutoff": 24,
       "weightLabeledSubstitutions": 4,
       "weightReversionSubstitutions": 6,
-      "weightUnlabeledSubstitutions": 1,
-      "weightLabeledDeletions": 1,
-      "weightReversionDeletions": 1,
-      "weightUnlabeledDeletions": 1
+      "weightUnlabeledSubstitutions": 1
     },
     "missingData": {
       "enabled": true,
