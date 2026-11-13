@@ -124,6 +124,21 @@ Example configuration for SARS-CoV-2:
 }
 ```
 
+`missingData`, `mixedSites` and `privateMutations` accept an optional `lengthScaling` object, which scales the thresholds of the rule with the length of the sequence. `minLength` is the shortest length used for scaling. See [Algorithm: Quality control](../algorithm/06-quality-control.md#scaling-with-sequence-length).
+
+```json
+{
+  "qc": {
+    "privateMutations": {
+      "enabled": true,
+      "typical": 500,
+      "cutoff": 1000,
+      "lengthScaling": { "minLength": 300 }
+    }
+  }
+}
+```
+
 #### `recombination`
 
 Optional. Recombination detection configuration. Detection is off unless the dataset enables it. [Algorithm: Recombination detection](../algorithm/08-recombination-detection.md) describes the algorithm, its parameters, and the checks of its calls.
