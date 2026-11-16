@@ -529,7 +529,13 @@ ENV MACOSX_DEPLOYMENT_TARGET=10.7
 
 RUN set -euxo pipefail >/dev/null \
 && ln -sf x86_64-apple-darwin20.2-ld /opt/osxcross/bin/ld \
-&& echo "1" | osxcross-macports install openssl -v
+&& for mirror in \
+  https://packages.macports.org \
+  https://nue.de.packages.macports.org/macports/packages \
+  https://lil.fr.packages.macports.org \
+; do \
+  OSXCROSS_MACPORTS_MIRROR="${mirror}" osxcross-macports install openssl -v && break; \
+done
 
 USER ${UID}
 
@@ -557,6 +563,12 @@ ENV MACOSX_DEPLOYMENT_TARGET=10.7
 
 RUN set -euxo pipefail >/dev/null \
 && ln -sf aarch64-apple-darwin20.2-ld /opt/osxcross/bin/ld \
-&& echo "1" | osxcross-macports install openssl -v
+&& for mirror in \
+  https://packages.macports.org \
+  https://nue.de.packages.macports.org/macports/packages \
+  https://lil.fr.packages.macports.org \
+; do \
+  OSXCROSS_MACPORTS_MIRROR="${mirror}" osxcross-macports install openssl -v && break; \
+done
 
 USER ${UID}
