@@ -2,15 +2,13 @@
 
 ### Nextclade CLI and Nextclade Web: alignment
 
-- **Seed chain check is off by default**: Nextclade 3.26.0 started to reject sequences whose seed chain links distant parts of the reference (see [#1801](https://github.com/nextstrain/nextclade/pull/1801)). The check also rejected correct alignments of short, divergent sequences. Such a sequence has few seeds in total, so one spurious seed far from its true position passed the part-cover condition, although the alignment ignored that seed. For example, it rejected about a hundred human metapneumovirus amplicons of 100 to 600 nt that Nextclade 3.24.0 aligned correctly. The check now runs only when `--max-seed-chain-deletion-ratio` or `maxSeedChainDeletionRatio` in `alignmentParams` of `pathogen.json` is set, so these sequences align again. Sequences with two parts from distant regions of the reference, for example two amplicons that a record joins with a run of 100 `N` (the INSDC notation for a gap of unknown length), again get one long deletion between the parts. Set the parameter to reject them. The parameter has no default value, and `--min-seed-chain-part-cover` has an effect only when it is set. A `pathogen.json` that sets either parameter stays valid. The error message of a rejected sequence now says how to turn the check off. See [#1855](https://github.com/nextstrain/nextclade/pull/1855)
+- **Fewer sequences rejected with "Unable to align"**: Nextclade 3.26.0 to 3.29.0 rejected some short sequences with the error "the sequence matches two distant parts of the reference", although they align correctly. Many human metapneumovirus amplicons were affected. This check is now off by default, so these sequences align again, as in Nextclade 3.25.0 and earlier. See [#1855](https://github.com/nextstrain/nextclade/pull/1855)
+  - With the check off, a sequence made of two pieces from distant parts of the genome, for example two amplicons joined by a run of `N`, again gets one long deletion between the pieces
+  - To turn the check on, set `--max-seed-chain-deletion-ratio` (for example to `10`) on the command line, or `maxSeedChainDeletionRatio` in `alignmentParams` of `pathogen.json`. Existing settings stay valid
 
 ### Nextclade Web: results table
 
-- **Status icons next to long sequence names**: in the results table, the status and duplicate icons in the sequence name column shrank together with a long name and became too small to read. They now keep their full size. See [#1854](https://github.com/nextstrain/nextclade/pull/1854) and [#1853](https://github.com/nextstrain/nextclade/issues/1853)
-
-### Nextclade Web: start page
-
-- **Help of the single-dataset mode**: the help popup of the "Single dataset" tab showed its first paragraph twice. See [#1851](https://github.com/nextstrain/nextclade/pull/1851)
+- **Status icons next to long sequence names**: the status and duplicate icons next to a long sequence name no longer shrink. See [#1854](https://github.com/nextstrain/nextclade/pull/1854) and [#1853](https://github.com/nextstrain/nextclade/issues/1853)
 
 ## 3.29.0
 
