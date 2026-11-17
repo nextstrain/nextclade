@@ -1,4 +1,4 @@
-## Unreleased
+## 3.29.1
 
 ### Nextclade CLI and Nextclade Web: alignment
 
