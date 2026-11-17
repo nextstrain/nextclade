@@ -129,7 +129,7 @@ Example configuration for SARS-CoV-2:
 
 #### `recombination`
 
-Optional. Recombination detection configuration. Detection is off unless the dataset enables it. Details of the algorithm, its parameters, and the checks of its calls are described in [Algorithm: Recombination detection](../algorithm/08-recombination-detection.md).
+Optional. Recombination detection configuration. Detection is off unless the dataset enables it. [Algorithm: Recombination detection](../algorithm/08-recombination-detection.md) describes the algorithm, its parameters, and the checks of its calls.
 
 Fields (all optional):
 

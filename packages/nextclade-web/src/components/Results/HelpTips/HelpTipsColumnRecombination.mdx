@@ -1,9 +1,8 @@
 ##### Column: Rec.
 
-Total nucleotide length of putative recombinant regions. Recombinant regions are detected using a hidden Markov model
-that identifies segments of the query sequence with elevated divergence from the reference tree. A sequence gets no
-call when its regions cover most of the sequence, or when the rest of the sequence outside the regions has too many
-private mutations.
+Total nucleotide length of the putative recombinant regions of the sequence. A hidden Markov model finds the regions
+where the sequence diverges strongly from its parent on the reference tree. A sequence gets no call when its regions
+cover most of the sequence, or when the rest of the sequence outside the regions has too many private mutations.
 
 The column is shown only for datasets that enable recombination detection.
 

@@ -42,17 +42,17 @@ The result table further displays for each sequence:
 - "FS": Number of uncommon frame shifts (total number, including common frame shifts are in parentheses)
 - "SC": Number of uncommon premature stop codons (total number, including common premature stops are in parentheses)
 
-Hovering over table entries reveals more detailed information in tooltips. For example, hovering over the number of mutations reveals which nucleotides and amino acids have changed with respect to the reference, as well as so-called _private_ mutations (mutations that differentiate the query sequence from the nearest neighbor on the reference tree), which are are split into:
+Hovering over table entries reveals more detailed information in tooltips. For example, hovering over the number of mutations reveals which nucleotides and amino acids have changed with respect to the reference, as well as so-called _private_ mutations (mutations that differentiate the query sequence from the nearest neighbor on the reference tree), which are split into:
 
 - Reversions: mutations back to reference, often a sign of sequencing pipeline problems (e.g. faulty primer trimming or reference bias).
 - Labeled: Mutations that are known, for example because they characteristically occur in a clade. If multiple labeled mutations from the same clade appear, it is often a sign of contamination, co-infection or recombination.
 - Unlabeled: Mutations that are neither reversions nor labeled.
 
-In the screenshot below, the mouse hovers over a _20J (Gamma)_ sequence. The tooltip shows there are 3 reversion and 4 labeled mutations, indicative of sequence quality problems, potentially a contamination with _20I (Alpha)_.
+In the screenshot below, the mouse hovers over a _20J (Gamma)_ sequence. The tooltip shows there are 3 reversion and 4 labeled mutations, which points to sequence quality problems, for example a contamination with _20I (Alpha)_.
 
 ![Mutations tooltip](../assets/web_mut-tooltip.png)
 
-When a dataset has recombination detection enabled, putative recombinant regions are highlighted in the alignment/parent view and reported as an extra output column (number of regions, total length, longest region, coordinates). See [Recombination detection](../algorithm/08-recombination-detection.md).
+When a dataset enables recombination detection, the alignment viewer highlights putative recombinant regions in purple, and the `Rec.` column shows their total length. Hover over a cell to see the number of regions, the longest region, and the coordinates of each region. See [Recombination detection](../algorithm/08-recombination-detection.md).
 
 Some datasets, like SARS-CoV-2 and influenza have extra columns with additional information, e.g. gain/loss of glycosylation sites or immune escape score. For details, hover over the column header or consult the datasets' summary page (README).
 
@@ -68,7 +68,7 @@ You can zoom into a CDS/gene by clicking on the respective CDS/gene at the botto
 
 ![Select Gene](../assets/web_click-gene.png)
 
-In sequence view, one can observe mutations in a particular gene. One of Nextclade's strengths is that nucleotide and amino acid changes are visualized in the tooltip in a codon-aware way, as you can see in the example below
+In sequence view, one can observe mutations in a particular gene. One of Nextclade's strengths is that the tooltip shows nucleotide and amino acid changes in a codon-aware way, as in the example below
 
 ![Alignment tooltip](../assets/web_alignment-tip.png)
 
