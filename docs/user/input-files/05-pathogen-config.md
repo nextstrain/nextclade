@@ -150,7 +150,7 @@ When set explicitly, the numeric settings must satisfy these constraints, or the
 
 When detection is enabled, every reason that blocks it fails the dataset load with an error that names the cause: no reference tree, a parameter that the tree cannot estimate (for example fewer than two clades, or no per-branch mutations), or an absent or disabled [`qc.privateMutations`](#qc) rule, which the checks of the calls need.
 
-Any HMM parameter left unset is estimated from the reference tree. Dataset curators should review the estimates and freeze them in `pathogen.json`; Nextclade reports the effective parameters in the `recombinationParams` field of `nextclade.json`. Example for SARS-CoV-2:
+Any HMM parameter left unset is estimated from the reference tree. Dataset curators should review the estimates and freeze them in `pathogen.json`; Nextclade reports the effective parameters in the [`recombinationParams` field of `nextclade.json`](../output-files/05-results-json.md). Example for SARS-CoV-2:
 
 ```json
 {

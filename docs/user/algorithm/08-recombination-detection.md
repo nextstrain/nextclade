@@ -33,7 +33,7 @@ Three dataset-specific parameters control the sensitivity of the detection:
 - `muW`: probability of observing a **private mutation in the wildtype state**, which is the expected density of private mutations in a non-recombinant sequence. It should be close to the typical length of a non-recombinant terminal branch in the reference tree.
 - `muR`: probability of observing a **private mutation in the recombinant state**, which is the expected density of private mutations inside a recombinant region. It should be close to the typical pairwise distance between sequences of different clades, and much higher than `muW`.
 
-Each parameter can be set in the [pathogen configuration](../input-files/05-pathogen-config.md). Nextclade estimates each unset parameter from the dataset:
+Each parameter can be set in the [pathogen configuration](../input-files/05-pathogen-config.md#recombination). Nextclade estimates each unset parameter from the dataset:
 
 - `gamma` defaults to `0.01 / L` (`L` = reference length): in many viral species recombinants are rare, so the expected switch rate is far below one per genome. A single state switch then costs about `ln(100 L)` in log-likelihood, so a recombinant interval opens only when its excess mutations outweigh that cost, and short dense stretches get no call.
 - `muW`: mean terminal branch length of the reference tree (substitutions per site).
@@ -41,7 +41,7 @@ Each parameter can be set in the [pathogen configuration](../input-files/05-path
 
 We recommend that dataset maintainers tune the parameters to the diversity of the dataset and pathogen on representative sequences, instead of relying on the defaults.
 
-The parameters are reported once per run: in the log, and in the `recombinationParams` field of `nextclade.json`.
+The parameters are reported once per run: in the log, and in the [`recombinationParams` field of `nextclade.json`](../output-files/05-results-json.md).
 
 ## Checks of the calls
 
