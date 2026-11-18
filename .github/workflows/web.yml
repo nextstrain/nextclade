@@ -222,6 +222,9 @@ jobs:
     needs: [ build-web ]
     runs-on: ubuntu-22.04
 
+    permissions:
+      contents: write
+
     steps:
       - name: "Setup environment (release)"
         if: endsWith(github.ref, '/release')
