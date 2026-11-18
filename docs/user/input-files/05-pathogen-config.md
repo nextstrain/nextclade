@@ -154,13 +154,15 @@ Any HMM parameter left unset is estimated from the reference tree. Dataset curat
 
 ```json
 {
-  "enabled": true,
-  "gamma": 3.3e-7,
-  "muW": 0.00017,
-  "muR": 0.0061,
-  "minRegionLength": 50,
-  "maxRegionMissingFraction": 0.5,
-  "maxRecombinantFraction": 0.667
+  "recombination": {
+    "enabled": true,
+    "gamma": 3.3e-7,
+    "muW": 0.00017,
+    "muR": 0.0061,
+    "minRegionLength": 50,
+    "maxRegionMissingFraction": 0.5,
+    "maxRecombinantFraction": 0.667
+  }
 }
 ```
 
