@@ -1,3 +1,9 @@
+## Unreleased
+
+### Nextclade CLI and Nextclade Web: quality control
+
+- **QC thresholds scaled with sequence length**: with the new `lengthScaling` object in `pathogen.json`, the missing data, mixed sites and private mutations QC rules scale their thresholds with the length of each sequence, so that sequences of one gene are no longer judged by full-genome thresholds. Datasets without `lengthScaling` keep their scores. Results report the scaling factor, and the CSV and TSV outputs have new `qc.<rule>.lengthScaling.factor` columns, which move the columns after them. See [Algorithm: Quality control](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/06-quality-control.html#scaling-with-sequence-length)
+
 ## 3.29.1
 
 ### Nextclade CLI and Nextclade Web: alignment

@@ -2,13 +2,32 @@ use crate::coord::position::AaRefPosition;
 use crate::coord::range::AaRefRange;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
+use crate::make_error;
 use crate::o;
 use eyre::{Report, WrapErr};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
+use std::num::NonZeroUsize;
 use std::path::Path;
 use std::str::FromStr;
 use validator::Validate;
+
+/// Scaling of the thresholds of a QC rule by `max(length, minLength) / referenceLength`
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[schemars(example = "QcLengthScaling::example")]
+pub struct QcLengthScaling {
+  /// Lowest length (in nucleotides) used for scaling, at most the length of the reference sequence
+  pub min_length: NonZeroUsize,
+}
+
+impl QcLengthScaling {
+  pub const fn example() -> Self {
+    Self {
+      min_length: NonZeroUsize::new(300).unwrap(),
+    }
+  }
+}
 
 /// Configuration for QC rule "missing data"
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema, Validate)]
@@ -21,6 +40,9 @@ pub struct QcRulesConfigMissingData {
   pub missing_data_threshold: OrderedFloat<f64>,
   /// Number of N characters tolerated before the score starts increasing
   pub score_bias: OrderedFloat<f64>,
+  /// Scale `missingDataThreshold` and `scoreBias` with the number of aligned positions
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub length_scaling: Option<QcLengthScaling>,
 }
 
 impl QcRulesConfigMissingData {
@@ -29,6 +51,7 @@ impl QcRulesConfigMissingData {
       enabled: true,
       missing_data_threshold: OrderedFloat(100.0),
       score_bias: OrderedFloat(10.0),
+      length_scaling: None,
     }
   }
 }
@@ -42,6 +65,9 @@ pub struct QcRulesConfigMixedSites {
   pub enabled: bool,
   /// Number of ambiguous (non-ACGTN) nucleotide positions at which the score reaches 100
   pub mixed_sites_threshold: usize,
+  /// Scale `mixedSitesThreshold` with the number of aligned positions that are not `N`
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub length_scaling: Option<QcLengthScaling>,
 }
 
 impl QcRulesConfigMixedSites {
@@ -49,6 +75,7 @@ impl QcRulesConfigMixedSites {
     Self {
       enabled: true,
       mixed_sites_threshold: 4,
+      length_scaling: None,
     }
   }
 }
@@ -65,7 +92,7 @@ pub struct QcRulesConfigPrivateMutations {
   #[serde(default = "one")]
   pub weight_reversion_substitutions: OrderedFloat<f64>,
 
-  /// Weight multiplier for reversion deletions in the weighted total
+  /// Has no effect: private deletions are not divided into categories
   #[serde(default = "one")]
   pub weight_reversion_deletions: OrderedFloat<f64>,
 
@@ -73,7 +100,7 @@ pub struct QcRulesConfigPrivateMutations {
   #[serde(default = "one")]
   pub weight_labeled_substitutions: OrderedFloat<f64>,
 
-  /// Weight multiplier for labeled deletions in the weighted total
+  /// Has no effect: private deletions are not divided into categories
   #[serde(default = "one")]
   pub weight_labeled_deletions: OrderedFloat<f64>,
 
@@ -81,7 +108,7 @@ pub struct QcRulesConfigPrivateMutations {
   #[serde(default = "one")]
   pub weight_unlabeled_substitutions: OrderedFloat<f64>,
 
-  /// Weight multiplier for unlabeled deletions in the weighted total
+  /// Has no effect: private deletions are not divided into categories
   #[serde(default = "one")]
   pub weight_unlabeled_deletions: OrderedFloat<f64>,
 
@@ -89,6 +116,9 @@ pub struct QcRulesConfigPrivateMutations {
   pub typical: OrderedFloat<f64>,
   /// Excess above `typical` at which the score reaches 100
   pub cutoff: OrderedFloat<f64>,
+  /// Scale `typical` and `cutoff` with the number of aligned positions that hold an A, C, G or T or a deletion
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub length_scaling: Option<QcLengthScaling>,
 }
 
 impl QcRulesConfigPrivateMutations {
@@ -103,6 +133,7 @@ impl QcRulesConfigPrivateMutations {
       weight_unlabeled_deletions: OrderedFloat(1.0),
       typical: OrderedFloat(5.0),
       cutoff: OrderedFloat(15.0),
+      length_scaling: Some(QcLengthScaling::example()),
     }
   }
 }
@@ -293,6 +324,25 @@ impl QcConfig {
       frame_shifts: QcRulesConfigFrameShifts::example(),
       stop_codons: QcRulesConfigStopCodons::example(),
     }
+  }
+
+  /// Check the parameters that depend on the reference sequence.
+  pub fn validate_for_reference(&self, ref_len: usize) -> Result<(), Report> {
+    let length_scalings = [
+      ("missingData", &self.missing_data.length_scaling),
+      ("mixedSites", &self.mixed_sites.length_scaling),
+      ("privateMutations", &self.private_mutations.length_scaling),
+    ];
+    for (rule, length_scaling) in length_scalings {
+      if let Some(QcLengthScaling { min_length }) = length_scaling
+        && min_length.get() > ref_len
+      {
+        return make_error!(
+          "QC rule '{rule}': 'lengthScaling.minLength' is {min_length}, but the reference sequence has {ref_len} nucleotides. Set 'minLength' to at most the length of the reference sequence."
+        );
+      }
+    }
+    Ok(())
   }
 
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
