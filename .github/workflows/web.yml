@@ -225,40 +225,11 @@ jobs:
     permissions:
       contents: write
 
+    # Prefix of the AWS secrets of the deployment environment that matches the branch
+    env:
+      SECRETS_PREFIX: ${{ endsWith(github.ref, '/release') && 'RELEASE' || endsWith(github.ref, '/staging') && 'STAGING' || 'MASTER' }}
+
     steps:
-      - name: "Setup environment (release)"
-        if: endsWith(github.ref, '/release')
-        run: |
-          {
-            echo "AWS_ACCESS_KEY_ID=${{ secrets.RELEASE_AWS_ACCESS_KEY_ID }}"
-            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.RELEASE_AWS_SECRET_ACCESS_KEY }}"
-            echo "AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.RELEASE_AWS_CLOUDFRONT_DISTRIBUTION_ID }}"
-            echo "AWS_DEFAULT_REGION=${{ secrets.RELEASE_AWS_DEFAULT_REGION }}"
-            echo "AWS_S3_BUCKET=${{ secrets.RELEASE_AWS_S3_BUCKET }}"
-          } >> "${GITHUB_ENV}"
-
-      - name: "Setup environment (staging)"
-        if: endsWith(github.ref, '/staging')
-        run: |
-          {
-            echo "AWS_ACCESS_KEY_ID=${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}"
-            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}"
-            echo "AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.STAGING_AWS_CLOUDFRONT_DISTRIBUTION_ID }}"
-            echo "AWS_DEFAULT_REGION=${{ secrets.STAGING_AWS_DEFAULT_REGION }}"
-            echo "AWS_S3_BUCKET=${{ secrets.STAGING_AWS_S3_BUCKET }}"
-          } >> "${GITHUB_ENV}"
-
-      - name: "Setup environment (master)"
-        if: ${{ !endsWith(github.ref, '/staging') && !endsWith(github.ref, '/release') }}
-        run: |
-          {
-            echo "AWS_ACCESS_KEY_ID=${{ secrets.MASTER_AWS_ACCESS_KEY_ID }}"
-            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.MASTER_AWS_SECRET_ACCESS_KEY }}"
-            echo "AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ secrets.MASTER_AWS_CLOUDFRONT_DISTRIBUTION_ID }}"
-            echo "AWS_DEFAULT_REGION=${{ secrets.MASTER_AWS_DEFAULT_REGION }}"
-            echo "AWS_S3_BUCKET=${{ secrets.MASTER_AWS_S3_BUCKET }}"
-          } >> "${GITHUB_ENV}"
-
       - name: "Checkout code"
         uses: actions/checkout@v7
         with:
@@ -289,6 +260,12 @@ jobs:
       - name: "Deploy web app"
         run: |
           ./scripts/deploy_web.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets[format('{0}_AWS_ACCESS_KEY_ID', env.SECRETS_PREFIX)] }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets[format('{0}_AWS_SECRET_ACCESS_KEY', env.SECRETS_PREFIX)] }}
+          AWS_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets[format('{0}_AWS_CLOUDFRONT_DISTRIBUTION_ID', env.SECRETS_PREFIX)] }}
+          AWS_DEFAULT_REGION: ${{ secrets[format('{0}_AWS_DEFAULT_REGION', env.SECRETS_PREFIX)] }}
+          AWS_S3_BUCKET: ${{ secrets[format('{0}_AWS_S3_BUCKET', env.SECRETS_PREFIX)] }}
 
       - name: "Create and push git tag"
         if: ${{ endsWith(github.ref, '/release') }}
