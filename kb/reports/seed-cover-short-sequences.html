@@ -1150,11 +1150,30 @@ function setupSimulator() {
 
 /* ---------------- Charts ---------------- */
 
-Chart.defaults.color = "#c2c2c2";
-Chart.defaults.borderColor = "#2a2a2a";
-Chart.defaults.font.family = "'Noto Sans', system-ui, sans-serif";
-Chart.defaults.font.size = 12;
-if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) Chart.defaults.animation = false;
+// Chart.js comes from a CDN. Some page hosts, such as htmlpreview.github.io, run this script before the library has
+// loaded, so the charts start when the library is there, and show a message when it does not arrive in time
+function whenChartReady(start, deadline = Date.now() + 15000) {
+  if (window.Chart) {
+    start();
+    return;
+  }
+  if (Date.now() > deadline) {
+    for (const box of document.querySelectorAll(".chart-box")) {
+      box.textContent = "Chart.js did not load from cdnjs.cloudflare.com, so this chart is missing.";
+      box.classList.add("hint");
+    }
+    return;
+  }
+  setTimeout(() => whenChartReady(start, deadline), 100);
+}
+
+function configureCharts() {
+  Chart.defaults.color = "#c2c2c2";
+  Chart.defaults.borderColor = "#2a2a2a";
+  Chart.defaults.font.family = "'Noto Sans', system-ui, sans-serif";
+  Chart.defaults.font.size = 12;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) Chart.defaults.animation = false;
+}
 
 function percentile(sorted, q) {
   if (sorted.length === 0) return null;
@@ -1337,9 +1356,12 @@ function setupPrivChart() {
 }
 
 setupSimulator();
-setupPassChart();
-setupFixChart();
-setupPrivChart();
+whenChartReady(() => {
+  configureCharts();
+  setupPassChart();
+  setupFixChart();
+  setupPrivChart();
+});
 </script>
 </body>
 </html>
