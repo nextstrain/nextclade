@@ -1,0 +1,1345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark" />
+<title>Seed cover rejects short sequences</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;700&display=swap" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    /* Surfaces and text: achromatic */
+    --bg: #111111;
+    --panel: #1a1a1a;
+    --inset: #141414;
+    --hover: #232323;
+    --strong: #ededed;
+    --text: #c2c2c2;
+    --muted: #8a8a8a;
+    --border: #555555;
+    --border-soft: #2e2e2e;
+    /* Interface colors: one accent, plus states */
+    --accent: #369efc;
+    --code: #b1b9f9;
+    --ok: #3fb950;
+    --ok-text: #6fd283;
+    --warn: #cca700;
+    --warn-text: #e3c64a;
+    --err: #f85149;
+    --err-text: #ff7b72;
+    /* Text roles */
+    --fs-display: 1.875rem;
+    --fs-h2: 1.375rem;
+    --fs-h3: 1.125rem;
+    --fs-body: 1rem;
+    --fs-ui: 0.875rem;
+    --fs-meta: 0.75rem;
+    --font-prose: "Noto Serif", Georgia, serif;
+    --font-ui: "Noto Sans", system-ui, sans-serif;
+    --font-mono: "Fira Mono", ui-monospace, monospace;
+    --radius: 6px;
+    --radius-lg: 10px;
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-prose); font-size: var(--fs-body); line-height: 1.6; font-size-adjust: from-font; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 36px 20px 80px; }
+
+  /* Controls: cursor, focus, hit area */
+  :where(button, summary, select, input:is([type="checkbox"], [type="radio"], [type="range"]), label:has(input:is([type="checkbox"], [type="radio"])), [role="button"]) { cursor: pointer; }
+  :where(:disabled, [aria-disabled="true"]) { cursor: not-allowed; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Roles */
+  h1, h2, h3, .ui, button, select, label, summary, .chip, .pill, .legend, .seg, .hint, .meta, .stat, .result, .explain, .budget-legend, .ref-compare, .pc, .step, footer {
+    font-family: var(--font-ui);
+  }
+  h1 { font-size: var(--fs-display); line-height: 1.2; font-weight: 700; margin: 0 0 10px; color: var(--strong); }
+  h2 { font-size: var(--fs-h2); line-height: 1.25; font-weight: 700; margin: 56px 0 8px; color: var(--strong); }
+  h3 { font-size: var(--fs-h3); line-height: 1.3; font-weight: 700; margin: 0 0 6px; color: var(--strong); }
+  p { margin: 0 0 12px; }
+  a { color: var(--accent); }
+  code, .mono { font-family: var(--font-mono); font-size: 1em; color: var(--code); }
+  .muted { color: var(--muted); }
+  .meta, .hint, .chip, .pill, .legend, .budget-legend { font-size: var(--fs-meta); line-height: 1.35; }
+  .hint { color: var(--muted); margin-top: 6px; }
+  .lede, .section-intro { max-width: 860px; }
+  .panel { background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px 20px; }
+
+  /* Pills: text labels for states */
+  .pill { display: inline-block; font-weight: 700; padding: 2px 9px; border-radius: 999px; border: 1px solid; }
+  .pill.err { background: #f851491f; color: var(--err-text); border-color: #f8514980; }
+  .pill.warn { background: #cca7001f; color: var(--warn-text); border-color: #cca70080; }
+  .pill.ok { background: #3fb9501f; color: var(--ok-text); border-color: #3fb95080; }
+  .pill.gray { background: #ffffff0d; color: var(--text); border-color: var(--border); }
+
+  /* Issue banner: error state */
+  .issue { margin-top: 24px; border: 1px solid #f8514980; border-left: 5px solid var(--err); background: #1d1514; border-radius: var(--radius-lg); padding: 20px 22px 18px; }
+  .issue-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-family: var(--font-ui); font-size: var(--fs-h3); line-height: 1.3; font-weight: 700; color: var(--strong); }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 16px 0 14px; }
+  .stat { background: var(--inset); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 12px 14px; font-size: var(--fs-ui); line-height: 1.45; }
+  .stat .num { font-size: var(--fs-display); line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; margin-bottom: 4px; }
+  .stat .num .vs { font-size: var(--fs-ui); color: var(--muted); font-weight: 400; }
+  .c-err { color: var(--err-text); }
+  .c-warn { color: var(--warn-text); }
+  .c-ev { color: #7cc0ff; }
+  .c-cva16 { color: #fdba74; }
+  .toc { display: flex; gap: 8px; flex-wrap: wrap; }
+  .toc a { font-family: var(--font-ui); font-size: var(--fs-ui); line-height: 1.45; text-decoration: none; color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 3px 12px; }
+  .toc a:hover { border-color: var(--accent); color: var(--strong); }
+
+  /* Concepts */
+  .ref-box { background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 14px 16px; margin: 14px 0 18px; max-width: 900px; }
+  .ref-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; font-size: var(--fs-ui); line-height: 1.45; }
+  .ref-compare > div { background: var(--inset); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 10px 12px; }
+  .ref-compare .big { font-size: var(--fs-h2); line-height: 1.25; font-weight: 700; color: var(--strong); }
+  .ref-compare .big .muted { font-size: var(--fs-ui); font-weight: 400; }
+  .steps { list-style: none; margin: 10px 0 0; padding: 0; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); overflow: hidden; }
+  .step { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 4px 18px; padding: 12px 16px; background: var(--panel); border-top: 1px solid var(--border-soft); font-size: var(--fs-ui); line-height: 1.45; }
+  .step:first-child { border-top: 0; }
+  .step-strip { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 14px; }
+  .step-strip .meta { color: var(--muted); margin-right: 4px; }
+  .step-strip button { min-height: 30px; padding: 4px 10px; }
+  .step-strip button.flaw { border-color: #cca70080; }
+  .step-strip button[aria-pressed="true"] { background: #369efc30; border-color: var(--accent); }
+  .step-note { min-height: 1.45em; margin: 8px 0 0; font-family: var(--font-ui); font-size: var(--fs-ui); line-height: 1.45; color: var(--text); }
+  .step-note b { color: var(--strong); }
+  .step-name { font-weight: 700; color: var(--strong); display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .step-body p { margin: 0 0 6px; }
+  .flaw-note { color: var(--warn-text); margin: 0 0 6px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .chip { background: #ffffff0d; border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 1px 7px; color: var(--text); }
+  .coderef { font-family: var(--font-mono); color: var(--muted); }
+
+  /* Simulator */
+  .sim-controls { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 14px 18px; align-items: end; }
+  .ctl label { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-ui); line-height: 1.45; color: var(--muted); margin-bottom: 2px; }
+  .ctl label b { color: var(--strong); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  select, button { background: #222; color: var(--strong); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px; font-size: var(--fs-ui); line-height: 1.3; min-height: 32px; }
+  button:hover, select:hover { border-color: var(--accent); }
+  input[type="range"] { width: 100%; height: 24px; margin: 0; accent-color: var(--accent); }
+  input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+  .check { display: inline-flex; gap: 8px; align-items: center; min-height: 28px; font-size: var(--fs-ui); line-height: 1.45; color: var(--text); }
+  .ctl-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .ctl { min-width: 0; }
+  .ctl select { width: 100%; max-width: 100%; }
+  details.params { margin-top: 6px; }
+  details.params summary { font-size: var(--fs-ui); line-height: 1.45; color: var(--muted); padding: 4px 0; }
+  .param-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 18px; margin-top: 8px; }
+  .results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 16px 0 10px; }
+  .result { background: var(--inset); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 12px 14px; font-size: var(--fs-ui); line-height: 1.45; }
+  .result.fail { border-color: #f8514980; }
+  .result.pass { border-color: #3fb95080; }
+  .result-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .result-top .title { font-size: var(--fs-h3); font-weight: 700; color: var(--strong); }
+  .result-top .cov { font-size: var(--fs-h2); font-weight: 700; font-variant-numeric: tabular-nums; margin-right: 6px; }
+  .result.fail .cov { color: var(--err-text); }
+  .result.pass .cov { color: var(--ok-text); }
+  .budget { display: flex; height: 14px; border-radius: 4px; overflow: hidden; margin: 10px 0 6px; background: #2a2a2a; position: relative; }
+  .budget span { display: block; height: 100%; }
+  .budget .thr { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--strong); }
+  .budget-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  .budget-legend b { font-variant-numeric: tabular-nums; display: inline-block; min-width: 3ch; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  dl.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 14px; margin: 0; font-family: var(--font-ui); font-size: var(--fs-ui); line-height: 1.45; }
+  dl.kv dt { color: var(--muted); }
+  dl.kv dd { margin: 0; }
+  dl.kv.explain { margin-top: 10px; }
+  dl.kv.explain dd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  dl.kv.list-kv { margin: 0 0 14px; }
+  .sol dl.kv { margin-bottom: 4px; }
+  footer h3 { margin-bottom: 8px; }
+  #sim-svg-wrap { width: 100%; overflow: hidden; margin-top: 6px; }
+  #sim-svg text { font-family: var(--font-ui); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; color: var(--text); }
+
+  /* Charts */
+  .chart-box { position: relative; height: 320px; }
+  .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; font-size: var(--fs-ui); line-height: 1.45; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: transparent; color: var(--text); padding: 4px 12px; min-height: 30px; }
+  .seg button[aria-pressed="true"] { background: #369efc30; color: var(--strong); }
+  .thr-ctl { display: flex; align-items: center; gap: 10px; font-family: var(--font-ui); font-size: var(--fs-ui); min-width: 320px; }
+  .thr-ctl input { flex: 1; }
+  .thr-ctl b { font-variant-numeric: tabular-nums; color: var(--strong); }
+  .list { margin: 0 0 14px; padding-left: 20px; max-width: 860px; }
+  .list li { margin: 3px 0; }
+  .list ul { margin: 2px 0; padding-left: 20px; }
+  .obs { margin: 12px 0 0; }
+  .rec-box { font-family: var(--font-ui); font-size: var(--fs-ui); line-height: 1.45; }
+  .obs li { margin: 6px 0; }
+
+  /* Solutions */
+  .solutions { display: grid; gap: 14px; margin-top: 12px; }
+  .sol { background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 16px 18px; font-family: var(--font-ui); font-size: var(--fs-ui); line-height: 1.45; }
+  .sol-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .sol-head .id { font-family: var(--font-mono); font-size: var(--fs-ui); color: var(--muted); }
+  .sol-head h3 { margin: 0; }
+  .sol-list { margin: 0 0 8px; padding-left: 20px; }
+  .pc { list-style: none; padding: 0; margin: 8px 0 0; font-size: var(--fs-ui); line-height: 1.45; }
+  .pc li { display: flex; gap: 10px; margin: 7px 0; }
+  .mark { flex: 0 0 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+  .mark.pos { background: #3fb95030; color: var(--ok-text); }
+  .mark.neu { background: #ffffff18; color: var(--text); }
+  .mark.neg { background: #f8514930; color: var(--err-text); }
+  .sol-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; align-items: start; }
+  .rec-box { margin-top: 18px; border: 1px solid #3fb95070; background: var(--panel); border-radius: var(--radius-lg); padding: 14px 18px; }
+  .rec-box h3 { color: var(--ok-text); }
+  footer { margin-top: 56px; border-top: 1px solid var(--border-soft); padding-top: 16px; font-size: var(--fs-ui); line-height: 1.45; color: var(--muted); }
+  footer ul { padding-left: 18px; }
+  footer li { margin: 3px 0; }
+
+  @media (max-width: 860px) {
+    .stats, .results, .ref-compare, .sol-grid, .param-grid { grid-template-columns: 1fr; }
+    .step { grid-template-columns: 1fr; }
+    .sim-controls { grid-template-columns: minmax(0, 1fr); }
+    .thr-ctl { min-width: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Seed cover rejects short sequences</h1>
+<p class="lede">Why Nextclade rejects short EV-A71 fragments, and the options to fix it.</p>
+
+<dl class="kv list-kv background">
+  <dt>Analysis</dt><dd>Tue 24 Nov 2026, Nextclade 3.30.0</dd>
+  <dt>Dataset</dt><dd><code>enpen/enterovirus/ev-a71</code>, with <code>minSeedCover</code> 0.79 (Nextclade default: 0.33)</dd>
+  <dt>Why 0.79</dt><dd>to reject sequences of other enterovirus A types, such as CVA16 and CVA10. The dataset authors raised the value until 3 to 5% of sequences were rejected</dd>
+  <dt>Observed</dt><dd>closely related types still align, while short EV-A71 fragments are rejected</dd>
+  <dt>Example fragments</dt><dd>100 nt cuts of GenBank <code>OQ026325</code>, <code>PP548272</code> and <code>GQ231939</code>, with 1% added random substitutions. They differ from their nearest tree node by 0 to 1 subs</dd>
+</dl>
+
+<section class="issue" id="issue" aria-labelledby="issue-title">
+  <div class="issue-head" id="issue-title"><span class="pill err">Issue</span> Short sequences fail the seed cover check more often than divergent ones</div>
+  <div class="stats">
+    <div class="stat">
+      <div class="num c-warn">90%</div>
+      Best cover of a <b>perfect</b> 100 nt match
+    </div>
+    <div class="stat">
+      <div class="num c-err">60%</div>
+      Cover of the example fragments <code>OQ026325</code> and <code>PP548272</code>. Needed: 79%
+    </div>
+    <div class="stat">
+      <div class="num"><span class="c-ev">40%</span> <span class="vs">vs</span> <span class="c-cva16">93%</span></div>
+      Pass rate: 100 nt <b class="c-ev">EV-A71</b> vs 2,000 nt <b class="c-cva16">CVA16</b>
+    </div>
+  </div>
+  <ul class="list">
+    <li><b>Cause</b>: two steps of the seed code each lose up to 29 nt, for any query length
+      <ul>
+        <li>Trim at the query ends</li>
+        <li>Cut into 30 nt pieces</li>
+      </ul>
+    </li>
+    <li><b>Effect</b>: 1 to 3% lost on 2,000 nt, 40% lost on the 100 nt example <code>OQ026325</code></li>
+  </ul>
+  <nav class="toc" aria-label="Sections">
+    <a href="#concepts">1. How the check works</a>
+    <a href="#simulator">2. Simulator</a>
+    <a href="#data">3. Measured data</a>
+    <a href="#solutions">4. Solutions</a>
+  </nav>
+</section>
+
+<h2 id="concepts">1. How the check works today</h2>
+<ul class="list">
+  <li><b>k-mer</b>: a run of k bases (here 6)</li>
+  <li><b>Seed</b>: a stretch where the query matches the dataset reference sequence, grown from an exact k-mer match</li>
+  <li><b>Seed cover</b>: the share of the query inside seeds</li>
+  <li><b>Check</b>: below <code>minSeedCover</code> (0.79 for EV-A71), Nextclade does not align the query</li>
+</ul>
+
+<div class="ref-box">
+  <b class="ui">Seeds compare the query with the reference sequence, not with the tree</b>
+  <div class="ref-compare">
+    <div><div class="muted">vs nearest tree node</div><div class="big">0 to 1 <span class="muted">subs per 100 nt</span></div><div class="muted">Used for clades, not for seeds</div></div>
+    <div><div class="muted">vs reference sequence (root, 7,408 nt)</div><div class="big">6 to 13 <span class="muted">subs per 100 nt</span></div><div class="muted">Used for seeds</div></div>
+  </div>
+</div>
+
+<ol class="steps" id="steps">
+  <li class="step" data-step="1">
+    <div class="step-name">1. Find seeds</div>
+    <div class="step-body">
+      <p>Take a 6-mer every 25 positions, skipping the 3rd base of each codon. It must match the reference exactly.</p>
+      <div class="chips meta"><span class="chip"><code>kmerLength</code> 6</span><span class="chip"><code>kmerDistance</code> 25</span><span class="coderef">seed_match.rs#L241-L274</span></div>
+    </div>
+  </li>
+  <li class="step" data-step="2">
+    <div class="step-name">2. Extend</div>
+    <div class="step-body">
+      <p>Grow the seed left and right. Stop when more than 15 of the last 30 bases differ, or when the query ends.</p>
+      <div class="chips meta"><span class="chip"><code>windowSize</code> 30</span><span class="chip"><code>allowedMismatches</code> 15</span><span class="coderef">seed_match.rs#L116-L177</span></div>
+    </div>
+  </li>
+  <li class="step" data-step="3">
+    <div class="step-name">3. Trim the ends <span class="pill warn">Flaw</span></div>
+    <div class="step-body">
+      <p>Cut each end back to the longest run of matches in its last 30 bases.</p>
+      <p class="flaw-note">Also done where the query simply ends. Costs up to 29 nt per end.</p>
+      <div class="chips meta"><span class="coderef">seed_match.rs#L140-L157, #L179-L196</span></div>
+    </div>
+  </li>
+  <li class="step" data-step="4">
+    <div class="step-name">4. Cut into pieces <span class="pill warn">Flaw</span></div>
+    <div class="step-body">
+      <p>Split the seed into 30 nt pieces. The last piece overlaps the one before it.</p>
+      <p class="flaw-note">Overlapping pieces do not count. An 89 nt seed counts as 60 nt.</p>
+      <div class="chips meta"><span class="chip"><code>minMatchLength</code> 30</span><span class="coderef">seed_match.rs#L201-L221</span></div>
+    </div>
+  </li>
+  <li class="step" data-step="5">
+    <div class="step-name">5. Chain</div>
+    <div class="step-body">
+      <p>Keep the best set of pieces that do not overlap.</p>
+      <div class="chips meta"><span class="coderef">seed_match.rs#L326-L456</span></div>
+    </div>
+  </li>
+  <li class="step" data-step="6">
+    <div class="step-name">6. Check</div>
+    <div class="step-body">
+      <p>Cover = counted nt / query length. Reject the query if the cover is below <code>minSeedCover</code>.</p>
+      <div class="chips meta"><span class="chip"><code>minSeedCover</code> 0.79</span><span class="coderef">seed_match.rs#L484-L497</span></div>
+    </div>
+  </li>
+</ol>
+<p class="hint">Code: <code>packages/nextclade/src/align/</code></p>
+
+<h2 id="simulator">2. Simulator</h2>
+<ul class="list">
+  <li>Runs steps 1 to 6 on one query, for the current code and for the proposed fix</li>
+  <li>Same cover as Nextclade 3.30.0 for 831 of 840 test fragments (see Method), and for the 3 example fragments</li>
+</ul>
+
+<div class="panel">
+  <div class="sim-controls">
+    <div class="ctl">
+      <label for="preset">Query</label>
+      <select id="preset">
+        <option value="OQ026325">Example OQ026325 (100 nt, 13 subs)</option>
+        <option value="PP548272">Example PP548272 (100 nt, 13 subs)</option>
+        <option value="GQ231939">Example GQ231939 (100 nt, 6 subs)</option>
+        <option value="perfect">Perfect match (0 subs)</option>
+        <option value="random">Random fragment</option>
+        <option value="custom" disabled>Edited by hand</option>
+      </select>
+    </div>
+    <div class="ctl">
+      <label for="len">Length <b id="len-v"></b></label>
+      <input id="len" type="range" min="60" max="1000" step="10" />
+    </div>
+    <div class="ctl">
+      <label for="div">Divergence <b id="div-v"></b></label>
+      <input id="div" type="range" min="0" max="40" step="1" />
+    </div>
+    <div class="ctl ctl-row">
+      <button id="reroll" title="Draw new random substitutions">New random</button>
+    </div>
+  </div>
+  <div class="ctl-row" style="margin-top:10px">
+    <label class="check"><input type="checkbox" id="wobble" checked /> Most substitutions at the 3rd codon base, as in real data</label>
+  </div>
+  <details class="params">
+    <summary>Parameters (EV-A71 values)</summary>
+    <div class="param-grid" id="param-grid"></div>
+    <div class="ctl-row" style="margin-top:8px"><button id="reset-params">Reset to EV-A71 values</button></div>
+  </details>
+
+  <div class="results" id="results"></div>
+  <div class="step-strip" id="step-strip" role="group" aria-label="Highlight a step"><span class="meta">Highlight step:</span></div>
+  <p class="step-note" id="step-note" aria-live="polite"></p>
+  <div id="sim-svg-wrap"><svg id="sim-svg" role="img" aria-label="Seed tracks"></svg></div>
+  <div class="hint">Click a base in the top row to add or remove a substitution.</div>
+  <div class="legend" id="sim-legend"></div>
+</div>
+
+<h2 id="data">3. Measured data</h2>
+<dl class="kv list-kv">
+  <dt>Fragments</dt><dd>random cuts of real genomes: EV-A71 (the dataset type), CVA16 and CVA10 (other enterovirus A types)</dd>
+  <dt>Count</dt><dd>30 per type and length</dd>
+  <dt>Dataset</dt><dd>EV-A71 for all</dd>
+  <dt>Slider</dt><dd>recomputes who passes</dd>
+</dl>
+<div class="panel">
+  <div class="chart-head">
+    <div class="seg" id="metric-seg"><button data-m="pass" aria-pressed="true">Pass rate</button><button data-m="cover" aria-pressed="false">Mean cover</button></div>
+    <div class="thr-ctl"><label for="thr"><code>minSeedCover</code></label><input id="thr" type="range" min="0" max="1" step="0.01" value="0.79" /><b id="thr-v">0.79</b></div>
+  </div>
+  <div class="chart-box"><canvas id="pass-chart"></canvas></div>
+  <ul class="list obs">
+    <li><b>Wrong type wins</b>: at 0.79, 100 nt EV-A71 passes less often than CVA16 of 300 nt or more</li>
+    <li><b>Steps</b>: 100 nt can only score 0, 30, 60 or 90%. Move the slider across 0.6 and 0.9</li>
+    <li><b>150 nt beats 200 nt</b>: 200 nt always loses 20 nt to the cut, 150 nt loses none</li>
+    <li><b>Divergence barely matters</b>: with 30% substitutions, 2,000 nt fragments still get 95% cover</li>
+  </ul>
+</div>
+
+<h2 id="solutions">4. Solutions</h2>
+<p class="section-intro">The two flawed steps cause the bias, so the fix belongs in the seed code.</p>
+
+<div class="solutions">
+
+  <div class="sol" id="opt-a">
+    <div class="sol-head"><h3>A. Fix the seed code</h3><span class="pill gray">Nextclade change</span><span class="pill warn">changes alignment output</span></div>
+    <div class="sol-grid">
+      <div>
+        <dl class="kv">
+          <dt>Where</dt><dd><code>fn SeedMatch2.extend_seed()</code> in <code>packages/nextclade/src/align/seed_match.rs</code></dd>
+          <dt>Change 1</dt><dd>count the whole seed: the last piece takes the rest (30 + 30 + 40 nt)</dd>
+          <dt>Change 2</dt><dd>trim only where extension stopped on mismatches. At the query end, drop only end mismatches</dd>
+          <dt>Status</dt><dd>not implemented. Effects below come from the simulator</dd>
+        </dl>
+        <ul class="pc">
+          <li><span class="mark pos">+</span><span><b>Length no longer matters</b>: 100 nt at 13% divergence scores like 2,000 nt</span></li>
+          <li><span class="mark pos">+</span><span><b>Only raises cover</b>: no dataset rejects more sequences</span></li>
+          <li><span class="mark neu">=</span><span><b>Alignments may shift slightly</b>: seeds also guide the aligner. Needs a comparison with the current output on the test datasets</span></li>
+          <li><span class="mark neg">-</span><span><b>Weaker type filter for short fragments</b> <span class="pill warn">unverified</span>: divergent short fragments also gain (simulator, 100 nt with 30% subs: 48% to 78% cover). Long divergent sequences pass already today. Not measured with real CVA genomes</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="chart-head">
+          <span>Mean cover, EV-A71 reference with random substitutions</span>
+          <select id="fix-div" aria-label="Substitution rate"></select>
+        </div>
+        <div class="chart-box" style="height:280px"><canvas id="fix-chart"></canvas></div>
+        <div class="hint">Dots: Nextclade, 20 fragments. Lines: simulator, 60 fragments.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sol" id="opt-b">
+    <div class="sol-head"><h3>B. Lower <code>minSeedCover</code> to 0.6 or less</h3><span class="pill gray">dataset change</span><span class="pill ok">works now</span></div>
+    <dl class="kv">
+      <dt>Where</dt><dd><code>alignmentParams.minSeedCover</code> in <code>pathogen.json</code> of the EV datasets</dd>
+    </dl>
+    <ul class="pc">
+      <li><span class="mark pos">+</span><span><b>No release needed</b>: the 60% example fragments pass</span></li>
+      <li><span class="mark pos">+</span><span><b>All EV-A71 aligned</b> at 0.3, at every length</span></li>
+      <li><span class="mark neg">-</span><span><b>Other types pass too</b>: 83 to 100% of CVA fragments at 0.3. Needs option C as type filter</span></li>
+      <li><span class="mark neg">-</span><span><b>Bias stays</b>: 100 nt still scores only 30, 60 or 90%</span></li>
+    </ul>
+  </div>
+
+  <div class="sol" id="opt-c">
+    <div class="sol-head"><h3>C. Filter types by private subs per 100 nt</h3><span class="pill gray">dataset change</span><span class="pill ok">works now, as QC flag</span></div>
+    <div class="sol-grid">
+      <div>
+        <dl class="kv">
+          <dt>Private subs</dt><dd>substitutions that the nearest tree node does not have</dd>
+          <dt>QC rule</dt><dd><code>privateMutations</code> in <code>pathogen.json</code></dd>
+          <dt>Option</dt><dd><code>lengthScaling</code>, since 3.30.0: limits scale with sequence length</dd>
+        </dl>
+        <ul class="pc">
+          <li><span class="mark pos">+</span><span><b>Separates types at every length</b>: median EV-A71 0 to 3, CVA 11 to 29 per 100 nt</span></li>
+          <li><span class="mark neu">=</span><span><b>Flags, does not reject</b>: bad QC status, alignment kept</span></li>
+          <li><span class="mark neg">-</span><span><b>Needs new limits</b>: with the EV-A71 limits (<code>typical</code> 60, <code>cutoff</code> 175 per 7,408 nt), the score reaches 100 at about 3 subs per 100 nt</span></li>
+          <li><span class="mark neg">-</span><span><b>Fails outside the capsid</b>: in the 5'UTR and P2/P3 regions, 23 of 238 CVA fragments look like EV-A71 (capsid P1: 0 of 165). EV-A types share these regions by recombination</span></li>
+          <li><span class="mark neg">-</span><span><b>Uneven rates</b>: some regions mutate faster than the genome average, so one limit per 100 nt fits some regions worse</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="chart-head"><span>Private subs per 100 nt: bar 10th to 90th percentile, line median</span></div>
+        <div class="chart-box" style="height:280px"><canvas id="priv-chart"></canvas></div>
+        <div class="hint">EV-A71: only sequences that are not in the tree (138 fragments). Tree sequences have 0.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sol" id="opt-d">
+    <div class="sol-head"><h3>D. Add other EV-A types to the reference tree</h3><span class="pill gray">dataset change</span><span class="pill gray">not measured</span></div>
+    <ul class="pc">
+      <li><span class="mark pos">+</span><span><b>Clear labels</b>: CVA16 fragments get their own clade</span></li>
+      <li><span class="mark neu">=</span><span><b>More to maintain</b>: extra sequences in the dataset</span></li>
+      <li><span class="mark neg">-</span><span><b>Same limit</b> as option C outside the capsid</span></li>
+    </ul>
+  </div>
+
+  <div class="sol" id="opt-e">
+    <div class="sol-head"><h3>E. Route sequences with <code>nextclade sort</code></h3><span class="pill err">does not work for short fragments</span></div>
+    <ul class="pc">
+      <li><span class="mark pos">+</span><span><b>Precise</b>: never sent a CVA fragment to EV-A71</span></li>
+      <li><span class="mark neg">-</span><span><b>Misses short fragments</b>: found none of the 3 examples, and 5% of perfect 100 nt fragments</span></li>
+    </ul>
+  </div>
+
+  <div class="sol" id="opt-f">
+    <div class="sol-head"><h3>F. Scale the threshold by length</h3><span class="pill gray">not recommended</span></div>
+    <ul class="pc">
+      <li><span class="mark neg">-</span><span><b>No formula fits</b>: the loss varies per sequence, 0 to 29 nt per end and per seed</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="rec-box">
+  <h3>Recommendation</h3>
+  <dl class="kv">
+    <dt>Now, in the EV datasets</dt><dd>B (<code>minSeedCover</code> 0.6 or less) and C (private subs as type filter)</dd>
+    <dt>In Nextclade</dt><dd>A, after comparing alignment output with the current code</dd>
+    <dt>After A</dt><dd>review every dataset with <code>minSeedCover</code> above the default 0.33</dd>
+  </dl>
+</div>
+
+<footer>
+  <h3>Method</h3>
+  <dl class="kv">
+    <dt>Nextclade</dt><dd><code>nextstrain/nextclade:3.30.0</code> (official image)</dd>
+    <dt>Dataset</dt><dd><code>enpen/enterovirus/ev-a71</code></dd>
+    <dt>Seed parameters</dt><dd class="chips"><span class="chip"><code>kmerLength</code> 6</span><span class="chip"><code>kmerDistance</code> 25</span><span class="chip"><code>minMatchLength</code> 30</span><span class="chip"><code>allowedMismatches</code> 15</span><span class="chip"><code>windowSize</code> 30</span><span class="chip"><code>minSeedCover</code> 0.79</span></dd>
+    <dt>Cover per fragment</dt><dd>error message of a run with <code>--min-seed-cover=0.999</code></dd>
+    <dt>Real fragments</dt><dd>random cuts of the example sequences of the <code>enpen/enterovirus</code> datasets <code>ev-a71</code>, <code>cva16</code>, <code>cva10</code></dd>
+    <dt>Test fragments</dt><dd>random cuts of the EV-A71 reference, random substitutions</dd>
+    <dt>Simulator check</dt><dd>same cover as Nextclade for 831 of 840 test fragments. It looks only at the true position of each fragment on the reference</dd>
+    <dt>Reproduce</dt><dd><code>nextclade run --input-dataset &lt;ev-a71 dataset&gt; --min-seed-cover=0.999 --output-tsv out.tsv fragments.fasta</code>, then read the cover from the <code>errors</code> column</dd>
+  </dl>
+</footer>
+</div>
+
+<script id="real-data" type="application/json">
+[["cva10",1000,96.00,10.60,0,4986],["cva10",1000,93.00,21.00,0,279],["cva10",1000,99.00,10.80,0,6315],["cva10",1000,60.00,34.60,0,1632],["cva10",1000,96.00,16.00,0,3491],["cva10",1000,96.00,13.10,0,4683],["cva10",1000,69.00,32.00,0,810],["cva10",1000,57.00,35.80,0,1153],["cva10",1000,75.00,33.20,0,975],["cva10",1000,72.00,33.10,0,1156],["cva10",1000,81.00,31.40,0,590],["cva10",1000,96.00,10.00,0,5168],["cva10",1000,99.00,12.90,0,6253],["cva10",1000,48.00,37.50,0,1485],["cva10",1000,96.00,12.10,0,5203],["cva10",1000,69.00,22.80,0,2870],["cva10",1000,99.00,13.10,0,4511],["cva10",1000,96.00,17.60,0,3325],["cva10",1000,66.00,32.40,0,247],["cva10",1000,66.00,28.70,0,2762],["cva10",1000,66.00,31.50,0,2647],["cva10",1000,96.00,11.80,0,3944],["cva10",1000,99.00,10.60,0,5955],["cva10",1000,63.00,32.50,0,1176],["cva10",1000,81.00,21.60,0,3149],["cva10",1000,72.00,29.20,0,520],["cva10",1000,33.00,36.20,0,2146],["cva10",1000,81.00,25.30,0,2330],["cva10",1000,96.00,10.30,0,4326],["cva10",1000,72.00,33.10,0,1139],["cva10",100,60.00,10.00,0,6767],["cva10",100,60.00,16.00,0,3772],["cva10",100,60.00,21.00,0,2190],["cva10",100,90.00,5.00,0,5125],["cva10",100,60.00,21.00,0,632],["cva10",100,0,null,0,2494],["cva10",100,90.00,26.00,0,667],["cva10",100,60.00,8.00,0,6633],["cva10",100,90.00,7.00,0,5920],["cva10",100,0,null,0,2715],["cva10",100,60.00,5.00,0,5393],["cva10",100,0,null,0,7405],["cva10",100,60.00,13.00,0,4628],["cva10",100,90.00,12.00,0,3449],["cva10",100,30.00,34.00,0,1969],["cva10",100,60.00,11.00,0,5303],["cva10",100,30.00,57.00,0,2451],["cva10",100,0,null,0,1406],["cva10",100,60.00,11.00,0,7250],["cva10",100,90.00,5.00,0,228],["cva10",100,90.00,20.00,0,773],["cva10",100,90.00,12.00,0,5559],["cva10",100,30.00,43.00,0,1347],["cva10",100,60.00,20.00,0,1211],["cva10",100,0,null,0,453],["cva10",100,60.00,12.00,0,4615],["cva10",100,60.00,32.00,0,2851],["cva10",100,30.00,44.00,0,1600],["cva10",100,60.00,30.00,0,348],["cva10",100,0,45.00,0,2651],["cva10",150,60.00,14.00,0,3664],["cva10",150,60.00,4.67,0,7290],["cva10",150,80.00,5.33,0,4490],["cva10",150,80.00,24.00,0,919],["cva10",150,80.00,12.00,0,7062],["cva10",150,0,null,0,1038],["cva10",150,40.00,33.33,0,777],["cva10",150,80.00,7.33,0,4348],["cva10",150,80.00,20.67,0,2060],["cva10",150,80.00,14.00,0,4008],["cva10",150,80.00,13.33,0,4538],["cva10",150,40.00,30.67,0,698],["cva10",150,60.00,24.67,0,927],["cva10",150,80.00,10.67,0,4691],["cva10",150,0,null,0,925],["cva10",150,80.00,12.00,0,4204],["cva10",150,80.00,12.67,0,4820],["cva10",150,80.00,32.67,0,657],["cva10",150,40.00,26.00,0,1671],["cva10",150,80.00,19.33,0,601],["cva10",150,80.00,14.67,0,3600],["cva10",150,80.00,10.00,0,7073],["cva10",150,80.00,12.00,0,5410],["cva10",150,20.00,null,0,3047],["cva10",150,80.00,9.33,0,4757],["cva10",150,0,null,0,1474],["cva10",150,60.00,26.00,0,1968],["cva10",150,80.00,13.33,0,3615],["cva10",150,40.00,31.33,0,1069],["cva10",150,0,null,0,1861],["cva10",2000,87.00,18.10,0,3008],["cva10",2000,66.00,34.70,0,1178],["cva10",2000,76.50,23.55,0,2527],["cva10",2000,99.00,13.35,0,4684],["cva10",2000,87.00,19.30,0,2789],["cva10",2000,60.00,34.00,0,1558],["cva10",2000,75.00,33.55,0,655],["cva10",2000,52.50,34.35,0,1464],["cva10",2000,99.00,13.40,0,4755],["cva10",2000,66.00,32.70,0,958],["cva10",2000,66.00,28.30,0,1586],["cva10",2000,69.00,29.35,0,1994],["cva10",2000,99.00,15.60,0,3508],["cva10",2000,72.00,32.80,0,554],["cva10",2000,58.50,34.90,0,992],["cva10",2000,67.50,34.05,0,358],["cva10",2000,66.00,29.10,0,2109],["cva10",2000,81.00,26.45,0,189],["cva10",2000,61.50,36.05,0,1348],["cva10",2000,72.00,29.30,0,2195],["cva10",2000,87.00,25.70,0,164],["cva10",2000,79.50,28.35,0,390],["cva10",2000,72.00,34.65,0,480],["cva10",2000,57.00,33.50,0,308],["cva10",2000,55.50,32.65,0,1682],["cva10",2000,99.00,13.55,0,3712],["cva10",2000,58.50,33.30,0,912],["cva10",2000,69.00,31.55,0,1164],["cva10",2000,79.50,25.95,0,2477],["cva10",2000,99.00,9.85,0,4807],["cva10",200,90.00,13.00,0,4510],["cva10",200,90.00,31.50,0,762],["cva10",200,0,null,0,3058],["cva10",200,90.00,10.50,0,5069],["cva10",200,75.00,17.00,0,3312],["cva10",200,90.00,5.00,0,386],["cva10",200,75.00,27.50,0,170],["cva10",200,60.00,28.50,0,218],["cva10",200,60.00,35.50,0,1228],["cva10",200,90.00,6.50,0,5795],["cva10",200,90.00,10.50,0,3489],["cva10",200,90.00,14.00,0,5854],["cva10",200,45.00,33.00,0,718],["cva10",200,75.00,7.50,0,7144],["cva10",200,90.00,7.50,0,4611],["cva10",200,90.00,9.00,0,5965],["cva10",200,75.00,27.50,0,1452],["cva10",200,30.00,35.00,0,3006],["cva10",200,90.00,7.50,0,6893],["cva10",200,90.00,9.50,0,6587],["cva10",200,90.00,10.50,0,6029],["cva10",200,75.00,10.00,0,95],["cva10",200,90.00,11.50,0,3100],["cva10",200,90.00,7.50,0,5133],["cva10",200,75.00,10.00,0,4220],["cva10",200,90.00,13.50,0,3768],["cva10",200,75.00,17.50,0,2809],["cva10",200,60.00,29.50,0,2229],["cva10",200,75.00,31.00,0,1569],["cva10",200,90.00,11.00,0,3892],["cva10",300,90.00,31.33,0,1047],["cva10",300,80.00,23.33,0,925],["cva10",300,90.00,12.00,0,5531],["cva10",300,20.00,null,0,2085],["cva10",300,80.00,29.33,0,791],["cva10",300,90.00,18.33,0,3659],["cva10",300,30.00,41.00,0,429],["cva10",300,90.00,13.67,0,3603],["cva10",300,100,11.67,0,6481],["cva10",300,60.00,29.00,0,249],["cva10",300,90.00,26.00,0,604],["cva10",300,70.00,27.67,0,1960],["cva10",300,40.00,32.67,0,2116],["cva10",300,40.00,32.67,0,1230],["cva10",300,40.00,42.00,0,2375],["cva10",300,70.00,27.00,0,2814],["cva10",300,30.00,36.00,0,3119],["cva10",300,70.00,28.00,0,590],["cva10",300,40.00,29.67,0,2050],["cva10",300,90.00,10.67,0,5648],["cva10",300,90.00,10.00,0,6620],["cva10",300,100,13.33,0,3637],["cva10",300,70.00,29.67,0,2101],["cva10",300,90.00,10.00,0,4298],["cva10",300,90.00,16.00,0,2956],["cva10",300,80.00,29.67,0,178],["cva10",300,50.00,36.67,0,2473],["cva10",300,60.00,33.33,0,408],["cva10",300,30.00,35.00,0,2248],["cva10",300,90.00,12.00,0,6578],["cva10",500,60.00,33.40,0,6],["cva10",500,96.00,7.20,0,5676],["cva10",500,42.00,39.20,0,1837],["cva10",500,72.00,29.20,0,938],["cva10",500,42.00,33.40,0,2502],["cva10",500,78.00,29.20,0,621],["cva10",500,48.00,37.40,0,1348],["cva10",500,78.00,33.60,0,1772],["cva10",500,60.00,30.20,0,1072],["cva10",500,96.00,13.00,0,5116],["cva10",500,78.00,29.00,0,1731],["cva10",500,36.00,33.80,0,1236],["cva10",500,90.00,12.60,0,6710],["cva10",500,96.00,15.80,0,2978],["cva10",500,84.00,32.20,0,1357],["cva10",500,96.00,10.80,0,3837],["cva10",500,42.00,39.40,0,1448],["cva10",500,84.00,6.80,0,49],["cva10",500,96.00,14.40,0,4744],["cva10",500,48.00,32.60,0,1367],["cva10",500,90.00,9.60,0,168],["cva10",500,96.00,15.80,0,3763],["cva10",500,54.00,33.20,0,2055],["cva10",500,90.00,30.20,0,129],["cva10",500,84.00,13.20,0,290],["cva10",500,72.00,32.00,0,1493],["cva10",500,90.00,8.60,0,6703],["cva10",500,96.00,10.00,0,5566],["cva10",500,72.00,24.40,0,3215],["cva10",500,60.00,39.40,0,1948],["cva16",1000,75.00,30.20,0,1268],["cva16",1000,96.00,16.50,0,3670],["cva16",1000,93.00,28.10,0,1321],["cva16",1000,96.00,16.20,0,3646],["cva16",1000,96.00,16.60,0,4662],["cva16",1000,78.00,32.10,0,2371],["cva16",1000,96.00,15.60,0,4567],["cva16",1000,84.00,22.00,0,373],["cva16",1000,99.00,14.60,0,3838],["cva16",1000,84.00,29.60,0,687],["cva16",1000,96.00,17.70,0,6053],["cva16",1000,96.00,18.00,0,6276],["cva16",1000,87.00,27.70,0,891],["cva16",1000,96.00,17.50,0,3557],["cva16",1000,84.00,30.10,0,1554],["cva16",1000,93.00,18.60,0,68],["cva16",1000,90.00,27.80,0,745],["cva16",1000,96.00,16.80,0,5142],["cva16",1000,96.00,9.70,0,5349],["cva16",1000,81.00,28.10,0,640],["cva16",1000,99.00,18.20,0,6123],["cva16",1000,78.00,24.80,0,207],["cva16",1000,78.00,30.40,0,1690],["cva16",1000,96.00,17.50,0,5653],["cva16",1000,90.00,18.70,0,101],["cva16",1000,96.00,15.80,0,3986],["cva16",1000,87.00,22.30,0,355],["cva16",1000,90.82,28.30,0,2300],["cva16",1000,87.00,29.60,0,1614],["cva16",1000,99.00,17.60,0,5747],["cva16",100,60.00,16.00,0,5607],["cva16",100,60.00,12.00,0,4773],["cva16",100,60.00,14.00,0,3601],["cva16",100,60.00,14.00,0,5080],["cva16",100,60.00,19.00,0,2042],["cva16",100,90.00,3.00,0,360],["cva16",100,60.00,15.00,0,4808],["cva16",100,0,null,0,2578],["cva16",100,60.00,10.00,0,7102],["cva16",100,30.00,34.00,0,2487],["cva16",100,90.00,14.00,0,4936],["cva16",100,60.00,19.00,0,1179],["cva16",100,90.00,6.00,0,7264],["cva16",100,30.00,54.00,0,69],["cva16",100,60.00,12.00,0,5548],["cva16",100,90.00,15.00,0,5528],["cva16",100,60.00,14.00,0,3387],["cva16",100,60.00,30.00,0,3265],["cva16",100,0,null,0,22],["cva16",100,60.00,24.00,0,716],["cva16",100,60.00,13.00,0,1392],["cva16",100,30.00,31.00,0,3104],["cva16",100,30.00,23.00,0,2898],["cva16",100,30.00,27.00,0,1387],["cva16",100,60.00,22.00,0,2184],["cva16",100,60.00,15.00,0,7039],["cva16",100,30.00,22.00,0,2858],["cva16",100,60.00,15.00,0,3685],["cva16",100,90.00,3.00,0,160],["cva16",100,0,null,0,1802],["cva16",150,80.00,7.33,0,62],["cva16",150,100,16.00,0,3825],["cva16",150,80.00,18.00,0,2821],["cva16",150,80.00,14.00,0,3568],["cva16",150,80.00,28.00,0,2286],["cva16",150,80.00,30.67,0,2796],["cva16",150,80.00,15.33,0,1980],["cva16",150,60.00,25.33,0,758],["cva16",150,80.00,21.33,0,2209],["cva16",150,80.00,10.67,0,4546],["cva16",150,80.00,12.00,0,3826],["cva16",150,80.00,17.33,0,3244],["cva16",150,80.00,34.00,0,1304],["cva16",150,80.00,22.00,0,2891],["cva16",150,80.00,12.00,0,5918],["cva16",150,80.00,31.33,0,3087],["cva16",150,20.00,null,0,2435],["cva16",150,0,null,0,258],["cva16",150,60.00,27.33,0,1861],["cva16",150,80.00,16.67,0,5532],["cva16",150,80.00,14.67,0,5787],["cva16",150,80.00,7.33,0,4882],["cva16",150,80.00,18.67,0,941],["cva16",150,80.00,9.33,0,4372],["cva16",150,80.00,20.67,0,2751],["cva16",150,80.00,14.67,0,5335],["cva16",150,80.00,20.67,0,1009],["cva16",150,80.00,12.67,0,6765],["cva16",150,80.00,14.00,0,4537],["cva16",150,60.00,30.67,0,3173],["cva16",2000,75.04,32.25,0,1188],["cva16",2000,82.50,27.25,0,2077],["cva16",2000,87.00,26.70,0,472],["cva16",2000,91.50,29.25,0,878],["cva16",2000,84.04,27.90,0,414],["cva16",2000,99.00,16.05,0,4049],["cva16",2000,99.00,15.50,0,4092],["cva16",2000,97.50,18.50,0,2454],["cva16",2000,87.00,29.45,0,1162],["cva16",2000,82.50,30.60,0,1340],["cva16",2000,99.00,16.00,0,3630],["cva16",2000,97.50,18.80,0,3013],["cva16",2000,78.04,31.85,0,734],["cva16",2000,99.05,15.80,0,3600],["cva16",2000,84.00,29.85,0,1563],["cva16",2000,96.00,19.55,0,3051],["cva16",2000,90.00,24.05,0,262],["cva16",2000,82.50,29.75,0,1172],["cva16",2000,87.00,29.90,0,589],["cva16",2000,99.00,15.50,0,3450],["cva16",2000,90.00,28.15,0,513],["cva16",2000,96.00,23.85,0,72],["cva16",2000,99.00,18.25,0,5227],["cva16",2000,85.50,29.75,0,837],["cva16",2000,99.00,17.25,0,5052],["cva16",2000,96.00,18.10,0,3107],["cva16",2000,96.00,17.90,0,5302],["cva16",2000,93.00,22.60,0,2622],["cva16",2000,96.00,20.10,0,3018],["cva16",2000,99.00,16.70,0,4514],["cva16",200,90.00,14.50,0,4813],["cva16",200,90.00,25.00,0,3194],["cva16",200,75.00,16.00,0,5690],["cva16",200,75.00,16.00,0,6358],["cva16",200,60.00,33.00,0,2629],["cva16",200,90.00,11.50,0,5429],["cva16",200,60.00,17.50,0,557],["cva16",200,90.00,13.50,0,6596],["cva16",200,90.00,17.00,0,6213],["cva16",200,75.00,28.00,0,1579],["cva16",200,75.00,15.00,0,5887],["cva16",200,90.00,10.50,0,4379],["cva16",200,45.00,27.00,0,720],["cva16",200,45.00,37.50,0,2363],["cva16",200,75.00,13.50,0,6691],["cva16",200,45.00,36.00,0,2313],["cva16",200,90.00,17.50,0,3304],["cva16",200,90.00,14.00,0,6348],["cva16",200,90.00,25.00,0,2265],["cva16",200,90.00,4.50,0,242],["cva16",200,90.00,16.00,0,5567],["cva16",200,90.00,16.00,0,3379],["cva16",200,75.00,20.50,0,3310],["cva16",200,90.00,26.50,0,1741],["cva16",200,75.00,12.00,0,7146],["cva16",200,75.00,14.00,0,5552],["cva16",200,45.00,25.00,0,749],["cva16",200,90.00,14.50,0,6028],["cva16",200,90.00,5.00,0,235],["cva16",200,90.00,11.50,0,2545],["cva16",300,90.00,15.67,0,5399],["cva16",300,90.00,10.67,0,6201],["cva16",300,80.00,27.67,0,1279],["cva16",300,90.00,16.33,0,6048],["cva16",300,90.00,13.67,0,4524],["cva16",300,90.00,16.00,0,5156],["cva16",300,90.00,13.33,0,4624],["cva16",300,100,13.67,0,4670],["cva16",300,80.00,26.33,0,533],["cva16",300,80.00,18.00,0,3562],["cva16",300,80.00,12.33,0,7],["cva16",300,90.00,23.00,0,2035],["cva16",300,90.00,15.00,0,6834],["cva16",300,90.00,14.67,0,351],["cva16",300,70.00,32.33,0,2002],["cva16",300,90.00,4.67,0,304],["cva16",300,80.00,27.00,0,1721],["cva16",300,90.00,18.00,0,6140],["cva16",300,90.00,17.00,0,3417],["cva16",300,90.00,18.33,0,6124],["cva16",300,50.00,33.67,0,2303],["cva16",300,90.00,26.67,0,736],["cva16",300,80.00,26.33,0,2884],["cva16",300,90.00,25.00,0,1488],["cva16",300,90.00,23.33,0,943],["cva16",300,90.00,14.67,0,4988],["cva16",300,90.00,14.33,0,5837],["cva16",300,90.00,19.00,0,3314],["cva16",300,90.30,12.00,0,4985],["cva16",300,90.00,14.00,0,3528],["cva16",500,96.00,16.40,0,3473],["cva16",500,96.00,15.80,0,5222],["cva16",500,96.00,13.00,0,4455],["cva16",500,84.00,28.80,0,2045],["cva16",500,84.00,26.00,0,1376],["cva16",500,84.00,26.60,0,2844],["cva16",500,90.00,24.80,0,758],["cva16",500,96.00,12.40,0,5214],["cva16",500,96.00,27.60,0,1123],["cva16",500,96.00,16.80,0,5621],["cva16",500,84.00,26.80,0,343],["cva16",500,84.00,26.20,0,2787],["cva16",500,75.00,23.00,0,30],["cva16",500,84.00,9.00,0,48],["cva16",500,90.00,15.40,0,5664],["cva16",500,96.00,26.40,0,1090],["cva16",500,96.00,15.40,0,5718],["cva16",500,90.00,25.80,0,1092],["cva16",500,96.00,17.00,0,1972],["cva16",500,96.00,16.20,0,5156],["cva16",500,90.00,14.20,0,4491],["cva16",500,96.00,19.00,0,6230],["cva16",500,96.00,16.80,0,6050],["cva16",500,96.00,14.60,0,4166],["cva16",500,90.00,13.40,0,5542],["cva16",500,96.00,17.20,0,3509],["cva16",500,96.00,16.40,0,6375],["cva16",500,96.00,16.00,0,4010],["cva16",500,78.00,14.80,0,357],["cva16",500,90.00,25.00,0,1429],["ev-a71",1000,96.00,0.00,0,3794],["ev-a71",1000,99.00,0.00,1,175],["ev-a71",1000,96.00,0.00,0,5950],["ev-a71",1000,96.00,0.00,1,4313],["ev-a71",1000,99.00,0.00,1,3553],["ev-a71",1000,96.00,0.00,1,1728],["ev-a71",1000,99.00,0.60,0,2063],["ev-a71",1000,96.00,0.00,1,2399],["ev-a71",1000,96.00,0.00,1,1970],["ev-a71",1000,99.00,0.20,0,2124],["ev-a71",1000,99.00,0.20,0,1073],["ev-a71",1000,99.00,0.30,0,6089],["ev-a71",1000,96.00,12.30,0,6061],["ev-a71",1000,96.00,0.00,1,3753],["ev-a71",1000,93.00,0.20,0,4109],["ev-a71",1000,96.00,0.00,1,4356],["ev-a71",1000,96.00,0.40,0,4288],["ev-a71",1000,93.00,0.00,1,153],["ev-a71",1000,96.00,10.40,0,6361],["ev-a71",1000,96.00,0.00,1,4985],["ev-a71",1000,99.00,0.10,0,1227],["ev-a71",1000,96.00,0.00,1,1159],["ev-a71",1000,99.00,0.00,0,5937],["ev-a71",1000,99.00,0.00,1,1392],["ev-a71",1000,96.00,0.00,1,225],["ev-a71",1000,96.00,0.10,0,4839],["ev-a71",1000,96.00,10.00,0,5372],["ev-a71",1000,96.00,0.10,0,5010],["ev-a71",1000,96.00,4.20,0,5384],["ev-a71",1000,96.00,0.00,1,1277],["ev-a71",100,90.00,0.00,0,1235],["ev-a71",100,60.00,2.00,0,3477],["ev-a71",100,30.00,10.00,0,6773],["ev-a71",100,60.00,0.00,1,1014],["ev-a71",100,90.00,1.00,0,5166],["ev-a71",100,60.00,12.00,0,4727],["ev-a71",100,60.00,0.00,1,406],["ev-a71",100,90.00,1.00,0,381],["ev-a71",100,60.00,2.00,0,7032],["ev-a71",100,90.00,0.00,1,2372],["ev-a71",100,60.00,0.00,0,1181],["ev-a71",100,60.00,0.00,1,5332],["ev-a71",100,60.00,1.00,0,964],["ev-a71",100,60.00,0.00,1,2527],["ev-a71",100,60.00,0.00,0,6685],["ev-a71",100,60.00,0.00,1,844],["ev-a71",100,60.00,0.00,1,5233],["ev-a71",100,90.00,0.00,1,3050],["ev-a71",100,60.00,0.00,1,4487],["ev-a71",100,60.00,3.00,0,4623],["ev-a71",100,60.00,9.00,0,5070],["ev-a71",100,90.00,0.00,1,4066],["ev-a71",100,30.00,3.00,0,593],["ev-a71",100,90.00,0.00,0,771],["ev-a71",100,90.00,1.00,0,4774],["ev-a71",100,60.00,9.00,0,4156],["ev-a71",100,90.00,0.00,1,307],["ev-a71",100,90.00,0.00,0,3552],["ev-a71",100,90.00,0.00,0,572],["ev-a71",100,90.00,2.00,0,743],["ev-a71",150,80.00,0.67,0,3502],["ev-a71",150,80.00,2.00,0,967],["ev-a71",150,80.00,4.00,0,3425],["ev-a71",150,80.00,0.00,1,6202],["ev-a71",150,80.00,5.33,0,38],["ev-a71",150,80.00,2.00,0,3454],["ev-a71",150,80.00,0.00,1,5474],["ev-a71",150,80.00,2.67,0,6263],["ev-a71",150,80.00,2.00,0,4694],["ev-a71",150,80.00,0.00,0,2786],["ev-a71",150,80.00,6.00,0,608],["ev-a71",150,80.00,10.67,0,3814],["ev-a71",150,80.00,1.33,0,4750],["ev-a71",150,80.00,0.00,0,563],["ev-a71",150,100,0.00,0,2211],["ev-a71",150,80.00,0.67,0,5710],["ev-a71",150,80.00,0.00,0,497],["ev-a71",150,80.00,0.00,0,5301],["ev-a71",150,80.00,0.00,1,5580],["ev-a71",150,80.00,0.00,0,2331],["ev-a71",150,80.00,10.67,0,684],["ev-a71",150,80.00,6.67,0,23],["ev-a71",150,80.00,2.00,0,2962],["ev-a71",150,80.00,0.00,0,2035],["ev-a71",150,0,null,1,5726],["ev-a71",150,80.00,1.33,0,670],["ev-a71",150,80.00,0.00,1,2459],["ev-a71",150,80.00,0.00,0,506],["ev-a71",150,80.00,5.33,0,186],["ev-a71",150,100,0.00,0,2358],["ev-a71",2000,99.00,5.35,0,5071],["ev-a71",2000,97.50,0.00,1,4965],["ev-a71",2000,99.00,0.00,1,1633],["ev-a71",2000,99.25,0.00,1,3705],["ev-a71",2000,97.50,0.00,1,4368],["ev-a71",2000,99.00,11.20,0,4159],["ev-a71",2000,99.00,1.95,0,4286],["ev-a71",2000,99.00,12.75,0,4583],["ev-a71",2000,99.00,0.00,1,3666],["ev-a71",2000,99.00,0.00,1,3413],["ev-a71",2000,99.00,0.00,1,3214],["ev-a71",2000,99.00,0.00,1,4558],["ev-a71",2000,99.00,2.35,0,2588],["ev-a71",2000,99.00,1.00,0,1971],["ev-a71",2000,97.50,0.70,0,599],["ev-a71",2000,99.00,0.00,1,2480],["ev-a71",2000,99.00,0.00,1,1265],["ev-a71",2000,99.00,0.35,0,1171],["ev-a71",2000,99.00,3.15,0,1124],["ev-a71",2000,99.00,3.75,0,1798],["ev-a71",2000,99.00,0.00,1,3262],["ev-a71",2000,99.00,1.20,0,1333],["ev-a71",2000,99.00,12.75,0,2670],["ev-a71",2000,99.00,0.50,0,869],["ev-a71",2000,99.00,8.05,0,2035],["ev-a71",2000,99.00,0.00,1,2268],["ev-a71",2000,99.00,0.00,1,800],["ev-a71",2000,99.00,0.00,1,3704],["ev-a71",2000,99.00,0.50,0,519],["ev-a71",2000,99.00,2.55,0,2667],["ev-a71",200,75.00,1.50,0,2911],["ev-a71",200,90.00,0.00,1,1121],["ev-a71",200,90.00,0.00,1,4507],["ev-a71",200,90.00,0.00,1,5786],["ev-a71",200,90.00,0.00,0,2939],["ev-a71",200,90.00,11.00,0,236],["ev-a71",200,75.00,0.00,0,679],["ev-a71",200,90.00,0.00,1,1239],["ev-a71",200,90.00,0.00,0,5394],["ev-a71",200,75.00,0.00,0,98],["ev-a71",200,90.00,6.00,0,6808],["ev-a71",200,75.00,0.00,1,5004],["ev-a71",200,90.00,0.00,1,2152],["ev-a71",200,90.00,4.50,0,33],["ev-a71",200,90.00,0.00,0,3432],["ev-a71",200,90.00,0.00,0,3024],["ev-a71",200,90.00,0.00,1,2610],["ev-a71",200,90.00,0.00,1,5656],["ev-a71",200,90.00,11.00,0,5059],["ev-a71",200,90.00,10.50,0,3740],["ev-a71",200,90.00,0.50,0,3214],["ev-a71",200,90.00,0.00,1,3268],["ev-a71",200,90.00,0.00,1,4044],["ev-a71",200,90.00,2.50,0,1787],["ev-a71",200,90.00,2.50,0,1059],["ev-a71",200,90.00,3.00,0,3259],["ev-a71",200,90.00,0.00,1,7138],["ev-a71",200,75.00,3.50,0,660],["ev-a71",200,75.00,0.00,1,3679],["ev-a71",200,90.00,0.00,1,4501],["ev-a71",300,90.00,0.00,1,848],["ev-a71",300,100,0.00,1,2978],["ev-a71",300,90.00,0.00,0,576],["ev-a71",300,100,0.00,1,5030],["ev-a71",300,90.00,10.67,0,152],["ev-a71",300,90.00,2.00,0,2845],["ev-a71",300,100,0.00,0,3884],["ev-a71",300,90.00,0.00,1,944],["ev-a71",300,90.00,1.67,0,3817],["ev-a71",300,90.00,2.00,0,3963],["ev-a71",300,90.00,0.00,0,703],["ev-a71",300,90.00,0.67,0,5196],["ev-a71",300,90.00,0.33,0,837],["ev-a71",300,90.00,4.67,0,16],["ev-a71",300,90.00,0.33,0,6789],["ev-a71",300,90.00,0.00,1,4229],["ev-a71",300,90.00,0.67,0,1681],["ev-a71",300,90.00,0.00,0,370],["ev-a71",300,90.00,0.00,0,5653],["ev-a71",300,100,0.33,0,221],["ev-a71",300,90.00,0.00,0,305],["ev-a71",300,100,0.00,0,5703],["ev-a71",300,80.00,0.00,1,509],["ev-a71",300,90.00,0.00,1,551],["ev-a71",300,90.00,0.00,1,3609],["ev-a71",300,90.00,0.00,1,900],["ev-a71",300,80.00,5.67,0,38],["ev-a71",300,90.00,2.67,0,838],["ev-a71",300,100,0.00,0,4643],["ev-a71",300,90.00,0.67,0,4395],["ev-a71",500,96.00,3.60,0,4246],["ev-a71",500,96.00,1.00,0,1637],["ev-a71",500,96.00,1.80,0,4036],["ev-a71",500,96.00,0.20,0,5988],["ev-a71",500,96.00,0.20,0,228],["ev-a71",500,96.00,0.00,1,3868],["ev-a71",500,96.00,3.60,0,1586],["ev-a71",500,96.00,0.20,0,3663],["ev-a71",500,96.00,0.00,0,2987],["ev-a71",500,96.00,0.00,0,1806],["ev-a71",500,96.00,0.00,1,1858],["ev-a71",500,96.00,10.60,0,85],["ev-a71",500,96.00,2.00,0,1611],["ev-a71",500,96.00,9.40,0,104],["ev-a71",500,96.00,8.20,0,5112],["ev-a71",500,96.00,0.20,0,3927],["ev-a71",500,96.00,0.00,0,6550],["ev-a71",500,90.00,0.00,0,6837],["ev-a71",500,90.00,0.00,1,3182],["ev-a71",500,96.00,0.00,1,3916],["ev-a71",500,96.00,0.00,1,3554],["ev-a71",500,96.00,9.20,0,44],["ev-a71",500,96.00,0.00,0,6323],["ev-a71",500,96.19,0.60,0,4362],["ev-a71",500,96.00,0.80,0,6382],["ev-a71",500,96.00,0.40,0,168],["ev-a71",500,96.00,0.40,0,5023],["ev-a71",500,96.00,0.00,1,6603],["ev-a71",500,90.00,1.40,0,6703],["ev-a71",500,96.00,0.80,0,6061]]
+</script>
+<script id="syn-data" type="application/json">
+[[0.05,1000,99.00,0,922],[0.05,1000,99.00,10,6234],[0.05,1000,99.00,11,4730],[0.05,1000,99.00,12,1748],[0.05,1000,99.00,13,5227],[0.05,1000,99.00,14,1367],[0.05,1000,96.00,15,3016],[0.05,1000,99.00,16,3795],[0.05,1000,99.00,17,4086],[0.05,1000,96.00,18,1650],[0.05,1000,99.00,19,555],[0.05,1000,99.00,1,919],[0.05,1000,99.00,2,1270],[0.05,1000,99.00,3,1098],[0.05,1000,96.00,4,4510],[0.05,1000,99.00,5,660],[0.05,1000,99.00,6,4799],[0.05,1000,96.00,7,3527],[0.05,1000,96.00,8,3273],[0.05,1000,96.00,9,1685],[0.05,100,90.00,0,4415],[0.05,100,90.00,10,1840],[0.05,100,90.00,11,5798],[0.05,100,90.00,12,5480],[0.05,100,90.00,13,6615],[0.05,100,90.00,14,443],[0.05,100,90.00,15,1569],[0.05,100,90.00,16,3630],[0.05,100,90.00,17,3978],[0.05,100,60.00,18,2336],[0.05,100,60.00,19,1783],[0.05,100,90.00,1,744],[0.05,100,90.00,2,3152],[0.05,100,90.00,3,5584],[0.05,100,90.00,4,3716],[0.05,100,90.00,5,6894],[0.05,100,90.00,6,4906],[0.05,100,90.00,7,645],[0.05,100,90.00,8,4503],[0.05,100,90.00,9,5840],[0.05,150,100,0,4119],[0.05,150,80.00,10,947],[0.05,150,100,11,3533],[0.05,150,80.00,12,5447],[0.05,150,100,13,3622],[0.05,150,80.00,14,378],[0.05,150,80.00,15,6376],[0.05,150,80.00,16,2599],[0.05,150,80.00,17,2249],[0.05,150,80.00,18,1752],[0.05,150,80.00,19,48],[0.05,150,80.00,1,671],[0.05,150,80.00,2,6159],[0.05,150,80.00,3,3589],[0.05,150,100,4,4954],[0.05,150,80.00,5,5219],[0.05,150,100,6,1213],[0.05,150,80.00,7,1939],[0.05,150,80.00,8,2864],[0.05,150,80.00,9,2712],[0.05,2000,99.00,0,1399],[0.05,2000,99.00,10,3692],[0.05,2000,99.00,11,2536],[0.05,2000,99.00,12,5067],[0.05,2000,99.00,13,4506],[0.05,2000,99.00,14,1635],[0.05,2000,99.00,15,5054],[0.05,2000,99.00,16,5402],[0.05,2000,99.00,17,3073],[0.05,2000,99.00,18,2879],[0.05,2000,99.00,19,1939],[0.05,2000,99.00,1,3304],[0.05,2000,99.00,2,4796],[0.05,2000,99.00,3,1313],[0.05,2000,99.00,4,4949],[0.05,2000,99.00,5,4602],[0.05,2000,99.00,6,4710],[0.05,2000,99.00,7,4518],[0.05,2000,99.00,8,135],[0.05,2000,99.00,9,3237],[0.05,200,90.00,0,5563],[0.05,200,90.00,10,3966],[0.05,200,90.00,11,446],[0.05,200,90.00,12,6734],[0.05,200,90.00,13,6354],[0.05,200,90.00,14,1286],[0.05,200,90.00,15,5631],[0.05,200,90.00,16,6752],[0.05,200,90.00,17,4945],[0.05,200,90.00,18,3570],[0.05,200,90.00,19,3725],[0.05,200,90.00,1,2131],[0.05,200,90.00,2,6399],[0.05,200,90.00,3,1374],[0.05,200,90.00,4,6804],[0.05,200,90.00,5,103],[0.05,200,90.00,6,6764],[0.05,200,90.00,7,1737],[0.05,200,90.00,8,5291],[0.05,200,90.00,9,4508],[0.05,300,100,0,3621],[0.05,300,90.00,10,1995],[0.05,300,100,11,1038],[0.05,300,90.00,12,4983],[0.05,300,100,13,2560],[0.05,300,90.00,14,2559],[0.05,300,90.00,15,2238],[0.05,300,100,16,407],[0.05,300,90.00,17,982],[0.05,300,100,18,2660],[0.05,300,90.00,19,1199],[0.05,300,100,1,3403],[0.05,300,90.00,2,4521],[0.05,300,100,3,5918],[0.05,300,90.00,4,3634],[0.05,300,90.00,5,5225],[0.05,300,90.00,6,2248],[0.05,300,90.00,7,4348],[0.05,300,90.00,8,3043],[0.05,300,100,9,4811],[0.05,500,96.00,0,308],[0.05,500,96.00,10,1290],[0.05,500,96.00,11,5241],[0.05,500,96.00,12,6902],[0.05,500,96.00,13,2829],[0.05,500,96.00,14,4054],[0.05,500,96.00,15,329],[0.05,500,96.00,16,6413],[0.05,500,96.00,17,3086],[0.05,500,96.00,18,344],[0.05,500,96.00,19,1633],[0.05,500,96.00,1,2981],[0.05,500,96.00,2,6790],[0.05,500,96.00,3,5894],[0.05,500,96.00,4,1207],[0.05,500,96.00,5,910],[0.05,500,96.00,6,5207],[0.05,500,96.00,7,299],[0.05,500,96.00,8,5879],[0.05,500,96.00,9,6251],[0.0,1000,99.00,0,584],[0.0,1000,99.00,10,2211],[0.0,1000,99.00,11,5242],[0.0,1000,99.00,12,5637],[0.0,1000,99.00,13,4562],[0.0,1000,99.00,14,1799],[0.0,1000,99.00,15,5608],[0.0,1000,99.00,16,2656],[0.0,1000,99.00,17,6294],[0.0,1000,99.00,18,6356],[0.0,1000,99.00,19,458],[0.0,1000,99.00,1,4990],[0.0,1000,99.00,2,5201],[0.0,1000,99.00,3,1401],[0.0,1000,99.00,4,4375],[0.0,1000,99.00,5,5973],[0.0,1000,99.00,6,2005],[0.0,1000,99.00,7,1338],[0.0,1000,99.00,8,3786],[0.0,1000,99.00,9,3108],[0.0,100,90.00,0,5238],[0.0,100,90.00,10,5543],[0.0,100,90.00,11,6067],[0.0,100,90.00,12,4467],[0.0,100,90.00,13,712],[0.0,100,90.00,14,4837],[0.0,100,90.00,15,3456],[0.0,100,90.00,16,260],[0.0,100,90.00,17,244],[0.0,100,90.00,18,767],[0.0,100,90.00,19,1791],[0.0,100,90.00,1,912],[0.0,100,90.00,2,204],[0.0,100,90.00,3,6074],[0.0,100,90.00,4,2253],[0.0,100,90.00,5,2006],[0.0,100,90.00,6,1828],[0.0,100,90.00,7,1143],[0.0,100,90.00,8,6033],[0.0,100,90.00,9,839],[0.0,150,100,0,1905],[0.0,150,100,10,3436],[0.0,150,100,11,1805],[0.0,150,100,12,3679],[0.0,150,100,13,4827],[0.0,150,100,14,2278],[0.0,150,100,15,6630],[0.0,150,100,16,7121],[0.0,150,100,17,53],[0.0,150,100,18,6216],[0.0,150,100,19,6601],[0.0,150,100,1,4139],[0.0,150,100,2,4931],[0.0,150,100,3,217],[0.0,150,100,4,4597],[0.0,150,100,5,1628],[0.0,150,100,6,5865],[0.0,150,100,7,5323],[0.0,150,100,8,5745],[0.0,150,100,9,4464],[0.0,2000,99.00,0,1876],[0.0,2000,99.00,10,5369],[0.0,2000,99.00,11,4089],[0.0,2000,99.00,12,3241],[0.0,2000,99.00,13,5266],[0.0,2000,99.00,14,3758],[0.0,2000,99.00,15,1170],[0.0,2000,99.00,16,2169],[0.0,2000,99.00,17,1143],[0.0,2000,99.00,18,2020],[0.0,2000,99.00,19,4598],[0.0,2000,99.00,1,262],[0.0,2000,99.00,2,2584],[0.0,2000,99.00,3,3286],[0.0,2000,99.00,4,2193],[0.0,2000,99.00,5,542],[0.0,2000,99.00,6,1728],[0.0,2000,99.00,7,4646],[0.0,2000,99.00,8,2577],[0.0,2000,99.00,9,1741],[0.0,200,90.00,0,1307],[0.0,200,90.00,10,759],[0.0,200,90.00,11,3112],[0.0,200,90.00,12,792],[0.0,200,90.00,13,2940],[0.0,200,90.00,14,6942],[0.0,200,90.00,15,2817],[0.0,200,90.00,16,4945],[0.0,200,90.00,17,2166],[0.0,200,90.00,18,6611],[0.0,200,90.00,19,355],[0.0,200,90.00,1,5719],[0.0,200,90.00,2,3462],[0.0,200,90.00,3,2787],[0.0,200,90.00,4,2276],[0.0,200,90.00,5,1273],[0.0,200,90.00,6,1763],[0.0,200,90.00,7,6254],[0.0,200,90.00,8,2757],[0.0,200,90.00,9,837],[0.0,300,100,0,5977],[0.0,300,100,10,5066],[0.0,300,100,11,7059],[0.0,300,100,12,2962],[0.0,300,100,13,4729],[0.0,300,100,14,1575],[0.0,300,100,15,5771],[0.0,300,100,16,569],[0.0,300,100,17,375],[0.0,300,100,18,5417],[0.0,300,100,19,1866],[0.0,300,100,1,3763],[0.0,300,100,2,4392],[0.0,300,100,3,1022],[0.0,300,100,4,3100],[0.0,300,100,5,645],[0.0,300,100,6,4522],[0.0,300,100,7,2401],[0.0,300,100,8,6794],[0.0,300,100,9,5149],[0.0,500,96.00,0,6332],[0.0,500,96.00,10,2988],[0.0,500,96.00,11,1332],[0.0,500,96.00,12,3032],[0.0,500,96.00,13,2910],[0.0,500,96.00,14,1716],[0.0,500,96.00,15,5490],[0.0,500,96.00,16,2187],[0.0,500,96.00,17,5749],[0.0,500,96.00,18,5599],[0.0,500,96.00,19,5308],[0.0,500,96.00,1,2370],[0.0,500,96.00,2,653],[0.0,500,96.00,3,1907],[0.0,500,96.00,4,827],[0.0,500,96.00,5,3113],[0.0,500,96.00,6,2277],[0.0,500,96.00,7,3714],[0.0,500,96.00,8,5207],[0.0,500,96.00,9,6833],[0.13,1000,96.00,0,5712],[0.13,1000,99.00,10,1688],[0.13,1000,99.00,11,5463],[0.13,1000,99.00,12,746],[0.13,1000,96.00,13,3902],[0.13,1000,96.00,14,3637],[0.13,1000,99.00,15,3813],[0.13,1000,96.00,16,5028],[0.13,1000,96.00,17,3692],[0.13,1000,99.00,18,3003],[0.13,1000,99.00,19,547],[0.13,1000,96.00,1,1890],[0.13,1000,96.00,2,2864],[0.13,1000,96.00,3,1335],[0.13,1000,96.00,4,2998],[0.13,1000,99.00,5,5733],[0.13,1000,96.00,6,1262],[0.13,1000,99.00,7,1057],[0.13,1000,99.00,8,378],[0.13,1000,96.00,9,5726],[0.13,100,90.00,0,4823],[0.13,100,90.00,10,2036],[0.13,100,60.00,11,2049],[0.13,100,90.00,12,4679],[0.13,100,90.00,13,5182],[0.13,100,60.00,14,5023],[0.13,100,60.00,15,3941],[0.13,100,60.00,16,438],[0.13,100,60.00,17,1047],[0.13,100,90.00,18,6926],[0.13,100,60.00,19,5284],[0.13,100,90.00,1,876],[0.13,100,60.00,2,2176],[0.13,100,60.00,3,2178],[0.13,100,90.00,4,6796],[0.13,100,60.00,5,4557],[0.13,100,60.00,6,231],[0.13,100,90.00,7,6826],[0.13,100,90.00,8,3242],[0.13,100,60.00,9,6920],[0.13,150,80.00,0,5855],[0.13,150,80.00,10,2580],[0.13,150,100,11,4694],[0.13,150,100,12,2763],[0.13,150,80.00,13,5078],[0.13,150,80.00,14,1451],[0.13,150,80.00,15,359],[0.13,150,80.00,16,5025],[0.13,150,80.00,17,3923],[0.13,150,80.00,18,1505],[0.13,150,80.00,19,6178],[0.13,150,80.00,1,540],[0.13,150,80.00,2,298],[0.13,150,80.00,3,1884],[0.13,150,80.00,4,3449],[0.13,150,80.00,5,5767],[0.13,150,60.00,6,4550],[0.13,150,100,7,1140],[0.13,150,80.00,8,437],[0.13,150,80.00,9,4587],[0.13,2000,99.00,0,1548],[0.13,2000,99.00,10,1567],[0.13,2000,97.50,11,4555],[0.13,2000,99.00,12,148],[0.13,2000,99.00,13,1260],[0.13,2000,97.50,14,3638],[0.13,2000,99.00,15,4347],[0.13,2000,99.00,16,2840],[0.13,2000,97.50,17,2942],[0.13,2000,99.00,18,1046],[0.13,2000,99.00,19,56],[0.13,2000,99.00,1,683],[0.13,2000,99.00,2,5310],[0.13,2000,99.00,3,2136],[0.13,2000,99.00,4,1363],[0.13,2000,99.00,5,3112],[0.13,2000,99.00,6,3809],[0.13,2000,99.00,7,4701],[0.13,2000,99.00,8,4678],[0.13,2000,99.00,9,644],[0.13,200,90.00,0,6159],[0.13,200,90.00,10,1597],[0.13,200,90.00,11,1347],[0.13,200,90.00,12,6404],[0.13,200,90.00,13,4375],[0.13,200,90.00,14,6474],[0.13,200,75.00,15,368],[0.13,200,90.00,16,4064],[0.13,200,90.00,17,2886],[0.13,200,90.00,18,3803],[0.13,200,90.00,19,4663],[0.13,200,75.00,1,364],[0.13,200,75.00,2,2283],[0.13,200,90.00,3,2076],[0.13,200,90.00,4,3210],[0.13,200,90.00,5,5302],[0.13,200,90.00,6,5592],[0.13,200,90.00,7,6533],[0.13,200,90.00,8,6991],[0.13,200,90.00,9,1163],[0.13,300,90.00,0,6435],[0.13,300,90.00,10,5146],[0.13,300,90.00,11,4529],[0.13,300,90.00,12,3503],[0.13,300,90.00,13,1361],[0.13,300,100,14,1633],[0.13,300,90.00,15,1331],[0.13,300,90.00,16,6869],[0.13,300,90.00,17,1598],[0.13,300,100,18,1523],[0.13,300,90.00,19,2596],[0.13,300,90.00,1,4641],[0.13,300,90.00,2,6809],[0.13,300,90.00,3,4994],[0.13,300,90.00,4,6211],[0.13,300,90.00,5,12],[0.13,300,90.00,6,2587],[0.13,300,90.00,7,3622],[0.13,300,90.00,8,2757],[0.13,300,90.00,9,2861],[0.13,500,96.00,0,1526],[0.13,500,96.00,10,4354],[0.13,500,96.00,11,6044],[0.13,500,96.00,12,2079],[0.13,500,96.00,13,1844],[0.13,500,96.00,14,5919],[0.13,500,96.00,15,5868],[0.13,500,96.00,16,6228],[0.13,500,96.00,17,6847],[0.13,500,96.00,18,6628],[0.13,500,96.00,19,6786],[0.13,500,90.00,1,6385],[0.13,500,96.00,2,1069],[0.13,500,96.00,3,5852],[0.13,500,90.00,4,1549],[0.13,500,96.00,5,1046],[0.13,500,96.00,6,4736],[0.13,500,96.00,7,6094],[0.13,500,90.00,8,4880],[0.13,500,96.00,9,83],[0.1,1000,96.00,0,6119],[0.1,1000,99.00,10,6077],[0.1,1000,99.00,11,634],[0.1,1000,99.00,12,5735],[0.1,1000,96.00,13,5169],[0.1,1000,96.00,14,2164],[0.1,1000,96.00,15,1851],[0.1,1000,96.00,16,2574],[0.1,1000,96.00,17,6160],[0.1,1000,99.00,18,2118],[0.1,1000,99.00,19,102],[0.1,1000,96.00,1,5336],[0.1,1000,96.00,2,5642],[0.1,1000,99.00,3,5964],[0.1,1000,99.00,4,3137],[0.1,1000,99.00,5,3915],[0.1,1000,96.00,6,2161],[0.1,1000,96.00,7,6288],[0.1,1000,96.00,8,5284],[0.1,1000,99.00,9,556],[0.1,100,60.00,0,4259],[0.1,100,90.00,10,3860],[0.1,100,60.00,11,4874],[0.1,100,60.00,12,2748],[0.1,100,60.00,13,6370],[0.1,100,60.00,14,4285],[0.1,100,90.00,15,1572],[0.1,100,90.00,16,4075],[0.1,100,90.00,17,1294],[0.1,100,90.00,18,803],[0.1,100,60.00,19,3749],[0.1,100,60.00,1,278],[0.1,100,90.00,2,5698],[0.1,100,90.00,3,3183],[0.1,100,60.00,4,870],[0.1,100,60.00,5,2182],[0.1,100,60.00,6,6700],[0.1,100,60.00,7,5306],[0.1,100,60.00,8,292],[0.1,100,60.00,9,350],[0.1,150,80.00,0,1801],[0.1,150,100,10,1766],[0.1,150,80.00,11,2371],[0.1,150,80.00,12,4906],[0.1,150,80.00,13,4338],[0.1,150,80.00,14,6812],[0.1,150,100,15,5636],[0.1,150,80.00,16,4929],[0.1,150,100,17,4130],[0.1,150,80.00,18,947],[0.1,150,80.00,19,5693],[0.1,150,80.00,1,328],[0.1,150,60.00,2,6121],[0.1,150,80.00,3,2981],[0.1,150,100,4,446],[0.1,150,80.00,5,5138],[0.1,150,100,6,4646],[0.1,150,80.00,7,1036],[0.1,150,80.00,8,5779],[0.1,150,100,9,6400],[0.1,2000,99.00,0,3328],[0.1,2000,99.00,10,3010],[0.1,2000,99.00,11,601],[0.1,2000,99.00,12,762],[0.1,2000,99.00,13,765],[0.1,2000,99.00,14,3880],[0.1,2000,99.00,15,147],[0.1,2000,99.00,16,1161],[0.1,2000,99.00,17,1631],[0.1,2000,99.00,18,4677],[0.1,2000,99.00,19,2016],[0.1,2000,99.00,1,1656],[0.1,2000,99.00,2,4396],[0.1,2000,99.00,3,5165],[0.1,2000,99.00,4,2859],[0.1,2000,99.00,5,3422],[0.1,2000,99.00,6,4346],[0.1,2000,99.00,7,3921],[0.1,2000,99.00,8,974],[0.1,2000,99.00,9,2630],[0.1,200,75.00,0,4008],[0.1,200,90.00,10,5973],[0.1,200,90.00,11,6772],[0.1,200,90.00,12,4048],[0.1,200,90.00,13,5626],[0.1,200,90.00,14,4037],[0.1,200,90.00,15,293],[0.1,200,90.00,16,6293],[0.1,200,90.00,17,2647],[0.1,200,90.00,18,3179],[0.1,200,90.00,19,4285],[0.1,200,90.00,1,3142],[0.1,200,75.00,2,3094],[0.1,200,90.00,3,1390],[0.1,200,90.00,4,1753],[0.1,200,90.00,5,6254],[0.1,200,90.00,6,2186],[0.1,200,90.00,7,4928],[0.1,200,90.00,8,1753],[0.1,200,90.00,9,2972],[0.1,300,90.00,0,3685],[0.1,300,90.00,10,5425],[0.1,300,90.00,11,908],[0.1,300,90.00,12,5128],[0.1,300,90.00,13,5332],[0.1,300,90.00,14,3897],[0.1,300,100,15,6811],[0.1,300,90.00,16,5689],[0.1,300,90.00,17,640],[0.1,300,90.00,18,2503],[0.1,300,90.00,19,2676],[0.1,300,90.00,1,4794],[0.1,300,90.00,2,5827],[0.1,300,90.00,3,6407],[0.1,300,90.00,4,3290],[0.1,300,90.00,5,491],[0.1,300,90.00,6,4010],[0.1,300,90.00,7,6829],[0.1,300,100,8,197],[0.1,300,90.00,9,2017],[0.1,500,96.00,0,5723],[0.1,500,96.00,10,3663],[0.1,500,96.00,11,6721],[0.1,500,96.00,12,1499],[0.1,500,96.00,13,6813],[0.1,500,90.00,14,3926],[0.1,500,96.00,15,5735],[0.1,500,96.00,16,2998],[0.1,500,96.00,17,4499],[0.1,500,90.00,18,6771],[0.1,500,96.00,19,2220],[0.1,500,90.00,1,1770],[0.1,500,96.00,2,2063],[0.1,500,96.00,3,49],[0.1,500,96.00,4,3056],[0.1,500,96.00,5,2523],[0.1,500,90.00,6,3743],[0.1,500,96.00,7,5891],[0.1,500,96.00,8,2530],[0.1,500,96.00,9,1471],[0.2,1000,96.00,0,4595],[0.2,1000,99.00,10,4742],[0.2,1000,96.00,11,5520],[0.2,1000,96.00,12,6095],[0.2,1000,96.00,13,4902],[0.2,1000,96.00,14,1385],[0.2,1000,96.00,15,1339],[0.2,1000,96.00,16,240],[0.2,1000,96.00,17,3600],[0.2,1000,96.00,18,434],[0.2,1000,96.00,19,1026],[0.2,1000,99.00,1,3093],[0.2,1000,96.00,2,4063],[0.2,1000,99.00,3,5375],[0.2,1000,96.00,4,4757],[0.2,1000,96.00,5,6173],[0.2,1000,96.00,6,4186],[0.2,1000,96.00,7,995],[0.2,1000,96.00,8,4683],[0.2,1000,96.00,9,1302],[0.2,100,60.00,0,5448],[0.2,100,90.00,10,4649],[0.2,100,0,11,5634],[0.2,100,90.00,12,6623],[0.2,100,90.00,13,5006],[0.2,100,60.00,14,5706],[0.2,100,60.00,15,5666],[0.2,100,90.00,16,4241],[0.2,100,60.00,17,2737],[0.2,100,0,18,4100],[0.2,100,90.00,19,6892],[0.2,100,90.00,1,2272],[0.2,100,0,2,2470],[0.2,100,60.00,3,1725],[0.2,100,90.00,4,102],[0.2,100,60.00,5,1360],[0.2,100,60.00,6,5588],[0.2,100,90.00,7,5647],[0.2,100,60.00,8,5567],[0.2,100,0,9,4961],[0.2,150,80.00,0,4117],[0.2,150,80.00,10,346],[0.2,150,80.00,11,3294],[0.2,150,80.00,12,2778],[0.2,150,20.00,13,2918],[0.2,150,80.00,14,5604],[0.2,150,80.00,15,911],[0.2,150,80.00,16,2457],[0.2,150,80.00,17,550],[0.2,150,80.00,18,7008],[0.2,150,80.00,19,504],[0.2,150,60.00,1,1707],[0.2,150,100,2,3981],[0.2,150,80.00,3,5831],[0.2,150,80.00,4,4913],[0.2,150,80.00,5,4552],[0.2,150,60.00,6,4288],[0.2,150,80.00,7,813],[0.2,150,80.00,8,723],[0.2,150,80.00,9,5533],[0.2,2000,97.50,0,1822],[0.2,2000,99.00,10,822],[0.2,2000,97.50,11,917],[0.2,2000,99.00,12,2193],[0.2,2000,97.50,13,836],[0.2,2000,97.50,14,801],[0.2,2000,97.50,15,5134],[0.2,2000,99.00,16,249],[0.2,2000,99.00,17,4306],[0.2,2000,99.00,18,4265],[0.2,2000,99.00,19,856],[0.2,2000,99.00,1,4103],[0.2,2000,99.00,2,4672],[0.2,2000,99.00,3,793],[0.2,2000,97.50,4,2641],[0.2,2000,99.00,5,3885],[0.2,2000,97.50,6,5398],[0.2,2000,97.50,7,5064],[0.2,2000,99.00,8,1458],[0.2,2000,99.00,9,2273],[0.2,200,90.00,0,2378],[0.2,200,90.00,10,2735],[0.2,200,90.00,11,1829],[0.2,200,75.00,12,2618],[0.2,200,75.00,13,3794],[0.2,200,90.00,14,6691],[0.2,200,75.00,15,5472],[0.2,200,90.00,16,5765],[0.2,200,90.00,17,2953],[0.2,200,90.00,18,1322],[0.2,200,75.00,19,653],[0.2,200,90.00,1,2101],[0.2,200,90.00,2,7132],[0.2,200,90.00,3,3137],[0.2,200,90.00,4,2330],[0.2,200,0,5,5859],[0.2,200,75.00,6,530],[0.2,200,90.00,7,27],[0.2,200,75.00,8,80],[0.2,200,90.00,9,3420],[0.2,300,90.00,0,4457],[0.2,300,90.00,10,930],[0.2,300,90.00,11,2620],[0.2,300,90.00,12,3807],[0.2,300,90.00,13,752],[0.2,300,90.00,14,2456],[0.2,300,90.00,15,5714],[0.2,300,90.00,16,5404],[0.2,300,90.00,17,1822],[0.2,300,90.00,18,2166],[0.2,300,90.00,19,899],[0.2,300,90.00,1,1584],[0.2,300,90.00,2,6426],[0.2,300,90.00,3,5884],[0.2,300,90.00,4,2153],[0.2,300,90.00,5,2882],[0.2,300,90.00,6,1468],[0.2,300,80.00,7,987],[0.2,300,90.00,8,5519],[0.2,300,90.00,9,4260],[0.2,500,96.00,0,3853],[0.2,500,90.00,10,6106],[0.2,500,96.00,11,6606],[0.2,500,96.00,12,5532],[0.2,500,96.00,13,3538],[0.2,500,90.00,14,2172],[0.2,500,96.00,15,2094],[0.2,500,90.00,16,850],[0.2,500,96.00,17,2837],[0.2,500,90.00,18,222],[0.2,500,96.00,19,5036],[0.2,500,96.00,1,4158],[0.2,500,96.00,2,3215],[0.2,500,90.00,3,1592],[0.2,500,96.00,4,6115],[0.2,500,90.00,5,1727],[0.2,500,96.00,6,772],[0.2,500,96.00,7,4341],[0.2,500,96.00,8,2570],[0.2,500,96.00,9,5752],[0.3,1000,90.00,0,334],[0.3,1000,90.00,10,3543],[0.3,1000,96.00,11,6015],[0.3,1000,90.00,12,3456],[0.3,1000,90.00,13,4008],[0.3,1000,93.00,14,1129],[0.3,1000,96.00,15,2086],[0.3,1000,69.00,16,5676],[0.3,1000,96.00,17,477],[0.3,1000,96.00,18,5444],[0.3,1000,96.00,19,5770],[0.3,1000,96.00,1,6213],[0.3,1000,90.00,2,3163],[0.3,1000,87.00,3,6224],[0.3,1000,93.00,4,5495],[0.3,1000,96.00,5,4491],[0.3,1000,96.00,6,4462],[0.3,1000,87.00,7,2367],[0.3,1000,96.00,8,306],[0.3,1000,93.00,9,4796],[0.3,100,0,0,1319],[0.3,100,60.00,10,990],[0.3,100,60.00,11,768],[0.3,100,90.00,12,6404],[0.3,100,30.00,13,5177],[0.3,100,60.00,14,4027],[0.3,100,60.00,15,2989],[0.3,100,30.00,16,983],[0.3,100,60.00,17,3423],[0.3,100,60.00,18,3949],[0.3,100,60.00,19,3210],[0.3,100,60.00,1,7176],[0.3,100,60.00,2,5986],[0.3,100,60.00,3,6],[0.3,100,0,4,1326],[0.3,100,60.00,5,5719],[0.3,100,60.00,6,3095],[0.3,100,60.00,7,3829],[0.3,100,60.00,8,3264],[0.3,100,0,9,5878],[0.3,150,40.00,0,1636],[0.3,150,80.00,10,1563],[0.3,150,80.00,11,1633],[0.3,150,80.00,12,5456],[0.3,150,80.00,13,51],[0.3,150,80.00,14,158],[0.3,150,80.00,15,6845],[0.3,150,80.00,16,2135],[0.3,150,80.00,17,3878],[0.3,150,60.00,18,670],[0.3,150,80.00,19,5429],[0.3,150,100,1,2226],[0.3,150,0,2,3491],[0.3,150,100,3,3988],[0.3,150,60.00,4,6482],[0.3,150,80.00,5,6105],[0.3,150,80.00,6,7231],[0.3,150,80.00,7,543],[0.3,150,60.00,8,6606],[0.3,150,20.00,9,2676],[0.3,2000,96.00,0,3719],[0.3,2000,97.50,10,2207],[0.3,2000,97.50,11,1643],[0.3,2000,99.00,12,3298],[0.3,2000,97.50,13,2509],[0.3,2000,90.00,14,680],[0.3,2000,94.50,15,3543],[0.3,2000,94.50,16,816],[0.3,2000,93.00,17,4658],[0.3,2000,87.00,18,1098],[0.3,2000,96.00,19,693],[0.3,2000,93.00,1,5083],[0.3,2000,94.50,2,2300],[0.3,2000,97.50,3,2159],[0.3,2000,97.50,4,526],[0.3,2000,93.00,5,4823],[0.3,2000,93.00,6,4376],[0.3,2000,88.50,7,4669],[0.3,2000,97.50,8,393],[0.3,2000,94.50,9,2995],[0.3,200,90.00,0,1123],[0.3,200,75.00,10,3586],[0.3,200,90.00,11,1074],[0.3,200,45.00,12,5736],[0.3,200,75.00,13,3458],[0.3,200,15.00,14,2070],[0.3,200,75.00,15,3344],[0.3,200,90.00,16,3173],[0.3,200,15.00,17,1281],[0.3,200,90.00,18,3668],[0.3,200,75.00,19,4777],[0.3,200,60.00,1,5802],[0.3,200,75.00,2,526],[0.3,200,75.00,3,5930],[0.3,200,60.00,4,7031],[0.3,200,75.00,5,5156],[0.3,200,90.00,6,5324],[0.3,200,90.00,7,3119],[0.3,200,90.00,8,2895],[0.3,200,90.00,9,5661],[0.3,300,90.00,0,1130],[0.3,300,10.00,10,1330],[0.3,300,80.00,11,6649],[0.3,300,90.00,12,3962],[0.3,300,90.00,13,5162],[0.3,300,90.00,14,857],[0.3,300,90.00,15,2280],[0.3,300,80.00,16,6271],[0.3,300,90.00,17,3928],[0.3,300,90.00,18,3856],[0.3,300,90.00,19,6955],[0.3,300,90.00,1,5674],[0.3,300,80.00,2,9],[0.3,300,90.00,3,3959],[0.3,300,90.00,4,2588],[0.3,300,90.00,5,1247],[0.3,300,80.00,6,2236],[0.3,300,70.00,7,4839],[0.3,300,80.00,8,5152],[0.3,300,90.00,9,2968],[0.3,500,84.00,0,5127],[0.3,500,90.00,10,2201],[0.3,500,96.00,11,6444],[0.3,500,90.00,12,4931],[0.3,500,90.00,13,2905],[0.3,500,90.00,14,2161],[0.3,500,90.00,15,478],[0.3,500,90.00,16,4862],[0.3,500,90.00,17,1622],[0.3,500,90.00,18,6489],[0.3,500,96.00,19,5836],[0.3,500,90.00,1,2896],[0.3,500,66.00,2,175],[0.3,500,96.00,3,1581],[0.3,500,90.00,4,953],[0.3,500,90.00,5,2220],[0.3,500,90.00,6,1543],[0.3,500,90.00,7,3962],[0.3,500,84.00,8,6036],[0.3,500,90.00,9,2771]]
+</script>
+
+<script>
+// MODEL-BEGIN
+const EV_A71_PARAMS = Object.freeze({
+  kmerLength: 6,
+  kmerDistance: 25,
+  minMatchLength: 30,
+  windowSize: 30,
+  allowedMismatches: 15,
+  minSeedCover: 0.79,
+});
+
+// Seed cover of an ungapped query of `length` nt against the reference, with substitutions at `mismatchPositions`.
+// `fix` false ports packages/nextclade/src/align/seed_match.rs of Nextclade 3.30.0; `fix` true applies the proposed fix.
+function seedCover(length, mismatchPositions, params, fix) {
+  const mm = new Uint8Array(length);
+  for (const pos of mismatchPositions) if (pos >= 0 && pos < length) mm[pos] = 1;
+
+  const hits = findKmerHits(mm, length, params);
+  const knownRanges = [];
+  const extensions = [];
+  for (const hit of hits) {
+    if (!hit.matched) continue;
+    const start = hit.qryPos;
+    const end = hit.qryPos + params.kmerLength;
+    // Closed intervals, as in the `interval` crate
+    if (knownRanges.some(([a, b]) => start <= b && end >= a)) {
+      hit.inKnownRange = true;
+      continue;
+    }
+    const extension = extendSeed(mm, length, hit.qryPos, params, fix);
+    extension.index = extensions.length;
+    extension.pieces.forEach((piece) => { piece.extension = extension.index; });
+    hit.extended = true;
+    extensions.push(extension);
+    if (extension.pieces.length === 0) continue;
+    knownRanges.push([extension.start, Math.min(extension.end, length)]);
+  }
+
+  const pieces = extensions.flatMap((extension) => extension.pieces);
+  const chosen = chainPieces(pieces);
+  chosen.forEach((piece) => { piece.chosen = true; });
+  const counted = chosen.reduce((sum, piece) => sum + piece.length, 0);
+
+  const category = new Array(length).fill("unreached");
+  for (const e of extensions) {
+    for (let i = e.rawStart; i < e.rawStart + e.leftTrim; i++) category[i] = "trimmed";
+    for (let i = e.end; i < e.rawEnd; i++) category[i] = "trimmed";
+  }
+  for (const e of extensions) for (let i = e.start; i < e.end; i++) category[i] = "cut";
+  for (const piece of chosen) for (let i = piece.start; i < piece.start + piece.length; i++) category[i] = "counted";
+  const totals = { counted: 0, trimmed: 0, cut: 0, unreached: 0 };
+  for (const c of category) totals[c] += 1;
+
+  return { length, hits, extensions, pieces, chosen, counted, cover: length > 0 ? counted / length : 0, category, totals };
+}
+
+function findKmerHits(mm, length, params) {
+  const hits = [];
+  for (let frame = 0; frame < 3; frame++) {
+    // Codon-spaced query: keep 2 bases, skip 1
+    const taken = [];
+    for (let pos = frame; pos < length; pos++) if ((pos - frame) % 3 !== 2) taken.push(pos);
+    for (let s = 0; s + params.kmerLength < taken.length; s += params.kmerDistance) {
+      const span = taken.slice(s, s + params.kmerLength);
+      hits.push({
+        frame,
+        qryPos: Math.floor((s * 3) / 2) + frame,
+        span,
+        matched: span.every((pos) => mm[pos] === 0),
+        inKnownRange: false,
+        extended: false,
+      });
+    }
+  }
+  return hits;
+}
+
+function longestMatchRunEnd(queue) {
+  let crop = 0;
+  let longest = 0;
+  let current = 0;
+  queue.forEach((isMismatch, pos) => {
+    current = isMismatch ? 0 : current + 1;
+    if (current > longest) {
+      longest = current;
+      crop = pos + 1;
+    }
+  });
+  return crop;
+}
+
+function extendSeed(mm, length, seedPos, params, fix) {
+  const W = params.windowSize;
+  const A = params.allowedMismatches;
+  let qryPos = seedPos;
+  let len = 0;
+  const maxLength = length - qryPos;
+
+  let queue = new Array(W).fill(false);
+  let mismatches = 0;
+  while (mismatches <= A && len < maxLength) {
+    if (queue.shift()) mismatches = Math.max(0, mismatches - 1);
+    const isMismatch = mm[qryPos + len] === 1;
+    if (isMismatch) mismatches += 1;
+    queue.push(isMismatch);
+    len += 1;
+  }
+  const rawEnd = qryPos + len;
+  const rightStop = mismatches > A ? "mismatches" : "end";
+  let rightTrim = 0;
+  if (fix && rightStop === "end") {
+    while (rightTrim < len && mm[qryPos + len - 1 - rightTrim] === 1) rightTrim += 1;
+  } else {
+    rightTrim = W - longestMatchRunEnd(queue);
+  }
+  len -= rightTrim;
+
+  queue = new Array(W).fill(false);
+  mismatches = 0;
+  while (mismatches <= A && qryPos > 0) {
+    if (queue.shift()) mismatches = Math.max(0, mismatches - 1);
+    const isMismatch = mm[qryPos - 1] === 1;
+    if (isMismatch) mismatches += 1;
+    queue.push(isMismatch);
+    qryPos -= 1;
+    len += 1;
+  }
+  const rawStart = qryPos;
+  const leftStop = mismatches > A ? "mismatches" : "end";
+  let leftTrim = 0;
+  if (fix && leftStop === "end") {
+    while (leftTrim < len && mm[qryPos + leftTrim] === 1) leftTrim += 1;
+  } else {
+    leftTrim = W - longestMatchRunEnd(queue);
+  }
+  len -= leftTrim;
+  qryPos += leftTrim;
+
+  const extension = { seedPos, rawStart, rawEnd, leftTrim, rightTrim, leftStop, rightStop, start: qryPos, end: qryPos + len, pieces: [] };
+  const mml = params.minMatchLength;
+  if (len < mml) return extension;
+
+  if (fix) {
+    const count = Math.floor(len / mml);
+    for (let k = 0; k < count - 1; k++) extension.pieces.push({ start: qryPos + k * mml, length: mml });
+    extension.pieces.push({ start: qryPos + (count - 1) * mml, length: len - (count - 1) * mml });
+  } else {
+    const maxPos = qryPos + len - mml;
+    for (let cur = qryPos; cur < maxPos; cur += mml) extension.pieces.push({ start: cur, length: mml });
+    extension.pieces.push({ start: maxPos, length: mml });
+  }
+  return extension;
+}
+
+// Highest total length of pieces that do not overlap. All pieces share one diagonal, so this equals the seed chain.
+function chainPieces(pieces) {
+  const sorted = [...pieces].sort((a, b) => a.start + a.length - (b.start + b.length) || a.start - b.start);
+  const n = sorted.length;
+  const score = new Array(n + 1).fill(0);
+  const take = new Array(n).fill(false);
+  const prev = new Array(n).fill(-1);
+  for (let i = 0; i < n; i++) {
+    let lo = 0;
+    let hi = i - 1;
+    let j = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (sorted[mid].start + sorted[mid].length <= sorted[i].start) {
+        j = mid;
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    prev[i] = j;
+    const withPiece = sorted[i].length + score[j + 1];
+    if (withPiece > score[i]) {
+      score[i + 1] = withPiece;
+      take[i] = true;
+    } else {
+      score[i + 1] = score[i];
+    }
+  }
+  const chosen = [];
+  for (let i = n - 1; i >= 0; ) {
+    if (take[i]) {
+      chosen.push(sorted[i]);
+      i = prev[i];
+    } else {
+      i -= 1;
+    }
+  }
+  return chosen.reverse();
+}
+// MODEL-END
+
+const PRESETS = {
+  OQ026325: { length: 100, mismatches: [5, 8, 11, 23, 26, 47, 53, 56, 59, 65, 83, 86, 98] },
+  PP548272: { length: 100, mismatches: [1, 4, 10, 16, 25, 34, 40, 49, 58, 67, 70, 85, 88] },
+  GQ231939: { length: 100, mismatches: [5, 11, 32, 83, 98, 99] },
+};
+const STEPS = [
+  { n: 1, name: "Find seeds", note: "6-mers every 25 positions must match the reference exactly. Filled marks start a seed." },
+  { n: 2, name: "Extend", note: "each seed grows until more than 15 of the last 30 bases differ, or the query ends." },
+  { n: 3, name: "Trim", flaw: true, note: "each end is cut back to the longest run of matches, also at the query end. Hatched: trimmed." },
+  { n: 4, name: "Cut", flaw: true, note: "the seed is split into 30 nt pieces. The last overlaps the one before. Dashed: does not count." },
+  { n: 5, name: "Chain", note: "the best set of pieces that do not overlap counts. Green: counted." },
+  { n: 6, name: "Check", note: "cover = counted nt / query length, compared with minSeedCover." },
+];
+const COLORS = {
+  ev: "#369EFC", cva16: "#fb923c", cva10: "#c47070",
+  counted: "#3fb950", trimmed: "#cca700", cut: "#b180d7", unreached: "#3a3a3a",
+  ext: "#4a6a8a", kmer: "#b1b9f9", mismatch: "#f85149", match: "#2f2f2f", fix: "#89d185",
+};
+const CATEGORY_LABELS = {
+  counted: "counted",
+  trimmed: "lost to the end trim",
+  cut: "lost to the 30 nt cut",
+  unreached: "no seed",
+};
+const TYPES = [
+  { key: "ev-a71", label: "EV-A71", color: COLORS.ev },
+  { key: "cva16", label: "CVA16", color: COLORS.cva16 },
+  { key: "cva10", label: "CVA10", color: COLORS.cva10 },
+];
+const LENGTHS = [100, 150, 200, 300, 500, 1000, 2000];
+const REAL = JSON.parse(document.getElementById("real-data").textContent);
+const SYN = JSON.parse(document.getElementById("syn-data").textContent);
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function randomMismatches(length, divergence, wobble, rng) {
+  const count = Math.min(length, Math.round(divergence * length));
+  const weights = Array.from({ length }, (_, i) => (wobble && i % 3 === 2 ? 8 : 1));
+  const chosen = new Set();
+  let total = weights.reduce((a, b) => a + b, 0);
+  while (chosen.size < count) {
+    let r = rng() * total;
+    for (let i = 0; i < length; i++) {
+      if (chosen.has(i)) continue;
+      r -= weights[i];
+      if (r <= 0) {
+        chosen.add(i);
+        total -= weights[i];
+        break;
+      }
+    }
+  }
+  return [...chosen].sort((a, b) => a - b);
+}
+
+// One random key per position, drawn once per seed for the longest query, weighted by Efraimidis and Spirakis
+// (weight 8 at the 3rd codon base with `wobble`). The positions with the highest keys get the substitutions, so a
+// change of length or divergence adds or removes a few substitutions instead of drawing a new pattern
+const MAX_LENGTH = 1000;
+function substitutionKeys(seed, wobble) {
+  const rng = mulberry32(seed);
+  return Array.from({ length: MAX_LENGTH }, (_, i) => rng() ** (1 / (wobble && i % 3 === 2 ? 8 : 1)));
+}
+
+function stableMismatches(length, divergence, keys) {
+  const count = Math.min(length, Math.round(divergence * length));
+  return keys
+    .slice(0, length)
+    .map((key, pos) => ({ key, pos }))
+    .sort((a, b) => b.key - a.key)
+    .slice(0, count)
+    .map((entry) => entry.pos)
+    .sort((a, b) => a - b);
+}
+
+/* ---------------- Simulator ---------------- */
+
+const PARAM_DEFS = [
+  { key: "minSeedCover", label: "minSeedCover", min: 0, max: 1, step: 0.01 },
+  { key: "minMatchLength", label: "minMatchLength", min: 10, max: 60, step: 1 },
+  { key: "windowSize", label: "windowSize", min: 10, max: 60, step: 1 },
+  { key: "allowedMismatches", label: "allowedMismatches", min: 1, max: 30, step: 1 },
+  { key: "kmerLength", label: "kmerLength", min: 4, max: 12, step: 1 },
+  { key: "kmerDistance", label: "kmerDistance", min: 5, max: 50, step: 1 },
+];
+
+const sim = {
+  preset: "OQ026325",
+  length: 100,
+  divergence: 0.13,
+  wobble: true,
+  seed: 7,
+  mismatches: PRESETS.OQ026325.mismatches.slice(),
+  params: { ...EV_A71_PARAMS },
+  highlight: new Set(),
+};
+
+function regenerate() {
+  if (PRESETS[sim.preset]) {
+    sim.length = PRESETS[sim.preset].length;
+    sim.mismatches = PRESETS[sim.preset].mismatches.slice();
+    sim.divergence = sim.mismatches.length / sim.length;
+  } else if (sim.preset === "perfect") {
+    sim.mismatches = [];
+    sim.divergence = 0;
+  } else if (sim.preset === "random") {
+    sim.mismatches = stableMismatches(sim.length, sim.divergence, substitutionKeys(sim.seed, sim.wobble));
+  }
+}
+
+function syncControls() {
+  document.getElementById("preset").value = sim.preset;
+  document.getElementById("len").value = sim.length;
+  document.getElementById("len-v").textContent = `${sim.length} nt`;
+  document.getElementById("div").value = Math.round(sim.divergence * 100);
+  document.getElementById("div-v").textContent = `${(100 * sim.divergence).toFixed(0)}% (${sim.mismatches.length} subs)`;
+  document.getElementById("wobble").checked = sim.wobble;
+  for (const def of PARAM_DEFS) {
+    document.getElementById(`p-${def.key}`).value = sim.params[def.key];
+    document.getElementById(`p-${def.key}-v`).textContent = sim.params[def.key];
+  }
+}
+
+function buildParamControls() {
+  const grid = document.getElementById("param-grid");
+  for (const def of PARAM_DEFS) {
+    const div = document.createElement("div");
+    div.className = "ctl";
+    div.innerHTML = `<label for="p-${def.key}"><span class="mono">${def.label}</span> <b id="p-${def.key}-v"></b></label>
+      <input id="p-${def.key}" type="range" min="${def.min}" max="${def.max}" step="${def.step}" />`;
+    grid.appendChild(div);
+    div.querySelector("input").addEventListener("input", (e) => {
+      sim.params[def.key] = Number(e.target.value);
+      renderSim();
+    });
+  }
+}
+
+// Key-value rows that explain one simulator result, step by step. The set of rows is fixed, so the card keeps its
+// height while the query changes
+function describe(trace, params, fix) {
+  const matched = trace.hits.filter((h) => h.matched).length;
+  const extended = trace.hits.filter((h) => h.extended).length;
+  const seeds = trace.extensions;
+  const prefix = seeds.length > 1 ? `${seeds.length} seeds: ` : "";
+  const stop = (how) => (how === "end" ? "query end" : "mismatches");
+  const ends = (e) =>
+    e.leftStop === "end" && e.rightStop === "end" ? "reaches both query ends" : `stops at ${stop(e.leftStop)} (left), ${stop(e.rightStop)} (right)`;
+  // Short lists read best as a sum, long ones as counts per piece length
+  const sizes = (e) =>
+    e.pieces.length <= 4
+      ? `${e.pieces.map((p) => p.length).join(" + ")} nt`
+      : Object.entries(Object.groupBy(e.pieces, (p) => p.length))
+          .map(([len, group]) => `${group.length} x ${len} nt`)
+          .join(" + ");
+  const pieces = (e) =>
+    e.pieces.length === 0 ? `${e.end - e.start} nt, under ${params.minMatchLength} nt: none` : `${e.end - e.start} nt cut into ${sizes(e)}`;
+  const left = seeds.reduce((sum, e) => sum + e.leftTrim, 0);
+  const right = seeds.reduce((sum, e) => sum + e.rightTrim, 0);
+  const pass = trace.cover >= params.minSeedCover;
+  const cut = trace.totals.cut;
+  return [
+    ["k-mers", `${matched} of ${trace.hits.length} match, ${extended} ${extended === 1 ? "starts" : "start"} a seed`],
+    ["Extend", seeds.length === 0 ? "no seed" : prefix + seeds.map(ends).join("; ")],
+    ["Trim", seeds.length === 0 ? "-" : left + right > 0 ? `${left} nt left, ${right} nt right` : "none"],
+    ["Pieces", seeds.length === 0 ? "none" : prefix + seeds.map(pieces).join("; ")],
+    ["Not counted", cut > 0 ? `${cut} nt (${fix ? "outside the chain" : "last piece overlaps"})` : "0 nt"],
+    ["Cover", `${trace.counted} / ${trace.length} = ${(100 * trace.cover).toFixed(1)}%, ${pass ? "not below" : "below"} ${(100 * params.minSeedCover).toFixed(0)}%: <b>${pass ? "aligned" : "rejected"}</b>`],
+  ];
+}
+
+function resultCard(title, trace, params, fix) {
+  const pass = trace.cover >= params.minSeedCover;
+  const segs = ["counted", "trimmed", "cut", "unreached"]
+    .map((c) => `<span style="width:${(100 * trace.totals[c]) / trace.length}%;background:${COLORS[c]}" title="${CATEGORY_LABELS[c]}: ${trace.totals[c]} nt"></span>`)
+    .join("");
+  const legend = ["counted", "trimmed", "cut", "unreached"]
+    .map((c) => `<span><span class="sw" style="background:${COLORS[c]}"></span>${CATEGORY_LABELS[c]} <b>${trace.totals[c]}</b></span>`)
+    .join("");
+  return `<div class="result ${pass ? "pass" : "fail"}">
+    <div class="result-top"><span class="title">${title}</span><span><span class="cov">${(100 * trace.cover).toFixed(1)}%</span> <span class="pill ${pass ? "ok" : "err"}">${pass ? "aligned" : "rejected"}</span></span></div>
+    <div class="budget">${segs}<span class="thr" style="left:${100 * params.minSeedCover}%" title="minSeedCover ${params.minSeedCover}"></span></div>
+    <div class="budget-legend">${legend}</div>
+    <dl class="kv explain">${describe(trace, params, fix).map(([k, v]) => `<dt>${k}</dt><dd title="${v.replace(/<[^>]+>/g, "")}">${v}</dd>`).join("")}</dl>
+  </div>`;
+}
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+function el(name, attrs, parent, text) {
+  const node = document.createElementNS(SVG_NS, name);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  if (text !== undefined) node.textContent = text;
+  if (parent) parent.appendChild(node);
+  return node;
+}
+
+function renderSim() {
+  const p = sim.params;
+  const current = seedCover(sim.length, sim.mismatches, p, false);
+  const fixed = seedCover(sim.length, sim.mismatches, p, true);
+  document.getElementById("results").innerHTML =
+    resultCard("Current code (3.30.0)", current, p, false) + resultCard("Proposed fix", fixed, p, true);
+  syncControls();
+
+  const wrap = document.getElementById("sim-svg-wrap");
+  const width = Math.max(260, wrap.clientWidth);
+  const narrow = width < 600;
+  const labelW = narrow ? 64 : 132;
+  const plotW = width - labelW - 10;
+  const L = sim.length;
+  const x = (pos) => labelW + (pos * plotW) / L;
+  const svg = document.getElementById("sim-svg");
+  svg.innerHTML = "";
+
+  // Fixed height: extensions after the 2nd share the 2nd sub-row, so the tracks do not move while the query changes
+  const extH = 2 * 8 + 4;
+  const rows = [
+    { id: "ruler", h: 20 },
+    { id: "query", label: narrow ? "Query" : "Query vs ref.", h: 18, steps: [1, 2] },
+    { id: "kmers", label: narrow ? "k-mers" : "k-mers (3 frames)", h: 26, steps: [1] },
+    { id: "g-cur", group: "Current code", h: 24 },
+    { id: "ext-cur", label: narrow ? "Seed" : "Extended seed", h: extH, steps: [2, 3], trace: current },
+    { id: "pcs-cur", label: "Pieces", h: 32, steps: [4, 5], trace: current },
+    { id: "cat-cur", label: narrow ? "Counted" : "Counted nt", h: 14, steps: [5, 6], trace: current },
+    { id: "g-fix", group: "Proposed fix", h: 24 },
+    { id: "ext-fix", label: narrow ? "Seed" : "Extended seed", h: extH, steps: [2, 3], trace: fixed },
+    { id: "pcs-fix", label: "Pieces", h: 32, steps: [4, 5], trace: fixed },
+    { id: "cat-fix", label: narrow ? "Counted" : "Counted nt", h: 14, steps: [5, 6], trace: fixed },
+  ];
+  let y = 4;
+  for (const row of rows) {
+    row.y = y;
+    y += row.h + 6;
+  }
+  svg.setAttribute("width", width);
+  svg.setAttribute("height", y + 2);
+  svg.setAttribute("viewBox", `0 0 ${width} ${y + 2}`);
+
+  const defs = el("defs", {}, svg);
+  const pat = el("pattern", { id: "hatch", width: 5, height: 5, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+  el("rect", { width: 5, height: 5, fill: "#3a3210" }, pat);
+  el("line", { x1: 0, y1: 0, x2: 0, y2: 5, stroke: COLORS.trimmed, "stroke-width": 3 }, pat);
+
+  for (const row of rows) {
+    const hl = row.steps && row.steps.some((s) => sim.highlight.has(s));
+    if (hl) el("rect", { x: 0, y: row.y - 3, width, height: row.h + 6, fill: "#369efc1f", rx: 4 }, svg);
+    if (row.label) {
+      el("text", { x: 4, y: row.y + row.h / 2 + 4, "font-size": 12, fill: hl ? "#ededed" : "#8a8a8a", "font-weight": hl ? 700 : 400 }, svg, row.label);
+    }
+    if (row.group) {
+      const tr = row.id === "g-cur" ? current : fixed;
+      const pass = tr.cover >= p.minSeedCover;
+      el("line", { x1: 0, x2: width, y1: row.y + 2, y2: row.y + 2, stroke: "#2e2e2e" }, svg);
+      el("text", { x: 4, y: row.y + 18, "font-size": 14, "font-weight": 700, fill: "#ededed" }, svg, row.group);
+      el("text", { x: width - 6, y: row.y + 18, "font-size": 14, "font-weight": 700, "text-anchor": "end", fill: pass ? "#6fd283" : "#ff7b72" }, svg, `${(100 * tr.cover).toFixed(1)}% ${pass ? "aligned" : "rejected"}`);
+    }
+  }
+
+  const R = Object.fromEntries(rows.map((r) => [r.id, r]));
+
+  // Ruler
+  const tickStep = L <= 120 ? 10 : L <= 300 ? 25 : L <= 600 ? 50 : 100;
+  for (let pos = 0; pos <= L; pos += tickStep) {
+    el("line", { x1: x(pos), x2: x(pos), y1: R.ruler.y + 14, y2: R.ruler.y + 20, stroke: "#555" }, svg);
+    el("text", { x: x(pos), y: R.ruler.y + 11, "font-size": 12, fill: "#8a8a8a", "text-anchor": "middle" }, svg, pos);
+  }
+
+  // Query track
+  const mmSet = new Set(sim.mismatches);
+  const cellW = plotW / L;
+  const q = R.query;
+  el("rect", { x: x(0), y: q.y, width: plotW, height: q.h, fill: COLORS.match, rx: 2 }, svg);
+  if (cellW >= 3) {
+    for (let i = 1; i < L; i++) el("line", { x1: x(i), x2: x(i), y1: q.y, y2: q.y + q.h, stroke: "#1a1a1a", "stroke-width": 0.6 }, svg);
+  }
+  for (const pos of sim.mismatches) {
+    const r = el("rect", { x: x(pos), y: q.y, width: Math.max(1.5, cellW - (cellW >= 3 ? 0.6 : 0)), height: q.h, fill: COLORS.mismatch }, svg);
+    el("title", {}, r, `position ${pos}: substitution`);
+  }
+  const hit = el("rect", { x: x(0), y: q.y - 2, width: plotW, height: q.h + 4, fill: "transparent", style: "cursor:pointer" }, svg);
+  hit.addEventListener("click", (ev) => {
+    const box = svg.getBoundingClientRect();
+    const px = ((ev.clientX - box.left) * width) / box.width;
+    const pos = Math.floor(((px - labelW) * L) / plotW);
+    if (pos < 0 || pos >= L) return;
+    if (mmSet.has(pos)) sim.mismatches = sim.mismatches.filter((m) => m !== pos);
+    else sim.mismatches = [...sim.mismatches, pos].sort((a, b) => a - b);
+    sim.preset = "custom";
+    sim.divergence = sim.mismatches.length / L;
+    renderSim();
+  });
+
+  // k-mer hits, one sub-row per frame
+  for (const h of current.hits) {
+    const yy = R.kmers.y + h.frame * 9;
+    const x0 = x(h.span[0]);
+    const x1 = x(h.span[h.span.length - 1] + 1);
+    let attrs;
+    if (!h.matched) attrs = { fill: "#3d3d3d" };
+    else if (h.extended) attrs = { fill: COLORS.kmer };
+    else attrs = { fill: "none", stroke: COLORS.kmer, "stroke-width": 1, "stroke-dasharray": "2 2" };
+    const r = el("rect", { x: x0, y: yy, width: Math.max(2, x1 - x0), height: 7, rx: 1.5, ...attrs }, svg);
+    el("title", {}, r, `frame ${h.frame}, k-mer at ${h.span[0]}-${h.span[h.span.length - 1]}: ${!h.matched ? "no exact match" : h.extended ? "match, starts a seed" : "match inside a known seed, skipped"}`);
+  }
+
+  // Extensions, pieces, categories
+  for (const [suffix, tr] of [["cur", current], ["fix", fixed]]) {
+    const er = R[`ext-${suffix}`];
+    tr.extensions.forEach((e, i) => {
+      const yy = er.y + Math.min(i, 1) * 8;
+      const r = el("rect", { x: x(e.rawStart), y: yy, width: Math.max(1, x(e.rawEnd) - x(e.rawStart)), height: 6, fill: COLORS.ext, rx: 1 }, svg);
+      el("title", {}, r, `extended ${e.rawStart}-${e.rawEnd}, after trim ${e.start}-${e.end}`);
+      if (e.leftTrim > 0) {
+        const t = el("rect", { x: x(e.rawStart), y: yy - 1, width: x(e.rawStart + e.leftTrim) - x(e.rawStart), height: 8, fill: "url(#hatch)" }, svg);
+        el("title", {}, t, `trimmed ${e.leftTrim} nt at the left`);
+      }
+      if (e.rightTrim > 0) {
+        const t = el("rect", { x: x(e.rawEnd - e.rightTrim), y: yy - 1, width: x(e.rawEnd) - x(e.rawEnd - e.rightTrim), height: 8, fill: "url(#hatch)" }, svg);
+        el("title", {}, t, `trimmed ${e.rightTrim} nt at the right`);
+      }
+      el("circle", { cx: x(e.seedPos), cy: yy + 3, r: 2.6, fill: COLORS.kmer }, svg);
+    });
+
+    const pr = R[`pcs-${suffix}`];
+    tr.extensions.forEach((e) => {
+      e.pieces.forEach((piece, k) => {
+        const yy = pr.y + (k % 2) * 17;
+        const attrs = piece.chosen
+          ? { fill: COLORS.counted, "fill-opacity": 0.85 }
+          : { fill: "#b180d733", stroke: COLORS.cut, "stroke-width": 1.2, "stroke-dasharray": "3 2" };
+        const r = el("rect", { x: x(piece.start) + 0.5, y: yy, width: Math.max(1, x(piece.start + piece.length) - x(piece.start) - 1), height: 15, rx: 2, ...attrs }, svg);
+        el("title", {}, r, `piece ${piece.start}-${piece.start + piece.length} (${piece.length} nt): ${piece.chosen ? "counted" : "overlaps, not counted"}`);
+        if (x(piece.start + piece.length) - x(piece.start) > 26) {
+          el("text", { x: (x(piece.start) + x(piece.start + piece.length)) / 2, y: yy + 11.5, "font-size": 12, "text-anchor": "middle", fill: piece.chosen ? "#0b1f10" : "#e0c8f5", "font-weight": 700, "pointer-events": "none" }, svg, piece.length);
+        }
+      });
+    });
+
+    const cr = R[`cat-${suffix}`];
+    let runStart = 0;
+    for (let i = 1; i <= L; i++) {
+      if (i === L || tr.category[i] !== tr.category[runStart]) {
+        const c = tr.category[runStart];
+        const r = el("rect", { x: x(runStart), y: cr.y, width: Math.max(0.8, x(i) - x(runStart)), height: cr.h, fill: COLORS[c] }, svg);
+        el("title", {}, r, `${runStart}-${i}: ${CATEGORY_LABELS[c]} (${i - runStart} nt)`);
+        runStart = i;
+      }
+    }
+  }
+
+  const legend = [
+    ["substitution vs reference", COLORS.mismatch],
+    ["k-mer that starts a seed", COLORS.kmer],
+    ["k-mer without exact match", "#3d3d3d"],
+    ["extended seed", COLORS.ext],
+    ["trimmed", COLORS.trimmed],
+    ["counted piece / nt", COLORS.counted],
+    ["piece or nt that does not count", COLORS.cut],
+    ["no seed", COLORS.unreached],
+  ];
+  document.getElementById("sim-legend").innerHTML = legend
+    .map(([label, color]) => `<span><span class="sw" style="background:${color}"></span>${label}</span>`)
+    .join("");
+}
+
+function setupSimulator() {
+  buildParamControls();
+  regenerate();
+  document.getElementById("preset").addEventListener("change", (e) => {
+    sim.preset = e.target.value;
+    if (sim.preset === "random" && sim.divergence === 0) sim.divergence = 0.13;
+    regenerate();
+    renderSim();
+  });
+  document.getElementById("len").addEventListener("input", (e) => {
+    sim.length = Number(e.target.value);
+    if (sim.preset !== "perfect") sim.preset = "random";
+    regenerate();
+    renderSim();
+  });
+  document.getElementById("div").addEventListener("input", (e) => {
+    sim.divergence = Number(e.target.value) / 100;
+    sim.preset = sim.divergence === 0 ? "perfect" : "random";
+    regenerate();
+    renderSim();
+  });
+  document.getElementById("wobble").addEventListener("change", (e) => {
+    sim.wobble = e.target.checked;
+    if (sim.preset === "random") {
+      regenerate();
+      renderSim();
+    }
+  });
+  document.getElementById("reroll").addEventListener("click", () => {
+    sim.seed += 1;
+    if (sim.preset !== "random") {
+      sim.preset = "random";
+      if (sim.divergence === 0) sim.divergence = 0.13;
+    }
+    regenerate();
+    renderSim();
+  });
+  document.getElementById("reset-params").addEventListener("click", () => {
+    sim.params = { ...EV_A71_PARAMS };
+    renderSim();
+  });
+  // Step buttons sit right above the tracks; a click highlights the rows of that step
+  const strip = document.getElementById("step-strip");
+  const note = document.getElementById("step-note");
+  const defaultNote = "Pick a step to highlight its rows below.";
+  note.textContent = defaultNote;
+  const buttons = STEPS.map((step) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = `${step.n}. ${step.name}`;
+    button.setAttribute("aria-pressed", "false");
+    if (step.flaw) button.classList.add("flaw");
+    strip.appendChild(button);
+    button.addEventListener("click", () => {
+      const on = !sim.highlight.has(step.n);
+      sim.highlight = on ? new Set([step.n]) : new Set();
+      buttons.forEach((b, i) => b.setAttribute("aria-pressed", String(on && STEPS[i].n === step.n)));
+      note.innerHTML = on ? `<b>${step.name}${step.flaw ? " (flaw)" : ""}</b>: ${step.note}` : defaultNote;
+      renderSim();
+    });
+    return button;
+  });
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(renderSim, 120);
+  });
+  renderSim();
+}
+
+/* ---------------- Charts ---------------- */
+
+Chart.defaults.color = "#c2c2c2";
+Chart.defaults.borderColor = "#2a2a2a";
+Chart.defaults.font.family = "'Noto Sans', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) Chart.defaults.animation = false;
+
+function percentile(sorted, q) {
+  if (sorted.length === 0) return null;
+  const idx = Math.min(sorted.length - 1, Math.max(0, Math.round(q * (sorted.length - 1))));
+  return sorted[idx];
+}
+
+function setupPassChart() {
+  let metric = "pass";
+  const thrInput = document.getElementById("thr");
+  const rowsFor = (type, len) => REAL.filter((r) => r[0] === type && r[1] === len);
+  const values = (type) => {
+    const thr = Number(thrInput.value);
+    return LENGTHS.map((len) => {
+      const rows = rowsFor(type, len);
+      if (metric === "pass") return (100 * rows.filter((r) => r[2] / 100 >= thr - 1e-9).length) / rows.length;
+      return rows.reduce((s, r) => s + r[2], 0) / rows.length;
+    });
+  };
+  const thrLine = () => LENGTHS.map(() => 100 * Number(thrInput.value));
+  const chart = new Chart(document.getElementById("pass-chart"), {
+    type: "line",
+    data: {
+      labels: LENGTHS.map((l) => `${l} nt`),
+      datasets: [
+        ...TYPES.map((t) => ({ label: t.label, data: values(t.key), borderColor: t.color, backgroundColor: t.color, borderWidth: t.key === "ev-a71" ? 3.5 : 2, pointRadius: 4, tension: 0 })),
+        { label: "minSeedCover", data: thrLine(), borderColor: "#e2e2e2", borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, hidden: true },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      scales: {
+        y: { min: 0, max: 100, title: { display: true, text: "fragments that pass (%)" }, ticks: { callback: (v) => `${v}%` } },
+        x: { title: { display: true, text: "fragment length" } },
+      },
+      plugins: {
+        legend: { labels: { usePointStyle: true, filter: (item) => item.text !== "minSeedCover" || metric === "cover" } },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(0)}%` } },
+      },
+    },
+  });
+  const update = () => {
+    document.getElementById("thr-v").textContent = Number(thrInput.value).toFixed(2);
+    TYPES.forEach((t, i) => { chart.data.datasets[i].data = values(t.key); });
+    chart.data.datasets[3].data = thrLine();
+    chart.data.datasets[3].hidden = metric !== "cover";
+    chart.options.scales.y.title.text = metric === "pass" ? "fragments that pass (%)" : "mean seed cover (%)";
+    chart.update();
+  };
+  thrInput.addEventListener("input", update);
+  for (const b of document.querySelectorAll("#metric-seg button")) {
+    b.addEventListener("click", () => {
+      metric = b.dataset.m;
+      document.querySelectorAll("#metric-seg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      update();
+    });
+  }
+}
+
+function setupFixChart() {
+  const divs = [0, 0.05, 0.1, 0.13, 0.2, 0.3];
+  const select = document.getElementById("fix-div");
+  select.innerHTML = divs.map((d) => `<option value="${d}" ${d === 0.13 ? "selected" : ""}>${Math.round(d * 100)}% substitutions</option>`).join("");
+  const N = 60;
+  const model = (div, fix) =>
+    LENGTHS.map((len, li) => {
+      const rng = mulberry32(1000 + li * 97 + Math.round(div * 1000));
+      let sum = 0;
+      for (let k = 0; k < N; k++) sum += seedCover(len, randomMismatches(len, div, false, rng), EV_A71_PARAMS, fix).cover;
+      return (100 * sum) / N;
+    });
+  const measured = (div) =>
+    LENGTHS.map((len) => {
+      const rows = SYN.filter((r) => Math.abs(r[0] - div) < 1e-9 && r[1] === len);
+      return rows.reduce((s, r) => s + r[2], 0) / rows.length;
+    });
+  const chart = new Chart(document.getElementById("fix-chart"), {
+    type: "line",
+    data: {
+      labels: LENGTHS.map((l) => `${l}`),
+      datasets: [
+        { label: "Nextclade 3.30.0 (measured)", data: [], showLine: false, pointRadius: 6, pointStyle: "rectRot", borderColor: COLORS.ev, backgroundColor: COLORS.ev },
+        { label: "Model: current code", data: [], borderColor: COLORS.ev, borderDash: [6, 4], borderWidth: 2, pointRadius: 0, pointStyle: "line" },
+        { label: "Model: proposed fix", data: [], borderColor: COLORS.fix, borderWidth: 3, pointRadius: 3, backgroundColor: COLORS.fix, clip: false },
+        { label: "minSeedCover 0.79", data: LENGTHS.map(() => 79), borderColor: "#e2e2e2", borderDash: [3, 4], borderWidth: 1.2, pointRadius: 0, pointStyle: "line" },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      scales: {
+        y: { min: 40, max: 100, title: { display: true, text: "mean seed cover (%)" } },
+        x: { title: { display: true, text: "fragment length (nt)" } },
+      },
+      plugins: {
+        legend: { labels: { usePointStyle: true, boxWidth: 8, font: { size: 12 } } },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}%` } },
+      },
+    },
+  });
+  const update = () => {
+    const div = Number(select.value);
+    chart.data.datasets[0].data = measured(div);
+    chart.data.datasets[1].data = model(div, false);
+    chart.data.datasets[2].data = model(div, true);
+    chart.update();
+  };
+  select.addEventListener("change", update);
+  update();
+}
+
+function setupPrivChart() {
+  const groups = TYPES.map((t) => ({
+    ...t,
+    stats: LENGTHS.map((len) => {
+      const vals = REAL.filter((r) => r[0] === t.key && r[1] === len && r[3] !== null && (t.key !== "ev-a71" || r[4] === 0))
+        .map((r) => r[3])
+        .sort((a, b) => a - b);
+      return { lo: percentile(vals, 0.1), med: percentile(vals, 0.5), hi: percentile(vals, 0.9) };
+    }),
+  }));
+  // Draw each median as a line across its own bar
+  const medians = {
+    id: "medians",
+    afterDatasetsDraw(chart) {
+      const { ctx, scales } = chart;
+      groups.forEach((g, i) => {
+        chart.getDatasetMeta(i).data.forEach((bar, j) => {
+          const median = g.stats[j].med;
+          if (median === null) return;
+          const y = scales.y.getPixelForValue(median);
+          ctx.save();
+          ctx.strokeStyle = g.color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(bar.x - bar.width / 2 - 2, y);
+          ctx.lineTo(bar.x + bar.width / 2 + 2, y);
+          ctx.stroke();
+          ctx.restore();
+        });
+      });
+    },
+  };
+  new Chart(document.getElementById("priv-chart"), {
+    type: "bar",
+    data: {
+      labels: LENGTHS.map((l) => `${l}`),
+      datasets: groups.map((g) => ({
+        label: g.label,
+        data: g.stats.map((s) => [s.lo, s.hi]),
+        backgroundColor: `${g.color}40`,
+        borderColor: g.color,
+        borderWidth: 1,
+        borderSkipped: false,
+        barPercentage: 0.85,
+        categoryPercentage: 0.8,
+      })),
+    },
+    plugins: [medians],
+    options: {
+      maintainAspectRatio: false,
+      scales: {
+        y: { min: 0, title: { display: true, text: "private subs per 100 nt" } },
+        x: { title: { display: true, text: "fragment length (nt)" } },
+      },
+      plugins: {
+        legend: { labels: { usePointStyle: true, boxWidth: 8, font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: (c) => {
+              const s = groups[c.datasetIndex].stats[c.dataIndex];
+              return `${groups[c.datasetIndex].label}: p10 ${s.lo?.toFixed(1)}, median ${s.med?.toFixed(1)}, p90 ${s.hi?.toFixed(1)}`;
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+setupSimulator();
+setupPassChart();
+setupFixChart();
+setupPrivChart();
+</script>
+</body>
+</html>
