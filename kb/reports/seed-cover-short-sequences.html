@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&display=swap" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;700&display=swap" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
 <style>
   :root {
     /* Surfaces and text: achromatic */
@@ -1150,21 +1149,25 @@ function setupSimulator() {
 
 /* ---------------- Charts ---------------- */
 
-// Chart.js comes from a CDN. Some page hosts, such as htmlpreview.github.io, run this script before the library has
-// loaded, so the charts start when the library is there, and show a message when it does not arrive in time
-function whenChartReady(start, deadline = Date.now() + 15000) {
-  if (window.Chart) {
-    start();
-    return;
+// Chart.js loads from this script instead of a <script src> tag, because page hosts such as htmlpreview.github.io
+// skip external script tags. The charts start when it has loaded, and show a message when it fails
+function loadChartJs() {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js";
+    script.integrity = "sha512-Y51n9mtKTVBh3Jbx5pZSJNDDMyY+yGe77DGtBPzRlgsf/YLCh13kSZ3JmfHGzYFCmOndraf0sQgfM654b7dJ3w==";
+    script.crossOrigin = "anonymous";
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Chart.js did not load from cdnjs.cloudflare.com"));
+    document.head.appendChild(script);
+  });
+}
+
+function showChartsMissing(error) {
+  for (const box of document.querySelectorAll(".chart-box")) {
+    box.textContent = `${error.message}, so this chart is missing.`;
+    box.classList.add("hint");
   }
-  if (Date.now() > deadline) {
-    for (const box of document.querySelectorAll(".chart-box")) {
-      box.textContent = "Chart.js did not load from cdnjs.cloudflare.com, so this chart is missing.";
-      box.classList.add("hint");
-    }
-    return;
-  }
-  setTimeout(() => whenChartReady(start, deadline), 100);
 }
 
 function configureCharts() {
@@ -1356,12 +1359,14 @@ function setupPrivChart() {
 }
 
 setupSimulator();
-whenChartReady(() => {
-  configureCharts();
-  setupPassChart();
-  setupFixChart();
-  setupPrivChart();
-});
+loadChartJs()
+  .then(() => {
+    configureCharts();
+    setupPassChart();
+    setupFixChart();
+    setupPrivChart();
+  })
+  .catch(showChartsMissing);
 </script>
 </body>
 </html>
