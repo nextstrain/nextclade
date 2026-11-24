@@ -1,8 +1,16 @@
-## Unreleased
+## 3.30.0
 
-### Nextclade CLI and Nextclade Web: quality control
+### Nextclade CLI and Nextclade Web: recombination detection (experimental)
 
-- **QC thresholds scaled with sequence length**: with the new `lengthScaling` object in `pathogen.json`, the missing data, mixed sites and private mutations QC rules scale their thresholds with the length of each sequence, so that sequences of one gene are no longer judged by full-genome thresholds. Datasets without `lengthScaling` keep their scores. Results report the scaling factor, and the CSV and TSV outputs have new `qc.<rule>.lengthScaling.factor` columns, which move the columns after them. See [Algorithm: Quality control](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/06-quality-control.html#scaling-with-sequence-length)
+Nextclade can now flag putative recombinant regions: parts of a sequence that differ strongly from its nearest relative on the reference tree, a typical sign of recombination between distant lineages. Nextclade Web marks these regions in purple in the sequence view and shows their length in the new "Rec." column. The JSON, CSV and TSV results list them, so that you can check or mask them.
+
+Detection runs for the datasets that enable it. In Nextclade CLI, you can turn it on or off for a run with `--with-recombination` and `--without-recombination`. See the [documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/08-recombination-detection.html) and [#1774](https://github.com/nextstrain/nextclade/pull/1774).
+
+This is an experimental feature. Its settings, outputs and results can change in any release, including minor and patch releases, outside of the usual semantic versioning rules.
+
+### Nextclade CLI and Nextclade Web: QC thresholds scaled with sequence length
+
+Datasets can now scale the thresholds of the missing data, mixed sites and private mutations QC rules with the length of each sequence, so that a fragment of one gene is no longer judged by full-genome thresholds. Datasets without the new `lengthScaling` setting keep their scores. The new `qc.<rule>.lengthScaling.factor` columns in CSV and TSV results shift the columns after them. See the [documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/algorithm/06-quality-control.html#scaling-with-sequence-length) and [#1856](https://github.com/nextstrain/nextclade/pull/1856).
 
 ## 3.29.1
 
