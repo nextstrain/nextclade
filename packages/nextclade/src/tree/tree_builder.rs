@@ -372,6 +372,7 @@ pub fn knit_into_graph(
         convert_private_mutations_to_node_branch_attrs(&new_internal_node.tmp.private_mutations);
       if let Some(labels) = &mut new_internal_node.branch_attrs.labels {
         labels.clade = None; //nuke existing clade labels
+        labels.other = serde_json::Value::default(); //nuke existing labels of clade-like attrs
       }
       set_branch_attrs_aa_labels(&mut new_internal_node);
 
@@ -388,18 +389,30 @@ pub fn knit_into_graph(
 
       // Vote for the most plausible clade-like attrs
       let clade_attrs = vote_for_clade_like_attrs(graph, target_node, result);
+      let clade_like_labels_to_move = find_clade_like_labels_to_move(graph, target_node, &clade_attrs);
       new_internal_node.set_clade_node_attrs(clade_attrs);
 
-      // If decided, then move the clade label from target node to the internal node
-      if should_relabel {
+      // If decided, then move the clade and clade-like labels from target node to the internal node
+      if should_relabel || !clade_like_labels_to_move.is_empty() {
         let target_node = graph.get_node_mut(target_key)?;
         if let Some(target_labels) = &mut target_node.payload_mut().branch_attrs.labels {
-          target_labels.clade = None;
-          new_internal_node
+          let new_labels = new_internal_node
             .branch_attrs
             .labels
-            .get_or_insert_with(TreeBranchAttrsLabels::default)
-            .clade = clade;
+            .get_or_insert_with(TreeBranchAttrsLabels::default);
+          if should_relabel {
+            target_labels.clade = None;
+            new_labels.clade = clade;
+          }
+          for key in clade_like_labels_to_move {
+            if let Some(label) = target_labels
+              .other
+              .as_object_mut()
+              .and_then(|labels| labels.remove(&key))
+            {
+              new_labels.other[key] = label;
+            }
+          }
         }
       }
 
@@ -507,5 +520,36 @@ fn vote_for_clade_like_attrs(
     .filter_map(|(key, grouped_values)| {
       mode(grouped_values.into_iter().cloned()).map(|most_common| (key.clone(), most_common))
     })
+    .collect()
+}
+
+// Find clade-like attributes whose branch labels should move from the target node to the new internal node.
+// Same rule as for clade labels: the target node's value wins the vote and differs from the parent's value.
+fn find_clade_like_labels_to_move(
+  graph: &AuspiceGraph,
+  target_node: &Node<AuspiceGraphNodePayload>,
+  new_attrs: &BTreeMap<String, String>,
+) -> Vec<String> {
+  let Some(target_labels) = target_node
+    .payload()
+    .branch_attrs
+    .labels
+    .as_ref()
+    .and_then(|labels| labels.other.as_object())
+  else {
+    return vec![];
+  };
+
+  let parent_node = graph.parent_of(target_node);
+
+  new_attrs
+    .iter()
+    .filter(|(key, value)| {
+      let value = Some(value.as_str());
+      let target_value = target_node.payload().get_clade_node_attr(key);
+      let parent_value = parent_node.and_then(|node| node.payload().get_clade_node_attr(key));
+      target_labels.contains_key(*key) && target_value == value && parent_value != value
+    })
+    .map(|(key, _)| key.clone())
     .collect()
 }
